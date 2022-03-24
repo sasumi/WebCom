@@ -18,6 +18,26 @@ const DialogManager = (() => {
 	/** @var Dialog[] **/
 	let dialogs = [];
 
+	let close =  (dlg, destroy = true) => {
+		dialogs = dialogs.filter(d => dlg !== d);
+		let nextShow = dialogs.find(d=> d.active);
+		if(!nextShow){
+			nextShow = dialogs.find(d => d.visible);
+		}
+		if(nextShow){
+			DialogManager.show(nextShow);
+		}else{
+			Masker.hide();
+		}
+		if(destroy){
+			dlg.dom.parentNode.removeChild(dlg.dom);
+		} else {
+			dlg.active = false;
+			dlg.visible = false;
+			dlg.dom.style.display = 'none';
+		}
+	}
+
 	return {
 		register: dlg => {
 			dialogs.push(dlg)
@@ -47,28 +67,10 @@ const DialogManager = (() => {
 			dialogs.push(dlg);
 		},
 
-		close: (dlg, destroy = true) => {
-			dialogs = dialogs.filter(d => dlg !== d);
-			let nextShow = dialogs.find(d=> d.active);
-			if(!nextShow){
-				nextShow = dialogs.find(d => d.visible);
-			}
-			if(nextShow){
-				DialogManager.show(nextShow);
-			}else{
-				Masker.hide();
-			}
-			if(destroy){
-				dlg.dom.parentNode.removeChild(dlg.dom);
-			} else {
-				dlg.active = false;
-				dlg.visible = false;
-				dlg.dom.style.display = 'none';
-			}
-		},
+		close:close,
 
 		hide: dlg =>{
-			return this.close(dlg, false);
+			return close(dlg, false);
 		},
 
 		/**
