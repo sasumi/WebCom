@@ -1,11 +1,11 @@
 import {escapeAttr, dimension2Style} from "../Lang/String.js";
-import {buttonActiveBind, domContained, keepRectCenter, loadCss} from "../Lang/Dom.js";
+import {buttonActiveBind, domContained, insertStyleSheet, keepRectCenter, loadCss} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {KEYS} from "../Lang/Util.js";
 import {BizEvent} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 
-const DLG_CLS_PREF = 'dialog';
+const DLG_CLS_PREF = Theme.Namespace+'dialog';
 const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
@@ -19,9 +19,25 @@ const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
  * Content Type
  * @type {string}
  */
-const DLG_CTN_TYPE_IFRAME = 'iframe';
-const DLG_CTN_TYPE_HTML = 'html';
+const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF+'-ctn-iframe';
+const DLG_CTN_TYPE_HTML = DLG_CLS_PREF+'-ctn-html';
 
+insertStyleSheet(`
+	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:10000;position:fixed;}
+	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {font-size :16px; user-select:none; height:var(--head-height); box-sizing:border-box; padding:6px 10px 0 10px; font-weight:normal;color:#666}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:24px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; padding:10px;}
+	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
+	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
+	.${DLG_CLS_PREF} .dialog-op {padding:10px; text-align:right;}
+	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
+	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
+	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
+	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
+	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
+`)
 
 /** @var Dialog[] **/
 let dialogs = [];
@@ -140,34 +156,10 @@ const resolveContentType = (content)=>{
 	return DLG_CTN_TYPE_HTML;
 }
 
-let css_inserted_flag = false;
-
 /**
  * 构造DOM结构
  */
 const domConstruct = (dlg) => {
-	if(!css_inserted_flag){
-		let stylesheet = document.createElement('style');
-		stylesheet.innerHTML = `
-.dialog {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:10000;position:fixed;}
-.dialog .dialog-ti {font-size :16px; user-select:none; height:var(--head-height); box-sizing:border-box; padding:6px 10px 0 10px; font-weight:normal;color:#666}
-.dialog .dialog-close {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
-.dialog .dialog-close:after {content:"×"; font-size:24px;}
-.dialog .dialog-close:hover {background-color:#eee;}
-.dialog .dialog-ctn {overflow-y:auto; padding:10px;}
-.dialog .dialog-ctn-${DLG_CTN_TYPE_IFRAME} {padding:0}
-.dialog .dialog-ctn-${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
-.dialog .dialog-op {padding:10px; text-align:right;}
-.dialog .dialog-btn {margin-right:0.5em;}
-.dialog .dialog-iframe {border:none; width:100%;}
-.dialog.full-dialog .dialog-ctn {max-height:calc(100vh - 50px); overflow-y:auto}
-.dialog.dialog-active {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
-.dialog.dialog-active .dialog-ti {color:#333}
-`;
-		document.head.appendChild(stylesheet);
-		css_inserted_flag = true;
-	}
-
 	dlg.dom = document.createElement('div');
 	dlg.dom.className = DLG_CLS_PREF;
 	dlg.dom.id = dlg.config.id;
@@ -182,7 +174,7 @@ const domConstruct = (dlg) => {
 	if(dlg.config.minContentHeight !== null){
 		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight) + 'px');
 	}
-	html += `<div class="${DLG_CLS_CTN} ${DLG_CLS_CTN}-${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {

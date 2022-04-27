@@ -1,3 +1,4 @@
+import {insertStyleSheet} from "../Lang/Dom.js";
 /**
  * 类型定义
  */
@@ -9,7 +10,8 @@ const TYPE_LOADING = 'loading';
 
 let TOAST_COLLECTION = [];
 let CLASS_TOAST_WRAP = 'toast-wrap';
-let CSS = `
+
+insertStyleSheet(`
 	.${CLASS_TOAST_WRAP} {position:absolute; z-index:10; top:5px; left:0; width:100%;display: flex; justify-content: center; flex-direction:column; align-items: center;}
 	.toast {padding:10px 35px 10px 15px; position:relative; margin-top:10px; min-width:100px; display:inline-block; border-radius:3px; box-shadow:5px 4px 12px #0003;}
 	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:3px; right:0; cursor:pointer;}
@@ -20,7 +22,7 @@ let CSS = `
 	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
 	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`;
+`);
 
 const getToastWrap = () => {
 	let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);
@@ -32,10 +34,6 @@ const getToastWrap = () => {
 	}
 	return toastWrap;
 };
-
-let stylesheet = document.createElement('style');
-stylesheet.innerHTML = CSS;
-document.head.appendChild(stylesheet);
 
 let _guid = 0;
 const guid = prefix => {

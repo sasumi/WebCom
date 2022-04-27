@@ -25,6 +25,7 @@ export const Theme = {
 	Namespace: NS,
 	IconFont: ICON_FONT,
 	IconFontClass: ICON_FONT_CLASS,
-	DialogIndex: 100,
-	FullScreenModeIndex: 1000
+	DialogIndex: 1000,
+	MaskIndex: 100,
+	FullScreenModeIndex: 10000
 }

@@ -697,32 +697,6 @@
 		return tpl.content.firstChild;
 	};
 
-	let masker = null;
-	let css_class = 'dialog-masker';
-	const DEFAULT_Z_INDEX = 999;
-
-	const showMasker = () => {
-		if(!masker){
-			masker = document.createElement('div');
-			document.body.appendChild(masker);
-			masker.className = css_class;
-			let stylesheet = document.createElement('style');
-			stylesheet.innerHTML = `.${css_class} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`;
-			document.head.appendChild(stylesheet);
-		}
-		masker.style.display = '';
-	};
-
-	const hideMasker = () => {
-		masker && (masker.style.display = 'none');
-	};
-
-	const Masker = {
-		zIndex: DEFAULT_Z_INDEX,
-		show: showMasker,
-		hide: hideMasker
-	};
-
 	const NS = 'WebCom-';
 	const ICON_FONT_CLASS = NS + `icon`;
 	const ICON_FONT = NS+'iconfont';
@@ -748,11 +722,36 @@
 		Namespace: NS,
 		IconFont: ICON_FONT,
 		IconFontClass: ICON_FONT_CLASS,
-		DialogIndex: 100,
-		FullScreenModeIndex: 1000
+		DialogIndex: 1000,
+		MaskIndex: 100,
+		FullScreenModeIndex: 10000
 	};
 
-	const DLG_CLS_PREF = 'dialog';
+	let masker = null;
+	let CSS_CLASS = 'dialog-masker';
+
+	const showMasker = () => {
+		if(!masker){
+			masker = document.createElement('div');
+			document.body.appendChild(masker);
+			masker.className = CSS_CLASS;
+		}
+		masker.style.display = '';
+	};
+
+	const hideMasker = () => {
+		masker && (masker.style.display = 'none');
+	};
+
+	const Masker = {
+		zIndex: Theme.MaskIndex,
+		show: showMasker,
+		hide: hideMasker
+	};
+
+	insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`);
+
+	const DLG_CLS_PREF = Theme.Namespace+'dialog';
 	const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 	const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
@@ -766,9 +765,25 @@
 	 * Content Type
 	 * @type {string}
 	 */
-	const DLG_CTN_TYPE_IFRAME = 'iframe';
-	const DLG_CTN_TYPE_HTML = 'html';
+	const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF+'-ctn-iframe';
+	const DLG_CTN_TYPE_HTML = DLG_CLS_PREF+'-ctn-html';
 
+	insertStyleSheet(`
+	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:10000;position:fixed;}
+	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {font-size :16px; user-select:none; height:var(--head-height); box-sizing:border-box; padding:6px 10px 0 10px; font-weight:normal;color:#666}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:24px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; padding:10px;}
+	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
+	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
+	.${DLG_CLS_PREF} .dialog-op {padding:10px; text-align:right;}
+	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
+	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
+	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
+	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
+	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
+`);
 
 	/** @var Dialog[] **/
 	let dialogs = [];
@@ -887,34 +902,10 @@
 		return DLG_CTN_TYPE_HTML;
 	};
 
-	let css_inserted_flag = false;
-
 	/**
 	 * 构造DOM结构
 	 */
 	const domConstruct = (dlg) => {
-		if(!css_inserted_flag){
-			let stylesheet = document.createElement('style');
-			stylesheet.innerHTML = `
-.dialog {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:10000;position:fixed;}
-.dialog .dialog-ti {font-size :16px; user-select:none; height:var(--head-height); box-sizing:border-box; padding:6px 10px 0 10px; font-weight:normal;color:#666}
-.dialog .dialog-close {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
-.dialog .dialog-close:after {content:"×"; font-size:24px;}
-.dialog .dialog-close:hover {background-color:#eee;}
-.dialog .dialog-ctn {overflow-y:auto; padding:10px;}
-.dialog .dialog-ctn-${DLG_CTN_TYPE_IFRAME} {padding:0}
-.dialog .dialog-ctn-${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
-.dialog .dialog-op {padding:10px; text-align:right;}
-.dialog .dialog-btn {margin-right:0.5em;}
-.dialog .dialog-iframe {border:none; width:100%;}
-.dialog.full-dialog .dialog-ctn {max-height:calc(100vh - 50px); overflow-y:auto}
-.dialog.dialog-active {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
-.dialog.dialog-active .dialog-ti {color:#333}
-`;
-			document.head.appendChild(stylesheet);
-			css_inserted_flag = true;
-		}
-
 		dlg.dom = document.createElement('div');
 		dlg.dom.className = DLG_CLS_PREF;
 		dlg.dom.id = dlg.config.id;
@@ -929,7 +920,7 @@
 		if(dlg.config.minContentHeight !== null){
 			style.push('min-height:' + dimension2Style(dlg.config.minContentHeight) + 'px');
 		}
-		html += `<div class="${DLG_CLS_CTN} ${DLG_CLS_CTN}-${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
+		html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
 		if(dlg.config.buttons.length){
 			html += `<div class="${DLG_CLS_OP}">`;
 			dlg.config.buttons.forEach(button => {
@@ -2024,7 +2015,8 @@
 
 	let TOAST_COLLECTION = [];
 	let CLASS_TOAST_WRAP = 'toast-wrap';
-	let CSS$1 = `
+
+	insertStyleSheet(`
 	.${CLASS_TOAST_WRAP} {position:absolute; z-index:10; top:5px; left:0; width:100%;display: flex; justify-content: center; flex-direction:column; align-items: center;}
 	.toast {padding:10px 35px 10px 15px; position:relative; margin-top:10px; min-width:100px; display:inline-block; border-radius:3px; box-shadow:5px 4px 12px #0003;}
 	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:3px; right:0; cursor:pointer;}
@@ -2035,7 +2027,7 @@
 	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
 	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`;
+`);
 
 	const getToastWrap = () => {
 		let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);
@@ -2047,10 +2039,6 @@
 		}
 		return toastWrap;
 	};
-
-	let stylesheet = document.createElement('style');
-	stylesheet.innerHTML = CSS$1;
-	document.head.appendChild(stylesheet);
 
 	let _guid = 0;
 	const guid$1 = prefix => {
