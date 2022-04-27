@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        h1, h2, h3 {text-transform:capitalize;}
+        :root {
+            --min-height: 300px;
+            --max-height: calc(100wh * 0.4);
+        }
+        html, body {height:100%; box-sizing:border-box; background-color:#eee;}
+        body {padding:20px;}
+        #container {display:block; width:400px; padding:20px; box-shadow:1px 1px 10px #ccc; border:1px solid #ccc; background-color:#fff;}
+        #container img {max-width:100%;}
+
+        .preview-wrap {max-height:40vh; min-height:var(--min-height); overflow:hidden}
+    </style>
+</head>
+<body>
+<h1>html</h1>
+<div id="container">
+    <!-- html here -->
+    <h2>article title</h2>
+    <div class="preview-wrap">
+
+    </div>
+
+    <h2>Comments</h2>
+    <ul>
+        <li><a href="">comment 1</a></li>
+        <li><a href="">comment 2</a></li>
+        <li><a href="">comment 3</a></li>
+        <li><a href="">comment 4</a></li>
+    </ul>
+</div>
+
+<span id="htmlStr" style="display:none"></span>
+<script src="1.js">
+</script>
+</body>
+</html>

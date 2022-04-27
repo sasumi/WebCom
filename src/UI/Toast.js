@@ -1,3 +1,12 @@
+/**
+ * 类型定义
+ */
+const TYPE_INFO = 'info';
+const TYPE_SUCCESS = 'success';
+const TYPE_WARING = 'warning';
+const TYPE_ERROR = 'error';
+const TYPE_LOADING = 'loading';
+
 let TOAST_COLLECTION = [];
 let CLASS_TOAST_WRAP = 'toast-wrap';
 let CSS = `
@@ -6,15 +15,16 @@ let CSS = `
 	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:3px; right:0; cursor:pointer;}
 	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
 	.toast-close:hover {opacity:1}
-	.toast-info {background-color:#ffffff99;}
-	.toast-error {background-color:#ff00008c; color:white;}
-	.toast-warning {background-color:#ff88008c; color:white;}
-	.toast-loading {background-color:#ffffff99; text-shadow:1px 1px 1px #eee;}
+	.toast-${TYPE_INFO} {background-color:#fffffff0;}
+	.toast-${TYPE_SUCCESS} {background-color:#fffffff0;}
+	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
+	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
+	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
 `;
 
 const getToastWrap = () => {
 	let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);
-	if(!toastWrap){
+	if (!toastWrap) {
 		toastWrap = document.createElement('div');
 		toastWrap.className = CLASS_TOAST_WRAP;
 		toastWrap.style.display = 'none';
@@ -32,12 +42,23 @@ const guid = prefix => {
 	return prefix + (++_guid);
 };
 
-class Toast {
+/**
+ * 默认隐藏时间
+ */
+const DEFAULT_ELAPSED_TIME = {
+	[TYPE_INFO]: 2000,
+	[TYPE_SUCCESS]: 1500,
+	[TYPE_WARING]: 3000,
+	[TYPE_ERROR]: 3500,
+	[TYPE_LOADING]: 10000,
+};
+
+export class Toast {
 	id = null;
 	dom = null;
 	_closeTm = null;
 
-	constructor(text, opt){
+	constructor(text, opt) {
 		let option = Object.assign({
 			id: guid('Toast-'),
 			timeout: 400000,
@@ -54,16 +75,16 @@ class Toast {
 		this.dom.innerHTML = close_html + ' ' + text;
 		let toastWrap = getToastWrap();
 		toastWrap.appendChild(this.dom);
-		if(option.closeAble){
+		if (option.closeAble) {
 			this.dom.querySelector('.toast-close').addEventListener('click', () => {
 				this.close();
 			});
 		}
 		TOAST_COLLECTION.push(this);
 
-		if(option.show){
+		if (option.show) {
 			this.show();
-			if(option.timeout){
+			if (option.timeout) {
 				this._closeTm = setTimeout(() => {
 					this.close();
 				}, option.timeout);
@@ -71,42 +92,62 @@ class Toast {
 		}
 	}
 
-	setHtml(html){
+	setHtml(html) {
 		this.dom.innerHTML = html;
 	}
 
-	show(){
+	show() {
 		this.dom.style.display = '';
 		let toastWrap = getToastWrap();
 		toastWrap.style.display = 'flex';
 	}
 
-	close(){
+	close() {
 		this.dom.parentNode.removeChild(this.dom);
 		let toastWrap = getToastWrap();
-		if(!toastWrap.childNodes.length){
+		if (!toastWrap.childNodes.length) {
 			toastWrap.parentNode.removeChild(toastWrap);
 		}
-		delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
+		delete(TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
 		clearTimeout(this._closeTm);
 	}
 
-	static closeAll(){
+	static closeAll() {
 		TOAST_COLLECTION.forEach(t => {
 			t.close()
 		});
 	}
 
-	static showInfo(text, opt){
-		return new Toast(text, {timeout: 400000, class: 'info', ...opt});
+	static showSuccess(text, opt) {
+		return new Toast(text, {
+			timeout: DEFAULT_ELAPSED_TIME[TYPE_SUCCESS],
+			...opt,
+			class: TYPE_SUCCESS
+		});
 	}
 
-	static showWarning(text, opt){
-		return new Toast(text, {timeout: 400000, class: 'warning', ...opt});
+	static showInfo(text, opt) {
+		return new Toast(text, {
+			timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
+			...opt,
+			class: TYPE_INFO
+		});
 	}
 
-	static showError(text, opt = {}){
-		return new Toast(text, {timeout: 400000, class: 'error', ...opt});
+	static showWarning(text, opt) {
+		return new Toast(text, {
+			timeout: DEFAULT_ELAPSED_TIME[TYPE_WARING],
+			...opt,
+			class: TYPE_WARING
+		});
+	}
+
+	static showError(text, opt = {}) {
+		return new Toast(text, {
+			timeout: DEFAULT_ELAPSED_TIME[TYPE_ERROR],
+			...opt,
+			class: TYPE_ERROR
+		});
 	}
 
 	/**
@@ -115,9 +156,10 @@ class Toast {
 	 * @param opt
 	 * @returns {Toast}
 	 */
-	static showLoading(text = '正在加载中···', opt = {}){
-		return new Toast(text, Object.assign({timeout: 0, class: 'loading'}, opt));
-	}
+	static showLoading(text = '加载中···', opt = {}) {
+		return new Toast(text, Object.assign({
+			timeout: 0,
+			class: 'loading'
+		}, opt));
+	};
 }
-
-export {Toast}

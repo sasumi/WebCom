@@ -1,2 +1,3 @@
 .idea
-/app
+.vscode
+node_modules

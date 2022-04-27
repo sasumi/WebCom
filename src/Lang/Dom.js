@@ -52,8 +52,8 @@ export const domContained = (contains, child, includeEqual = false) => {
 	}
 
 	for(let i = 0; i < contains.length; i--){
-		if((includeEqual ? contains === child : false) ||
-			contains.compareDocumentPosition(child) & 16){
+		if((includeEqual ? contains[i] === child : false) ||
+			contains[i].compareDocumentPosition(child) & 16){
 			return true;
 		}
 	}
@@ -143,10 +143,29 @@ export const isElement = (obj) => {
 	}
 };
 
-export const loadCss = (file) => {
+let _c = {};
+
+/**
+ * 挂载css文件
+ * @param {String} file
+ * @param {Boolean} forceReload 是否强制重新挂载，缺省不重复挂载
+ */
+export const loadCss = (file, forceReload = false) => {
+	if(!forceReload && _c[file]){
+		return;
+	}
+	_c[file] = true;
+	let link = document.createElement('link');
+	link.rel = "stylesheet";
+	link.href = file;
+	document.head.append(link);
+};
+
+export const insertStyleSheet = (styleSheetStr)=>{
 	let style = document.createElement('style');
-	style.setAttribute('src', file);
-	document.head.append(style);
+	document.head.appendChild(style);
+	style.innerHTML = styleSheetStr;
+	return style;
 };
 
 

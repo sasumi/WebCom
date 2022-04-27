@@ -1,7 +1,7 @@
 let last_active_ladder = null;
 let ladder_scrolling = false;
 
-export default function(ladder, opt) {
+export const Ladder = (ladder, opt)=>{
 	opt = Object.assign({
 		onAfterScrollTo: function($ladder_node, aim){},
 		onBeforeScrollTo: function(aim){},

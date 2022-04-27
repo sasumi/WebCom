@@ -1,6 +1,6 @@
-import {getRegion, rectInLayout} from "../lang/Dom.js";
-import {KEYS} from "../lang/Util.js";
-import {Net} from "../lang/Net.js";
+import {getRegion, rectInLayout} from "../Lang/Dom.js";
+import {KEYS} from "../Lang/Util.js";
+import {Net} from "../Lang/Net.js";
 
 let OBJ_COLLECTION = {};
 let PRIVATE_VARS = {};

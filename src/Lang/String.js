@@ -32,7 +32,7 @@ export const unescapeHtml = (str)=>{
  * @param preserveCR
  * @returns {string}
  */
-export const escapeAttr = (s, preserveCR) => {
+export const escapeAttr = (s, preserveCR = '') => {
 	preserveCR = preserveCR ? '&#13;' : '\n';
 	return ('' + s) /* Forces the conversion to string. */
 		.replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */
@@ -230,11 +230,11 @@ export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
 };
 
 /**
- * 像素转为CSS可用样式
+ * 数值转为CSS可用样式
  * @param {Number|String} h
  * @returns {string}
  */
-export const px2Str = h => {
+export const dimension2Style = h => {
 	if(/^\d+$/.test(h)){
 		return h + 'px';
 	}

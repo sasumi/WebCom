@@ -1,5 +1,5 @@
-import {guid} from "../lang/Util.js";
-import {createDomByHtml} from "../lang/Dom.js";
+import {guid} from "../Lang/Util.js";
+import {createDomByHtml} from "../Lang/Dom.js";
 
 let CLS = 'com-toc';
 let CLS_ACTIVE = 'active';
@@ -13,8 +13,24 @@ let scroll_top = function(){
 }
 
 let scroll_to = function($node){
-	$('html').stop().animate({scrollTop: $node.offset().top - 10});
+	// $('html').stop().animate({scrollTop: $node.offset().top - 10});
 };
+
+class Toc {
+	constructor({parentNode}){
+	}
+
+	static resolveDom($dom){
+		let tree = [
+			//{id, title, parentId, relateNode}
+			//{id, title, parentId, relateNode}
+			//{id, title, parentId, relateNode}
+		];
+
+		
+
+	}
+}
 
 export const toc = ($content)=>{
 	let html = '<ul class="' + CLS + '">';

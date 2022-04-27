@@ -6,27 +6,26 @@ export default {
 		{
 			format: "umd",
 			name: NS,
-			file: "./dist/main.umd.js"
+			file: "./dist/webcom.umd.js"
 		},
 		{
 			format: "cjs",
 			name: NS,
-			file: "./dist/main.cjs.js"
+			file: "./dist/webcom.cjs.js"
 		},
 		{
 			format: "amd",
 			name: NS,
-			file: "./dist/main.amd.js"
+			file: "./dist/webcom.amd.js"
 		},
 		{
 			format: "es",
-			name: NS,
-			file: "./dist/main.es.js"
+			file: "./dist/webcom.es.js"
 		},
 		{
 			format: "iife",
 			name: NS,
-			file: "./dist/main.browser.js"
+			file: "./dist/webcom.browser.js"
 		}
 	]
 }

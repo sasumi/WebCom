@@ -4,6 +4,11 @@ const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
 const DEFAULT_TIMEOUT = 10;
 
+/**
+ * 构建queryString
+ * @param {String|Object} data
+ * @returns {string}
+ */
 export const buildParam = data => {
 	if(typeof (data) === 'string'){
 		return data;
@@ -17,6 +22,15 @@ export const buildParam = data => {
 	return str.join('&');
 };
 
+/**
+ * 合并请求参数
+ * @param {String} uri
+ * @param {String|Object} data
+ * @returns {*}
+ */
+export const mergerUriParam = (uri, data)=>{
+	return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + buildParam(data);
+}
 
 export const setHash = data => {
 	location.href = location.href.replace(/#.*$/g, '') + '#' + buildParam(data);
@@ -33,7 +47,6 @@ export const getHashObject = (key = '') => {
 	}
 	let obj = {};
 	let ps = hash.split('&');
-	let p;
 	for(let i = 0; i < ps.length; i++){
 		let [k, v] = ps[i].split('=').map(decodeURIComponent);
 		obj[k] = v;
@@ -96,7 +109,6 @@ Net.prototype.onStateChange = state => {
 Net.prototype.onProgress = percent => {
 }
 
-
 Net.get = (url, data) => {
 	return new Promise((resolve, reject) => {
 		let req = new Net(url, data);
@@ -114,7 +126,6 @@ Net.post = (url, data) => {
 		req.send();
 	});
 }
-
 
 /**
  * 文件下载
