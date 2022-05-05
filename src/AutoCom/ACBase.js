@@ -28,6 +28,11 @@ const resolveParam = (node, Name) => {
 	return param;
 };
 
+/**
+ * 校验组件列表
+ * @param ComStrList
+ * @returns {*[]}
+ */
 const validateComponents = (ComStrList) => {
 	let cs = [];
 	for(let i = 0; i < ComStrList.length; i++){

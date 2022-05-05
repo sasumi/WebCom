@@ -350,6 +350,17 @@ const highlightText = (text, kw, replaceTpl = '<span class="matched">%s</span>')
 	});
 };
 
+const convertBlobToBase64 = async (blob)=>{
+	return await blobToBase64(blob);
+};
+
+const blobToBase64 = blob => new Promise((resolve, reject) => {
+	const reader = new FileReader();
+	reader.readAsDataURL(blob);
+	reader.onload = () => resolve(reader.result);
+	reader.onerror = error => reject(error);
+});
+
 const KEYS = {
 	A: 65,
 	B: 66,
@@ -626,10 +637,13 @@ const loadCss = (file, forceReload = false) => {
 	document.head.append(link);
 };
 
-const insertStyleSheet = (styleSheetStr)=>{
+const insertStyleSheet = (styleSheetStr, id='')=>{
 	let style = document.createElement('style');
 	document.head.appendChild(style);
 	style.innerHTML = styleSheetStr;
+	if(id){
+		style.id = id;
+	}
 	return style;
 };
 
@@ -677,6 +691,17 @@ const getRegion = (win) => {
 const rectInLayout = (rect, layout) => {
 	return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width) //左上角
 		&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width); //右下角
+};
+let _img_ins_cache = {
+	//src: {state:PENDING, SUCCESS, ERROR
+};
+const loadImageInstance = (imgSrc)=>{
+	return new Promise((resolve, reject) => {
+		if(_img_ins_cache[imgSrc]){
+			return resolve(_img_ins_cache[imgSrc])
+		}
+
+	})
 };
 
 /**
@@ -747,7 +772,7 @@ const Masker = {
 	hide: hideMasker
 };
 
-insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`);
+insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
 
 const DLG_CLS_PREF = Theme.Namespace+'dialog';
 const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
@@ -775,13 +800,13 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; padding:10px;}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
-	.${DLG_CLS_PREF} .dialog-op {padding:10px; text-align:right;}
+	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:10px; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
-`);
+`, Theme.Namespace+'dialog-style');
 
 /** @var Dialog[] **/
 let dialogs = [];
@@ -1311,6 +1336,10 @@ const ACMultiOperate = (node, param) => {
 };
 
 const ACAsync = (node, param) => {
+	if(!param.url && node.nodeName === 'A' && node.href){
+		param.url = node.href;
+	}
+
 	if(node.nodeName === 'A'){
 		node.getAttribute('href');
 	}
@@ -1381,6 +1410,11 @@ const resolveParam = (node, Name) => {
 	return param;
 };
 
+/**
+ * 校验组件列表
+ * @param ComStrList
+ * @returns {*[]}
+ */
 const validateComponents = (ComStrList) => {
 	let cs = [];
 	for(let i = 0; i < ComStrList.length; i++){
@@ -2025,7 +2059,7 @@ insertStyleSheet(`
 	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
 	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`);
+`, Theme.Namespace+'toast-style');
 
 const getToastWrap = () => {
 	let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);
@@ -2234,6 +2268,112 @@ const copyFormatted = (html, silent = false) => {
 	!silent && Toast.showSuccess(trans('复制成功'));
 };
 
+let cache = {
+	//src: {state:STATE_*, data: null, error:'', callbacks: []}
+};
+
+const STATE_PENDING = 1;
+const STATE_SUCCESS = 2;
+const STATE_ERROR = 3;
+
+const processCallback = (src) => {
+	let ch = cache[src];
+	if(ch.state === STATE_PENDING){
+		return;
+	}
+	if(ch.state === STATE_SUCCESS){
+		let img = new Image();
+		img.src = ch.data;
+		ch.success_callbacks.forEach(resolve => {
+			resolve(img);
+		});
+		ch.success_callbacks = [];
+	}
+	else if(ch.state === STATE_ERROR){
+		ch.error_callbacks.forEach(reject=>{
+			reject(ch.error);
+		});
+		ch.error_callbacks = [];
+	}
+};
+
+/**
+ * 加载一次图片
+ * @param {String} src
+ * @returns {Promise<unknown>}
+ */
+const loadSingleton = (src) => {
+	return new Promise((resolve, reject) => {
+		if(!cache[src]){
+			cache[src] = {
+				state: null,
+				data: null,
+				error: '',
+				success_callbacks: [],
+				error_callbacks: []
+			};
+		}
+		cache[src].success_callbacks.push(resolve);
+		cache[src].error_callbacks.push(reject);
+
+		if(!cache[src].data){
+			let xhr = new XMLHttpRequest();
+			xhr.open('GET', src, true);
+			xhr.responseType = 'blob';
+			xhr.onload = function(){
+				if(this.status === 200){
+					let blob = this.response;
+					let d = convertBlobToBase64(blob);
+					d.then(base64 => {
+						cache[src].state = STATE_SUCCESS;
+						cache[src].data = base64;
+						processCallback(src);
+					}).catch(error => {
+						cache[src].error = error;
+						cache[src].state = STATE_ERROR;
+						processCallback(src);
+					});
+				}
+			};
+			xhr.onerror = function() {
+				cache[src].error = 'Error:'+this.statusText;
+				cache[src].state = STATE_ERROR;
+				processCallback(src);
+			};
+			xhr.onabort = function(){
+				cache[src].error = 'Request abort';
+				cache[src].state = STATE_ERROR;
+				processCallback(src);
+			};
+			xhr.send();
+		}
+		processCallback(src);
+	});
+};
+
+let _base_cache = {};
+const getBase64FromImage = (img) => {
+	let src = img.src;
+	if(src.indexOf('data:') === 0){
+		return img.src;
+	}
+	if(_base_cache[src]){
+		return _base_cache[src];
+	}
+	let canvas = document.createElement("canvas");
+	canvas.width = img.width;
+	canvas.height = img.height;
+	let ctx = canvas.getContext("2d");
+	ctx.drawImage(img, 0, 0, img.width, img.height);
+	_base_cache[src] = canvas.toDataURL("image/png");
+	return _base_cache[src];
+};
+
+const Img = {
+	getBase64FromImage,
+	loadSingleton
+};
+
 const DOM_CLASS = Theme.Namespace+'com-image-viewer';
 const PADDING = '20px';
 
@@ -2242,7 +2382,7 @@ const OP_INDEX = BASE_INDEX+1;
 
 insertStyleSheet(`
 	@keyframes ${Theme.Namespace}spin{100%{transform:rotate(360deg);}}
-	.${DOM_CLASS} {position: absolute; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
+	.${DOM_CLASS} {position: fixed; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
 	.${DOM_CLASS} .civ-closer {position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before {font-family: "${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover {background-color:#eeeeee75;}
@@ -2259,7 +2399,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; font-size:60px; color:#ffffff6e; display:block; animation: ${Theme.Namespace}spin 3s infinite linear;}
 	.${DOM_CLASS} .civ-img {height: calc(100% - ${PADDING}*2); padding:0 ${PADDING}; margin-top:${PADDING}; display: flex; justify-content: center; align-items: center;}
 	.${DOM_CLASS} .civ-img img {max-height:100%; max-width:100%; box-shadow: 1px 1px 20px #898989;}
-`);
+`, Theme.Namespace+'img-preview-style');
 
 class ImgPreview {
 	previewDom = null;
@@ -2282,6 +2422,9 @@ class ImgPreview {
 				`<span class="civ-closer" title="ESC to close">close</span>
 				<span class="civ-nav-btn civ-prev" style="display:none;"></span>
 				<span class="civ-nav-btn civ-next" style="display:none;"></span>
+				<span class="civ-view-option">
+					span.
+				</span>
 				<div class="civ-ctn">
 					<span class="civ-loading"></span>
 					<span class="civ-error"></span>
@@ -2309,7 +2452,7 @@ class ImgPreview {
 			prev.addEventListener('click', e=>{nav(true);});
 			next.addEventListener('click', e=>{nav(false);});
 
-			document.body.addEventListener('keyup', e=>{
+			document.body.addEventListener('keydown', e=>{
 				if(!this.previewDom){
 					return;
 				}
@@ -2371,6 +2514,25 @@ class ImgPreview {
 		}
 	}
 
+	/**
+	 * 通过选择器绑定图片查看器
+	 * @param {String} imgSelector
+	 * @param {String} triggerEvent 触发事件类型，可为 click、dblclick之类的
+	 */
+	static bindImageViaSelector(imgSelector='img', triggerEvent='click'){
+		let images = document.querySelectorAll(imgSelector);
+		let imgSrcList = [];
+		if(!images.length){
+			return;
+		}
+		Array.from(images).forEach((img,idx)=>{
+			imgSrcList.push(img.getAttribute('src'));
+			img.addEventListener(triggerEvent, e=>{
+				ImgPreview.showImg(imgSrcList, idx);
+			});
+		});
+	}
+
 	show(imgSrc){
 		show(this.previewDom);
 		let loading = this.previewDom.querySelector('.civ-loading');
@@ -2379,17 +2541,15 @@ class ImgPreview {
 		img_ctn.innerHTML = '';
 		show(loading);
 		hide(err);
-		let img = new Image();
-		img.onload = ()=>{
+		Img.loadSingleton(imgSrc).then(img=>{
 			hide(loading);
 			img_ctn.innerHTML = '';
 			img_ctn.appendChild(img);
-		};
-		img.onerror = ()=>{
-			err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情</a>`;
+		}, error=>{
+			console.warn(error);
+			err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
 			show(err);
-		};
-		img.src = imgSrc;
+		});
 	}
 
 	close(){
@@ -2936,8 +3096,10 @@ exports.arrayIndex = arrayIndex;
 exports.base64Decode = base64Decode;
 exports.base64UrlSafeEncode = base64UrlSafeEncode;
 exports.between = between;
+exports.blobToBase64 = blobToBase64;
 exports.buildParam = buildParam;
 exports.buttonActiveBind = buttonActiveBind;
+exports.convertBlobToBase64 = convertBlobToBase64;
 exports.copy = copy;
 exports.copyFormatted = copyFormatted;
 exports.createDomByHtml = createDomByHtml;
@@ -2964,6 +3126,7 @@ exports.insertStyleSheet = insertStyleSheet;
 exports.isElement = isElement;
 exports.keepRectCenter = keepRectCenter;
 exports.loadCss = loadCss;
+exports.loadImageInstance = loadImageInstance;
 exports.mergerUriParam = mergerUriParam;
 exports.onStateChange = onStateChange;
 exports.openLinkWithoutReferer = openLinkWithoutReferer;

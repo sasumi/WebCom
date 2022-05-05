@@ -161,10 +161,13 @@ export const loadCss = (file, forceReload = false) => {
 	document.head.append(link);
 };
 
-export const insertStyleSheet = (styleSheetStr)=>{
+export const insertStyleSheet = (styleSheetStr, id='')=>{
 	let style = document.createElement('style');
 	document.head.appendChild(style);
 	style.innerHTML = styleSheetStr;
+	if(id){
+		style.id = id;
+	}
 	return style;
 };
 
@@ -213,6 +216,21 @@ export const rectInLayout = (rect, layout) => {
 	return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width) //左上角
 		&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width); //右下角
 };
+
+const _IMG_STATE_PENDING = 0;
+const _IMG_STATE_SUCCESS = 1;
+const _IMG_STATE_ERROR = 2;
+let _img_ins_cache = {
+	//src: {state:PENDING, SUCCESS, ERROR
+};
+export const loadImageInstance = (imgSrc)=>{
+	return new Promise((resolve, reject) => {
+		if(_img_ins_cache[imgSrc]){
+			return resolve(_img_ins_cache[imgSrc])
+		}
+
+	})
+}
 
 /**
  * 创建HTML节点

@@ -1,5 +1,6 @@
 import {hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
+import {Img} from "../Lang/Img.js";
 
 const DOM_CLASS = Theme.Namespace+'com-image-viewer';
 const PADDING = '20px';
@@ -9,7 +10,7 @@ const OP_INDEX = BASE_INDEX+1;
 
 insertStyleSheet(`
 	@keyframes ${Theme.Namespace}spin{100%{transform:rotate(360deg);}}
-	.${DOM_CLASS} {position: absolute; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
+	.${DOM_CLASS} {position: fixed; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
 	.${DOM_CLASS} .civ-closer {position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before {font-family: "${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover {background-color:#eeeeee75;}
@@ -26,7 +27,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; font-size:60px; color:#ffffff6e; display:block; animation: ${Theme.Namespace}spin 3s infinite linear;}
 	.${DOM_CLASS} .civ-img {height: calc(100% - ${PADDING}*2); padding:0 ${PADDING}; margin-top:${PADDING}; display: flex; justify-content: center; align-items: center;}
 	.${DOM_CLASS} .civ-img img {max-height:100%; max-width:100%; box-shadow: 1px 1px 20px #898989;}
-`);
+`, Theme.Namespace+'img-preview-style');
 
 export class ImgPreview {
 	previewDom = null;
@@ -49,6 +50,9 @@ export class ImgPreview {
 				`<span class="civ-closer" title="ESC to close">close</span>
 				<span class="civ-nav-btn civ-prev" style="display:none;"></span>
 				<span class="civ-nav-btn civ-next" style="display:none;"></span>
+				<span class="civ-view-option">
+					span.
+				</span>
 				<div class="civ-ctn">
 					<span class="civ-loading"></span>
 					<span class="civ-error"></span>
@@ -76,7 +80,7 @@ export class ImgPreview {
 			prev.addEventListener('click', e=>{nav(true);});
 			next.addEventListener('click', e=>{nav(false);});
 
-			document.body.addEventListener('keyup', e=>{
+			document.body.addEventListener('keydown', e=>{
 				if(!this.previewDom){
 					return;
 				}
@@ -138,6 +142,25 @@ export class ImgPreview {
 		}
 	}
 
+	/**
+	 * 通过选择器绑定图片查看器
+	 * @param {String} imgSelector
+	 * @param {String} triggerEvent 触发事件类型，可为 click、dblclick之类的
+	 */
+	static bindImageViaSelector(imgSelector='img', triggerEvent='click'){
+		let images = document.querySelectorAll(imgSelector);
+		let imgSrcList = [];
+		if(!images.length){
+			return;
+		}
+		Array.from(images).forEach((img,idx)=>{
+			imgSrcList.push(img.getAttribute('src'));
+			img.addEventListener(triggerEvent, e=>{
+				ImgPreview.showImg(imgSrcList, idx);
+			})
+		});
+	}
+
 	show(imgSrc){
 		show(this.previewDom);
 		let loading = this.previewDom.querySelector('.civ-loading');
@@ -146,17 +169,15 @@ export class ImgPreview {
 		img_ctn.innerHTML = '';
 		show(loading);
 		hide(err);
-		let img = new Image();
-		img.onload = ()=>{
+		Img.loadSingleton(imgSrc).then(img=>{
 			hide(loading);
 			img_ctn.innerHTML = '';
 			img_ctn.appendChild(img);
-		};
-		img.onerror = ()=>{
-			err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情</a>`;
+		}, error=>{
+			console.warn(error);
+			err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
 			show(err);
-		}
-		img.src = imgSrc;
+		});
 	}
 
 	close(){

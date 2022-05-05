@@ -256,3 +256,14 @@ export const highlightText = (text, kw, replaceTpl = '<span class="matched">%s</
 		return replaceTpl.replace('%s', match);
 	});
 };
+
+export const convertBlobToBase64 = async (blob)=>{
+	return await blobToBase64(blob);
+}
+
+export const blobToBase64 = blob => new Promise((resolve, reject) => {
+	const reader = new FileReader();
+	reader.readAsDataURL(blob);
+	reader.onload = () => resolve(reader.result);
+	reader.onerror = error => reject(error);
+});

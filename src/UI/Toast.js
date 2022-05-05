@@ -1,4 +1,6 @@
 import {insertStyleSheet} from "../Lang/Dom.js";
+import {Theme} from "./Theme.js";
+
 /**
  * 类型定义
  */
@@ -22,7 +24,7 @@ insertStyleSheet(`
 	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
 	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`);
+`, Theme.Namespace+'toast-style');
 
 const getToastWrap = () => {
 	let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);

@@ -31,13 +31,13 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; padding:10px;}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
-	.${DLG_CLS_PREF} .dialog-op {padding:10px; text-align:right;}
+	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:10px; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
-`)
+`, Theme.Namespace+'dialog-style');
 
 /** @var Dialog[] **/
 let dialogs = [];
