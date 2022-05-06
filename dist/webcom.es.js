@@ -139,6 +139,36 @@ const escapeAttr = (s, preserveCR = '') => {
 		.replace(/[\r\n]/g, preserveCR);
 };
 
+const stringToEntity = (str, radix) => {
+	let arr = str.split('');
+	radix = radix || 0;
+	let tmp = arr.map(item =>
+		`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('');
+	return tmp
+};
+
+const entityToString = (entity) => {
+	let entities = entity.split(';');
+	entities.pop();
+	let tmp = entities.map(item => String.fromCharCode(
+		item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('');
+	return tmp
+};
+
+let _helper_div;
+const decodeHTMLEntities = (str) => {
+	if(!_helper_div){
+		_helper_div = document.createElement('div');
+	}
+	// strip script/html tags
+	str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+	str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+	_helper_div.innerHTML = str;
+	str = _helper_div.textContent;
+	_helper_div.textContent = '';
+	return str;
+};
+
 /**
  * 中英文字符串截取（中文按照2个字符长度计算）
  * @param str
@@ -346,16 +376,67 @@ const highlightText = (text, kw, replaceTpl = '<span class="matched">%s</span>')
 	});
 };
 
+/**
+ * 转换blob数据到base64
+ * @param {Blob} blob
+ * @returns {Promise<unknown>}
+ */
 const convertBlobToBase64 = async (blob)=>{
 	return await blobToBase64(blob);
 };
 
+/**
+ * 转换blob数据到Base64
+ * @param {Blob} blob
+ * @returns {Promise<unknown>}
+ */
 const blobToBase64 = blob => new Promise((resolve, reject) => {
 	const reader = new FileReader();
 	reader.readAsDataURL(blob);
 	reader.onload = () => resolve(reader.result);
 	reader.onerror = error => reject(error);
 });
+
+/**
+ * 块元素
+ * @type {string[]}
+ */
+const BLOCK_TAGS = [
+	'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'address', 'pre', 'form',
+	'table', 'li', 'ol', 'ul', 'tr', 'td', 'caption', 'blockquote', 'center','legend',
+	'dl', 'dt', 'dd', 'dir', 'fieldset', 'noscript', 'noframes', 'menu', 'isindex', 'samp',
+	'nav','header', 'aside', 'dialog','section', 'footer','article'
+];
+
+/**
+ * html to text
+ * @param {String} html
+ * @returns {string}
+ */
+const html2Text = (html)=>{
+	//remove text line break
+	html = html.replace(/[\r|\n]/g, '');
+
+	//convert block tags to line break
+	html = html.replace(/<(\w+)([^>]*)>/g, function(ms, tag, tail){
+		if(BLOCK_TAGS.includes(tag.toLowerCase())){
+			return "\n";
+		}
+	});
+
+	//remove tag's postfix
+	html = html.replace(/<\/(\w+)([^>]*)>/g, function(ms, tag, tail){
+		if(BLOCK_TAGS.includes(tag.toLowerCase())){
+			return "";
+		}
+	});
+
+	//remove other tags, likes img, input, etc...
+	html = html.replace(/<[^>]+>/g, '');
+
+	//convert other html entity
+	return decodeHTMLEntities(html);
+};
 
 const KEYS = {
 	A: 65,
@@ -467,7 +548,13 @@ const between = (val, min, max)=>{
 	return val >= min && val <= max;
 };
 
-const round = (num, digits)=>{
+/**
+ * 取整
+ * @param {Number} num
+ * @param {Number} digits 小数点位数
+ * @returns {number}
+ */
+const round = (num, digits) => {
 	digits = digits === undefined ? 2 : digits;
 	let multiple = Math.pow(10, digits);
 	return Math.round(num * multiple) / multiple;
@@ -3068,4 +3155,4 @@ const toc = ($content)=>{
 	upd();
 };
 
-export { ACBindComponent, ACEventChainBind, ACGetComponents, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, ImgPreview, KEYS, Ladder, MD5, Masker, Net, Theme, Thumb, Tip, Toast, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, blobToBase64, buildParam, buttonActiveBind, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, dimension2Style, domContained, downloadFile, escapeAttr, escapeHtml, fireEvent, frequencyControl, getFormData, getHash, getHashObject, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid$2 as guid, hide, highlightText, insertStyleSheet, isElement, keepRectCenter, loadCss, loadImageInstance, mergerUriParam, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, round, setHash, show, toc, toggle, trans, triggerDomEvent, unescapeHtml, utf8Decode, utf8Encode };
+export { ACBindComponent, ACEventChainBind, ACGetComponents, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, ImgPreview, KEYS, Ladder, MD5, Masker, Net, Theme, Thumb, Tip, Toast, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, buildParam, buttonActiveBind, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, frequencyControl, getFormData, getHash, getHashObject, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid$2 as guid, hide, highlightText, html2Text, insertStyleSheet, isElement, keepRectCenter, loadCss, loadImageInstance, mergerUriParam, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, round, setHash, show, stringToEntity, toc, toggle, trans, triggerDomEvent, unescapeHtml, utf8Decode, utf8Encode };

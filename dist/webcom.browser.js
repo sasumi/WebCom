@@ -142,6 +142,36 @@ var WebCom = (function (exports) {
 			.replace(/[\r\n]/g, preserveCR);
 	};
 
+	const stringToEntity = (str, radix) => {
+		let arr = str.split('');
+		radix = radix || 0;
+		let tmp = arr.map(item =>
+			`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('');
+		return tmp
+	};
+
+	const entityToString = (entity) => {
+		let entities = entity.split(';');
+		entities.pop();
+		let tmp = entities.map(item => String.fromCharCode(
+			item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('');
+		return tmp
+	};
+
+	let _helper_div;
+	const decodeHTMLEntities = (str) => {
+		if(!_helper_div){
+			_helper_div = document.createElement('div');
+		}
+		// strip script/html tags
+		str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+		str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+		_helper_div.innerHTML = str;
+		str = _helper_div.textContent;
+		_helper_div.textContent = '';
+		return str;
+	};
+
 	/**
 	 * 中英文字符串截取（中文按照2个字符长度计算）
 	 * @param str
@@ -349,16 +379,67 @@ var WebCom = (function (exports) {
 		});
 	};
 
+	/**
+	 * 转换blob数据到base64
+	 * @param {Blob} blob
+	 * @returns {Promise<unknown>}
+	 */
 	const convertBlobToBase64 = async (blob)=>{
 		return await blobToBase64(blob);
 	};
 
+	/**
+	 * 转换blob数据到Base64
+	 * @param {Blob} blob
+	 * @returns {Promise<unknown>}
+	 */
 	const blobToBase64 = blob => new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.readAsDataURL(blob);
 		reader.onload = () => resolve(reader.result);
 		reader.onerror = error => reject(error);
 	});
+
+	/**
+	 * 块元素
+	 * @type {string[]}
+	 */
+	const BLOCK_TAGS = [
+		'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'address', 'pre', 'form',
+		'table', 'li', 'ol', 'ul', 'tr', 'td', 'caption', 'blockquote', 'center','legend',
+		'dl', 'dt', 'dd', 'dir', 'fieldset', 'noscript', 'noframes', 'menu', 'isindex', 'samp',
+		'nav','header', 'aside', 'dialog','section', 'footer','article'
+	];
+
+	/**
+	 * html to text
+	 * @param {String} html
+	 * @returns {string}
+	 */
+	const html2Text = (html)=>{
+		//remove text line break
+		html = html.replace(/[\r|\n]/g, '');
+
+		//convert block tags to line break
+		html = html.replace(/<(\w+)([^>]*)>/g, function(ms, tag, tail){
+			if(BLOCK_TAGS.includes(tag.toLowerCase())){
+				return "\n";
+			}
+		});
+
+		//remove tag's postfix
+		html = html.replace(/<\/(\w+)([^>]*)>/g, function(ms, tag, tail){
+			if(BLOCK_TAGS.includes(tag.toLowerCase())){
+				return "";
+			}
+		});
+
+		//remove other tags, likes img, input, etc...
+		html = html.replace(/<[^>]+>/g, '');
+
+		//convert other html entity
+		return decodeHTMLEntities(html);
+	};
 
 	const KEYS = {
 		A: 65,
@@ -470,7 +551,13 @@ var WebCom = (function (exports) {
 		return val >= min && val <= max;
 	};
 
-	const round = (num, digits)=>{
+	/**
+	 * 取整
+	 * @param {Number} num
+	 * @param {Number} digits 小数点位数
+	 * @returns {number}
+	 */
+	const round = (num, digits) => {
 		digits = digits === undefined ? 2 : digits;
 		let multiple = Math.pow(10, digits);
 		return Math.round(num * multiple) / multiple;
@@ -3074,6 +3161,7 @@ var WebCom = (function (exports) {
 	exports.ACBindComponent = ACBindComponent;
 	exports.ACEventChainBind = ACEventChainBind;
 	exports.ACGetComponents = ACGetComponents;
+	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
 	exports.COM_ATTR_KEY = COM_ATTR_KEY;
@@ -3095,7 +3183,6 @@ var WebCom = (function (exports) {
 	exports.base64Decode = base64Decode;
 	exports.base64UrlSafeEncode = base64UrlSafeEncode;
 	exports.between = between;
-	exports.blobToBase64 = blobToBase64;
 	exports.buildParam = buildParam;
 	exports.buttonActiveBind = buttonActiveBind;
 	exports.convertBlobToBase64 = convertBlobToBase64;
@@ -3104,9 +3191,11 @@ var WebCom = (function (exports) {
 	exports.createDomByHtml = createDomByHtml;
 	exports.cssSelectorEscape = cssSelectorEscape;
 	exports.cutString = cutString;
+	exports.decodeHTMLEntities = decodeHTMLEntities;
 	exports.dimension2Style = dimension2Style;
 	exports.domContained = domContained;
 	exports.downloadFile = downloadFile;
+	exports.entityToString = entityToString;
 	exports.escapeAttr = escapeAttr;
 	exports.escapeHtml = escapeHtml;
 	exports.fireEvent = fireEvent;
@@ -3121,6 +3210,7 @@ var WebCom = (function (exports) {
 	exports.guid = guid$2;
 	exports.hide = hide;
 	exports.highlightText = highlightText;
+	exports.html2Text = html2Text;
 	exports.insertStyleSheet = insertStyleSheet;
 	exports.isElement = isElement;
 	exports.keepRectCenter = keepRectCenter;
@@ -3139,6 +3229,7 @@ var WebCom = (function (exports) {
 	exports.round = round;
 	exports.setHash = setHash;
 	exports.show = show;
+	exports.stringToEntity = stringToEntity;
 	exports.toc = toc;
 	exports.toggle = toggle;
 	exports.trans = trans;
