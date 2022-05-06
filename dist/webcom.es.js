@@ -408,12 +408,21 @@ const BLOCK_TAGS = [
 	'nav','header', 'aside', 'dialog','section', 'footer','article'
 ];
 
+const REMOVABLE_TAGS = [
+	'style', 'comment', 'select', 'option', 'script', 'title', 'head', 'button',
+];
+
 /**
- * html to text
+ * Convert html to plain text
  * @param {String} html
  * @returns {string}
  */
 const html2Text = (html)=>{
+	//remove removable tags
+	REMOVABLE_TAGS.forEach(tag=>{
+		html = html.replace(new RegExp(tag, 'ig'), '');
+	});
+
 	//remove text line break
 	html = html.replace(/[\r|\n]/g, '');
 
@@ -422,20 +431,41 @@ const html2Text = (html)=>{
 		if(BLOCK_TAGS.includes(tag.toLowerCase())){
 			return "\n";
 		}
+		return "";
 	});
 
 	//remove tag's postfix
 	html = html.replace(/<\/(\w+)([^>]*)>/g, function(ms, tag, tail){
-		if(BLOCK_TAGS.includes(tag.toLowerCase())){
-			return "";
-		}
+		return "";
 	});
 
-	//remove other tags, likes img, input, etc...
+	//remove other tags, likes <img>, input, etc...
 	html = html.replace(/<[^>]+>/g, '');
 
-	//convert other html entity
-	return decodeHTMLEntities(html);
+	//convert entity by names
+	let entityNamesMap = [
+		[/&nbsp;/ig, ' '],
+		[/&lt;/ig, '<'],
+		[/&gt;/ig, '>'],
+		[/&quot;/ig, '"'],
+		[/&apos;/ig, '\''],
+	];
+	entityNamesMap.forEach(([matchReg, replacement])=>{
+		html = html.replace(matchReg, replacement);
+	});
+
+	//convert entity dec code
+	html = html.replace(/&#(\d+);/, function(ms, dec){
+		return String.fromCharCode(dec);
+	});
+
+	//replace last &amp;
+	html = html.replace(/&amp;/ig, '&');
+
+	//trim head & tail space
+	html = html.trim();
+
+	return html;
 };
 
 const KEYS = {
@@ -3155,4 +3185,4 @@ const toc = ($content)=>{
 	upd();
 };
 
-export { ACBindComponent, ACEventChainBind, ACGetComponents, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, ImgPreview, KEYS, Ladder, MD5, Masker, Net, Theme, Thumb, Tip, Toast, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, buildParam, buttonActiveBind, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, frequencyControl, getFormData, getHash, getHashObject, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid$2 as guid, hide, highlightText, html2Text, insertStyleSheet, isElement, keepRectCenter, loadCss, loadImageInstance, mergerUriParam, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, round, setHash, show, stringToEntity, toc, toggle, trans, triggerDomEvent, unescapeHtml, utf8Decode, utf8Encode };
+export { ACBindComponent, ACEventChainBind, ACGetComponents, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, ImgPreview, KEYS, Ladder, MD5, Masker, Net, REMOVABLE_TAGS, Theme, Thumb, Tip, Toast, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, buildParam, buttonActiveBind, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, frequencyControl, getFormData, getHash, getHashObject, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid$2 as guid, hide, highlightText, html2Text, insertStyleSheet, isElement, keepRectCenter, loadCss, loadImageInstance, mergerUriParam, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, round, setHash, show, stringToEntity, toc, toggle, trans, triggerDomEvent, unescapeHtml, utf8Decode, utf8Encode };

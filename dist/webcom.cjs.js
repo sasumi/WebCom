@@ -412,12 +412,21 @@ const BLOCK_TAGS = [
 	'nav','header', 'aside', 'dialog','section', 'footer','article'
 ];
 
+const REMOVABLE_TAGS = [
+	'style', 'comment', 'select', 'option', 'script', 'title', 'head', 'button',
+];
+
 /**
- * html to text
+ * Convert html to plain text
  * @param {String} html
  * @returns {string}
  */
 const html2Text = (html)=>{
+	//remove removable tags
+	REMOVABLE_TAGS.forEach(tag=>{
+		html = html.replace(new RegExp(tag, 'ig'), '');
+	});
+
 	//remove text line break
 	html = html.replace(/[\r|\n]/g, '');
 
@@ -426,20 +435,41 @@ const html2Text = (html)=>{
 		if(BLOCK_TAGS.includes(tag.toLowerCase())){
 			return "\n";
 		}
+		return "";
 	});
 
 	//remove tag's postfix
 	html = html.replace(/<\/(\w+)([^>]*)>/g, function(ms, tag, tail){
-		if(BLOCK_TAGS.includes(tag.toLowerCase())){
-			return "";
-		}
+		return "";
 	});
 
-	//remove other tags, likes img, input, etc...
+	//remove other tags, likes <img>, input, etc...
 	html = html.replace(/<[^>]+>/g, '');
 
-	//convert other html entity
-	return decodeHTMLEntities(html);
+	//convert entity by names
+	let entityNamesMap = [
+		[/&nbsp;/ig, ' '],
+		[/&lt;/ig, '<'],
+		[/&gt;/ig, '>'],
+		[/&quot;/ig, '"'],
+		[/&apos;/ig, '\''],
+	];
+	entityNamesMap.forEach(([matchReg, replacement])=>{
+		html = html.replace(matchReg, replacement);
+	});
+
+	//convert entity dec code
+	html = html.replace(/&#(\d+);/, function(ms, dec){
+		return String.fromCharCode(dec);
+	});
+
+	//replace last &amp;
+	html = html.replace(/&amp;/ig, '&');
+
+	//trim head & tail space
+	html = html.trim();
+
+	return html;
 };
 
 const KEYS = {
@@ -3174,6 +3204,7 @@ exports.Ladder = Ladder;
 exports.MD5 = MD5;
 exports.Masker = Masker;
 exports.Net = Net;
+exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 exports.Theme = Theme;
 exports.Thumb = Thumb;
 exports.Tip = Tip;
