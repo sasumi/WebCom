@@ -1,4 +1,4 @@
-import {hide, insertStyleSheet, show} from "../Lang/Dom.js";
+import {getRegion, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 import {Img} from "../Lang/Img.js";
 
@@ -23,11 +23,98 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-next {right:10px}
 	.${DOM_CLASS} .civ-next:before {content:"\\e73b";}
 	.${DOM_CLASS} .civ-ctn {text-align:center; height:100%; width:100%; position:absolute; top:0; left:0;}
-	.${DOM_CLASS} .civ-loading, .${DOM_CLASS} .civ-error {position:absolute; top:calc(50% - 60px);}
+	.${DOM_CLASS} .civ-loading, .${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; font-size:60px; color:#ffffff6e; display:block; animation: ${Theme.Namespace}spin 3s infinite linear;}
 	.${DOM_CLASS} .civ-img {height: calc(100% - ${PADDING}*2); padding:0 ${PADDING}; margin-top:${PADDING}; display: flex; justify-content: center; align-items: center;}
-	.${DOM_CLASS} .civ-img img {max-height:100%; max-width:100%; box-shadow: 1px 1px 20px #898989;}
+	.${DOM_CLASS} .civ-img img {box-shadow: 1px 1px 20px #898989; transition: all 0.1s linear}
 `, Theme.Namespace+'img-preview-style');
+
+/**
+ * load image singleton
+ * @param {String} src
+ * @return {Promise<Element>}
+ */
+const loadImgSingleton = (() => {
+	let img_cache = {};
+	return (src) => {
+		return new Promise((resolve, reject) => {
+			if(img_cache[src]){
+				return resolve(img_cache[src].cloneNode());
+			}
+			Img.loadImgBySrc(src).then(img => {
+				img_cache[src] = img;
+				resolve(img.cloneNode());
+			}, reject)
+		});
+	}
+})();
+
+const fixImgView = (img, container = document) => {
+	loadImgSingleton(img.src).then(tmpImg =>{
+		let {width, height, top, left} = Img.scaleFixCenter({
+			contentWidth: tmpImg.width,
+			contentHeight: tmpImg.height,
+			containerWidth: container.offsetWidth,
+			containerHeight: container.offsetHeight
+		});
+		img.style.left = left + 'px';
+		img.style.top = top + 'px';
+		img.style.width = width + 'px';
+		img.style.height = height + 'px';
+	})
+}
+
+/**
+ *
+ * @param {ImgPreview} ip
+ */
+const updateNavState = (ip) => {
+	if(ip.mode === ImgPreview.MODE_SINGLE){
+		return;
+	}
+	let prev = ip.previewDom.querySelector('.civ-prev');
+	let next = ip.previewDom.querySelector('.civ-next');
+	show(prev);
+	show(next);
+	let total = ip.imgSrcList.length;
+	if(ip.currentIndex === 0){
+		prev.setAttribute('disabled', 'disabled');
+	}else{
+		prev.removeAttribute('disabled');
+	}
+	if(ip.currentIndex === (total - 1)){
+		next.setAttribute('disabled', 'disabled');
+	}else{
+		next.removeAttribute('disabled');
+	}
+}
+
+
+/**
+ * @param {ImgPreview} ip
+ * @param imgSrc
+ */
+const showImgSrc = (ip, imgSrc)=>{
+	show(ip.previewDom);
+	let loading = ip.previewDom.querySelector('.civ-loading');
+	let err = ip.previewDom.querySelector('.civ-error');
+	let img_ctn = ip.previewDom.querySelector('.civ-img');
+	img_ctn.innerHTML = '';
+	show(loading);
+	hide(err);
+	loadImgSingleton(imgSrc).then(img=>{
+		hide(loading);
+		fixImgView(img, img_ctn);
+		img_ctn.innerHTML = '';
+		img_ctn.appendChild(img);
+	}, error=>{
+		console.warn(error);
+		hide(loading);
+		err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
+		show(err);
+	});
+}
+
 
 export class ImgPreview {
 	previewDom = null;
@@ -43,6 +130,7 @@ export class ImgPreview {
 		this.mode = mode;
 
 		if(!this.previewDom){
+			//init container
 			this.previewDom = document.createElement('div')
 			this.previewDom.style.display = 'none';
 			this.previewDom.className = DOM_CLASS;
@@ -58,28 +146,29 @@ export class ImgPreview {
 					<span class="civ-error"></span>
 					<span class="civ-img"></span>
 				</div>`;
+
+			//bind close click & space click
 			this.previewDom.querySelector('.civ-closer').addEventListener('click', ()=>{this.close();})
 			this.previewDom.querySelector('.civ-ctn').addEventListener('click', e=>{
 				if(e.target.tagName !== 'IMG'){
 					this.close();
 				}
 			});
-			let prev = this.previewDom.querySelector('.civ-prev');
-			let next = this.previewDom.querySelector('.civ-next');
 
-			let nav = (toPrev = false)=>{
-				let total = this.imgSrcList.length;
-				if((toPrev && this.currentIndex === 0) || (!toPrev && this.currentIndex === (total-1))){
-					return false;
-				}
-				toPrev ? this.currentIndex-- : this.currentIndex++;
-				this.show(this.imgSrcList[this.currentIndex]);
-				this.updateNavState();
-			};
+			//bind navigate
+			this.previewDom.querySelector('.civ-prev').addEventListener('click', ()=>{this.switchTo(true);});
+			this.previewDom.querySelector('.civ-next').addEventListener('click', ()=>{this.switchTo(false);});
 
-			prev.addEventListener('click', e=>{nav(true);});
-			next.addEventListener('click', e=>{nav(false);});
+			//bind resize
+			let resize_tm = null;
+			window.addEventListener('resize', ()=>{
+				resize_tm && clearTimeout(resize_tm);
+				resize_tm = setTimeout(()=>{
+					this.resetView();
+				}, 50);
+			});
 
+			//bind key
 			document.body.addEventListener('keydown', e=>{
 				if(!this.previewDom){
 					return;
@@ -89,10 +178,10 @@ export class ImgPreview {
 					this.close();
 				}
 				if(e.key === 'ArrowLeft'){
-					nav(true);
+					this.switchTo(true);
 				}
 				if(e.key === 'ArrowRight'){
-					nav(false);
+					this.switchTo(false);
 				}
 			});
 			document.body.appendChild(this.previewDom);
@@ -101,45 +190,24 @@ export class ImgPreview {
 
 	/**
 	 * show image or image list
-	 * @param {String|String[]} imgSrc
-	 * @param currentIndex
+	 * @param {String} imgSrc
 	 */
-	static showImg(imgSrc, currentIndex = 0){
-		let mode = typeof(imgSrc) === 'object' ? ImgPreview.MODE_MULTIPLE : ImgPreview.MODE_SINGLE;
-		let ip = new ImgPreview({mode});
-
-		if(mode === ImgPreview.MODE_SINGLE){
-			let ip = new ImgPreview();
-			ip.show(imgSrc);
-		} else {
-			ip.imgSrcList = imgSrc;
-			ip.currentIndex = currentIndex;
-			ip.updateNavState();
-			ip.show(imgSrc[currentIndex]);
-		}
+	static showImg(imgSrc){
+		let ip = new ImgPreview({mode: ImgPreview.MODE_SINGLE});
+		showImgSrc(ip, imgSrc);
 	}
 
-	updateNavState(){
-		if(this.mode === ImgPreview.MODE_SINGLE){
-			return;
-		}
-
-		let prev = this.previewDom.querySelector('.civ-prev');
-		let next = this.previewDom.querySelector('.civ-next');
-		show(prev);
-		show(next);
-		let total = this.imgSrcList.length;
-		if(this.currentIndex === 0){
-			prev.setAttribute('disabled', 'disabled');
-		} else {
-			prev.removeAttribute('disabled');
-		}
-		if(this.currentIndex === (total-1)){
-			next.setAttribute('disabled', 'disabled');
-		}
-		else {
-			next.removeAttribute('disabled');
-		}
+	/**
+	 * 显示图片列表
+	 * @param {String[]} imgSrcList
+	 * @param {number} currentIndex
+	 */
+	static showImgList(imgSrcList, currentIndex = 0){
+		let ip = new ImgPreview({mode:ImgPreview.MODE_MULTIPLE});
+		ip.imgSrcList = imgSrcList;
+		ip.currentIndex = currentIndex;
+		updateNavState(ip);
+		showImgSrc(ip, imgSrcList[currentIndex]);
 	}
 
 	/**
@@ -156,28 +224,31 @@ export class ImgPreview {
 		Array.from(images).forEach((img,idx)=>{
 			imgSrcList.push(img.getAttribute('src'));
 			img.addEventListener(triggerEvent, e=>{
-				ImgPreview.showImg(imgSrcList, idx);
+				ImgPreview.showImgList(imgSrcList, idx);
 			})
 		});
 	}
 
-	show(imgSrc){
-		show(this.previewDom);
-		let loading = this.previewDom.querySelector('.civ-loading');
-		let err = this.previewDom.querySelector('.civ-error');
-		let img_ctn = this.previewDom.querySelector('.civ-img');
-		img_ctn.innerHTML = '';
-		show(loading);
-		hide(err);
-		Img.loadSingleton(imgSrc).then(img=>{
-			hide(loading);
-			img_ctn.innerHTML = '';
-			img_ctn.appendChild(img);
-		}, error=>{
-			console.warn(error);
-			err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
-			show(err);
-		});
+	switchTo(toPrev = false){
+		if(this.mode !== ImgPreview.MODE_MULTIPLE){
+			return false;
+		}
+		let total = this.imgSrcList.length;
+		if((toPrev && this.currentIndex === 0) || (!toPrev && this.currentIndex === (total - 1))){
+			return false;
+		}
+		toPrev ? this.currentIndex-- : this.currentIndex++;
+		showImgSrc(this, this.imgSrcList[this.currentIndex]);
+		updateNavState(this);
+	}
+
+	resetView(){
+		let img = this.previewDom.querySelector('img');
+		let container = this.previewDom.querySelector('.civ-img');
+		if(!img){
+			return;
+		}
+		fixImgView(img, container);
 	}
 
 	close(){

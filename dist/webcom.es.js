@@ -762,8 +762,17 @@ const insertStyleSheet = (styleSheetStr, id='')=>{
 
 
 /**
- * 获取窗口的相关测量信息
- * @returns {{}}
+ * 获取DOM节点视觉呈现信息
+ * @param win
+ * @returns {{
+ *  screenLeft: number,
+ *  screenTop: number,
+ *  visibleWidth: number,
+ *  visibleHeight: number,
+ *  horizonScroll: number,
+ *  documentWidth: number,
+ *  documentHeight: number,
+ *  }}
  */
 const getRegion = (win) => {
 	let info = {};
@@ -804,17 +813,6 @@ const getRegion = (win) => {
 const rectInLayout = (rect, layout) => {
 	return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width) //左上角
 		&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width); //右下角
-};
-let _img_ins_cache = {
-	//src: {state:PENDING, SUCCESS, ERROR
-};
-const loadImageInstance = (imgSrc)=>{
-	return new Promise((resolve, reject) => {
-		if(_img_ins_cache[imgSrc]){
-			return resolve(_img_ins_cache[imgSrc])
-		}
-
-	})
 };
 
 /**
@@ -2381,110 +2379,102 @@ const copyFormatted = (html, silent = false) => {
 	!silent && Toast.showSuccess(trans('复制成功'));
 };
 
-let cache = {
-	//src: {state:STATE_*, data: null, error:'', callbacks: []}
-};
-
-const STATE_PENDING = 1;
-const STATE_SUCCESS = 2;
-const STATE_ERROR = 3;
-
-const processCallback = (src) => {
-	let ch = cache[src];
-	if(ch.state === STATE_PENDING){
-		return;
-	}
-	if(ch.state === STATE_SUCCESS){
-		let img = new Image();
-		img.src = ch.data;
-		ch.success_callbacks.forEach(resolve => {
-			resolve(img);
-		});
-		ch.success_callbacks = [];
-	}
-	else if(ch.state === STATE_ERROR){
-		ch.error_callbacks.forEach(reject=>{
-			reject(ch.error);
-		});
-		ch.error_callbacks = [];
-	}
-};
-
 /**
- * 加载一次图片
+ * 通过 src 加载图片
  * @param {String} src
- * @returns {Promise<unknown>}
+ * @returns {Promise<Image>}
  */
-const loadSingleton = (src) => {
+const loadImgBySrc = (src)=>{
 	return new Promise((resolve, reject) => {
-		if(!cache[src]){
-			cache[src] = {
-				state: null,
-				data: null,
-				error: '',
-				success_callbacks: [],
-				error_callbacks: []
-			};
-		}
-		cache[src].success_callbacks.push(resolve);
-		cache[src].error_callbacks.push(reject);
-
-		if(!cache[src].data){
-			let xhr = new XMLHttpRequest();
-			xhr.open('GET', src, true);
-			xhr.responseType = 'blob';
-			xhr.onload = function(){
-				if(this.status === 200){
-					let blob = this.response;
-					let d = convertBlobToBase64(blob);
-					d.then(base64 => {
-						cache[src].state = STATE_SUCCESS;
-						cache[src].data = base64;
-						processCallback(src);
-					}).catch(error => {
-						cache[src].error = error;
-						cache[src].state = STATE_ERROR;
-						processCallback(src);
-					});
-				}
-			};
-			xhr.onerror = function() {
-				cache[src].error = 'Error:'+this.statusText;
-				cache[src].state = STATE_ERROR;
-				processCallback(src);
-			};
-			xhr.onabort = function(){
-				cache[src].error = 'Request abort';
-				cache[src].state = STATE_ERROR;
-				processCallback(src);
-			};
-			xhr.send();
-		}
-		processCallback(src);
+		let img = new Image;
+		img.onload = ()=>{
+			resolve(img);
+		};
+		img.onabort = ()=>{
+			reject('Image loading abort');
+		};
+		img.onerror = ()=>{
+			reject('Image load failure');
+		};
+		img.src = src;
 	});
 };
 
-let _base_cache = {};
-const getBase64FromImage = (img) => {
-	let src = img.src;
-	if(src.indexOf('data:') === 0){
-		return img.src;
+const getBase64BySrc = (src)=>{
+	return new Promise((resolve, reject) => {
+		let xhr = new XMLHttpRequest();
+		xhr.open('GET', src, true);
+		xhr.responseType = 'blob';
+		xhr.onload = function(){
+			if(this.status === 200){
+				let blob = this.response;
+				convertBlobToBase64(blob).then(base64 => {
+					resolve(base64);
+				}).catch(error => {
+					reject(error);
+				});
+			}
+		};
+		xhr.onerror = function() {
+			reject('Error:'+this.statusText);
+		};
+		xhr.onabort = function(){
+			reject('Request abort');
+		};
+		xhr.send();
+	});
+};
+
+const getBase64ByImg = (img) => {
+	if(!img.src){
+		return null;
 	}
-	if(_base_cache[src]){
-		return _base_cache[src];
+	if(img.src.indexOf('data:') === 0){
+		return img.src;
 	}
 	let canvas = document.createElement("canvas");
 	canvas.width = img.width;
 	canvas.height = img.height;
 	let ctx = canvas.getContext("2d");
 	ctx.drawImage(img, 0, 0, img.width, img.height);
-	_base_cache[src] = canvas.toDataURL("image/png");
-	return _base_cache[src];
+	return canvas.toDataURL("image/png")
+};
+
+/**
+ * 通过缩放+定位将图片放置在指定容器中间
+ * @param contentWidth
+ * @param contentHeight
+ * @param containerWidth
+ * @param containerHeight
+ * @param {Boolean} zoomIn 是否在图片小于容器时放大，默认不放大
+ * @returns {{top: number, left: number, width: number, height: number}|{top: number, left: number, width, height}}
+ */
+const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, zoomIn = false}) => {
+	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
+		return {
+			width: contentWidth,
+			height: contentHeight,
+			left: (containerWidth - contentWidth) / 2,
+			top: (containerHeight - contentHeight) / 2
+		};
+	}
+	let ratioX = containerWidth/contentWidth;
+	let ratioY = containerHeight/contentHeight;
+
+	let ratio = Math.min(ratioX, ratioY);
+	return {
+		width: contentWidth * ratio,
+		height: contentHeight * ratio,
+		left: (containerWidth - contentWidth * ratio) / 2,
+		top: (containerHeight - contentHeight * ratio) / 2,
+	}
 };
 
 const Img = {
-	getBase64FromImage,
-	loadSingleton
+	loadImgBySrc,
+	getBase64ByImg,
+	getBase64BySrc,
+	scaleFixCenter
 };
 
 const DOM_CLASS = Theme.Namespace+'com-image-viewer';
@@ -2508,11 +2498,98 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-next {right:10px}
 	.${DOM_CLASS} .civ-next:before {content:"\\e73b";}
 	.${DOM_CLASS} .civ-ctn {text-align:center; height:100%; width:100%; position:absolute; top:0; left:0;}
-	.${DOM_CLASS} .civ-loading, .${DOM_CLASS} .civ-error {position:absolute; top:calc(50% - 60px);}
+	.${DOM_CLASS} .civ-loading, .${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; font-size:60px; color:#ffffff6e; display:block; animation: ${Theme.Namespace}spin 3s infinite linear;}
 	.${DOM_CLASS} .civ-img {height: calc(100% - ${PADDING}*2); padding:0 ${PADDING}; margin-top:${PADDING}; display: flex; justify-content: center; align-items: center;}
-	.${DOM_CLASS} .civ-img img {max-height:100%; max-width:100%; box-shadow: 1px 1px 20px #898989;}
+	.${DOM_CLASS} .civ-img img {box-shadow: 1px 1px 20px #898989; transition: all 0.1s linear}
 `, Theme.Namespace+'img-preview-style');
+
+/**
+ * load image singleton
+ * @param {String} src
+ * @return {Promise<Element>}
+ */
+const loadImgSingleton = (() => {
+	let img_cache = {};
+	return (src) => {
+		return new Promise((resolve, reject) => {
+			if(img_cache[src]){
+				return resolve(img_cache[src].cloneNode());
+			}
+			Img.loadImgBySrc(src).then(img => {
+				img_cache[src] = img;
+				resolve(img.cloneNode());
+			}, reject);
+		});
+	}
+})();
+
+const fixImgView = (img, container = document) => {
+	loadImgSingleton(img.src).then(tmpImg =>{
+		let {width, height, top, left} = Img.scaleFixCenter({
+			contentWidth: tmpImg.width,
+			contentHeight: tmpImg.height,
+			containerWidth: container.offsetWidth,
+			containerHeight: container.offsetHeight
+		});
+		img.style.left = left + 'px';
+		img.style.top = top + 'px';
+		img.style.width = width + 'px';
+		img.style.height = height + 'px';
+	});
+};
+
+/**
+ *
+ * @param {ImgPreview} ip
+ */
+const updateNavState = (ip) => {
+	if(ip.mode === ImgPreview.MODE_SINGLE){
+		return;
+	}
+	let prev = ip.previewDom.querySelector('.civ-prev');
+	let next = ip.previewDom.querySelector('.civ-next');
+	show(prev);
+	show(next);
+	let total = ip.imgSrcList.length;
+	if(ip.currentIndex === 0){
+		prev.setAttribute('disabled', 'disabled');
+	}else {
+		prev.removeAttribute('disabled');
+	}
+	if(ip.currentIndex === (total - 1)){
+		next.setAttribute('disabled', 'disabled');
+	}else {
+		next.removeAttribute('disabled');
+	}
+};
+
+
+/**
+ * @param {ImgPreview} ip
+ * @param imgSrc
+ */
+const showImgSrc = (ip, imgSrc)=>{
+	show(ip.previewDom);
+	let loading = ip.previewDom.querySelector('.civ-loading');
+	let err = ip.previewDom.querySelector('.civ-error');
+	let img_ctn = ip.previewDom.querySelector('.civ-img');
+	img_ctn.innerHTML = '';
+	show(loading);
+	hide(err);
+	loadImgSingleton(imgSrc).then(img=>{
+		hide(loading);
+		fixImgView(img, img_ctn);
+		img_ctn.innerHTML = '';
+		img_ctn.appendChild(img);
+	}, error=>{
+		console.warn(error);
+		hide(loading);
+		err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
+		show(err);
+	});
+};
+
 
 class ImgPreview {
 	previewDom = null;
@@ -2528,6 +2605,7 @@ class ImgPreview {
 		this.mode = mode;
 
 		if(!this.previewDom){
+			//init container
 			this.previewDom = document.createElement('div');
 			this.previewDom.style.display = 'none';
 			this.previewDom.className = DOM_CLASS;
@@ -2543,28 +2621,29 @@ class ImgPreview {
 					<span class="civ-error"></span>
 					<span class="civ-img"></span>
 				</div>`;
+
+			//bind close click & space click
 			this.previewDom.querySelector('.civ-closer').addEventListener('click', ()=>{this.close();});
 			this.previewDom.querySelector('.civ-ctn').addEventListener('click', e=>{
 				if(e.target.tagName !== 'IMG'){
 					this.close();
 				}
 			});
-			let prev = this.previewDom.querySelector('.civ-prev');
-			let next = this.previewDom.querySelector('.civ-next');
 
-			let nav = (toPrev = false)=>{
-				let total = this.imgSrcList.length;
-				if((toPrev && this.currentIndex === 0) || (!toPrev && this.currentIndex === (total-1))){
-					return false;
-				}
-				toPrev ? this.currentIndex-- : this.currentIndex++;
-				this.show(this.imgSrcList[this.currentIndex]);
-				this.updateNavState();
-			};
+			//bind navigate
+			this.previewDom.querySelector('.civ-prev').addEventListener('click', ()=>{this.switchTo(true);});
+			this.previewDom.querySelector('.civ-next').addEventListener('click', ()=>{this.switchTo(false);});
 
-			prev.addEventListener('click', e=>{nav(true);});
-			next.addEventListener('click', e=>{nav(false);});
+			//bind resize
+			let resize_tm = null;
+			window.addEventListener('resize', ()=>{
+				resize_tm && clearTimeout(resize_tm);
+				resize_tm = setTimeout(()=>{
+					this.resetView();
+				}, 50);
+			});
 
+			//bind key
 			document.body.addEventListener('keydown', e=>{
 				if(!this.previewDom){
 					return;
@@ -2574,10 +2653,10 @@ class ImgPreview {
 					this.close();
 				}
 				if(e.key === 'ArrowLeft'){
-					nav(true);
+					this.switchTo(true);
 				}
 				if(e.key === 'ArrowRight'){
-					nav(false);
+					this.switchTo(false);
 				}
 			});
 			document.body.appendChild(this.previewDom);
@@ -2586,45 +2665,24 @@ class ImgPreview {
 
 	/**
 	 * show image or image list
-	 * @param {String|String[]} imgSrc
-	 * @param currentIndex
+	 * @param {String} imgSrc
 	 */
-	static showImg(imgSrc, currentIndex = 0){
-		let mode = typeof(imgSrc) === 'object' ? ImgPreview.MODE_MULTIPLE : ImgPreview.MODE_SINGLE;
-		let ip = new ImgPreview({mode});
-
-		if(mode === ImgPreview.MODE_SINGLE){
-			let ip = new ImgPreview();
-			ip.show(imgSrc);
-		} else {
-			ip.imgSrcList = imgSrc;
-			ip.currentIndex = currentIndex;
-			ip.updateNavState();
-			ip.show(imgSrc[currentIndex]);
-		}
+	static showImg(imgSrc){
+		let ip = new ImgPreview({mode: ImgPreview.MODE_SINGLE});
+		showImgSrc(ip, imgSrc);
 	}
 
-	updateNavState(){
-		if(this.mode === ImgPreview.MODE_SINGLE){
-			return;
-		}
-
-		let prev = this.previewDom.querySelector('.civ-prev');
-		let next = this.previewDom.querySelector('.civ-next');
-		show(prev);
-		show(next);
-		let total = this.imgSrcList.length;
-		if(this.currentIndex === 0){
-			prev.setAttribute('disabled', 'disabled');
-		} else {
-			prev.removeAttribute('disabled');
-		}
-		if(this.currentIndex === (total-1)){
-			next.setAttribute('disabled', 'disabled');
-		}
-		else {
-			next.removeAttribute('disabled');
-		}
+	/**
+	 * 显示图片列表
+	 * @param {String[]} imgSrcList
+	 * @param {number} currentIndex
+	 */
+	static showImgList(imgSrcList, currentIndex = 0){
+		let ip = new ImgPreview({mode:ImgPreview.MODE_MULTIPLE});
+		ip.imgSrcList = imgSrcList;
+		ip.currentIndex = currentIndex;
+		updateNavState(ip);
+		showImgSrc(ip, imgSrcList[currentIndex]);
 	}
 
 	/**
@@ -2641,28 +2699,31 @@ class ImgPreview {
 		Array.from(images).forEach((img,idx)=>{
 			imgSrcList.push(img.getAttribute('src'));
 			img.addEventListener(triggerEvent, e=>{
-				ImgPreview.showImg(imgSrcList, idx);
+				ImgPreview.showImgList(imgSrcList, idx);
 			});
 		});
 	}
 
-	show(imgSrc){
-		show(this.previewDom);
-		let loading = this.previewDom.querySelector('.civ-loading');
-		let err = this.previewDom.querySelector('.civ-error');
-		let img_ctn = this.previewDom.querySelector('.civ-img');
-		img_ctn.innerHTML = '';
-		show(loading);
-		hide(err);
-		Img.loadSingleton(imgSrc).then(img=>{
-			hide(loading);
-			img_ctn.innerHTML = '';
-			img_ctn.appendChild(img);
-		}, error=>{
-			console.warn(error);
-			err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
-			show(err);
-		});
+	switchTo(toPrev = false){
+		if(this.mode !== ImgPreview.MODE_MULTIPLE){
+			return false;
+		}
+		let total = this.imgSrcList.length;
+		if((toPrev && this.currentIndex === 0) || (!toPrev && this.currentIndex === (total - 1))){
+			return false;
+		}
+		toPrev ? this.currentIndex-- : this.currentIndex++;
+		showImgSrc(this, this.imgSrcList[this.currentIndex]);
+		updateNavState(this);
+	}
+
+	resetView(){
+		let img = this.previewDom.querySelector('img');
+		let container = this.previewDom.querySelector('.civ-img');
+		if(!img){
+			return;
+		}
+		fixImgView(img, container);
 	}
 
 	close(){
@@ -3185,4 +3246,4 @@ const toc = ($content)=>{
 	upd();
 };
 
-export { ACBindComponent, ACEventChainBind, ACGetComponents, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, ImgPreview, KEYS, Ladder, MD5, Masker, Net, REMOVABLE_TAGS, Theme, Thumb, Tip, Toast, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, buildParam, buttonActiveBind, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, frequencyControl, getFormData, getHash, getHashObject, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid$2 as guid, hide, highlightText, html2Text, insertStyleSheet, isElement, keepRectCenter, loadCss, loadImageInstance, mergerUriParam, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, round, setHash, show, stringToEntity, toc, toggle, trans, triggerDomEvent, unescapeHtml, utf8Decode, utf8Encode };
+export { ACBindComponent, ACEventChainBind, ACGetComponents, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, ImgPreview, KEYS, Ladder, MD5, Masker, Net, REMOVABLE_TAGS, Theme, Thumb, Tip, Toast, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, buildParam, buttonActiveBind, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, frequencyControl, getFormData, getHash, getHashObject, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid$2 as guid, hide, highlightText, html2Text, insertStyleSheet, isElement, keepRectCenter, loadCss, mergerUriParam, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, round, setHash, show, stringToEntity, toc, toggle, trans, triggerDomEvent, unescapeHtml, utf8Decode, utf8Encode };

@@ -19,6 +19,7 @@
 
 <h1>Multiple Images</h1>
 <ul class="multiple-images">
+	<li><a href="img/small.png"><img src="img/small.png" alt=""></a></li>
 	<li><a href="img/BingImageOfTheDay_20210220.jpg"><img src="img/BingImageOfTheDay_20210220.jpg" alt=""></a></li>
 	<li><a href="img/BingImageOfTheDay_20210221.jpg"><img src="img/BingImageOfTheDay_20210221.jpg" alt=""></a></li>
 	<li><a href="img/BingImageOfTheDay_20210222.jpg"><img src="img/BingImageOfTheDay_20210222.jpg" alt=""></a></li>
@@ -48,16 +49,17 @@
 		e.preventDefault();
 	});
 
-	document.querySelectorAll('.multiple-images a').forEach(a => {
-		a.addEventListener('click', function(e){
+	let as = Array.from(document.querySelectorAll('.multiple-images a'));
+	for(let i=0; i<as.length; i++){
+		as[i].addEventListener('click', (e)=>{
 			let srcList = [];
 			document.querySelectorAll('.multiple-images img').forEach(img => {
 				srcList.push(img.src);
 			});
-			ImgPreview.showImg(srcList);
+			ImgPreview.showImgList(srcList, i);
 			e.preventDefault();
 		});
-	})
+	}
 </script>
 </body>
 </html>
