@@ -1,9 +1,11 @@
-import {getRegion, hide, insertStyleSheet, show} from "../Lang/Dom.js";
+import {hide, insertStyleSheet, show} from "../Lang/Dom.js";
+import {loadImgBySrc, scaleFixCenter} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
-import {Img} from "../Lang/Img.js";
 
 const DOM_CLASS = Theme.Namespace+'com-image-viewer';
-const PADDING = '20px';
+const DEFAULT_VIEW_PADDING = 50;
+const MAX_ZOOM_IN_RATIO = 2;
+const MIN_ZOOM_OUT_SIZE = 50;
 
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX+1;
@@ -25,7 +27,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-ctn {text-align:center; height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-loading, .${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; font-size:60px; color:#ffffff6e; display:block; animation: ${Theme.Namespace}spin 3s infinite linear;}
-	.${DOM_CLASS} .civ-img {height: calc(100% - ${PADDING}*2); padding:0 ${PADDING}; margin-top:${PADDING}; display: flex; justify-content: center; align-items: center;}
+	.${DOM_CLASS} .civ-img {height:100%; box-sizing:border-box; display: flex; justify-content: center; align-items: center;}
 	.${DOM_CLASS} .civ-img img {box-shadow: 1px 1px 20px #898989; transition: all 0.1s linear}
 `, Theme.Namespace+'img-preview-style');
 
@@ -41,7 +43,7 @@ const loadImgSingleton = (() => {
 			if(img_cache[src]){
 				return resolve(img_cache[src].cloneNode());
 			}
-			Img.loadImgBySrc(src).then(img => {
+			loadImgBySrc(src).then(img => {
 				img_cache[src] = img;
 				resolve(img.cloneNode());
 			}, reject)
@@ -51,11 +53,12 @@ const loadImgSingleton = (() => {
 
 const fixImgView = (img, container = document) => {
 	loadImgSingleton(img.src).then(tmpImg =>{
-		let {width, height, top, left} = Img.scaleFixCenter({
+		let {width, height, top, left} = scaleFixCenter({
 			contentWidth: tmpImg.width,
 			contentHeight: tmpImg.height,
 			containerWidth: container.offsetWidth,
-			containerHeight: container.offsetHeight
+			containerHeight: container.offsetHeight,
+			spacing: DEFAULT_VIEW_PADDING
 		});
 		img.style.left = left + 'px';
 		img.style.top = top + 'px';
@@ -89,6 +92,31 @@ const updateNavState = (ip) => {
 	}
 }
 
+const bindImgMove = (img)=>{
+	let moving = false;
+	let lastOffset = {};
+	img.addEventListener('mousedown', e=>{
+		moving = true;
+		lastOffset = {
+			clientX: e.clientX,
+			clientY: e.clientY,
+			x: parseInt(img.style.left, 10),
+			y: parseInt(img.style.top, 10)
+		};
+	});
+	['mouseup', 'mouseout'].forEach(ev =>{
+		img.addEventListener(ev, e=>{
+			moving = false;
+		})
+	});
+	img.addEventListener('mousemove', e=>{
+		if(moving){
+			console.log('moving');
+			img.style.left = lastOffset.x - e.clientX - lastOffset.clientX + 'px';
+			img.style.top = lastOffset.y - e.clientY - lastOffset.clientY + 'px';
+		}
+	});
+}
 
 /**
  * @param {ImgPreview} ip
@@ -106,6 +134,9 @@ const showImgSrc = (ip, imgSrc)=>{
 		hide(loading);
 		fixImgView(img, img_ctn);
 		img_ctn.innerHTML = '';
+		img.setAttribute('data-original-width', img.width);
+		img.setAttribute('data-original-height', img.height);
+		bindImgMove(img);
 		img_ctn.appendChild(img);
 	}, error=>{
 		console.warn(error);
@@ -114,7 +145,6 @@ const showImgSrc = (ip, imgSrc)=>{
 		show(err);
 	});
 }
-
 
 export class ImgPreview {
 	previewDom = null;
@@ -138,9 +168,7 @@ export class ImgPreview {
 				`<span class="civ-closer" title="ESC to close">close</span>
 				<span class="civ-nav-btn civ-prev" style="display:none;"></span>
 				<span class="civ-nav-btn civ-next" style="display:none;"></span>
-				<span class="civ-view-option">
-					span.
-				</span>
+				<span class="civ-view-option"></span>
 				<div class="civ-ctn">
 					<span class="civ-loading"></span>
 					<span class="civ-error"></span>
@@ -167,6 +195,13 @@ export class ImgPreview {
 					this.resetView();
 				}, 50);
 			});
+
+			//bind scroll zoom
+			this.previewDom.querySelector('.civ-ctn').addEventListener('mousewheel', e=>{
+				this.zoom(e.wheelDelta > 0 ? 1.2 : 0.8);
+				e.preventDefault();
+				return false;
+			})
 
 			//bind key
 			document.body.addEventListener('keydown', e=>{
@@ -227,6 +262,35 @@ export class ImgPreview {
 				ImgPreview.showImgList(imgSrcList, idx);
 			})
 		});
+	}
+
+	/**
+	 * @param {Number} ratioOffset
+	 */
+	zoom(ratioOffset){
+		let img = this.previewDom.querySelector('.civ-img img');
+		let origin_width = img.getAttribute('data-original-width');
+		let origin_height = img.getAttribute('data-original-height');
+
+		let width = parseInt(img.style.width, 10) * ratioOffset;
+		let height = parseInt(img.style.height, 10) * ratioOffset;
+
+		//zoom in ratio limited
+		if(ratioOffset > 1 && width > origin_width && ((width / origin_width)>MAX_ZOOM_IN_RATIO || (height / origin_height)>MAX_ZOOM_IN_RATIO)){
+			console.warn('zoom in limited');
+			return;
+		}
+
+		//限制任何一边小于最小值
+		if(ratioOffset < 1 && width < origin_width && (width < MIN_ZOOM_OUT_SIZE || height < MIN_ZOOM_OUT_SIZE)){
+			console.warn('zoom out limited');
+			return;
+		}
+
+		img.style.left = parseInt(img.style.left, 10) * ratioOffset + 'px';
+		img.style.top = parseInt(img.style.top, 10) * ratioOffset + 'px';
+		img.style.width = parseInt(img.style.width, 10) * ratioOffset + 'px';
+		img.style.height = parseInt(img.style.height, 10) * ratioOffset + 'px';
 	}
 
 	switchTo(toPrev = false){

@@ -1,7 +1,7 @@
 import {escapeAttr, dimension2Style} from "../Lang/String.js";
-import {buttonActiveBind, domContained, insertStyleSheet, keepRectCenter, loadCss} from "../Lang/Dom.js";
+import {buttonActiveBind, domContained, insertStyleSheet, keepRectCenter} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
-import {KEYS} from "../Lang/Util.js";
+import {KEYS} from "../Lang/Event.js";
 import {BizEvent} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 
@@ -331,7 +331,8 @@ export class Dialog {
 	static DIALOG_INIT_Z_INDEX = 1000;
 
 	id = null;
-	/** @var {Element} dom **/
+
+	/** @var {HTMLElement} dom **/
 	dom = null;
 
 	visible = false;
@@ -428,7 +429,7 @@ export class Dialog {
 				content,
 				buttons: [
 					{title: '确定', default: true, callback:()=>{p.close();resolve();}},
-					{title: '取消', callback:()=>{p.close(); reject()}}
+					{title: '取消', callback:()=>{p.close(); reject && reject()}}
 				],
 				showTopCloseButton: false,
 				...opt
@@ -464,10 +465,10 @@ export class Dialog {
 	 * 输入提示框
 	 * @param {String} title
 	 * @param {String} content
-	 * @param {Object} opt
+	 * @param {Object} option
 	 * @returns {Promise<unknown>}
 	 */
-	static prompt(title, content, opt={}){
+	static prompt(title, content, option={}){
 		return new Promise(((resolve, reject) => {
 			let input;
 			let submit = ()=>{
@@ -490,7 +491,7 @@ export class Dialog {
 					{title: '取消', callback: reject}
 				],
 				showTopCloseButton: true,
-				...opt
+				...option
 			});
 			p.onClose.listen(reject);
 			p.show();

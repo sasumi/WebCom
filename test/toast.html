@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #html {max-height:calc(100vh - 120px); max-width:500px; overflow:auto; float:left;}
+        #html img {max-width:100%;}
+        #text-preview {float:left; margin:0 10px; width:500px; height:calc(100vh - 120px); border:10px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+<script src="test.js"></script>
+<input type="button" value="info" id="info-btn">
+<input type="button" value="warning" id="warning-btn">
+<input type="button" value="error" id="error-btn">
+<input type="button" value="loading" id="loading-btn">
+<input type="button" value="success" id="success-btn">
+
+<script type="module">
+    import {Toast} from "../src/index.js";
+
+    document.getElementById('info-btn').addEventListener('click', e=>{
+        Toast.showInfo('info');
+    });
+    document.getElementById('warning-btn').addEventListener('click', e=>{
+        Toast.showWarning('warning');
+    });
+    document.getElementById('error-btn').addEventListener('click', e=>{
+        Toast.showError('error');
+    });
+    document.getElementById('loading-btn').addEventListener('click', e=>{
+        Toast.showLoading('loading');
+    });
+    document.getElementById('success-btn').addEventListener('click', e=>{
+        Toast.showSuccess('success');
+    });
+</script>
+
+</body>
+</html>

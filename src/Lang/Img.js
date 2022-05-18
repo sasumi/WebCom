@@ -5,7 +5,7 @@ import {convertBlobToBase64} from "./String.js";
  * @param {String} src
  * @returns {Promise<Image>}
  */
-const loadImgBySrc = (src)=>{
+export const loadImgBySrc = (src)=>{
 	return new Promise((resolve, reject) => {
 		let img = new Image;
 		img.onload = ()=>{
@@ -21,7 +21,12 @@ const loadImgBySrc = (src)=>{
 	});
 }
 
-const getBase64BySrc = (src)=>{
+/**
+ * 通过ImageSrc获取base64（网络请求模式）
+ * @param src
+ * @returns {Promise<unknown>}
+ */
+export const getBase64BySrc = (src)=>{
 	return new Promise((resolve, reject) => {
 		let xhr = new XMLHttpRequest();
 		xhr.open('GET', src, true);
@@ -46,7 +51,12 @@ const getBase64BySrc = (src)=>{
 	});
 }
 
-const getBase64ByImg = (img) => {
+/**
+ * 通过 Image 获取base64数据
+ * @param img
+ * @returns {string|string|*|string|null}
+ */
+export const getBase64ByImg = (img) => {
 	if(!img.src){
 		return null;
 	}
@@ -63,14 +73,15 @@ const getBase64ByImg = (img) => {
 
 /**
  * 通过缩放+定位将图片放置在指定容器中间
- * @param contentWidth
- * @param contentHeight
- * @param containerWidth
- * @param containerHeight
+ * @param {Number} contentWidth
+ * @param {Number} contentHeight
+ * @param {Number} containerWidth
+ * @param {Number} containerHeight
+ * @param {Number} spacing
  * @param {Boolean} zoomIn 是否在图片小于容器时放大，默认不放大
  * @returns {{top: number, left: number, width: number, height: number}|{top: number, left: number, width, height}}
  */
-const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, zoomIn = false}) => {
+export const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, spacing = 0, zoomIn = false}) => {
 	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 		return {
 			width: contentWidth,
@@ -90,10 +101,3 @@ const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerH
 		top: (containerHeight - contentHeight * ratio) / 2,
 	}
 }
-
-export const Img = {
-	loadImgBySrc,
-	getBase64ByImg,
-	getBase64BySrc,
-	scaleFixCenter
-};

@@ -9,14 +9,14 @@ import {Toast} from "./Toast.js";
  * @returns {boolean} 是否复制成功
  */
 export const copy = (text, silent = false) => {
-	let t = createDomByHtml('<textarea readonly="readonly">', document.body);
-	t.style.cssText = 'position:absolute; left:-9999px;';
+	let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
+	txtNode.style.cssText = 'position:absolute; left:-9999px;';
 	let y = window.pageYOffset || document.documentElement.scrollTop;
-	t.addEventListener('focus', function(){
+	txtNode.addEventListener('focus', function(){
 		window.scrollTo(0, y);
 	});
-	t.value = text;
-	t.select();
+	txtNode.value = text;
+	txtNode.select();
 	try{
 		let succeeded = document.execCommand('copy');
 		!silent && Toast.showSuccess(trans('复制成功'));
@@ -25,7 +25,7 @@ export const copy = (text, silent = false) => {
 		Toast.showWarning(trans('请按键: Ctrl+C, Enter复制内容'), text);
 		console.error(err);
 	} finally{
-		t.parentNode.removeChild(t);
+		txtNode.parentNode.removeChild(txtNode);
 	}
 	return false;
 };

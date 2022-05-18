@@ -12,6 +12,14 @@
 </style>
 Iframe here
 
-
+<input type="button" value="Call parent dialog" id="btn">
+<script type="module">
+    document.getElementById('btn').addEventListener('click', e=>{
+        top.topImport('./../Widget/Dialog.js', 'Dialog').then(Dialog=>{
+            console.log(Dialog);
+            Dialog.confirm('asdfasdf', 'asdfasfasdf');
+        });
+    })
+</script>
 </body>
 </html>

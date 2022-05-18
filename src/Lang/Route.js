@@ -1,9 +1,9 @@
-import {buildParam, getHashObject} from "./Net.js";
+import {getHash, QueryString} from "./Net.js";
 
 let payloads = [];
 
 export const pushState = (param, title = '') => {
-	let url = location.href.replace(/#.*$/g, '') + '#' + buildParam(param);
+	let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
 	window.history.pushState(param, title, url);
 	exePayloads(param);
 }
@@ -16,7 +16,7 @@ const exePayloads = (param) => {
 
 window.onpopstate = function(e){
 	let state = e.state ?? {};
-	let hashObj = getHashObject();
+	let hashObj = QueryString.parse(getHash());
 	exePayloads({...state, ...hashObj});
 };
 

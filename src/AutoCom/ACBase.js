@@ -3,6 +3,8 @@ import {ACConfirm} from "./ACConfirm.js";
 import {ACMultiOperate} from "./ACMultiOperate.js";
 import {ACAsync} from "./ACAsync.js";
 import {ACThumb} from "./ACThumb.js";
+import {ACDialog} from "./ACDialog.js";
+import {onDocReady} from "../Lang/Event.js";
 
 export const COM_ATTR_KEY = 'data-com';
 const COM_BIND_FLAG = COM_ATTR_KEY + '-flag';
@@ -10,6 +12,7 @@ const COM_BIND_FLAG = COM_ATTR_KEY + '-flag';
 const ComponentMaps = {
 	Async: ACAsync,
 	Confirm: ACConfirm,
+	Dialog: ACDialog,
 	MultiSelect: ACMultiSelect,
 	MultiOperate: ACMultiOperate,
 	Thumb: ACThumb,
@@ -61,6 +64,8 @@ export const ACEventChainBind = (dom, event, payload)=>{
 		uuid = dom[EVENT_CHAIN_UUID_KEY] = DOM_UUID_INDEX++;
 		dom.addEventListener(event, e => {
 			EventChainTrigger([].concat(EVENT_MAPS[uuid]));
+			e.preventDefault();
+			return false;
 		});
 	}
 	if(!EVENT_MAPS[uuid]){
@@ -89,20 +94,21 @@ export const ACGetComponents = (node) => {
 	return validateComponents(ComList);
 };
 
-export const ACBindComponent = (dom, withModifiedEvent = false) => {
-	dom.querySelectorAll(`[${COM_ATTR_KEY}]:not([${COM_BIND_FLAG}="1"])`).forEach(node => {
-		node.setAttribute(COM_BIND_FLAG, '1');
-		let Components = ACGetComponents(node);
-		if(!Components.length){
-			return;
-		}
-		Components.forEach(Com => {
-			let params = resolveParam(node, Com.name);
-			console.info(`Component <${Com.name}> init`, params);
-			Com(node, params);
-		})
-	});
-
+export const ACBindComponent = (dom = document.body, withModifiedEvent = false) => {
+	onDocReady(()=>{
+		dom.querySelectorAll(`[${COM_ATTR_KEY}]:not([${COM_BIND_FLAG}="1"])`).forEach(node => {
+			node.setAttribute(COM_BIND_FLAG, '1');
+			let Components = ACGetComponents(node);
+			if(!Components.length){
+				return;
+			}
+			Components.forEach(Com => {
+				let params = resolveParam(node, Com.name);
+				console.info(`Component <${Com.name}> init`, params);
+				Com(node, params);
+			});
+		});
+	})
 	if(withModifiedEvent){
 		dom.addEventListener('DOMSubtreeModified', e=>{
 			ACBindComponent(dom, false);

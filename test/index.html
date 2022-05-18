@@ -7,12 +7,24 @@
     <title>Test Index</title>
 </head>
 <body>
-    <h1>UI Test Case</h1>
+    <script src="test.js"></script>
+    <input type="button" value="loadDialog" id="loadDialogBtn">
+    <script type="module">
+        import {getLibEntryScript, getLibModuleTop} from "../src/index.js";
 
-    <ul>
-        <li><a href="toast.html">Toast</a></li>
-        <li><a href="dialog.html">Dialog</a></li>
-        <li><a href="imgpreview.html">Img Preview</a></li>
-    </ul>
+        getLibModuleTop().then(({getCurrentScript}) => {
+            console.log(getCurrentScript);
+        })
+        console.log(getLibEntryScript());
+        const func = async ()=>{
+            let a = 'Dialog';
+            let {Dialog} = await import(`../src/Widget/${a}.js`);
+            console.log('dialog', Dialog);
+        }
+        document.getElementById('loadDialogBtn').addEventListener('click', e=>{
+            let a = func();
+            console.log('xx', a);
+        })
+    </script>
 </body>
 </html>

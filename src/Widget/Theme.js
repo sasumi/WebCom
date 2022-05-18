@@ -25,7 +25,9 @@ export const Theme = {
 	Namespace: NS,
 	IconFont: ICON_FONT,
 	IconFontClass: ICON_FONT_CLASS,
-	DialogIndex: 1000,
-	MaskIndex: 100,
-	FullScreenModeIndex: 10000
+	TipIndex: 10, //提示类
+	ToastIndex: 10000, //对话消息
+	DialogIndex: 1000, //对话框等窗口类垂直索引
+	MaskIndex: 100, //遮罩
+	FullScreenModeIndex: 10000 //全屏类
 }

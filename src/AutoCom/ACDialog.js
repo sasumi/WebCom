@@ -1,4 +1,4 @@
-import {Dialog} from "../UI/Dialog.js";
+import {Dialog} from "../Widget/Dialog.js";
 import {ACEventChainBind} from "./ACBase.js";
 
 export const ACDialog = (node, param) => {
@@ -15,8 +15,11 @@ export const ACDialog = (node, param) => {
 	ACEventChainBind(node, 'click', next=>{
 		let dlg = new Dialog({
 			title: param.title,
-			content: {src:param.src}
+			content: {src:param.src},
+			width: ACDialog.DEFAULT_WIDTH
 		});
 		dlg.show();
 	});
 };
+
+ACDialog.DEFAULT_WIDTH = 600;

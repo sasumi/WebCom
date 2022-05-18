@@ -1,5 +1,5 @@
-import {KEYS} from "./Util.js";
 import {between} from "./Math.js";
+import {KEYS} from "./Event.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -9,7 +9,9 @@ export const getViewHeight = () => {
 	return window.innerHeight;
 };
 
-
+/**
+ * @param {HTMLElement} dom
+ */
 export const hide = (dom) => {
 	dom.style.display = 'none';
 }
@@ -24,7 +26,7 @@ export const toggle = (dom, toShow) => {
 
 /**
  * 主动触发事件
- * @param el
+ * @param {HTMLElement} el
  * @param event
  */
 export const fireEvent = (el, event) => {
@@ -39,7 +41,7 @@ export const fireEvent = (el, event) => {
 
 /**
  * 检测child节点是否在container节点列表里面
- * @param {Node|Node[]|String} contains
+ * @param {HTMLElement|HTMLElement[]|String} contains
  * @param {Node} child
  * @param {Boolean} includeEqual 是否包括等于关系
  * @returns {boolean}
@@ -62,7 +64,7 @@ export const domContained = (contains, child, includeEqual = false) => {
 
 /**
  * 绑定按钮触发（包括鼠标点击、键盘回车、键盘空格）
- * @param {Node} button
+ * @param {HTMLElement} button
  * @param {CallableFunction} payload
  * @param {Boolean} cancelBubble
  */
@@ -85,9 +87,7 @@ export const buttonActiveBind = (button, payload, cancelBubble = false) => {
  * @param {Number} containerDimension.top
  * @param {Number} containerDimension.width
  * @param {Number} containerDimension.height
- * @return {Array} dimension
- * @return {Number} dimension.left
- * @return {Number} dimension.top
+ * @return {Array} dimension [dimension.left, dimension.top]
  */
 export const keepRectCenter = (width, height, containerDimension = {
 	left: 0,
@@ -103,8 +103,8 @@ export const keepRectCenter = (width, height, containerDimension = {
 
 /**
  * 矩形相交（包括边重叠情况）
- * @param rect1
- * @param rect2
+ * @param {Object} rect1
+ * @param {Object} rect2
  * @returns {boolean}
  */
 export const rectAssoc = (rect1, rect2) => {
@@ -126,7 +126,7 @@ export const rectAssoc = (rect1, rect2) => {
 
 /**
  * isElement
- * @param obj
+ * @param {*} obj
  * @returns {boolean}
  */
 export const isElement = (obj) => {
@@ -161,6 +161,12 @@ export const loadCss = (file, forceReload = false) => {
 	document.head.append(link);
 };
 
+/**
+ * insert style sheet in head
+ * @param {String} styleSheetStr
+ * @param {String} id
+ * @return {HTMLStyleElement}
+ */
 export const insertStyleSheet = (styleSheetStr, id='')=>{
 	let style = document.createElement('style');
 	document.head.appendChild(style);
@@ -185,9 +191,8 @@ export const insertStyleSheet = (styleSheetStr, id='')=>{
  *  documentHeight: number,
  *  }}
  */
-export const getRegion = (win) => {
+export const getRegion = (win = window) => {
 	let info = {};
-	win = win || window;
 	let doc = win.document;
 	info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
 	info.screenTop = win.screenTop ? win.screenTop : win.screenY;
@@ -230,14 +235,19 @@ export const rectInLayout = (rect, layout) => {
  * 创建HTML节点
  * @param {String} html
  * @param {Node|null} parentNode 父级节点
- * @returns {ChildNode}
+ * @returns {HTMLElement|HTMLElement[]}
  */
 export const createDomByHtml = (html, parentNode = null) => {
 	let tpl = document.createElement('template');
 	html = html.trim();
 	tpl.innerHTML = html;
+	let nodes = [];
 	if(parentNode){
-		parentNode.appendChild(tpl.content.firstChild);
+		tpl.content.childNodes.forEach(node=>{
+			nodes.push(parentNode.appendChild(node));
+		})
+	} else {
+		nodes = tpl.content.childNodes;
 	}
-	return tpl.content.firstChild;
+	return nodes.length === 1 ? nodes[0] : nodes;
 };

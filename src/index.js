@@ -1,6 +1,12 @@
 export * from "./I18N/Lang.js";
 
-export * from "./AutoCom/ACBase.js";
+export * from "./AutoCom/ACBase.js";//keep ACBase first
+export * from "./AutoCom/ACAsync.js";
+export * from "./AutoCom/ACConfirm.js";
+export * from "./AutoCom/ACDialog.js";
+export * from "./AutoCom/ACMultiOperate.js";
+export * from "./AutoCom/ACMultiSelect.js";
+export * from "./AutoCom/ACThumb.js";
 
 export * from "./Lang/Array.js";
 export * from "./Lang/Dom.js";
@@ -14,13 +20,13 @@ export * from "./Lang/String.js";
 export * from "./Lang/Time.js";
 export * from "./Lang/Util.js";
 
-export * from "./UI/Copy.js";
-export * from "./UI/Dialog.js";
-export * from "./UI/ImgPreview.js";
-export * from "./UI/Ladder.js";
-export * from "./UI/Masker.js";
-export * from "./UI/Theme.js";
-export * from "./UI/Thumb.js";
-export * from "./UI/Tip.js";
-export * from "./UI/Toast.js";
-export * from "./UI/Toc.js";
+export * from "./Widget/Copy.js";
+export * from "./Widget/Dialog.js";
+export * from "./Widget/ImgPreview.js";
+export * from "./Widget/Ladder.js";
+export * from "./Widget/Masker.js";
+export * from "./Widget/Theme.js";
+export * from "./Widget/Thumb.js";
+export * from "./Widget/Tip.js";
+export * from "./Widget/Toast.js";
+export * from "./Widget/Toc.js";

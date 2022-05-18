@@ -1,109 +1,69 @@
 import {randomString} from "./String.js";
 
-export const KEYS = {
-	A: 65,
-	B: 66,
-	C: 67,
-	D: 68,
-	E: 69,
-	F: 70,
-	G: 71,
-	H: 72,
-	I: 73,
-	J: 74,
-	K: 75,
-	L: 76,
-	M: 77,
-	N: 78,
-	O: 79,
-	P: 80,
-	Q: 81,
-	R: 82,
-	S: 83,
-	T: 84,
-	U: 85,
-	V: 86,
-	W: 87,
-	X: 88,
-	Y: 89,
-	Z: 90,
-	0: 48,
-	1: 49,
-	2: 50,
-	3: 51,
-	4: 52,
-	5: 53,
-	6: 54,
-	7: 55,
-	8: 56,
-	9: 57,
-
-	BackSpace: 8,
-	Esc: 27,
-	RightArrow: 39,
-	Tab: 9,
-	Space: 32,
-	DownArrow: 40,
-	Clear: 12,
-	PageUp: 33,
-	Insert: 45,
-	Enter: 13,
-	PageDown: 34,
-	Delete: 46,
-	Shift: 16,
-	End: 35,
-	NumLock: 144,
-	Control: 17,
-	Home: 36,
-	Alt: 18,
-	LeftArrow: 37,
-	CapsLock: 20,
-	UpArrow: 38,
-
-	F1: 112,
-	F2: 113,
-	F3: 114,
-	F4: 115,
-	F5: 116,
-	F6: 117,
-	F7: 118,
-	F8: 119,
-	F9: 120,
-	F10: 121,
-	F11: 122,
-	F12: 123,
-
-	NumPad0: 96,
-	NumPad1: 97,
-	NumPad2: 98,
-	NumPad3: 99,
-	NumPad4: 100,
-	NumPad5: 101,
-	NumPad6: 102,
-	NumPad7: 103,
-	NumPad8: 104,
-	NumPad9: 105,
-	NumPadMultiple: 106,
-	NumPadPlus: 107,
-	NumPadDash: 109,
-	NumPadDot: 110,
-	NumPadSlash: 111,
-	NumPadEnter: 108
-	///?	191
-	//`~	192
-	//	[{	219
-	//:	186
-// \|	220
-	//=+	187
-	//<	188
-// ]}	221
-
-	//-_	189
-//.>	190
-// '"	222
-};
-
 let _guid = 0;
-export const guid = () => {
-	return 'guid_' + (new Date()).getTime() + randomString();
+export const guid = (prefix = '') => {
+	return 'guid_' + (prefix || randomString(6)) + (++_guid);
 };
+
+/**
+ * 获取当前函数所在script路径
+ * @return {string|null}
+ */
+export const getCurrentScript = function(){
+	let error = new Error()
+		, source
+		, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+		, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+	if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+		return source[1];
+	}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+		return source[1];
+	}else if(error['fileName'] !== undefined){
+		return error['fileName'];
+	}
+	return null;
+}
+
+const CURRENT_FILE = '/Lang/Util.js';
+const ENTRY_FILE = '/index.js';
+
+/**
+ * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
+ * @return {string}
+ */
+export const getLibEntryScript = ()=>{
+	let script = getCurrentScript();
+	if(!script){
+		throw "Get script failed";
+	}
+	if(script.indexOf(CURRENT_FILE) >= 0){
+		return script.replace(CURRENT_FILE, ENTRY_FILE);
+	}
+	return script;
+}
+
+/**
+ * 加载当前库模块
+ * @return {Promise<*>}
+ */
+export const getLibModule = async () => {
+	let script = getLibEntryScript();
+	return await import(script);
+}
+
+/**
+ * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
+ * @type {(function(): Promise<*>)|undefined}
+ */
+export const getLibModuleTop =(()=>{
+	if(top === window){
+		return getLibModule;
+	}
+	if(top.WEBCOM_GET_LIB_MODULE){
+		return top.WEBCOM_GET_LIB_MODULE;
+	}
+	throw "No WebCom library script loaded detected.";
+})();
+
+window.WEBCOM_GET_LIB_MODULE = getLibModule;
+window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;

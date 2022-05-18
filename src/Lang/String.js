@@ -254,7 +254,8 @@ const DEFAULT_RANDOM_STRING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
 export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
 	let codes = '';
 	for(let i = 0; i < length; i++){
-		codes += sourceStr.substring(Math.round(Math.random()*(sourceStr.length - 1)), 1);
+		let rnd =Math.round(Math.random()*(sourceStr.length - 1));
+		codes += sourceStr.substring(rnd, rnd + 1);
 	}
 	return codes;
 };

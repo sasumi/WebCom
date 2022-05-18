@@ -2,6 +2,24 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _interopNamespace(e) {
+	if (e && e.__esModule) return e;
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			if (k !== 'default') {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	}
+	n["default"] = e;
+	return Object.freeze(n);
+}
+
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -41,14 +59,145 @@ class BizEvent {
 	}
 }
 
-const triggerDomEvent = (el, event) => {
+/**
+ * hover event
+ * @param {Node} node
+ * @param {Function} hoverIn
+ * @param {Function} hoverOut
+ */
+const onHover = (node, hoverIn, hoverOut)=>{
+	node.addEventListener('mouseover', hoverIn);
+	node.addEventListener('mouseout', hoverOut);
+};
+
+/**
+ * on document ready
+ * @param {Function} callback
+ */
+const onDocReady = (callback)=>{
+	if (document.readyState === 'complete') {
+		callback();
+	} else {
+		document.addEventListener("DOMContentLoaded", callback);
+	}
+};
+
+/**
+ * 触发HTML节点事件
+ * @param {Node} node
+ * @param {String} event
+ */
+const triggerDomEvent = (node, event) => {
 	if("createEvent" in document){
 		let evt = document.createEvent("HTMLEvents");
 		evt.initEvent(event.toLowerCase(), false, true);
-		el.dispatchEvent(evt);
+		node.dispatchEvent(evt);
 	}else {
-		el.fireEvent("on"+event.toLowerCase());
+		node.fireEvent("on"+event.toLowerCase());
 	}
+};
+
+const KEYS = {
+	A: 65,
+	B: 66,
+	C: 67,
+	D: 68,
+	E: 69,
+	F: 70,
+	G: 71,
+	H: 72,
+	I: 73,
+	J: 74,
+	K: 75,
+	L: 76,
+	M: 77,
+	N: 78,
+	O: 79,
+	P: 80,
+	Q: 81,
+	R: 82,
+	S: 83,
+	T: 84,
+	U: 85,
+	V: 86,
+	W: 87,
+	X: 88,
+	Y: 89,
+	Z: 90,
+	0: 48,
+	1: 49,
+	2: 50,
+	3: 51,
+	4: 52,
+	5: 53,
+	6: 54,
+	7: 55,
+	8: 56,
+	9: 57,
+
+	BackSpace: 8,
+	Esc: 27,
+	RightArrow: 39,
+	Tab: 9,
+	Space: 32,
+	DownArrow: 40,
+	Clear: 12,
+	PageUp: 33,
+	Insert: 45,
+	Enter: 13,
+	PageDown: 34,
+	Delete: 46,
+	Shift: 16,
+	End: 35,
+	NumLock: 144,
+	Control: 17,
+	Home: 36,
+	Alt: 18,
+	LeftArrow: 37,
+	CapsLock: 20,
+	UpArrow: 38,
+
+	F1: 112,
+	F2: 113,
+	F3: 114,
+	F4: 115,
+	F5: 116,
+	F6: 117,
+	F7: 118,
+	F8: 119,
+	F9: 120,
+	F10: 121,
+	F11: 122,
+	F12: 123,
+
+	NumPad0: 96,
+	NumPad1: 97,
+	NumPad2: 98,
+	NumPad3: 99,
+	NumPad4: 100,
+	NumPad5: 101,
+	NumPad6: 102,
+	NumPad7: 103,
+	NumPad8: 104,
+	NumPad9: 105,
+	NumPadMultiple: 106,
+	NumPadPlus: 107,
+	NumPadDash: 109,
+	NumPadDot: 110,
+	NumPadSlash: 111,
+	NumPadEnter: 108
+	///?	191
+	//`~	192
+	//	[{	219
+	//:	186
+// \|	220
+	//=+	187
+	//<	188
+// ]}	221
+
+	//-_	189
+//.>	190
+// '"	222
 };
 
 const ACMultiSelect = (node, param) => {
@@ -90,6 +239,30 @@ const ACMultiSelect = (node, param) => {
 		chk.addEventListener('change', updState);
 	});
 	updState();
+};
+
+const ACBindSelectAll = (node, container)=>{
+	let target = document.querySelector(container || 'body');
+	let checks = target.querySelectorAll('input[type=checkbox]:not([disabled])');
+	//ignore empty
+	if(!checks.length){
+		return;
+	}
+	node.addEventListener('click', e=>{
+		checks.forEach(chk=>chk.checked = true);
+	});
+};
+
+const ACBindSelectNone = (node, container)=>{
+	let target = document.querySelector(container || 'body');
+	let checks = target.querySelectorAll('input[type=checkbox]:not([disabled])');
+	//ignore empty
+	if(!checks.length){
+		return;
+	}
+	node.addEventListener('click', e=>{
+		checks.forEach(chk=>chk.checked = true);
+	});
 };
 
 /**
@@ -347,7 +520,8 @@ const DEFAULT_RANDOM_STRING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
 const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
 	let codes = '';
 	for(let i = 0; i < length; i++){
-		codes += sourceStr.substring(Math.round(Math.random()*(sourceStr.length - 1)), 1);
+		let rnd =Math.round(Math.random()*(sourceStr.length - 1));
+		codes += sourceStr.substring(rnd, rnd + 1);
 	}
 	return codes;
 };
@@ -472,112 +646,6 @@ const html2Text = (html)=>{
 	return html;
 };
 
-const KEYS = {
-	A: 65,
-	B: 66,
-	C: 67,
-	D: 68,
-	E: 69,
-	F: 70,
-	G: 71,
-	H: 72,
-	I: 73,
-	J: 74,
-	K: 75,
-	L: 76,
-	M: 77,
-	N: 78,
-	O: 79,
-	P: 80,
-	Q: 81,
-	R: 82,
-	S: 83,
-	T: 84,
-	U: 85,
-	V: 86,
-	W: 87,
-	X: 88,
-	Y: 89,
-	Z: 90,
-	0: 48,
-	1: 49,
-	2: 50,
-	3: 51,
-	4: 52,
-	5: 53,
-	6: 54,
-	7: 55,
-	8: 56,
-	9: 57,
-
-	BackSpace: 8,
-	Esc: 27,
-	RightArrow: 39,
-	Tab: 9,
-	Space: 32,
-	DownArrow: 40,
-	Clear: 12,
-	PageUp: 33,
-	Insert: 45,
-	Enter: 13,
-	PageDown: 34,
-	Delete: 46,
-	Shift: 16,
-	End: 35,
-	NumLock: 144,
-	Control: 17,
-	Home: 36,
-	Alt: 18,
-	LeftArrow: 37,
-	CapsLock: 20,
-	UpArrow: 38,
-
-	F1: 112,
-	F2: 113,
-	F3: 114,
-	F4: 115,
-	F5: 116,
-	F6: 117,
-	F7: 118,
-	F8: 119,
-	F9: 120,
-	F10: 121,
-	F11: 122,
-	F12: 123,
-
-	NumPad0: 96,
-	NumPad1: 97,
-	NumPad2: 98,
-	NumPad3: 99,
-	NumPad4: 100,
-	NumPad5: 101,
-	NumPad6: 102,
-	NumPad7: 103,
-	NumPad8: 104,
-	NumPad9: 105,
-	NumPadMultiple: 106,
-	NumPadPlus: 107,
-	NumPadDash: 109,
-	NumPadDot: 110,
-	NumPadSlash: 111,
-	NumPadEnter: 108
-	///?	191
-	//`~	192
-	//	[{	219
-	//:	186
-// \|	220
-	//=+	187
-	//<	188
-// ]}	221
-
-	//-_	189
-//.>	190
-// '"	222
-};
-const guid$2 = () => {
-	return 'guid_' + (new Date()).getTime() + randomString();
-};
-
 const between = (val, min, max)=>{
 	return val >= min && val <= max;
 };
@@ -602,7 +670,9 @@ const getViewHeight = () => {
 	return window.innerHeight;
 };
 
-
+/**
+ * @param {HTMLElement} dom
+ */
 const hide = (dom) => {
 	dom.style.display = 'none';
 };
@@ -617,7 +687,7 @@ const toggle = (dom, toShow) => {
 
 /**
  * 主动触发事件
- * @param el
+ * @param {HTMLElement} el
  * @param event
  */
 const fireEvent = (el, event) => {
@@ -632,7 +702,7 @@ const fireEvent = (el, event) => {
 
 /**
  * 检测child节点是否在container节点列表里面
- * @param {Node|Node[]|String} contains
+ * @param {HTMLElement|HTMLElement[]|String} contains
  * @param {Node} child
  * @param {Boolean} includeEqual 是否包括等于关系
  * @returns {boolean}
@@ -655,7 +725,7 @@ const domContained = (contains, child, includeEqual = false) => {
 
 /**
  * 绑定按钮触发（包括鼠标点击、键盘回车、键盘空格）
- * @param {Node} button
+ * @param {HTMLElement} button
  * @param {CallableFunction} payload
  * @param {Boolean} cancelBubble
  */
@@ -678,9 +748,7 @@ const buttonActiveBind = (button, payload, cancelBubble = false) => {
  * @param {Number} containerDimension.top
  * @param {Number} containerDimension.width
  * @param {Number} containerDimension.height
- * @return {Array} dimension
- * @return {Number} dimension.left
- * @return {Number} dimension.top
+ * @return {Array} dimension [dimension.left, dimension.top]
  */
 const keepRectCenter = (width, height, containerDimension = {
 	left: 0,
@@ -696,8 +764,8 @@ const keepRectCenter = (width, height, containerDimension = {
 
 /**
  * 矩形相交（包括边重叠情况）
- * @param rect1
- * @param rect2
+ * @param {Object} rect1
+ * @param {Object} rect2
  * @returns {boolean}
  */
 const rectAssoc = (rect1, rect2) => {
@@ -719,7 +787,7 @@ const rectAssoc = (rect1, rect2) => {
 
 /**
  * isElement
- * @param obj
+ * @param {*} obj
  * @returns {boolean}
  */
 const isElement = (obj) => {
@@ -754,6 +822,12 @@ const loadCss = (file, forceReload = false) => {
 	document.head.append(link);
 };
 
+/**
+ * insert style sheet in head
+ * @param {String} styleSheetStr
+ * @param {String} id
+ * @return {HTMLStyleElement}
+ */
 const insertStyleSheet = (styleSheetStr, id='')=>{
 	let style = document.createElement('style');
 	document.head.appendChild(style);
@@ -778,9 +852,8 @@ const insertStyleSheet = (styleSheetStr, id='')=>{
  *  documentHeight: number,
  *  }}
  */
-const getRegion = (win) => {
+const getRegion = (win = window) => {
 	let info = {};
-	win = win || window;
 	let doc = win.document;
 	info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
 	info.screenTop = win.screenTop ? win.screenTop : win.screenY;
@@ -823,21 +896,26 @@ const rectInLayout = (rect, layout) => {
  * 创建HTML节点
  * @param {String} html
  * @param {Node|null} parentNode 父级节点
- * @returns {ChildNode}
+ * @returns {HTMLElement|HTMLElement[]}
  */
 const createDomByHtml = (html, parentNode = null) => {
 	let tpl = document.createElement('template');
 	html = html.trim();
 	tpl.innerHTML = html;
+	let nodes = [];
 	if(parentNode){
-		parentNode.appendChild(tpl.content.firstChild);
+		tpl.content.childNodes.forEach(node=>{
+			nodes.push(parentNode.appendChild(node));
+		});
+	} else {
+		nodes = tpl.content.childNodes;
 	}
-	return tpl.content.firstChild;
+	return nodes.length === 1 ? nodes[0] : nodes;
 };
 
-const NS = 'WebCom-';
-const ICON_FONT_CLASS = NS + `icon`;
-const ICON_FONT = NS+'iconfont';
+const NS$1 = 'WebCom-';
+const ICON_FONT_CLASS = NS$1 + `icon`;
+const ICON_FONT = NS$1+'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
@@ -857,12 +935,14 @@ const DEFAULT_ICONFONT_CSS = `
 insertStyleSheet(DEFAULT_ICONFONT_CSS);
 
 const Theme = {
-	Namespace: NS,
+	Namespace: NS$1,
 	IconFont: ICON_FONT,
 	IconFontClass: ICON_FONT_CLASS,
-	DialogIndex: 1000,
-	MaskIndex: 100,
-	FullScreenModeIndex: 10000
+	TipIndex: 10, //提示类
+	ToastIndex: 10000, //对话消息
+	DialogIndex: 1000, //对话框等窗口类垂直索引
+	MaskIndex: 100, //遮罩
+	FullScreenModeIndex: 10000 //全屏类
 };
 
 let masker = null;
@@ -1215,7 +1295,8 @@ class Dialog {
 	static DIALOG_INIT_Z_INDEX = 1000;
 
 	id = null;
-	/** @var {Element} dom **/
+
+	/** @var {HTMLElement} dom **/
 	dom = null;
 
 	visible = false;
@@ -1312,7 +1393,7 @@ class Dialog {
 				content,
 				buttons: [
 					{title: '确定', default: true, callback:()=>{p.close();resolve();}},
-					{title: '取消', callback:()=>{p.close(); reject();}}
+					{title: '取消', callback:()=>{p.close(); reject && reject();}}
 				],
 				showTopCloseButton: false,
 				...opt
@@ -1348,10 +1429,10 @@ class Dialog {
 	 * 输入提示框
 	 * @param {String} title
 	 * @param {String} content
-	 * @param {Object} opt
+	 * @param {Object} option
 	 * @returns {Promise<unknown>}
 	 */
-	static prompt(title, content, opt={}){
+	static prompt(title, content, option={}){
 		return new Promise(((resolve, reject) => {
 			let input;
 			let p = new Dialog({
@@ -1369,7 +1450,7 @@ class Dialog {
 					{title: '取消', callback: reject}
 				],
 				showTopCloseButton: true,
-				...opt
+				...option
 			});
 			p.onClose.listen(reject);
 			p.show();
@@ -1450,14 +1531,310 @@ const ACMultiOperate = (node, param) => {
 	updState();
 };
 
-const ACAsync = (node, param) => {
-	if(!param.url && node.nodeName === 'A' && node.href){
-		param.url = node.href;
+const resolveFileExtension = fileName => {
+	fileName = fileName.replace(/.*?[/|\\]/ig, '');
+	return fileName.replace(/\.[^.]*$/g, "");
+};
+
+const resolveFileName = (src)=>{
+	let f = /\/([^/]+)$/ig.exec(src);
+	if(f){
+		let t = /([\w]+)/.exec(f[1]);
+		if(t){
+			return t[1];
+		}
+	}
+	return null;
+};
+
+const CODE_TIMEOUT = 508;
+const CODE_ABORT = 509;
+const DEFAULT_TIMEOUT = 10000;
+
+/**
+ * HTTP请求方法
+ * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
+ */
+const HTTP_METHOD = {
+	GET: 'GET',
+	POST: 'POST',
+	PUT: 'PUT',
+	DELETE: 'DELETE',
+	OPTIONS: 'OPTIONS',
+	HEAD: 'HEAD',
+	CONNECT: 'CONNECT',
+	TRACE: 'TRACE',
+};
+
+/**
+ * 请求格式
+ * @type {{FORM_DATA: string, JSON: string}}
+ */
+const REQUEST_FORMAT = {
+	JSON: 'JSON',
+	FORM_DATA: 'FORM_DATA',
+};
+
+/**
+ * 响应格式
+ * @type {{FORM: string, XML: string, JSON: string, HTML: string, TEXT: string}}
+ */
+const RESPONSE_FORMAT = {
+	JSON: 'JSON',
+	XML: 'XML',
+	HTML: 'HTML',
+	TEXT: 'TEXT',
+	FORM: 'FORM_DATA',
+};
+
+/**
+ * 合并请求参数
+ * @param {String} uri
+ * @param {String|Object} data
+ * @returns {*}
+ */
+const mergerUriParam = (uri, data) => {
+	return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
+};
+
+const setHash = data => {
+	location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
+};
+
+const getHash = () => {
+	return location.hash ? location.hash.substring(1) : '';
+};
+
+/**
+ * 格式化请求数据
+ * @param {Object} data
+ * @param {String} format
+ * @returns {String}
+ */
+const formatReqData = (data, format) => {
+	switch(format){
+		case REQUEST_FORMAT.JSON:
+			return JSON.stringify(data);
+		case REQUEST_FORMAT.FORM_DATA:
+			return QueryString.stringify(data);
+		default:
+			throw `Data format illegal(${format})`;
+	}
+};
+
+/**
+ * 解析响应结果
+ * @param {String} rspStr
+ * @param {String} format
+ * @returns {{}|any}
+ */
+const parserRspDataAsObj = (rspStr, format) => {
+	switch(format){
+		case RESPONSE_FORMAT.JSON:
+			return JSON.parse(rspStr);
+		case RESPONSE_FORMAT.FORM:
+			return QueryString.parse(rspStr);
+		default:
+			throw `Response string type no support now(${format})`;
+	}
+};
+
+class Net {
+	cgi = null; //请求接口
+	data = null; //请求数据
+	option = {
+		method: HTTP_METHOD.GET, //请求方法
+		timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
+		requestDataFormat: REQUEST_FORMAT.FORM_DATA, //请求数据格式
+		responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
+		headers: {}, //请求头部信息
+	};
+	xhr = null;
+	onError = new BizEvent(); //(error,code)
+	onResponse = new BizEvent(); //(body)
+	onStateChange = new BizEvent(); //(state) http 状态码
+	onProgress = new BizEvent(); //(percent)
+
+	constructor(cgi, data, option = {}){
+		this.cgi = cgi;
+		this.data = data;
+		this.option = {
+			...this.option,
+			...option
+		};
+		this.xhr = new XMLHttpRequest();
+		this.xhr.addEventListener("progress", e => {
+			if(e.lengthComputable){
+				this.onProgress.fire(e.loaded / e.total);
+			}else {
+				this.onProgress.fire(null);
+			}
+		});
+		this.xhr.onreadystatechange = (e) => {
+			this.onStateChange.fire(this.xhr.status);
+		};
+		this.xhr.addEventListener("load", () => {
+			this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
+		});
+		this.xhr.addEventListener("error", e => {
+			this.onError.fire(this.xhr.statusText, this.xhr.status);
+		});
+		this.xhr.addEventListener("abort", e => {
+			this.onError.fire('Request aborted.', CODE_ABORT);
+		});
+		for(let key in this.option.headers){
+			this.xhr.setRequestHeader(key, this.option.headers[key]);
+		}
+		if(this.option.requestDataFormat === REQUEST_FORMAT.JSON){
+			this.xhr.setRequestHeader('content-type', 'application/json');
+		}
+		if(this.option.timeout){
+			setTimeout(() => {
+				this.onError.fire('Request timeout', CODE_TIMEOUT);
+			}, this.option.timeout);
+		}
 	}
 
-	if(node.nodeName === 'A'){
-		node.getAttribute('href');
+	send(){
+		this.xhr.open(this.option.method, this.cgi, true);
+		if(this.option.method === 'POST'){
+			this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		}
+		this.xhr.send(formatReqData(this.data, this.option.requestDataFormat));
 	}
+
+	abort(){
+		this.xhr.abort();
+	}
+
+	static get(cgi, data, option = {}){
+		option.method = option.method || HTTP_METHOD.GET;
+		return Net.request(cgi, data, option);
+	}
+
+	static getJSON(cgi, data, option = {}){
+		option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
+		option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+		return Net.get(cgi, data, option);
+	}
+
+	static post(cgi, data, option = {}){
+		option.method = option.method || HTTP_METHOD.POST;
+		return Net.request(cgi, data, option);
+	}
+
+	static postJSON(cgi, data, option = {}){
+		option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
+		option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+		return Net.post(cgi, data, option);
+	}
+
+	static request(cgi, data, option = {}){
+		return new Promise((resolve, reject) => {
+			let req = new Net(cgi, data, option);
+			req.onResponse = resolve;
+			req.onError = reject;
+			req.send();
+		});
+	}
+}
+
+/**
+ * 文件下载
+ * @param src 文件地址
+ * @param save_name 保存名称
+ * @param ext 保存扩展名，缺省自动解析文件地址后缀
+ */
+const downloadFile = (src, save_name, ext) => {
+	ext = ext || resolveFileExtension(src);
+	save_name = save_name || resolveFileName(src);
+	let link = document.createElement('a');
+	link.href = src;
+	link.download = save_name + ext;
+	document.body.appendChild(link);
+	link.click();
+	link.parentNode.removeChild(link);
+};
+
+/**
+ * 获取表单提交的数据
+ * @description 不包含文件表单(后续HTML5版本可能会提供支持)
+ * @param {HTMLFormElement} form
+ * @returns {string}
+ */
+const getFormData = (form) => {
+	let data = {};
+	let elements = form.elements;
+
+	elements.forEach(function(item){
+		let name = item.name;
+		if(!data[name]){
+			data[name] = [];
+		}
+		if(item.type === 'radio'){
+			if(item.checked){
+				data[name].push(item.value);
+			}
+		}else if(item.getAttribute('name') !== undefined && item.getAttribute('value') !== undefined){
+			data[name].push(item.value);
+		}
+	});
+	return QueryString.stringify(data);
+};
+
+const QueryString = {
+	parse(str){
+		if(str[0] === '?'){
+			str = str.substring(1);
+		}
+		let retObj = {};
+		let qs = str.split('&');
+		qs.forEach(q=>{
+			let [k,v]=q.split('=');
+			if(!k.length){
+				return;
+			}
+			retObj[decodeURIComponent(k)] = decodeURIComponent(v);
+		});
+		return retObj;
+	},
+
+	stringify(data){
+		if(typeof (data) === 'string'){
+			return data;
+		}
+		let strList = [];
+		if(typeof (data) === 'object'){
+			for(let i in data){
+				strList.push(encodeURIComponent(i) + '=' + encodeURIComponent(data[i]));
+			}
+		}
+		return strList.join('&');
+	}
+};
+
+/**
+ * open link without referer
+ * @param link
+ * @returns {boolean}
+ */
+const openLinkWithoutReferer = (link) => {
+	let instance = window.open("about:blank");
+	instance.document.write("<meta http-equiv=\"refresh\" content=\"0;url=" + link + "\">");
+	instance.document.close();
+	return false;
+};
+
+const ACAsync = (node, param) => {
+	if(node.nodeName === 'A'){
+		param.cgi = param.cgi|| node.href;
+		param.method = param.method || HTTP_METHOD.GET;
+	}
+	if(node.nodeName === 'FORM'){
+		param.cgi = param.cgi || node.action;
+		param.method = param.cgi || node.method || HTTP_METHOD.GET;
+	}
+	
 	ACEventChainBind(node, 'click', next => {
 		console.log('send async');
 		next();
@@ -1501,12 +1878,36 @@ function ACThumb(imgNode, param){
 	Thumb.bindThumbImgNode(imgNode, param);
 }
 
+const ACDialog = (node, param) => {
+	if(!param.src && node.tagName === 'A' && node.href){
+		param.src = node.href;
+	}
+	if(!param.src){
+		throw "ACDialog require src value";
+	}
+	if(!param.title && node.tagName === 'A'){
+		param.title = node.getAttribute('title') || node.innerText;
+	}
+
+	ACEventChainBind(node, 'click', next=>{
+		let dlg = new Dialog({
+			title: param.title,
+			content: {src:param.src},
+			width: ACDialog.DEFAULT_WIDTH
+		});
+		dlg.show();
+	});
+};
+
+ACDialog.DEFAULT_WIDTH = 600;
+
 const COM_ATTR_KEY = 'data-com';
 const COM_BIND_FLAG = COM_ATTR_KEY + '-flag';
 
 const ComponentMaps = {
 	Async: ACAsync,
 	Confirm: ACConfirm,
+	Dialog: ACDialog,
 	MultiSelect: ACMultiSelect,
 	MultiOperate: ACMultiOperate,
 	Thumb: ACThumb,
@@ -1558,6 +1959,8 @@ const ACEventChainBind = (dom, event, payload)=>{
 		uuid = dom[EVENT_CHAIN_UUID_KEY] = DOM_UUID_INDEX++;
 		dom.addEventListener(event, e => {
 			EventChainTrigger([].concat(EVENT_MAPS[uuid]));
+			e.preventDefault();
+			return false;
 		});
 	}
 	if(!EVENT_MAPS[uuid]){
@@ -1586,20 +1989,21 @@ const ACGetComponents = (node) => {
 	return validateComponents(ComList);
 };
 
-const ACBindComponent = (dom, withModifiedEvent = false) => {
-	dom.querySelectorAll(`[${COM_ATTR_KEY}]:not([${COM_BIND_FLAG}="1"])`).forEach(node => {
-		node.setAttribute(COM_BIND_FLAG, '1');
-		let Components = ACGetComponents(node);
-		if(!Components.length){
-			return;
-		}
-		Components.forEach(Com => {
-			let params = resolveParam(node, Com.name);
-			console.info(`Component <${Com.name}> init`, params);
-			Com(node, params);
+const ACBindComponent = (dom = document.body, withModifiedEvent = false) => {
+	onDocReady(()=>{
+		dom.querySelectorAll(`[${COM_ATTR_KEY}]:not([${COM_BIND_FLAG}="1"])`).forEach(node => {
+			node.setAttribute(COM_BIND_FLAG, '1');
+			let Components = ACGetComponents(node);
+			if(!Components.length){
+				return;
+			}
+			Components.forEach(Com => {
+				let params = resolveParam(node, Com.name);
+				console.info(`Component <${Com.name}> init`, params);
+				Com(node, params);
+			});
 		});
 	});
-
 	if(withModifiedEvent){
 		dom.addEventListener('DOMSubtreeModified', e=>{
 			ACBindComponent(dom, false);
@@ -1658,22 +2062,6 @@ const arrayGroup = (arr, by_key, limit)=>{
 		rst[i] = tmp_rst[i][0];
 	}
 	return rst;
-};
-
-const resolveFileExtension = fileName => {
-	fileName = fileName.replace(/.*?[/|\\]/ig, '');
-	return fileName.replace(/\.[^.]*$/g, "");
-};
-
-const resolveFileName = (src)=>{
-	let f = /\/([^/]+)$/ig.exec(src);
-	if(f){
-		let t = /([\w]+)/.exec(f[1]);
-		if(t){
-			return t[1];
-		}
-	}
-	return null;
 };
 
 /*
@@ -1929,199 +2317,10 @@ const MD5 = (string, key, raw) => {
 	return rawHMACMD5(key, string)
 };
 
-const CODE_TIMEOUT = 508;
-const CODE_ABORT = 509;
-const DEFAULT_TIMEOUT = 10;
-
-/**
- * 构建queryString
- * @param {String|Object} data
- * @returns {string}
- */
-const buildParam = data => {
-	if(typeof (data) === 'string'){
-		return data;
-	}
-	let str = [];
-	if(typeof (data) === 'object'){
-		for(let i in data){
-			str.push(encodeURI(i) + '=' + encodeURI(data[i]));
-		}
-	}
-	return str.join('&');
-};
-
-/**
- * 合并请求参数
- * @param {String} uri
- * @param {String|Object} data
- * @returns {*}
- */
-const mergerUriParam = (uri, data)=>{
-	return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + buildParam(data);
-};
-
-const setHash = data => {
-	location.href = location.href.replace(/#.*$/g, '') + '#' + buildParam(data);
-};
-
-const getHash = () => {
-	return location.hash ? location.hash.substring(1) : '';
-};
-
-const getHashObject = (key = '') => {
-	let hash = getHash();
-	if(!hash){
-		return {};
-	}
-	let obj = {};
-	let ps = hash.split('&');
-	for(let i = 0; i < ps.length; i++){
-		let [k, v] = ps[i].split('=').map(decodeURIComponent);
-		obj[k] = v;
-	}
-	return key ? obj[key] : obj;
-};
-
-function Net(url, data, options = {}){
-	this.url = url;
-	this.data = data;
-	this.option = {method: 'GET', timeout: DEFAULT_TIMEOUT, headers: {}, ...options};
-	this.xhr = new XMLHttpRequest();
-	this.xhr.addEventListener("progress", e => {
-		if(e.lengthComputable){
-			this.onProgress(e.loaded, e.total);
-		}else {
-			this.onProgress();
-		}
-	});
-	this.xhr.onreadystatechange = (e) => {
-		this.onStateChange(this.xhr.status);
-	};
-	this.xhr.addEventListener("load", () => {
-		this.onResponse(this.xhr.responseText);
-	});
-	this.xhr.addEventListener("error", e => {
-		this.onError(this.xhr.statusText, this.xhr.status);
-	});
-	this.xhr.addEventListener("abort", e => {
-		this.onError('Request aborted.', CODE_ABORT);
-	});
-	for(let key in this.option.headers){
-		this.xhr.setRequestHeader(key, this.option.headers[key]);
-	}
-	if(this.option.timeout){
-		setTimeout(() => {
-			this.onError('Request timeout', CODE_TIMEOUT);
-		}, this.option.timeout * 1000);
-	}
-}
-
-Net.prototype.send = function(){
-	this.xhr.open(this.option.method, this.url, true);
-	if(this.option.method === 'POST'){
-		this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-	}
-	this.xhr.send(buildParam(this.data));
-};
-
-Net.prototype.abort = function(){
-	this.xhr.abort();
-};
-
-Net.prototype.onError = (error, code) => {
-};
-Net.prototype.onResponse = (body) => {
-};
-Net.prototype.onStateChange = state => {
-};
-Net.prototype.onProgress = percent => {
-};
-
-Net.get = (url, data) => {
-	return new Promise((resolve, reject) => {
-		let req = new Net(url, data);
-		req.onResponse = resolve;
-		req.onError = reject;
-		req.send();
-	});
-};
-
-Net.post = (url, data) => {
-	return new Promise((resolve, reject) => {
-		let req = new Net(url, data, {method: 'POST'});
-		req.onResponse = resolve;
-		req.onError = reject;
-		req.send();
-	});
-};
-
-/**
- * 文件下载
- * @param src 文件地址
- * @param save_name 保存名称
- * @param ext 保存扩展名，缺省自动解析文件地址后缀
- */
-const downloadFile = (src, save_name, ext) => {
-	ext = ext || resolveFileExtension(src);
-	save_name = save_name || resolveFileName(src);
-	let link = document.createElement('a');
-	link.href = src;
-	link.download = save_name + ext;
-	document.body.appendChild(link);
-	link.click();
-	link.parentNode.removeChild(link);
-};
-
-/**
- * 获取表单提交的数据
- * @description 不包含文件表单(后续HTML5版本可能会提供支持)
- * @param {HTMLFormElement} form
- * @returns {string}
- */
-const getFormData = (form) => {
-	let data = {};
-	let elements = form.elements;
-
-	elements.forEach(function(item){
-		let name = item.name;
-		if(!data[name]){
-			data[name] = [];
-		}
-		if(item.type === 'radio'){
-			if(item.checked){
-				data[name].push(item.value);
-			}
-		}else if(item.getAttribute('name') !== undefined && item.getAttribute('value') !== undefined){
-			data[name].push(item.value);
-		}
-	});
-
-	let data_str = [];
-	data.forEach(function(v, key){
-		v.forEach(function(val, k){
-			data_str.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
-		});
-	});
-	return data_str.join('&');
-};
-
-/**
- * open link without referer
- * @param link
- * @returns {boolean}
- */
-const openLinkWithoutReferer = (link) => {
-	let instance = window.open("about:blank");
-	instance.document.write("<meta http-equiv=\"refresh\" content=\"0;url=" + link + "\">");
-	instance.document.close();
-	return false;
-};
-
 let payloads = [];
 
 const pushState = (param, title = '') => {
-	let url = location.href.replace(/#.*$/g, '') + '#' + buildParam(param);
+	let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
 	window.history.pushState(param, title, url);
 	exePayloads(param);
 };
@@ -2134,7 +2333,7 @@ const exePayloads = (param) => {
 
 window.onpopstate = function(e){
 	let state = e.state ?? {};
-	let hashObj = getHashObject();
+	let hashObj = QueryString.parse(getHash());
 	exePayloads({...state, ...hashObj});
 };
 
@@ -2151,6 +2350,74 @@ function frequencyControl(payload, hz, executeOnFistTime = false){
 	}, hz);
 }
 
+let _guid = 0;
+const guid = (prefix = '') => {
+	return 'guid_' + (prefix || randomString(6)) + (++_guid);
+};
+
+/**
+ * 获取当前函数所在script路径
+ * @return {string|null}
+ */
+const getCurrentScript = function(){
+	let error = new Error()
+		, source
+		, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+		, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+	if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+		return source[1];
+	}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+		return source[1];
+	}else if(error['fileName'] !== undefined){
+		return error['fileName'];
+	}
+	return null;
+};
+
+const CURRENT_FILE = '/Lang/Util.js';
+const ENTRY_FILE = '/index.js';
+
+/**
+ * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
+ * @return {string}
+ */
+const getLibEntryScript = ()=>{
+	let script = getCurrentScript();
+	if(!script){
+		throw "Get script failed";
+	}
+	if(script.indexOf(CURRENT_FILE) >= 0){
+		return script.replace(CURRENT_FILE, ENTRY_FILE);
+	}
+	return script;
+};
+
+/**
+ * 加载当前库模块
+ * @return {Promise<*>}
+ */
+const getLibModule = async () => {
+	let script = getLibEntryScript();
+	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
+};
+
+/**
+ * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
+ * @type {(function(): Promise<*>)|undefined}
+ */
+const getLibModuleTop =(()=>{
+	if(top === window){
+		return getLibModule;
+	}
+	if(top.WEBCOM_GET_LIB_MODULE){
+		return top.WEBCOM_GET_LIB_MODULE;
+	}
+	throw "No WebCom library script loaded detected.";
+})();
+
+window.WEBCOM_GET_LIB_MODULE = getLibModule;
+window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
 /**
  * 类型定义
  */
@@ -2164,7 +2431,7 @@ let TOAST_COLLECTION = [];
 let CLASS_TOAST_WRAP = 'toast-wrap';
 
 insertStyleSheet(`
-	.${CLASS_TOAST_WRAP} {position:absolute; z-index:10; top:5px; left:0; width:100%;display: flex; justify-content: center; flex-direction:column; align-items: center;}
+	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; top:5px; left:0; width:100%;display: flex; justify-content: center; flex-direction:column; align-items: center;}
 	.toast {padding:10px 35px 10px 15px; position:relative; margin-top:10px; min-width:100px; display:inline-block; border-radius:3px; box-shadow:5px 4px 12px #0003;}
 	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:3px; right:0; cursor:pointer;}
 	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
@@ -2174,22 +2441,17 @@ insertStyleSheet(`
 	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
 	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`, Theme.Namespace+'toast-style');
+`, Theme.Namespace + 'toast-style');
 
 const getToastWrap = () => {
 	let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);
-	if (!toastWrap) {
+	if(!toastWrap){
 		toastWrap = document.createElement('div');
 		toastWrap.className = CLASS_TOAST_WRAP;
 		toastWrap.style.display = 'none';
 		document.body.appendChild(toastWrap);
 	}
 	return toastWrap;
-};
-
-let _guid = 0;
-const guid$1 = prefix => {
-	return prefix + (++_guid);
 };
 
 /**
@@ -2206,35 +2468,33 @@ const DEFAULT_ELAPSED_TIME = {
 class Toast {
 	id = null;
 	dom = null;
+	option = {
+		timeout: 400000,
+		show: true,
+		closeAble: true,
+		class: ''
+	};
 	_closeTm = null;
 
-	constructor(text, opt) {
-		let option = Object.assign({
-			id: guid$1('Toast-'),
-			timeout: 400000,
-			show: true,
-			closeAble: true,
-			class: ''
-		}, opt);
-		let close_html = option.closeAble ? '<span class="toast-close"></span>' : '';
-		this.id = option.id;
-		this.dom = document.createElement(`span`);
-		this.dom.setAttribute('id', this.id);
-		this.dom.className = `toast toast-${option.class}`;
-		this.dom.style.display = 'none';
-		this.dom.innerHTML = close_html + ' ' + text;
-		let toastWrap = getToastWrap();
-		toastWrap.appendChild(this.dom);
-		if (option.closeAble) {
+	constructor(text, option = {}){
+		this.option = {...this.option, opt: option};
+		let close_html = this.option.closeAble ? '<span class="toast-close"></span>' : '';
+		this.id = this.option.id || guid('Toast');
+		this.dom = createDomByHtml(`
+			<span id="${this.id}" class="toast toast-${option.class}" style="display:none">
+			${close_html} ${text}
+			</span>
+		`, getToastWrap());
+		if(option.closeAble){
 			this.dom.querySelector('.toast-close').addEventListener('click', () => {
 				this.close();
 			});
 		}
 		TOAST_COLLECTION.push(this);
 
-		if (option.show) {
+		if(option.show){
 			this.show();
-			if (option.timeout) {
+			if(option.timeout){
 				this._closeTm = setTimeout(() => {
 					this.close();
 				}, option.timeout);
@@ -2242,60 +2502,64 @@ class Toast {
 		}
 	}
 
-	setHtml(html) {
+	setContent(html){
 		this.dom.innerHTML = html;
 	}
 
-	show() {
+	show(){
 		this.dom.style.display = '';
 		let toastWrap = getToastWrap();
 		toastWrap.style.display = 'flex';
 	}
 
-	close() {
+	close(){
 		this.dom.parentNode.removeChild(this.dom);
 		let toastWrap = getToastWrap();
-		if (!toastWrap.childNodes.length) {
+		if(!toastWrap.childNodes.length){
 			toastWrap.parentNode.removeChild(toastWrap);
 		}
-		delete(TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
+		delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
 		clearTimeout(this._closeTm);
 	}
 
-	static closeAll() {
+	static closeAll(){
 		TOAST_COLLECTION.forEach(t => {
 			t.close();
 		});
 	}
 
-	static showSuccess(text, opt) {
+	static showSuccess(text, option = {}){
 		return new Toast(text, {
 			timeout: DEFAULT_ELAPSED_TIME[TYPE_SUCCESS],
-			...opt,
+			show: true,
+			...option,
 			class: TYPE_SUCCESS
 		});
 	}
 
-	static showInfo(text, opt) {
+	static showInfo(text, option = {}){
 		return new Toast(text, {
 			timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
-			...opt,
+			show: true,
+			...option,
 			class: TYPE_INFO
 		});
 	}
 
-	static showWarning(text, opt) {
+	static showWarning(text, option = {}){
 		return new Toast(text, {
 			timeout: DEFAULT_ELAPSED_TIME[TYPE_WARING],
-			...opt,
+			show: true,
+			...option,
 			class: TYPE_WARING
 		});
 	}
 
-	static showError(text, opt = {}) {
+	static showError(text, option = {}){
 		return new Toast(text, {
 			timeout: DEFAULT_ELAPSED_TIME[TYPE_ERROR],
-			...opt,
+			show: true,
+			...option,
 			class: TYPE_ERROR
 		});
 	}
@@ -2303,14 +2567,16 @@ class Toast {
 	/**
 	 * Show loading toast
 	 * @param text
-	 * @param opt
+	 * @param option
 	 * @returns {Toast}
 	 */
-	static showLoading(text = '加载中···', opt = {}) {
-		return new Toast(text, Object.assign({
+	static showLoading(text = '加载中···', option = {}){
+		return new Toast(text, {
 			timeout: 0,
-			class: 'loading'
-		}, opt));
+			show: true,
+			class: 'loading',
+			...option
+		});
 	};
 }
 
@@ -2321,14 +2587,14 @@ class Toast {
  * @returns {boolean} 是否复制成功
  */
 const copy = (text, silent = false) => {
-	let t = createDomByHtml('<textarea readonly="readonly">', document.body);
-	t.style.cssText = 'position:absolute; left:-9999px;';
+	let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
+	txtNode.style.cssText = 'position:absolute; left:-9999px;';
 	let y = window.pageYOffset || document.documentElement.scrollTop;
-	t.addEventListener('focus', function(){
+	txtNode.addEventListener('focus', function(){
 		window.scrollTo(0, y);
 	});
-	t.value = text;
-	t.select();
+	txtNode.value = text;
+	txtNode.select();
 	try{
 		let succeeded = document.execCommand('copy');
 		!silent && Toast.showSuccess(trans('复制成功'));
@@ -2337,7 +2603,7 @@ const copy = (text, silent = false) => {
 		Toast.showWarning(trans('请按键: Ctrl+C, Enter复制内容'), text);
 		console.error(err);
 	} finally{
-		t.parentNode.removeChild(t);
+		txtNode.parentNode.removeChild(txtNode);
 	}
 	return false;
 };
@@ -2404,56 +2670,17 @@ const loadImgBySrc = (src)=>{
 	});
 };
 
-const getBase64BySrc = (src)=>{
-	return new Promise((resolve, reject) => {
-		let xhr = new XMLHttpRequest();
-		xhr.open('GET', src, true);
-		xhr.responseType = 'blob';
-		xhr.onload = function(){
-			if(this.status === 200){
-				let blob = this.response;
-				convertBlobToBase64(blob).then(base64 => {
-					resolve(base64);
-				}).catch(error => {
-					reject(error);
-				});
-			}
-		};
-		xhr.onerror = function() {
-			reject('Error:'+this.statusText);
-		};
-		xhr.onabort = function(){
-			reject('Request abort');
-		};
-		xhr.send();
-	});
-};
-
-const getBase64ByImg = (img) => {
-	if(!img.src){
-		return null;
-	}
-	if(img.src.indexOf('data:') === 0){
-		return img.src;
-	}
-	let canvas = document.createElement("canvas");
-	canvas.width = img.width;
-	canvas.height = img.height;
-	let ctx = canvas.getContext("2d");
-	ctx.drawImage(img, 0, 0, img.width, img.height);
-	return canvas.toDataURL("image/png")
-};
-
 /**
  * 通过缩放+定位将图片放置在指定容器中间
- * @param contentWidth
- * @param contentHeight
- * @param containerWidth
- * @param containerHeight
+ * @param {Number} contentWidth
+ * @param {Number} contentHeight
+ * @param {Number} containerWidth
+ * @param {Number} containerHeight
+ * @param {Number} spacing
  * @param {Boolean} zoomIn 是否在图片小于容器时放大，默认不放大
  * @returns {{top: number, left: number, width: number, height: number}|{top: number, left: number, width, height}}
  */
-const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, zoomIn = false}) => {
+const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, spacing = 0, zoomIn = false}) => {
 	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 		return {
 			width: contentWidth,
@@ -2474,15 +2701,10 @@ const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerH
 	}
 };
 
-const Img = {
-	loadImgBySrc,
-	getBase64ByImg,
-	getBase64BySrc,
-	scaleFixCenter
-};
-
 const DOM_CLASS = Theme.Namespace+'com-image-viewer';
-const PADDING = '20px';
+const DEFAULT_VIEW_PADDING = 50;
+const MAX_ZOOM_IN_RATIO = 2;
+const MIN_ZOOM_OUT_SIZE = 50;
 
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX+1;
@@ -2504,7 +2726,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-ctn {text-align:center; height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-loading, .${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; font-size:60px; color:#ffffff6e; display:block; animation: ${Theme.Namespace}spin 3s infinite linear;}
-	.${DOM_CLASS} .civ-img {height: calc(100% - ${PADDING}*2); padding:0 ${PADDING}; margin-top:${PADDING}; display: flex; justify-content: center; align-items: center;}
+	.${DOM_CLASS} .civ-img {height:100%; box-sizing:border-box; display: flex; justify-content: center; align-items: center;}
 	.${DOM_CLASS} .civ-img img {box-shadow: 1px 1px 20px #898989; transition: all 0.1s linear}
 `, Theme.Namespace+'img-preview-style');
 
@@ -2520,7 +2742,7 @@ const loadImgSingleton = (() => {
 			if(img_cache[src]){
 				return resolve(img_cache[src].cloneNode());
 			}
-			Img.loadImgBySrc(src).then(img => {
+			loadImgBySrc(src).then(img => {
 				img_cache[src] = img;
 				resolve(img.cloneNode());
 			}, reject);
@@ -2530,11 +2752,12 @@ const loadImgSingleton = (() => {
 
 const fixImgView = (img, container = document) => {
 	loadImgSingleton(img.src).then(tmpImg =>{
-		let {width, height, top, left} = Img.scaleFixCenter({
+		let {width, height, top, left} = scaleFixCenter({
 			contentWidth: tmpImg.width,
 			contentHeight: tmpImg.height,
 			containerWidth: container.offsetWidth,
-			containerHeight: container.offsetHeight
+			containerHeight: container.offsetHeight,
+			spacing: DEFAULT_VIEW_PADDING
 		});
 		img.style.left = left + 'px';
 		img.style.top = top + 'px';
@@ -2568,6 +2791,31 @@ const updateNavState = (ip) => {
 	}
 };
 
+const bindImgMove = (img)=>{
+	let moving = false;
+	let lastOffset = {};
+	img.addEventListener('mousedown', e=>{
+		moving = true;
+		lastOffset = {
+			clientX: e.clientX,
+			clientY: e.clientY,
+			x: parseInt(img.style.left, 10),
+			y: parseInt(img.style.top, 10)
+		};
+	});
+	['mouseup', 'mouseout'].forEach(ev =>{
+		img.addEventListener(ev, e=>{
+			moving = false;
+		});
+	});
+	img.addEventListener('mousemove', e=>{
+		if(moving){
+			console.log('moving');
+			img.style.left = lastOffset.x - e.clientX - lastOffset.clientX + 'px';
+			img.style.top = lastOffset.y - e.clientY - lastOffset.clientY + 'px';
+		}
+	});
+};
 
 /**
  * @param {ImgPreview} ip
@@ -2585,6 +2833,9 @@ const showImgSrc = (ip, imgSrc)=>{
 		hide(loading);
 		fixImgView(img, img_ctn);
 		img_ctn.innerHTML = '';
+		img.setAttribute('data-original-width', img.width);
+		img.setAttribute('data-original-height', img.height);
+		bindImgMove(img);
 		img_ctn.appendChild(img);
 	}, error=>{
 		console.warn(error);
@@ -2593,7 +2844,6 @@ const showImgSrc = (ip, imgSrc)=>{
 		show(err);
 	});
 };
-
 
 class ImgPreview {
 	previewDom = null;
@@ -2617,9 +2867,7 @@ class ImgPreview {
 				`<span class="civ-closer" title="ESC to close">close</span>
 				<span class="civ-nav-btn civ-prev" style="display:none;"></span>
 				<span class="civ-nav-btn civ-next" style="display:none;"></span>
-				<span class="civ-view-option">
-					span.
-				</span>
+				<span class="civ-view-option"></span>
 				<div class="civ-ctn">
 					<span class="civ-loading"></span>
 					<span class="civ-error"></span>
@@ -2645,6 +2893,13 @@ class ImgPreview {
 				resize_tm = setTimeout(()=>{
 					this.resetView();
 				}, 50);
+			});
+
+			//bind scroll zoom
+			this.previewDom.querySelector('.civ-ctn').addEventListener('mousewheel', e=>{
+				this.zoom(e.wheelDelta > 0 ? 1.2 : 0.8);
+				e.preventDefault();
+				return false;
 			});
 
 			//bind key
@@ -2706,6 +2961,35 @@ class ImgPreview {
 				ImgPreview.showImgList(imgSrcList, idx);
 			});
 		});
+	}
+
+	/**
+	 * @param {Number} ratioOffset
+	 */
+	zoom(ratioOffset){
+		let img = this.previewDom.querySelector('.civ-img img');
+		let origin_width = img.getAttribute('data-original-width');
+		let origin_height = img.getAttribute('data-original-height');
+
+		let width = parseInt(img.style.width, 10) * ratioOffset;
+		let height = parseInt(img.style.height, 10) * ratioOffset;
+
+		//zoom in ratio limited
+		if(ratioOffset > 1 && width > origin_width && ((width / origin_width)>MAX_ZOOM_IN_RATIO || (height / origin_height)>MAX_ZOOM_IN_RATIO)){
+			console.warn('zoom in limited');
+			return;
+		}
+
+		//限制任何一边小于最小值
+		if(ratioOffset < 1 && width < origin_width && (width < MIN_ZOOM_OUT_SIZE || height < MIN_ZOOM_OUT_SIZE)){
+			console.warn('zoom out limited');
+			return;
+		}
+
+		img.style.left = parseInt(img.style.left, 10) * ratioOffset + 'px';
+		img.style.top = parseInt(img.style.top, 10) * ratioOffset + 'px';
+		img.style.width = parseInt(img.style.width, 10) * ratioOffset + 'px';
+		img.style.height = parseInt(img.style.height, 10) * ratioOffset + 'px';
 	}
 
 	switchTo(toPrev = false){
@@ -2868,24 +3152,87 @@ const Ladder = (ladder, opt)=>{
 	}
 };
 
-let OBJ_COLLECTION = {};
-let PRIVATE_VARS = {};
-let GUID_BIND_KEY = 'ywj-com-tip-guid';
+let TIP_COLLECTION = {};
+let GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
+let NS = Theme.Namespace + 'tip';
 let TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+insertStyleSheet(`
+	.${NS}-container-wrap {position:absolute; z-index:11;}
+	.${NS}-content {border:1px solid #cacaca; border-radius:2px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
+	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
+	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
+	.${NS}-close:hover {color:black;}
+	
+	/** top **/
+	.${NS}-0, .${NS}-1, .${NS}-11 {padding-top:7px;}
+	.${NS}-11 .${NS}-arrow,
+	.${NS}-0 .${NS}-arrow,
+	.${NS}-1 .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS}-0 .${NS}-arrow-pt,
+	.${NS}-11 .${NS}-arrow-pt,
+	.${NS}-1 .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS}-11 .${NS}-arrow {left:25%;}
+	.${NS}-0 .${NS}-arrow {left:50%;}
+	.${NS}-1 .${NS}-arrow {left:75%;}
+	
+	/** right **/
+	.${NS}-8, .${NS}-9, .${NS}-10 {padding-left:7px;}
+	.${NS}-8 .${NS}-close,
+	.${NS}-9 .${NS}-close,
+	.${NS}-10 .${NS}-close {top:3px;}
+	.${NS}-8 .${NS}-arrow,
+	.${NS}-9 .${NS}-arrow,
+	.${NS}-10 .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS}-8 .${NS}-arrow-pt,
+	.${NS}-9 .${NS}-arrow-pt,
+	.${NS}-10 .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS}-8 .${NS}-arrow {top:75%}
+	.${NS}-9 .${NS}-arrow {top:50%}
+	.${NS}-10 .${NS}-arrow {top:25%}
+	
+	/** bottom **/
+	.${NS}-5, .${NS}-6, .${NS}-7 {padding-bottom:7px;}
+	.${NS}-5 .${NS}-close,
+	.${NS}-6 .${NS}-close,
+	.${NS}-7 .${NS}-close {top:3px;}
+	.${NS}-5 .${NS}-arrow,
+	.${NS}-6 .${NS}-arrow,
+	.${NS}-7 .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS}-5 .${NS}-arrow-pt,
+	.${NS}-6 .${NS}-arrow-pt,
+	.${NS}-7 .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS}-7 .${NS}-arrow {left:30px}
+	.${NS}-5 .${NS}-arrow {left:75%}
+	
+	/** left **/
+	.${NS}-2, .${NS}-3, .${NS}-4 {padding-right:7px;}
+	.${NS}-2 .${NS}-close,
+	.${NS}-3 .${NS}-close,
+	.${NS}-4 .${NS}-close {right:13px; top:3px;}
+	.${NS}-2 .${NS}-arrow,
+	.${NS}-3 .${NS}-arrow,
+	.${NS}-4 .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS}-2 .${NS}-arrow-pt,
+	.${NS}-3 .${NS}-arrow-pt,
+	.${NS}-4 .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS}-2 .${NS}-arrow {top:25%}
+	.${NS}-3 .${NS}-arrow {top:50%}
+	.${NS}-4 .${NS}-arrow {top:75%}
+`, Theme.Namespace + 'tip-style');
 
 /**
  * 绑定事件
  */
 let bindEvent = function(){
-	if(PRIVATE_VARS[this.guid].opt.closeBtn){
-		let btn = this.getDom().querySelector('.ywj-tip-close');
-		let _this = this;
-		btn.addEventListener('click', ()=>{
+	if(this.option.showCloseButton){
+		let btn = this.dom.querySelector(`.${NS}-close`);
+		btn.addEventListener('click', () => {
 			this.hide();
 		}, false);
-		document.body.addEventListener('keyup', function(e){
+		document.body.addEventListener('keyup', (e) => {
 			if(e.keyCode === KEYS.Esc){
-				_this.hide();
+				this.hide();
 			}
 		}, false);
 	}
@@ -2896,31 +3243,30 @@ let bindEvent = function(){
  * @returns {number}
  */
 let calDir = function(){
-	let $body = $('body');
-	let $container = this.getDom();
-	let width = $container.outerWidth();
-	let height = $container.outerHeight();
-	let px = this.rel_tag.offset().left;
-	let py = this.rel_tag.offset().top;
-	let rh = this.rel_tag.outerHeight();
-	let rw = this.rel_tag.outerWidth();
+	let body = document.body;
+	let width = this.dom.offsetWidth;
+	let height = this.dom.offsetHeight;
+	let px = this.relNode.offsetLeft;
+	let py = this.relNode.offsetTop;
+	let rh = this.relNode.offsetHeight;
+	let rw = this.relNode.offsetWidth;
 
-	let scroll_left = $body.scrollLeft();
-	let scroll_top = $body.scrollTop();
+	let scroll_left = body.scrollLeft;
+	let scroll_top = body.scrollTop;
 
 	let viewRegion = getRegion();
 
-	for(let i=0; i<TRY_DIR_MAP.length; i++){
+	for(let i = 0; i < TRY_DIR_MAP.length; i++){
 		let dir_offset = getDirOffset(TRY_DIR_MAP[i], width, height, rh, rw);
 		let rect = {
-			left:px+dir_offset[0],
-			top:py+dir_offset[1],
+			left: px + dir_offset[0],
+			top: py + dir_offset[1],
 			width: width,
 			height: height
 		};
 		let layout_rect = {
-			left:scroll_left,
-			top:scroll_top,
+			left: scroll_left,
+			top: scroll_top,
 			width: viewRegion.visibleWidth,
 			height: viewRegion.visibleHeight
 		};
@@ -2933,27 +3279,27 @@ let calDir = function(){
 
 /**
  * 方位偏移
- * @param dir
- * @param width
- * @param height
- * @param rh
- * @param rw
+ * @param {Number} dir
+ * @param {Number} width
+ * @param {Number} height
+ * @param {Number} rh
+ * @param {Number} rw
  * @returns {*}
  */
 let getDirOffset = function(dir, width, height, rh, rw){
 	let offset = {
-		11: [-width*0.25+rw/2, rh],
-		0: [-width*0.5+rw/2, rh],
-		1: [-width*0.75+rw/2, rh],
-		2: [-width, -height*0.25+rh/2],
-		3: [-width, -height*0.5+rh/2],
-		4: [-width, -height*0.75+rh/2],
-		5: [-width*0.75+rw/2, -height],
-		6: [-width*0.5+rw/2, -height],
-		7: [-width*0.25+rw/2, -height],
-		8: [rw, -height*0.75 + rh/2],
-		9: [rw, -height*0.5 + rh/2],
-		10: [rw, -height*0.25 + rh/2]
+		11: [-width * 0.25 + rw / 2, rh],
+		0: [-width * 0.5 + rw / 2, rh],
+		1: [-width * 0.75 + rw / 2, rh],
+		2: [-width, -height * 0.25 + rh / 2],
+		3: [-width, -height * 0.5 + rh / 2],
+		4: [-width, -height * 0.75 + rh / 2],
+		5: [-width * 0.75 + rw / 2, -height],
+		6: [-width * 0.5 + rw / 2, -height],
+		7: [-width * 0.25 + rw / 2, -height],
+		8: [rw, -height * 0.75 + rh / 2],
+		9: [rw, -height * 0.5 + rh / 2],
+		10: [rw, -height * 0.25 + rh / 2]
 	};
 	return offset[dir];
 };
@@ -2962,321 +3308,258 @@ let getDirOffset = function(dir, width, height, rh, rw){
  * 更新位置信息
  */
 const updatePosition = function(){
-	let vars = PRIVATE_VARS[this.guid];
-	let dir = vars.opt.dir;
-	let $container = this.getDom();
-	let width = $container.outerWidth();
-	let height = $container.outerHeight();
-	let px = this.rel_tag.offset().left;
-	let py = this.rel_tag.offset().top;
-	let rh = this.rel_tag.outerHeight();
-	let rw = this.rel_tag.outerWidth();
-
-	if(dir === 'auto'){
-		dir = calDir.call(this);
+	let direction = this.option.direction;
+	let width = this.dom.offsetWidth;
+	let height = this.dom.offsetHeight;
+	let px = this.relNode.offsetLeft;
+	let py = this.relNode.offsetTop;
+	let rh = this.relNode.offsetHeight;
+	let rw = this.relNode.offsetWidth;
+	if(direction === 'auto'){
+		direction = calDir.call(this);
 	}
-	$container.attr('class', 'ywj-tip-container-wrap ywj-tip-'+dir);
-	let offset = getDirOffset(dir, width, height, rh, rw);
-	let x = px + offset[0];
-	let y = py + offset[1];
-
-	$container.css({
-		left: parseInt(x,10),
-		top: parseInt(y,10)
-	});
+	this.dom.setAttribute('class', `${NS}-container-wrap ${NS}-${direction}`);
+	let offset = getDirOffset(direction, width, height, rh, rw);
+	this.dom.style.left = dimension2Style(px + offset[0]);
+	this.dom.style.top = dimension2Style(py + offset[1]);
 };
 
-/**
- * TIP组件
- * @param content
- * @param rel_tag
- * @param opt
- * @constructor
- */
-let Tip = function(content, rel_tag, opt){
-	this.guid = guid();
-	this.rel_tag = $(rel_tag);
-	this.onShow = Hooker(true);
-	this.onHide = Hooker(true);
-	this.onDestory = Hooker(true);
-	PRIVATE_VARS[this.guid] = {};
-
-	opt = Object.assign({
-		closeBtn: false, //是否显示关闭按钮
+class Tip {
+	guid = null;
+	relNode = null;
+	dom = null;
+	option = {
+		showCloseButton: false,
 		timeout: 0,
 		width: 'auto',
-		dir: 'auto'
-	}, opt || {});
-
-	let close_html = opt.closeBtn ? `<span class="ywj-tip-close">&#10005;</span>` : ``;
-	let html =
-		`<div class="ywj-tip-container-wrap" style="display:none;">
-			<s class="ywj-tip-arrow ywj-tip-arrow-pt"></s>
-			<s class="ywj-tip-arrow ywj-tip-arrow-bg"></s>
-			${close_html}
-			<div class="ywj-tip-content">${content}</div>
-		</div>`;
-
-	PRIVATE_VARS[this.guid].opt = opt;
-	let $container = $(html).appendTo($('body'));
-	$container.css('width', opt.width);
-	PRIVATE_VARS[this.guid].container = $container;
-	OBJ_COLLECTION[this.guid] = this;
-	bindEvent.call(this);
-};
-
-/**
- * @returns {Element|null}
- */
-Tip.prototype.getDom = function(){
-	let vars = PRIVATE_VARS[this.guid];
-	return vars.container;
-};
-
-/**
- * update content
- * @param html
- */
-Tip.prototype.updateContent = function(html){
-	this.getDom().find('.ywj-tip-content').html(html);
-	updatePosition.call(this);
-};
-
-Tip.prototype.show = function(){
-	//去重判断，避免onShow时间多次触发
-	if(this.isShow()){
-		return;
-	}
-	let vars = PRIVATE_VARS[this.guid];
-	let _this = this;
-	this.getDom().show().stop().animate({opacity:1}, 'fast');
-	updatePosition.call(this);
-	this.onShow.fire(this);
-	if(vars.opt.timeout){
-		setTimeout(function(){
-			_this.hide();
-		}, vars.opt.timeout);
-	}
-};
-
-Tip.prototype.isShow = function(){
-	return this.getDom().is(':visible');
-};
-
-Tip.prototype.hide = function(){
-	let _this = this;
-	this.getDom().stop().animate({opacity:0}, 'fast', function(){_this.getDom().hide();});
-	this.onHide.fire(this);
-};
-
-Tip.prototype.destroy = function(){
-	this.getDom().remove();
-	this.onDestory.fire(this);
-};
-
-Tip.hideAll = function(){
-	for(let i in OBJ_COLLECTION){
-		OBJ_COLLECTION[i].hide();
-	}
-};
-
-Tip.show = function(content, rel_tag, opt){
-	let tip = new Tip(content, rel_tag, opt);
-	tip.show();
-	return tip;
-};
-
-/**
- * 简单节点绑定
- * @param content
- * @param rel_tag
- * @param opt
- * @returns {*}
- */
-Tip.bind = function(content, rel_tag, opt){
-	let guid = $(rel_tag).data(GUID_BIND_KEY);
-	let obj = OBJ_COLLECTION[guid];
-	if(!obj){
-		let tm;
-		let hide = function(){
-			tm = setTimeout(function(){
-				obj && obj.hide();
-			}, 10);
-		};
-
-		let show = function(){
-			clearTimeout(tm);
-			obj.show();
-		};
-
-		obj = new Tip(content, rel_tag, opt);
-		$(rel_tag).data(GUID_BIND_KEY, obj.guid);
-
-		obj.getDom().hover(show, hide);
-		$(rel_tag).hover(show, hide);
-	}
-	return obj;
-};
-
-/***
- * 绑定异步处理函数
- * @param rel_tag
- * @param opt
- * @param loader
- */
-Tip.bindAsync = function(rel_tag, loader, opt){
-	let guid = $(rel_tag).data(GUID_BIND_KEY);
-	let obj = OBJ_COLLECTION[guid];
-	if(!obj){
-		let loading = false;
-		obj = Tip.bind('loading...', rel_tag, opt);
-		obj.onShow(function(){
-			if(loading){
-				return;
-			}
-			loading = true;
-			loader(function(html){
-				loading = false;
-				obj.updateContent(html);
-			}, function(error){
-				loading = false;
-				obj.updateContent(error);
-			});
-		}, opt.refresh);
-	}
-};
-
-/**
- * @param $node
- * @param {Object} param {url, content, refresh}
- */
-Tip.nodeInit = function($node, param){
-	let url = param.url;
-	let content = param.content;
-	if(url){
-		Tip.bindAsync($node, function(on_success, on_error){
-			Net.get(url,param).then(function(rsp){
-				if(rsp && !rsp.code){
-					on_success(rsp.data);
-				} else {
-					on_error(rsp.message);
-				}
-			});
-		});
-	} else {
-		Tip.bind(content, $node, param);
-	}
-};
-
-let CLS = 'com-toc';
-let CLS_ACTIVE = 'active';
-
-let resolve_level = function($h){
-	return parseInt($h[0].tagName.replace(/\D/, ''), 10);
-};
-
-let scroll_top = function(){
-	return $(window).scrollTop() || $('body').scrollTop();
-};
-
-const toc = ($content)=>{
-	let html = '<ul class="' + CLS + '">';
-	let hs = 'h1,h2,h3,h4,h5';
-
-	//top
-	let top_id = 'toc' + guid$2();
-	html += '<a href="#' + top_id + '" class="com-toc-top">本页目录</a>';
-	createDomByHtml(`<a name="${top_id}"></a>`, document.body);
-	let last_lvl = 0;
-	let start_lvl = 0;
-	$content.find(hs).each(function(){
-		let $h = $(this);
-		let id = 'toc' + guid$2();
-		$('<a name="' + id + '"></a>').insertBefore($h);
-		let lv = resolve_level($h);
-		if(!start_lvl){
-			start_lvl = lv;
-		}
-		if(!last_lvl){
-			html += '<li><a href="#' + id + '">' + $h.text() + '</a>';
-		}else if(lv === last_lvl){
-			html += '</li><li><a href="#' + id + '">' + $h.text() + '</a>';
-		}else if(lv > last_lvl){
-			html += '<ul><li><a href="#' + id + '">' + $h.text() + '</a>';
-		}else if(lv < last_lvl){
-			html += '</li></ul></li>';
-			html += '<li><a href="#' + id + '">' + $h.text() + '</a>';
-		}
-		last_lvl = lv;
-	});
-	for(let i = 0; i <= (last_lvl - start_lvl); i++){
-		html += '</li></ul>';
-	}
-
-	let $toc = $(html).appendTo('body');
-	$toc.find('a').click(function(){
-		let $a = $(this);
-		let id = $a.attr('href').replace('#', '');
-		$('a[name=' + id + ']');
-		location.hash = '#' + id;
-		return false;
-	});
-
-	//init
-	let hash = location.hash.replace('#', '');
-	if(hash){
-		let $anchor = $('body').find('a[name=' + hash + ']');
-		if($anchor.size());
-	}
-
-	let upd = function(){
-		let top = Math.max($content.offset().top, scroll_top());
-		$toc.css({
-			left: $content.offset().left + $content.outerWidth(),
-			top: top
-		});
-		$toc.find('li').removeClass(CLS_ACTIVE);
-		$toc.find('a').each(function(){
-			let $a = $(this);
-			let id = $a.attr('href').replace('#', '');
-			let $anchor = $('a[name=' + id + ']');
-			if($anchor.offset().top > scroll_top()){
-				$a.parents('li').addClass(CLS_ACTIVE);
-				return false;
-			}
-		});
+		direction: 'auto',
 	};
-	$(window).resize(upd).scroll(upd);
-	upd();
+
+	onShow = new BizEvent(true);
+	onHide = new BizEvent(true);
+	onDestroy = new BizEvent(true);
+
+	constructor(content, relNode, opt = {}){
+		this.guid = guid();
+		this.relNode = relNode;
+		this.option = {...this.option, ...opt};
+
+		let close_button_html = this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ``;
+		this.dom = createDomByHtml(
+			`<div class="${NS}-container-wrap" style="display:none;">
+				<s class="${NS}-arrow ${NS}-arrow-pt"></s>
+				<s class="${NS}-arrow ${NS}-arrow-bg"></s>
+				${close_button_html}
+				<div class="${NS}-content">${content}</div>
+			</div>`, document.body);
+
+		this.dom.style.width = dimension2Style(this.option.width);
+		bindEvent.call(this);
+		TIP_COLLECTION[this.guid] = this;
+	}
+
+	/**
+	 * 设置提示内容
+	 * @param {String} html
+	 */
+	setContent(html){
+		this.dom.querySelector(`.${NS}-content`).innerHTML = html;
+		updatePosition.call(this);
+	}
+
+	/**
+	 * 去重判断，避免onShow时间多次触发
+	 */
+	show(){
+		console.log('show');
+		show(this.dom);
+		updatePosition.call(this);
+		this.option.timeout && setTimeout(this.hide, this.option.timeout);
+		this.onShow.fire(this);
+	}
+
+	hide(){
+		console.log('hide');
+		hide(this.dom);
+		this.onHide.fire(this);
+	}
+
+	destroy(){
+		this.dom.parentNode.removeChild(this.dom);
+		this.onDestroy.fire();
+		for(let i in TIP_COLLECTION){
+			if(TIP_COLLECTION[i] === this){
+				delete(TIP_COLLECTION[i]);
+			}
+		}
+	}
+
+	static show(content, relNode, option = {}){
+		let tip = new Tip(content, relNode, option);
+		tip.show();
+		return tip;
+	}
+
+	static hideAll(){
+		for(let i in TIP_COLLECTION){
+			TIP_COLLECTION[i].hide();
+		}
+	}
+
+	/**
+	 * 绑定节点
+	 * @param {String} content
+	 * @param {HTMLElement} relNode
+	 * @param {String} triggerEventType
+	 * @param option
+	 * @return {Tip}
+	 */
+	static bindNode(content, relNode, triggerEventType = 'hover', option = {}){
+		let guid = relNode.getAttribute(GUID_BIND_KEY);
+		let obj = TIP_COLLECTION[guid];
+		if(!obj){
+			let tm;
+			let hide = function(){
+				tm = setTimeout(function(){
+					obj && obj.hide();
+				}, 10);
+			};
+
+			let show = function(){
+				clearTimeout(tm);
+				obj.show();
+			};
+
+			obj = new Tip(content, relNode, option);
+			relNode.setAttribute(GUID_BIND_KEY, obj.guid);
+			relNode.addEventListener('mouseover',show);
+			relNode.addEventListener('mouseout', hide);
+		}
+		return obj;
+	}
+
+	/**
+	 * 通过异步获取数据方式绑定显示Tip
+	 * @param {HTMLElement} relNode
+	 * @param {Promise} dataFetcher
+	 * @param {Object} option
+	 */
+	bindAsync(relNode, dataFetcher, option = {}){
+		let guid = relNode.getAttribute(`data-${GUID_BIND_KEY}`);
+		let obj = TIP_COLLECTION[guid];
+		if(!obj){
+			let loading = false;
+			obj = Tip.bindNode('loading...', relNode, option);
+			obj.onShow.listen(() => {
+				if(loading){
+					return;
+				}
+				loading = true;
+				dataFetcher.then(rspHtml => {
+					loading = false;
+					obj.setContent(rspHtml);
+				}, error => {
+					loading = false;
+					obj.setContent(error);
+				});
+			});
+		}
+	};
+}
+
+let CLS = Theme.Namespace + 'toc';
+
+insertStyleSheet(`
+	.${CLS} {position:fixed; padding:10px; box-shadow:1px 1px 10px #ccc;}
+`, Theme.Namespace + 'toc-style');
+
+const resolveTocListFromDom = (dom = document.body, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
+	let allHeads = dom.querySelectorAll(levelMaps.join(','));
+	let tocList = [];
+	let serials = [];
+
+	levelMaps.forEach(selector => {
+		serials.push(Array.from(dom.querySelectorAll(selector)));
+	});
+
+	let calcLvl = (h) => {
+		for(let i = 0; i < serials.length; i++){
+			if(serials.includes(h)){
+				return i;
+			}
+		}
+	};
+
+	allHeads.forEach(h => {
+		tocList.push({
+			text: h.innerText,
+			refNode: h,
+			level: calcLvl(h)
+		});
+	});
+	return tocList;
 };
 
+const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
+	let tocList = resolveTocListFromDom(dom, levelMaps);
+	let tocHtml = '';
+	tocList.forEach(item => {
+		let id = Theme.Namespace+'toc' + guid();
+		let helpNode = document.createElement('A');
+		helpNode.id = id;
+		item.refNode.parentNode.insertBefore(item.refNode, helpNode);
+		tocHtml.push(`<a href="#${id}" data-level="${item.level}">${escapeHtml(item.text)}</a>`);
+	});
+
+	let tocNode = document.createElement('dl');
+	tocNode.className = CLS;
+	tocNode.innerHTML = `
+	<dt>本页目录</dt>
+	<dd>
+		${tocHtml}
+	</dd>`;
+	document.body.appendChild(tocNode);
+};
+
+exports.ACAsync = ACAsync;
 exports.ACBindComponent = ACBindComponent;
+exports.ACBindSelectAll = ACBindSelectAll;
+exports.ACBindSelectNone = ACBindSelectNone;
+exports.ACConfirm = ACConfirm;
+exports.ACDialog = ACDialog;
 exports.ACEventChainBind = ACEventChainBind;
 exports.ACGetComponents = ACGetComponents;
+exports.ACMultiOperate = ACMultiOperate;
+exports.ACMultiSelect = ACMultiSelect;
+exports.ACThumb = ACThumb;
 exports.BLOCK_TAGS = BLOCK_TAGS;
 exports.Base64Encode = Base64Encode;
 exports.BizEvent = BizEvent;
 exports.COM_ATTR_KEY = COM_ATTR_KEY;
 exports.Dialog = Dialog;
 exports.DialogManager = DialogManager;
+exports.HTTP_METHOD = HTTP_METHOD;
 exports.ImgPreview = ImgPreview;
 exports.KEYS = KEYS;
 exports.Ladder = Ladder;
 exports.MD5 = MD5;
 exports.Masker = Masker;
 exports.Net = Net;
+exports.QueryString = QueryString;
 exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
+exports.REQUEST_FORMAT = REQUEST_FORMAT;
+exports.RESPONSE_FORMAT = RESPONSE_FORMAT;
 exports.Theme = Theme;
 exports.Thumb = Thumb;
 exports.Tip = Tip;
 exports.Toast = Toast;
+exports.Toc = Toc;
 exports.arrayColumn = arrayColumn;
 exports.arrayGroup = arrayGroup;
 exports.arrayIndex = arrayIndex;
 exports.base64Decode = base64Decode;
 exports.base64UrlSafeEncode = base64UrlSafeEncode;
 exports.between = between;
-exports.buildParam = buildParam;
 exports.buttonActiveBind = buttonActiveBind;
 exports.convertBlobToBase64 = convertBlobToBase64;
 exports.copy = copy;
@@ -3293,14 +3576,17 @@ exports.escapeAttr = escapeAttr;
 exports.escapeHtml = escapeHtml;
 exports.fireEvent = fireEvent;
 exports.frequencyControl = frequencyControl;
+exports.getCurrentScript = getCurrentScript;
 exports.getFormData = getFormData;
 exports.getHash = getHash;
-exports.getHashObject = getHashObject;
+exports.getLibEntryScript = getLibEntryScript;
+exports.getLibModule = getLibModule;
+exports.getLibModuleTop = getLibModuleTop;
 exports.getRegion = getRegion;
 exports.getUTF8StrLen = getUTF8StrLen;
 exports.getViewHeight = getViewHeight;
 exports.getViewWidth = getViewWidth;
-exports.guid = guid$2;
+exports.guid = guid;
 exports.hide = hide;
 exports.highlightText = highlightText;
 exports.html2Text = html2Text;
@@ -3309,6 +3595,8 @@ exports.isElement = isElement;
 exports.keepRectCenter = keepRectCenter;
 exports.loadCss = loadCss;
 exports.mergerUriParam = mergerUriParam;
+exports.onDocReady = onDocReady;
+exports.onHover = onHover;
 exports.onStateChange = onStateChange;
 exports.openLinkWithoutReferer = openLinkWithoutReferer;
 exports.pushState = pushState;
@@ -3318,11 +3606,11 @@ exports.rectInLayout = rectInLayout;
 exports.regQuote = regQuote;
 exports.resolveFileExtension = resolveFileExtension;
 exports.resolveFileName = resolveFileName;
+exports.resolveTocListFromDom = resolveTocListFromDom;
 exports.round = round;
 exports.setHash = setHash;
 exports.show = show;
 exports.stringToEntity = stringToEntity;
-exports.toc = toc;
 exports.toggle = toggle;
 exports.trans = trans;
 exports.triggerDomEvent = triggerDomEvent;

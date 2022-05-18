@@ -1,4 +1,4 @@
-import {Dialog} from "../UI/Dialog.js";
+import {Dialog} from "../Widget/Dialog.js";
 import {ACEventChainBind} from "./ACBase.js";
 
 export const ACConfirm = (node, param) => {
