@@ -2412,15 +2412,15 @@ var WebCom = (function (exports) {
 	let CLASS_TOAST_WRAP = 'toast-wrap';
 
 	insertStyleSheet(`
-	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; top:5px; left:0; width:100%;display: flex; justify-content: center; flex-direction:column; align-items: center;}
-	.toast {padding:10px 35px 10px 15px; position:relative; margin-top:10px; min-width:100px; display:inline-block; border-radius:3px; box-shadow:5px 4px 12px #0003;}
-	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:3px; right:0; cursor:pointer;}
+	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; transform:translateX(-50%); display:inline-block;}
+	.toast {padding:10px 35px 10px 15px; position:relative; display:block; float:left; clear:both; margin-top:10px; min-width:100px; border-radius:3px; box-shadow:5px 4px 12px #0003;}
+	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:5px; right:0; cursor:pointer;}
 	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
 	.toast-close:hover {opacity:1}
 	.toast-${TYPE_INFO} {background-color:#fffffff0;}
-	.toast-${TYPE_SUCCESS} {background-color:#fffffff0;}
+	.toast-${TYPE_SUCCESS} {background-color:#1a70e1b8; color:white;}
 	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
-	.toast-${TYPE_ERROR} {background-color:#ff00008c; color:white;}
+	.toast-${TYPE_ERROR} {background:radial-gradient(#ff5b5b, #f143438f); color:white;}
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
 `, Theme.Namespace + 'toast-style');
 
@@ -2450,35 +2450,35 @@ var WebCom = (function (exports) {
 		id = null;
 		dom = null;
 		option = {
-			timeout: 400000,
+			timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
 			show: true,
 			closeAble: true,
-			class: ''
+			class: TYPE_INFO
 		};
 		_closeTm = null;
 
 		constructor(text, option = {}){
-			this.option = {...this.option, opt: option};
+			this.option = {...this.option, ...option};
 			let close_html = this.option.closeAble ? '<span class="toast-close"></span>' : '';
 			this.id = this.option.id || guid('Toast');
 			this.dom = createDomByHtml(`
-			<span id="${this.id}" class="toast toast-${option.class}" style="display:none">
+			<div id="${this.id}" class="toast toast-${this.option.class}" style="display:none">
 			${close_html} ${text}
-			</span>
+			</div>
 		`, getToastWrap());
-			if(option.closeAble){
+			if(this.option.closeAble){
 				this.dom.querySelector('.toast-close').addEventListener('click', () => {
 					this.close();
 				});
 			}
 			TOAST_COLLECTION.push(this);
 
-			if(option.show){
+			if(this.option.show){
 				this.show();
-				if(option.timeout){
+				if(this.option.timeout){
 					this._closeTm = setTimeout(() => {
 						this.close();
-					}, option.timeout);
+					}, this.option.timeout);
 				}
 			}
 		}
@@ -2490,7 +2490,7 @@ var WebCom = (function (exports) {
 		show(){
 			this.dom.style.display = '';
 			let toastWrap = getToastWrap();
-			toastWrap.style.display = 'flex';
+			toastWrap.style.display = '';
 		}
 
 		close(){
@@ -3140,7 +3140,7 @@ var WebCom = (function (exports) {
 
 	insertStyleSheet(`
 	.${NS}-container-wrap {position:absolute; z-index:11;}
-	.${NS}-content {border:1px solid #cacaca; border-radius:2px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
+	.${NS}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
 	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
 	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
 	.${NS}-close:hover {color:black;}
