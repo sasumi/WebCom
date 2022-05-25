@@ -37,20 +37,15 @@ export const copy = (text, silent = false) => {
  */
 export const copyFormatted = (html, silent = false) => {
 	// Create container for the HTML
-	let container = document.createElement('div')
-	container.innerHTML = html
-	container.style.position = 'fixed';
-	container.style.pointerEvents = 'none';
-	container.style.opacity = "0";
+	let container = createDomByHtml(`
+		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
+	`, document.body);
 
 	// Detect all style sheets of the page
 	let activeSheets = Array.prototype.slice.call(document.styleSheets)
 		.filter(function(sheet){
 			return !sheet.disabled;
 		})
-
-	// Mount the container to the DOM to make `contentWindow` available
-	document.body.appendChild(container);
 
 	// Copy to clipboard
 	window.getSelection().removeAllRanges();

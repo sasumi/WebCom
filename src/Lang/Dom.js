@@ -1,5 +1,6 @@
 import {between} from "./Math.js";
 import {KEYS} from "./Event.js";
+import {dimension2Style, strToPascalCase} from "./String.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -230,6 +231,18 @@ export const rectInLayout = (rect, layout) => {
 	return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width) //左上角
 		&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width); //右下角
 };
+
+/**
+ * 设置dom样式
+ * @param {HTMLElement} dom
+ * @param {Object} style 样式对象
+ */
+export const setStyle = (dom, style = {})=>{
+	for(let key in style){
+		key = strToPascalCase(key);
+		dom.style[key] = dimension2Style(style[key]);
+	}
+}
 
 /**
  * 创建HTML节点

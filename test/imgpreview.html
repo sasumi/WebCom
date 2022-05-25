@@ -44,9 +44,10 @@
 </ul>
 
 <script type="module">
-	import {ImgPreview} from "../src/index.js";
+	import {showImgListPreview, showImgPreview} from "../src/index.js";
+
 	document.querySelector('.single a').addEventListener('click', function(e){
-		ImgPreview.showImg(this.querySelector('img').src);
+		showImgPreview(this.querySelector('img').src);
 		e.preventDefault();
 	});
 
@@ -57,7 +58,7 @@
 			document.querySelectorAll('.multiple-images img').forEach(img => {
 				srcList.push(img.src);
 			});
-			ImgPreview.showImgList(srcList, i);
+			showImgListPreview(srcList, i);
 			e.preventDefault();
 		});
 	}

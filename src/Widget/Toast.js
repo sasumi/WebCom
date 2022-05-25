@@ -27,15 +27,12 @@ insertStyleSheet(`
 	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
 `, Theme.Namespace + 'toast-style');
 
+let TOAST_WRAP;
 const getToastWrap = () => {
-	let toastWrap = document.querySelector(`.${CLASS_TOAST_WRAP}`);
-	if(!toastWrap){
-		toastWrap = document.createElement('div');
-		toastWrap.className = CLASS_TOAST_WRAP;
-		toastWrap.style.display = 'none';
-		document.body.appendChild(toastWrap);
+	if(!TOAST_WRAP){
+		TOAST_WRAP = createDomByHtml(`<div class="${CLASS_TOAST_WRAP}" style="display:none;"></div>`, document.body);
 	}
-	return toastWrap;
+	return TOAST_WRAP;
 };
 
 /**

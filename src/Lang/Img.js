@@ -3,7 +3,7 @@ import {convertBlobToBase64} from "./String.js";
 /**
  * 通过 src 加载图片
  * @param {String} src
- * @returns {Promise<Image>}
+ * @returns {Promise<HTMLImageElement>}
  */
 export const loadImgBySrc = (src)=>{
 	return new Promise((resolve, reject) => {
@@ -81,7 +81,13 @@ export const getBase64ByImg = (img) => {
  * @param {Boolean} zoomIn 是否在图片小于容器时放大，默认不放大
  * @returns {{top: number, left: number, width: number, height: number}|{top: number, left: number, width, height}}
  */
-export const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, spacing = 0, zoomIn = false}) => {
+export const scaleFixCenter = ({
+   contentWidth,
+   contentHeight,
+   containerWidth,
+   containerHeight,
+   spacing = 0,
+   zoomIn = false}) => {
 	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 		return {
 			width: contentWidth,
@@ -90,14 +96,14 @@ export const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, con
 			top: (containerHeight - contentHeight) / 2
 		};
 	}
-	let ratioX = containerWidth/contentWidth;
-	let ratioY = containerHeight/contentHeight;
+	let ratioX = containerWidth / contentWidth;
+	let ratioY = containerHeight / contentHeight;
 
 	let ratio = Math.min(ratioX, ratioY);
 	return {
-		width: contentWidth * ratio,
-		height: contentHeight * ratio,
-		left: (containerWidth - contentWidth * ratio) / 2,
-		top: (containerHeight - contentHeight * ratio) / 2,
+		width: contentWidth * ratio - spacing * 2,
+		height: contentHeight * ratio - spacing * 2,
+		left: (containerWidth - contentWidth * ratio) / 2 + spacing,
+		top: (containerHeight - contentHeight * ratio) / 2 + spacing,
 	}
 }

@@ -261,16 +261,50 @@ export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
 };
 
 /**
+ * 字符串转成首字母大写
+ * @param {String} str
+ * @param {Boolean} capitalize_first 是否将第一个单词首字母大写
+ * @return {string}
+ */
+export const strToPascalCase = (str, capitalize_first = false)=>{
+	let words = [];
+	str.replace(/[-_\s+]/g, ' ').split(' ').forEach((word, idx) => {
+		words.push((idx === 0 && !capitalize_first) ? word : capitalize(word));
+	});
+	return words.join('');
+}
+
+/**
+ * @param s
+ * @return {string}
+ */
+export const capitalize = (s) => {
+	if(typeof s !== 'string'){
+		return ''
+	}
+	return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
  * 数值转为CSS可用样式
  * @param {Number|String} h
  * @returns {string}
  */
 export const dimension2Style = h => {
-	if(/^\d+$/.test(h)){
+	if(isNum(h)){
 		return h + 'px';
 	}
 	return h+'';
 };
+
+/**
+ * 检测是否为数值
+ * @param val
+ * @return {boolean}
+ */
+export const isNum = (val)=>{
+	return !isNaN(val);
+}
 
 /**
  * 高亮文本

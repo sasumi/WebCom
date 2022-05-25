@@ -1,4 +1,4 @@
-import {insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 
 let masker = null;
@@ -6,9 +6,7 @@ let CSS_CLASS = 'dialog-masker';
 
 const showMasker = () => {
 	if(!masker){
-		masker = document.createElement('div');
-		document.body.appendChild(masker);
-		masker.className = CSS_CLASS;
+		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
 	}
 	masker.style.display = '';
 };

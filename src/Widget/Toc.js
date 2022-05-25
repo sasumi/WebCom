@@ -1,5 +1,5 @@
 import {guid} from "../Lang/Util.js";
-import {insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 import {escapeHtml} from "../Lang/String.js";
 
@@ -46,13 +46,11 @@ export const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 		item.refNode.parentNode.insertBefore(item.refNode, helpNode);
 		tocHtml.push(`<a href="#${id}" data-level="${item.level}">${escapeHtml(item.text)}</a>`);
 	});
-
-	let tocNode = document.createElement('dl');
-	tocNode.className = CLS;
-	tocNode.innerHTML = `
-	<dt>本页目录</dt>
-	<dd>
-		${tocHtml}
-	</dd>`;
-	document.body.appendChild(tocNode);
+	createDomByHtml(`
+	<dl class="${CLS}">
+		<dt>本页目录</dt>
+		<dd>
+			${tocHtml}
+		</dd>
+	</dl>`, document.body);
 };

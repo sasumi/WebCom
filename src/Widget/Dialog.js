@@ -1,5 +1,5 @@
 import {escapeAttr, dimension2Style} from "../Lang/String.js";
-import {buttonActiveBind, domContained, insertStyleSheet, keepRectCenter} from "../Lang/Dom.js";
+import {buttonActiveBind, createDomByHtml, domContained, insertStyleSheet, keepRectCenter} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {KEYS} from "../Lang/Event.js";
 import {BizEvent} from "../Lang/Event.js";
@@ -160,16 +160,12 @@ const resolveContentType = (content)=>{
  * 构造DOM结构
  */
 const domConstruct = (dlg) => {
-	dlg.dom = document.createElement('div');
-	dlg.dom.className = DLG_CLS_PREF;
-	dlg.dom.id = dlg.config.id;
-	if(dlg.config.width){
-		dlg.dom.style.width = dlg.config.width + 'px';
-	}
+	let html = `
+		<div class="${DLG_CLS_PREF}" id="${dlg.config.id}" style="${dlg.config.width?'width:'+dlg.config.width+'px':''}">
+		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
+		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : ''}
+	`;
 
-	let html = '';
-	html += dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : '';
-	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : '';
 	let style = [];
 	if(dlg.config.minContentHeight !== null){
 		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight) + 'px');
@@ -182,9 +178,8 @@ const domConstruct = (dlg) => {
 		});
 		html += '</div>';
 	}
-	dlg.dom.innerHTML = html;
-
-	document.body.appendChild(dlg.dom);
+	html += '</div>';
+	dlg.dom = createDomByHtml(html, document.body);
 
 	//update content height
 	if(dlg.config.height){
