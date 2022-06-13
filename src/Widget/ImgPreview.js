@@ -54,7 +54,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
 	.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989;}
+	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUY4QkZDREVFQjEwMTFFQzg5MDlFMzJFODlEOTk1NkQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUY4QkZDREZFQjEwMTFFQzg5MDlFMzJFODlEOTk1NkQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBRjhCRkNEQ0VCMTAxMUVDODkwOUUzMkU4OUQ5OTU2RCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBRjhCRkNEREVCMTAxMUVDODkwOUUzMkU4OUQ5OTU2RCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqXK7kMAAABdSURBVHjaYvz///9VBjzg7NmzWvjkjY2Nr+GTZ4HSeA0hAPDpvcbEQGMwasEIsIDxzJkz/wmkcwYC+WQ0DkYtGPL5AFofaJGbzgnkk9HietQCKlpwjQZmg80ECDAARIIZDft5xUUAAAAASUVORK5CYII=')}
 	
 	.${DOM_CLASS}[data-ip-mode="${MODE_SINGLE}"] .civ-nav-btn,
 	.${DOM_CLASS} .civ-nav-list-wrap {display:none;} /** todo **/
@@ -169,7 +169,7 @@ const showImgSrc = (img_index = 0)=>{
 
 const constructDom = () => {
 	let nav_thumb_list_html = ``;
-	if(CURRENT_MODE === MODE_MULTIPLE){
+	if(false && CURRENT_MODE === MODE_MULTIPLE){
 		nav_thumb_list_html += `<div class="civ-nav-list" style="width:${THUMB_WIDTH*IMG_SRC_LIST.length}px">`;
 		IMG_SRC_LIST.forEach(src=>{
 			nav_thumb_list_html += `<span class="civ-nav-thumb"><img src="${src}"/></span>`;

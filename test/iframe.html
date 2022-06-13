@@ -15,7 +15,9 @@ Iframe here
 <input type="button" value="Call parent dialog" id="btn">
 <script type="module">
     document.getElementById('btn').addEventListener('click', e=>{
-        top.topImport('./../Widget/Dialog.js', 'Dialog').then(Dialog=>{
+        top.WEBCOM_GET_LIB_MODULE().then(rsp=>{
+            let Dialog = rsp.Dialog;
+            console.log(rsp);
             console.log(Dialog);
             Dialog.confirm('asdfasdf', 'asdfasfasdf');
         });

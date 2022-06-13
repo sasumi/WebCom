@@ -15,6 +15,7 @@ export * from "./Lang/File.js";
 export * from "./Lang/Math.js";
 export * from "./Lang/MD5.js";
 export * from "./Lang/Net.js";
+export * from "./Lang/ReportApi.js";
 export * from "./Lang/Route.js";
 export * from "./Lang/String.js";
 export * from "./Lang/Time.js";

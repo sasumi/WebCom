@@ -1,5 +1,5 @@
-import {Dialog} from "../Widget/Dialog.js";
 import {ACEventChainBind} from "./ACBase.js";
+import {mergerUriParam} from "../Lang/Net.js";
 
 export const ACDialog = (node, param) => {
 	if(!param.src && node.tagName === 'A' && node.href){
@@ -13,13 +13,16 @@ export const ACDialog = (node, param) => {
 	}
 
 	ACEventChainBind(node, 'click', next=>{
-		let dlg = new Dialog({
-			title: param.title,
-			content: {src:param.src},
-			width: ACDialog.DEFAULT_WIDTH
+		top.WEBCOM_GET_LIB_MODULE().then(rsp=>{
+			let dlg = new rsp.Dialog({
+				title: param.title,
+				content: {src: mergerUriParam(param.src, ACDialog.IFRAME_FLAG)},
+				width: ACDialog.DEFAULT_WIDTH
+			});
+			dlg.show();
 		});
-		dlg.show();
 	});
 };
 
+ACDialog.IFRAME_FLAG = {refEnv: 'inIframe'};
 ACDialog.DEFAULT_WIDTH = 600;

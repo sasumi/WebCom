@@ -263,11 +263,28 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
+	const between = (val, min, max)=>{
+		return val >= min && val <= max;
+	};
+
+	/**
+	 * 取整
+	 * @param {Number} num
+	 * @param {Number} digits 小数点位数
+	 * @returns {number}
+	 */
+	const round = (num, digits) => {
+		digits = digits === undefined ? 2 : digits;
+		let multiple = Math.pow(10, digits);
+		return Math.round(num * multiple) / multiple;
+	};
+
 	/**
 	 * 转义HTML
 	 * @param {string} str
 	 * @returns {string}
 	 */
+
 	const escapeHtml = str => {
 		return str
 			.replace(/&/g, "&amp;")
@@ -317,17 +334,37 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const stringToEntity = (str, radix) => {
 		let arr = str.split('');
 		radix = radix || 0;
-		let tmp = arr.map(item =>
-			`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('');
-		return tmp
+		return arr.map(item =>
+			`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('')
+	};
+
+	/**
+	 * 格式化数字
+	 * @param {Number} num
+	 * @param {Number} precision
+	 * @return {string|Number}
+	 */
+	const formatSize = (num, precision = 2) => {
+		if(isNaN(num)){
+			return num;
+		}
+		let str = '', i, mod = 1024;
+		if(num < 0){
+			str = '-';
+			num = Math.abs(num);
+		}
+		let units = 'B KB MB GB TB PB'.split(' ');
+		for(i = 0; num > mod; i++){
+			num /= mod;
+		}
+		return str + round(num, precision) + units[i];
 	};
 
 	const entityToString = (entity) => {
 		let entities = entity.split(';');
 		entities.pop();
-		let tmp = entities.map(item => String.fromCharCode(
-			item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('');
-		return tmp
+		return entities.map(item => String.fromCharCode(
+			item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('')
 	};
 
 	let _helper_div;
@@ -570,6 +607,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return !isNaN(val);
 	};
 
+	const TRIM_BOTH = 0;
+	const TRIM_LEFT = 1;
+	const TRIM_RIGHT = 2;
+	const trim = (str, chars = '', dir = TRIM_BOTH)=>{
+		if(chars.length){
+			let regLeft = new RegExp('^['+regQuote(chars)+']+'),
+			regRight = new RegExp('['+regQuote(chars)+']+$');
+			return dir === TRIM_LEFT ? str.replace(regLeft, '') : (dir === TRIM_RIGHT ? str.replace(regRight, '') : str.replace(regLeft, '').replace(regRight, ''));
+		}else {
+			return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());
+		}
+	};
+
 	/**
 	 * 高亮文本
 	 * @param {String} text 文本
@@ -676,22 +726,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		html = html.trim();
 
 		return html;
-	};
-
-	const between = (val, min, max)=>{
-		return val >= min && val <= max;
-	};
-
-	/**
-	 * 取整
-	 * @param {Number} num
-	 * @param {Number} digits 小数点位数
-	 * @returns {number}
-	 */
-	const round = (num, digits) => {
-		digits = digits === undefined ? 2 : digits;
-		let multiple = Math.pow(10, digits);
-		return Math.round(num * multiple) / multiple;
 	};
 
 	const getViewWidth = () => {
@@ -1569,19 +1603,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	const resolveFileExtension = fileName => {
-		fileName = fileName.replace(/.*?[/|\\]/ig, '');
-		return fileName.replace(/\.[^.]*$/g, "");
+		let segList = fileName.split('.');
+		return segList[segList.length-1];
 	};
 
-	const resolveFileName = (src)=>{
-		let f = /\/([^/]+)$/ig.exec(src);
-		if(f){
-			let t = /([\w]+)/.exec(f[1]);
-			if(t){
-				return t[1];
-			}
-		}
-		return null;
+	const resolveFileName = (fileName)=>{
+		fileName = fileName.replace(/.*?[/|\\]/ig, '');
+		return fileName.replace(/\.[^.]*$/g, "");
 	};
 
 	const CODE_TIMEOUT = 508;
@@ -1862,20 +1890,339 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return false;
 	};
 
+	let _guid = 0;
+	const guid = (prefix = '') => {
+		return 'guid_' + (prefix || randomString(6)) + (++_guid);
+	};
+
+	/**
+	 * 获取当前函数所在script路径
+	 * @return {string|null}
+	 */
+	const getCurrentScript = function(){
+		let error = new Error()
+			, source
+			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+			return source[1];
+		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+			return source[1];
+		}else if(error['fileName'] !== undefined){
+			return error['fileName'];
+		}
+		return null;
+	};
+
+	const CURRENT_FILE = '/Lang/Util.js';
+	const ENTRY_FILE = '/index.js';
+
+	/**
+	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
+	 * @return {string}
+	 */
+	const getLibEntryScript = ()=>{
+		let script = getCurrentScript();
+		if(!script){
+			throw "Get script failed";
+		}
+		if(script.indexOf(CURRENT_FILE) >= 0){
+			return script.replace(CURRENT_FILE, ENTRY_FILE);
+		}
+		return script;
+	};
+
+	/**
+	 * 加载当前库模块
+	 * @return {Promise<*>}
+	 */
+	const getLibModule = async () => {
+		let script = getLibEntryScript();
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+	};
+
+	/**
+	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
+	 * @type {(function(): Promise<*>)|undefined}
+	 */
+	const getLibModuleTop =(()=>{
+		if(top === window){
+			return getLibModule;
+		}
+		if(top.WEBCOM_GET_LIB_MODULE){
+			return top.WEBCOM_GET_LIB_MODULE;
+		}
+		throw "No WebCom library script loaded detected.";
+	})();
+
+	/**
+	 * 清理版本，去除无用字符
+	 * @param {String} version
+	 * @return {Number[]}
+	 */
+	const normalizeVersion = (version)=>{
+		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+			pieces = trimmed.split('.'),
+			partsLength,
+			parts = [],
+			value,
+			piece,
+			num,
+			i;
+		for(i = 0; i < pieces.length; i += 1){
+			piece = pieces[i].replace(/\D/g, '');
+			num = parseInt(piece, 10);
+			if(isNaN(num)){
+				num = 0;
+			}
+			parts.push(num);
+		}
+		partsLength = parts.length;
+		for(i = partsLength - 1; i >= 0; i -= 1){
+			value = parts[i];
+			if(value === 0){
+				parts.length -= 1;
+			}else {
+				break;
+			}
+		}
+		return parts;
+	};
+
+	/**
+	 * 版本比较
+	 * @param {String} version1
+	 * @param {String} version2
+	 * @param {Number} index
+	 * @return {number|number}
+	 */
+	const versionCompare = (version1, version2, index)=>{
+		let stringLength = index + 1,
+			v1 = normalizeVersion(version1),
+			v2 = normalizeVersion(version2);
+		if(v1.length > stringLength){
+			v1.length = stringLength;
+		}
+		if(v2.length > stringLength){
+			v2.length = stringLength;
+		}
+		let size = Math.min(v1.length, v2.length),i;
+		for(i = 0; i < size; i += 1){
+			if(v1[i] !== v2[i]){
+				return v1[i] < v2[i] ? -1 : 1;
+			}
+		}
+		if(v1.length === v2.length){
+			return 0;
+		}
+		return (v1.length < v2.length) ? -1 : 1;
+	};
+
+	window.WEBCOM_GET_LIB_MODULE = getLibModule;
+	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
+	/**
+	 * 类型定义
+	 */
+	const TYPE_INFO = 'info';
+	const TYPE_SUCCESS = 'success';
+	const TYPE_WARING = 'warning';
+	const TYPE_ERROR = 'error';
+	const TYPE_LOADING = 'loading';
+
+	let TOAST_COLLECTION = [];
+	let CLASS_TOAST_WRAP = 'toast-wrap';
+
+	insertStyleSheet(`
+	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; transform:translateX(-50%); display:inline-block;}
+	.toast {padding:10px 35px 10px 15px; position:relative; display:block; float:left; clear:both; margin-top:10px; min-width:100px; border-radius:3px; box-shadow:5px 4px 12px #0003;}
+	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:5px; right:0; cursor:pointer;}
+	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
+	.toast-close:hover {opacity:1}
+	.toast-${TYPE_INFO} {background-color:#fffffff0;}
+	.toast-${TYPE_SUCCESS} {background-color:#1a70e1b8; color:white;}
+	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
+	.toast-${TYPE_ERROR} {background:radial-gradient(#ff5b5b, #f143438f); color:white;}
+	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
+`, Theme.Namespace + 'toast-style');
+
+	let TOAST_WRAP;
+	const getToastWrap = () => {
+		if(!TOAST_WRAP){
+			TOAST_WRAP = createDomByHtml(`<div class="${CLASS_TOAST_WRAP}" style="display:none;"></div>`, document.body);
+		}
+		return TOAST_WRAP;
+	};
+
+	/**
+	 * 默认隐藏时间
+	 */
+	const DEFAULT_ELAPSED_TIME = {
+		[TYPE_INFO]: 2000,
+		[TYPE_SUCCESS]: 1500,
+		[TYPE_WARING]: 3000,
+		[TYPE_ERROR]: 3500,
+		[TYPE_LOADING]: 10000,
+	};
+
+	class Toast {
+		id = null;
+		dom = null;
+		option = {
+			timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
+			show: true,
+			closeAble: true,
+			class: TYPE_INFO
+		};
+		_closeTm = null;
+
+		constructor(text, option = {}){
+			this.option = {...this.option, ...option};
+			let close_html = this.option.closeAble ? '<span class="toast-close"></span>' : '';
+			this.id = this.option.id || guid('Toast');
+			this.dom = createDomByHtml(`
+			<div id="${this.id}" class="toast toast-${this.option.class}" style="display:none">
+			${close_html} ${text}
+			</div>
+		`, getToastWrap());
+			if(this.option.closeAble){
+				this.dom.querySelector('.toast-close').addEventListener('click', () => {
+					this.close();
+				});
+			}
+			TOAST_COLLECTION.push(this);
+
+			if(this.option.show){
+				this.show();
+				if(this.option.timeout){
+					this._closeTm = setTimeout(() => {
+						this.close();
+					}, this.option.timeout);
+				}
+			}
+		}
+
+		setContent(html){
+			this.dom.innerHTML = html;
+		}
+
+		show(){
+			this.dom.style.display = '';
+			let toastWrap = getToastWrap();
+			toastWrap.style.display = '';
+		}
+
+		close(){
+			this.dom.parentNode.removeChild(this.dom);
+			let toastWrap = getToastWrap();
+			if(!toastWrap.childNodes.length){
+				toastWrap.parentNode.removeChild(toastWrap);
+			}
+			delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
+			clearTimeout(this._closeTm);
+		}
+
+		static closeAll(){
+			TOAST_COLLECTION.forEach(t => {
+				t.close();
+			});
+		}
+
+		static showSuccess(text, option = {}){
+			return new Toast(text, {
+				timeout: DEFAULT_ELAPSED_TIME[TYPE_SUCCESS],
+				show: true,
+				...option,
+				class: TYPE_SUCCESS
+			});
+		}
+
+		static showInfo(text, option = {}){
+			return new Toast(text, {
+				timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
+				show: true,
+				...option,
+				class: TYPE_INFO
+			});
+		}
+
+		static showWarning(text, option = {}){
+			return new Toast(text, {
+				timeout: DEFAULT_ELAPSED_TIME[TYPE_WARING],
+				show: true,
+				...option,
+				class: TYPE_WARING
+			});
+		}
+
+		static showError(text, option = {}){
+			return new Toast(text, {
+				timeout: DEFAULT_ELAPSED_TIME[TYPE_ERROR],
+				show: true,
+				...option,
+				class: TYPE_ERROR
+			});
+		}
+
+		/**
+		 * Show loading toast
+		 * @param text
+		 * @param option
+		 * @returns {Toast}
+		 */
+		static showLoading(text = '加载中···', option = {}){
+			return new Toast(text, {
+				timeout: 0,
+				show: true,
+				class: 'loading',
+				...option
+			});
+		};
+	}
+
+	const getDataObjectByForm = (form) => {
+		let data = new FormData(form);
+		return Object.fromEntries(data.entries());
+	};
+
 	const ACAsync = (node, param) => {
+		let AS_FORM = false;
 		if(node.nodeName === 'A'){
-			param.cgi = param.cgi|| node.href;
+			param.cgi = param.cgi || node.href;
 			param.method = param.method || HTTP_METHOD.GET;
 		}
 		if(node.nodeName === 'FORM'){
 			param.cgi = param.cgi || node.action;
 			param.method = param.cgi || node.method || HTTP_METHOD.GET;
+			AS_FORM = true;
 		}
-		
+
+		param.requestDataFormat = REQUEST_FORMAT.JSON;
+		param.responseDataFormat = RESPONSE_FORMAT.JSON;
+
 		ACEventChainBind(node, 'click', next => {
 			console.log('send async');
+			if(AS_FORM){
+				if(!node.reportValidity()){
+					return false;
+				}
+				param.data = getDataObjectByForm(node);
+			}
+			Net.request(param.cgi, param.data, param).then(ACAsync.commonResponseSuccessHandle, ACAsync.commonResponseErrorHandle);
 			next();
 		});
+	};
+
+	ACAsync.commonResponseSuccessHandle = (rsp) => {
+		if(rsp.code !== 0){
+			Toast.showWarning(rsp.message);
+			return;
+		}
+		parent.location.reload();
+	};
+
+	ACAsync.commonResponseErrorHandle = (error)=>{
+		Toast.showError(error);
 	};
 
 	const Thumb = {
@@ -1927,15 +2274,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 
 		ACEventChainBind(node, 'click', next=>{
-			let dlg = new Dialog({
-				title: param.title,
-				content: {src:param.src},
-				width: ACDialog.DEFAULT_WIDTH
+			top.WEBCOM_GET_LIB_MODULE().then(rsp=>{
+				let dlg = new rsp.Dialog({
+					title: param.title,
+					content: {src: mergerUriParam(param.src, ACDialog.IFRAME_FLAG)},
+					width: ACDialog.DEFAULT_WIDTH
+				});
+				dlg.show();
 			});
-			dlg.show();
 		});
 	};
 
+	ACDialog.IFRAME_FLAG = {refEnv: 'inIframe'};
 	ACDialog.DEFAULT_WIDTH = 600;
 
 	const COM_ATTR_KEY = 'data-com';
@@ -2101,50 +2451,50 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return rst;
 	};
 
-	/*
+	/**
 	  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
 	  * to work around bugs in some JS interpreters.
 	  */
-	function safeAdd(x, y){
+	const safeAdd = (x, y) => {
 		let lsw = (x & 0xffff) + (y & 0xffff);
 		let msw = (x >> 16) + (y >> 16) + (lsw >> 16);
 		return (msw << 16) | (lsw & 0xffff)
-	}
+	};
 
-	/*
+	/**
 	* Bitwise rotate a 32-bit number to the left.
 	*/
-	function bitRotateLeft(num, cnt){
+	const bitRotateLeft = (num, cnt) => {
 		return (num << cnt) | (num >>> (32 - cnt))
-	}
+	};
 
-	/*
+	/**
 	* These functions implement the four basic operations the algorithm uses.
 	*/
-	function md5cmn(q, a, b, x, s, t){
+	const md5cmn = (q, a, b, x, s, t) => {
 		return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
-	}
+	};
 
-	function md5ff(a, b, c, d, x, s, t){
+	const md5ff = (a, b, c, d, x, s, t) => {
 		return md5cmn((b & c) | (~b & d), a, b, x, s, t)
-	}
+	};
 
-	function md5gg(a, b, c, d, x, s, t){
+	const md5gg = (a, b, c, d, x, s, t) => {
 		return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
-	}
+	};
 
-	function md5hh(a, b, c, d, x, s, t){
+	const md5hh = (a, b, c, d, x, s, t) => {
 		return md5cmn(b ^ c ^ d, a, b, x, s, t)
-	}
+	};
 
-	function md5ii(a, b, c, d, x, s, t){
+	const md5ii = (a, b, c, d, x, s, t) => {
 		return md5cmn(c ^ (b | ~d), a, b, x, s, t)
-	}
+	};
 
-	/*
+	/**
 	* Calculate the MD5 of an array of little-endian words, and a bit length.
 	*/
-	function binlMD5(x, len){
+	const binlMD5 = (x, len) => {
 		/* append padding */
 		x[len >> 5] |= 0x80 << (len % 32);
 		x[((len + 64) >>> 9 << 4) + 14] = len;
@@ -2239,12 +2589,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			d = safeAdd(d, oldd);
 		}
 		return [a, b, c, d]
-	}
+	};
 
-	/*
+	/**
 	* Convert an array of little-endian words to a string
 	*/
-	function binl2rstr(input){
+	const binl2rstr = (input) => {
 		let i;
 		let output = '';
 		let length32 = input.length * 32;
@@ -2252,13 +2602,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xff);
 		}
 		return output
-	}
+	};
 
-	/*
+	/**
 	* Convert a raw string to an array of little-endian words
 	* Characters >255 have their high-byte silently ignored.
 	*/
-	function rstr2binl(input){
+	const rstr2binl = (input) => {
 		let i;
 		let output = [];
 		output[(input.length >> 2) - 1] = undefined;
@@ -2270,19 +2620,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << (i % 32);
 		}
 		return output
-	}
+	};
 
-	/*
+	/**
 	* Calculate the MD5 of a raw string
 	*/
-	function rstrMD5(s){
+	const rstrMD5 = (s) => {
 		return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
-	}
+	};
 
-	/*
+	/**
 	* Calculate the HMAC-MD5, of a key and some data (raw strings)
 	*/
-	function rstrHMACMD5(key, data){
+	const rstrHMACMD5 = (key, data) => {
 		let i;
 		let bkey = rstr2binl(key);
 		let ipad = [];
@@ -2298,12 +2648,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
 		return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
-	}
+	};
 
-	/*
+	/**
 	* Convert a raw string to a hex string
 	*/
-	function rstr2hex(input){
+	const rstr2hex = (input) => {
 		let hexTab = '0123456789abcdef';
 		let output = '';
 		let x;
@@ -2313,33 +2663,33 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f);
 		}
 		return output
-	}
+	};
 
-	/*
+	/**
 	* Encode a string as utf-8
 	*/
-	function str2rstrUTF8(input){
+	const str2rstrUTF8 = (input) => {
 		return unescape(encodeURIComponent(input))
-	}
+	};
 
-	/*
+	/**
 	* Take string arguments and return either raw or hex encoded strings
 	*/
-	function rawMD5(s){
+	const rawMD5 = (s) => {
 		return rstrMD5(str2rstrUTF8(s))
-	}
+	};
 
-	function hexMD5(s){
+	const hexMD5 = (s) => {
 		return rstr2hex(rawMD5(s))
-	}
+	};
 
-	function rawHMACMD5(k, d){
+	const rawHMACMD5 = (k, d) => {
 		return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
-	}
+	};
 
-	function hexHMACMD5(k, d){
+	const hexHMACMD5 = (k, d) => {
 		return rstr2hex(rawHMACMD5(k, d))
-	}
+	};
 
 	const MD5 = (string, key, raw) => {
 		if(!key){
@@ -2352,6 +2702,32 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			return hexHMACMD5(key, string)
 		}
 		return rawHMACMD5(key, string)
+	};
+
+	let hook_flag = false;
+	const RptEv = new BizEvent();
+	const doHook = () => {
+		let observer = new ReportingObserver((reports) => {
+			onReportApi.fire(reports);
+		}, {
+			types: ['deprecation'],
+			buffered: true
+		});
+		observer.observe();
+	};
+
+	const onReportApi = {
+		listen(payload){
+			!hook_flag && doHook();
+			hook_flag = true;
+			RptEv.listen(payload);
+		},
+		remove(payload){
+			return RptEv.remove(payload);
+		},
+		fire(...args){
+			return RptEv.fire(...args);
+		}
 	};
 
 	let payloads = [];
@@ -2378,240 +2754,21 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		payloads.push(payload);
 	};
 
+	const ONE_MINUTE = 60000;
+	const ONE_HOUR = 3600000;
+	const ONE_DAY = 86400000;
+	const ONE_WEEK = 604800000;
+	const ONE_MONTH_30 = 2592000000;
+	const ONE_MONTH_31 = 2678400000;
+	const ONE_YEAR_365 = 31536000000;
+
 	function frequencyControl(payload, hz, executeOnFistTime = false){
 		if(payload._frq_tm){
 			clearTimeout(payload._frq_tm);
 		}
-		payload._frq_tm = setTimeout(()=>{
-			frequencyControl(payload,hz, executeOnFistTime);
+		payload._frq_tm = setTimeout(() => {
+			frequencyControl(payload, hz, executeOnFistTime);
 		}, hz);
-	}
-
-	let _guid = 0;
-	const guid = (prefix = '') => {
-		return 'guid_' + (prefix || randomString(6)) + (++_guid);
-	};
-
-	/**
-	 * 获取当前函数所在script路径
-	 * @return {string|null}
-	 */
-	const getCurrentScript = function(){
-		let error = new Error()
-			, source
-			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
-			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
-		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
-			return source[1];
-		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
-			return source[1];
-		}else if(error['fileName'] !== undefined){
-			return error['fileName'];
-		}
-		return null;
-	};
-
-	const CURRENT_FILE = '/Lang/Util.js';
-	const ENTRY_FILE = '/index.js';
-
-	/**
-	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
-	 * @return {string}
-	 */
-	const getLibEntryScript = ()=>{
-		let script = getCurrentScript();
-		if(!script){
-			throw "Get script failed";
-		}
-		if(script.indexOf(CURRENT_FILE) >= 0){
-			return script.replace(CURRENT_FILE, ENTRY_FILE);
-		}
-		return script;
-	};
-
-	/**
-	 * 加载当前库模块
-	 * @return {Promise<*>}
-	 */
-	const getLibModule = async () => {
-		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
-	};
-
-	/**
-	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
-	 * @type {(function(): Promise<*>)|undefined}
-	 */
-	const getLibModuleTop =(()=>{
-		if(top === window){
-			return getLibModule;
-		}
-		if(top.WEBCOM_GET_LIB_MODULE){
-			return top.WEBCOM_GET_LIB_MODULE;
-		}
-		throw "No WebCom library script loaded detected.";
-	})();
-
-	window.WEBCOM_GET_LIB_MODULE = getLibModule;
-	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
-
-	/**
-	 * 类型定义
-	 */
-	const TYPE_INFO = 'info';
-	const TYPE_SUCCESS = 'success';
-	const TYPE_WARING = 'warning';
-	const TYPE_ERROR = 'error';
-	const TYPE_LOADING = 'loading';
-
-	let TOAST_COLLECTION = [];
-	let CLASS_TOAST_WRAP = 'toast-wrap';
-
-	insertStyleSheet(`
-	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; transform:translateX(-50%); display:inline-block;}
-	.toast {padding:10px 35px 10px 15px; position:relative; display:block; float:left; clear:both; margin-top:10px; min-width:100px; border-radius:3px; box-shadow:5px 4px 12px #0003;}
-	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:5px; right:0; cursor:pointer;}
-	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
-	.toast-close:hover {opacity:1}
-	.toast-${TYPE_INFO} {background-color:#fffffff0;}
-	.toast-${TYPE_SUCCESS} {background-color:#1a70e1b8; color:white;}
-	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
-	.toast-${TYPE_ERROR} {background:radial-gradient(#ff5b5b, #f143438f); color:white;}
-	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`, Theme.Namespace + 'toast-style');
-
-	let TOAST_WRAP;
-	const getToastWrap = () => {
-		if(!TOAST_WRAP){
-			TOAST_WRAP = createDomByHtml(`<div class="${CLASS_TOAST_WRAP}" style="display:none;"></div>`, document.body);
-		}
-		return TOAST_WRAP;
-	};
-
-	/**
-	 * 默认隐藏时间
-	 */
-	const DEFAULT_ELAPSED_TIME = {
-		[TYPE_INFO]: 2000,
-		[TYPE_SUCCESS]: 1500,
-		[TYPE_WARING]: 3000,
-		[TYPE_ERROR]: 3500,
-		[TYPE_LOADING]: 10000,
-	};
-
-	class Toast {
-		id = null;
-		dom = null;
-		option = {
-			timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
-			show: true,
-			closeAble: true,
-			class: TYPE_INFO
-		};
-		_closeTm = null;
-
-		constructor(text, option = {}){
-			this.option = {...this.option, ...option};
-			let close_html = this.option.closeAble ? '<span class="toast-close"></span>' : '';
-			this.id = this.option.id || guid('Toast');
-			this.dom = createDomByHtml(`
-			<div id="${this.id}" class="toast toast-${this.option.class}" style="display:none">
-			${close_html} ${text}
-			</div>
-		`, getToastWrap());
-			if(this.option.closeAble){
-				this.dom.querySelector('.toast-close').addEventListener('click', () => {
-					this.close();
-				});
-			}
-			TOAST_COLLECTION.push(this);
-
-			if(this.option.show){
-				this.show();
-				if(this.option.timeout){
-					this._closeTm = setTimeout(() => {
-						this.close();
-					}, this.option.timeout);
-				}
-			}
-		}
-
-		setContent(html){
-			this.dom.innerHTML = html;
-		}
-
-		show(){
-			this.dom.style.display = '';
-			let toastWrap = getToastWrap();
-			toastWrap.style.display = '';
-		}
-
-		close(){
-			this.dom.parentNode.removeChild(this.dom);
-			let toastWrap = getToastWrap();
-			if(!toastWrap.childNodes.length){
-				toastWrap.parentNode.removeChild(toastWrap);
-			}
-			delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
-			clearTimeout(this._closeTm);
-		}
-
-		static closeAll(){
-			TOAST_COLLECTION.forEach(t => {
-				t.close();
-			});
-		}
-
-		static showSuccess(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_SUCCESS],
-				show: true,
-				...option,
-				class: TYPE_SUCCESS
-			});
-		}
-
-		static showInfo(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
-				show: true,
-				...option,
-				class: TYPE_INFO
-			});
-		}
-
-		static showWarning(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_WARING],
-				show: true,
-				...option,
-				class: TYPE_WARING
-			});
-		}
-
-		static showError(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_ERROR],
-				show: true,
-				...option,
-				class: TYPE_ERROR
-			});
-		}
-
-		/**
-		 * Show loading toast
-		 * @param text
-		 * @param option
-		 * @returns {Toast}
-		 */
-		static showLoading(text = '加载中···', option = {}){
-			return new Toast(text, {
-				timeout: 0,
-				show: true,
-				class: 'loading',
-				...option
-			});
-		};
 	}
 
 	/**
@@ -2750,7 +2907,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
 	.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989;}
+	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUY4QkZDREVFQjEwMTFFQzg5MDlFMzJFODlEOTk1NkQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUY4QkZDREZFQjEwMTFFQzg5MDlFMzJFODlEOTk1NkQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBRjhCRkNEQ0VCMTAxMUVDODkwOUUzMkU4OUQ5OTU2RCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBRjhCRkNEREVCMTAxMUVDODkwOUUzMkU4OUQ5OTU2RCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqXK7kMAAABdSURBVHjaYvz///9VBjzg7NmzWvjkjY2Nr+GTZ4HSeA0hAPDpvcbEQGMwasEIsIDxzJkz/wmkcwYC+WQ0DkYtGPL5AFofaJGbzgnkk9HietQCKlpwjQZmg80ECDAARIIZDft5xUUAAAAASUVORK5CYII=')}
 	
 	.${DOM_CLASS}[data-ip-mode="${MODE_SINGLE}"] .civ-nav-btn,
 	.${DOM_CLASS} .civ-nav-list-wrap {display:none;} /** todo **/
@@ -2865,13 +3022,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const constructDom = () => {
 		let nav_thumb_list_html = ``;
-		if(CURRENT_MODE === MODE_MULTIPLE){
-			nav_thumb_list_html += `<div class="civ-nav-list" style="width:${THUMB_WIDTH*IMG_SRC_LIST.length}px">`;
-			IMG_SRC_LIST.forEach(src=>{
-				nav_thumb_list_html += `<span class="civ-nav-thumb"><img src="${src}"/></span>`;
-			});
-			nav_thumb_list_html += `</div>`;
-		}
 
 		PREVIEW_DOM = createDomByHtml(`
 		<div class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
@@ -3581,10 +3731,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.MD5 = MD5;
 	exports.Masker = Masker;
 	exports.Net = Net;
+	exports.ONE_DAY = ONE_DAY;
+	exports.ONE_HOUR = ONE_HOUR;
+	exports.ONE_MINUTE = ONE_MINUTE;
+	exports.ONE_MONTH_30 = ONE_MONTH_30;
+	exports.ONE_MONTH_31 = ONE_MONTH_31;
+	exports.ONE_WEEK = ONE_WEEK;
+	exports.ONE_YEAR_365 = ONE_YEAR_365;
 	exports.QueryString = QueryString;
 	exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 	exports.REQUEST_FORMAT = REQUEST_FORMAT;
 	exports.RESPONSE_FORMAT = RESPONSE_FORMAT;
+	exports.TRIM_BOTH = TRIM_BOTH;
+	exports.TRIM_LEFT = TRIM_LEFT;
+	exports.TRIM_RIGHT = TRIM_RIGHT;
 	exports.Theme = Theme;
 	exports.Thumb = Thumb;
 	exports.Tip = Tip;
@@ -3613,6 +3773,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.escapeAttr = escapeAttr;
 	exports.escapeHtml = escapeHtml;
 	exports.fireEvent = fireEvent;
+	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
 	exports.getCurrentScript = getCurrentScript;
 	exports.getFormData = getFormData;
@@ -3636,6 +3797,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.mergerUriParam = mergerUriParam;
 	exports.onDocReady = onDocReady;
 	exports.onHover = onHover;
+	exports.onReportApi = onReportApi;
 	exports.onStateChange = onStateChange;
 	exports.openLinkWithoutReferer = openLinkWithoutReferer;
 	exports.pushState = pushState;
@@ -3657,9 +3819,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.toggle = toggle;
 	exports.trans = trans;
 	exports.triggerDomEvent = triggerDomEvent;
+	exports.trim = trim;
 	exports.unescapeHtml = unescapeHtml;
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
+	exports.versionCompare = versionCompare;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

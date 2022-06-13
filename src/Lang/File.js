@@ -1,15 +1,9 @@
 export const resolveFileExtension = fileName => {
-	fileName = fileName.replace(/.*?[/|\\]/ig, '');
-	return fileName.replace(/\.[^.]*$/g, "");
+	let segList = fileName.split('.');
+	return segList[segList.length-1];
 }
 
-export const resolveFileName = (src)=>{
-	let f = /\/([^/]+)$/ig.exec(src);
-	if(f){
-		let t = /([\w]+)/.exec(f[1]);
-		if(t){
-			return t[1];
-		}
-	}
-	return null;
+export const resolveFileName = (fileName)=>{
+	fileName = fileName.replace(/.*?[/|\\]/ig, '');
+	return fileName.replace(/\.[^.]*$/g, "");
 };

@@ -3,6 +3,8 @@
  * @param {string} str
  * @returns {string}
  */
+import {round} from "./Math.js";
+
 export const escapeHtml = str => {
 	return str
 		.replace(/&/g, "&amp;")
@@ -52,17 +54,37 @@ export const escapeAttr = (s, preserveCR = '') => {
 export const stringToEntity = (str, radix) => {
 	let arr = str.split('')
 	radix = radix || 0
-	let tmp = arr.map(item =>
+	return arr.map(item =>
 		`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('')
-	return tmp
+}
+
+/**
+ * 格式化数字
+ * @param {Number} num
+ * @param {Number} precision
+ * @return {string|Number}
+ */
+export const formatSize = (num, precision = 2) => {
+	if(isNaN(num)){
+		return num;
+	}
+	let str = '', i, mod = 1024;
+	if(num < 0){
+		str = '-';
+		num = Math.abs(num);
+	}
+	let units = 'B KB MB GB TB PB'.split(' ');
+	for(i = 0; num > mod; i++){
+		num /= mod;
+	}
+	return str + round(num, precision) + units[i];
 }
 
 export const entityToString = (entity) => {
 	let entities = entity.split(';')
 	entities.pop()
-	let tmp = entities.map(item => String.fromCharCode(
+	return entities.map(item => String.fromCharCode(
 		item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('')
-	return tmp
 }
 
 let _helper_div;
@@ -304,6 +326,19 @@ export const dimension2Style = h => {
  */
 export const isNum = (val)=>{
 	return !isNaN(val);
+}
+
+export const TRIM_BOTH = 0;
+export const TRIM_LEFT = 1;
+export const TRIM_RIGHT = 2;
+export const trim = (str, chars = '', dir = TRIM_BOTH)=>{
+	if(chars.length){
+		let regLeft = new RegExp('^['+regQuote(chars)+']+'),
+		regRight = new RegExp('['+regQuote(chars)+']+$');
+		return dir === TRIM_LEFT ? str.replace(regLeft, '') : (dir === TRIM_RIGHT ? str.replace(regRight, '') : str.replace(regLeft, '').replace(regRight, ''));
+	}else{
+		return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());
+	}
 }
 
 /**
