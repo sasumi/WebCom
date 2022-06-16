@@ -1080,6 +1080,7 @@ const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
 const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
 const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
+const DLG_CLS_INPUT = DLG_CLS_PREF + '-input';
 
 const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
 
@@ -1236,7 +1237,7 @@ const domConstruct = (dlg) => {
 
 	let style = [];
 	if(dlg.config.minContentHeight !== null){
-		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight) + 'px');
+		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight));
 	}
 	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
@@ -1527,16 +1528,15 @@ class Dialog {
 	/**
 	 * 输入提示框
 	 * @param {String} title
-	 * @param {String} content
 	 * @param {Object} option
 	 * @returns {Promise<unknown>}
 	 */
-	static prompt(title, content, option={}){
+	static prompt(title, option={}){
 		return new Promise(((resolve, reject) => {
 			let input;
 			let p = new Dialog({
-				title,
-				content:'<input type="text" style="width:100%"/>',
+				title:'请输入',
+				content:`<div style="padding:0 10px;"><p style="padding-bottom:0.5em;">${title}</p><input type="text" style="width:100%" class="${DLG_CLS_INPUT}"/></div>`,
 				buttons: [
 					{
 						title: '确定', default: true, callback: () => {
@@ -1556,7 +1556,7 @@ class Dialog {
 
 			input = p.dom.querySelector('input');
 			input.addEventListener('keydown', e=>{
-				if(e.key === 'Enter'){
+				if(e.keyCode === KEYS.Enter){
 					if(resolve(input.value) === false){
 						return false;
 					}
