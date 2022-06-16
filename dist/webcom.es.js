@@ -756,11 +756,10 @@ const fireEvent = (el, event) => {
 const domContained = (contains, child, includeEqual = false) => {
 	if(typeof contains === 'string'){
 		contains = document.querySelectorAll(contains);
-	}else if(typeof contains === 'object'){
+	}else if(Array.isArray(contains)); else if(typeof contains === 'object'){
 		contains = [contains];
 	}
-
-	for(let i = 0; i < contains.length; i--){
+	for(let i = 0; i < contains.length; i++){
 		if((includeEqual ? contains[i] === child : false) ||
 			contains[i].compareDocumentPosition(child) & 16){
 			return true;
@@ -786,7 +785,7 @@ const buttonActiveBind = (button, payload, cancelBubble = false) => {
 };
 
 /**
- *
+ * 获取中间对齐布局
  * @param width
  * @param height
  * @param {Object} containerDimension
@@ -806,6 +805,55 @@ const keepRectCenter = (width, height, containerDimension = {
 		Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
 		Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
 	];
+};
+
+/**
+ * 保持对象尽量在容器内部，优先保证上边、左边显示
+ * @param {Object} objDim
+ * @param {Number} objDim.left
+ * @param {Number} objDim.top
+ * @param {Number} objDim.width
+ * @param {Number} objDim.height
+ * @param {Object} ctnDim
+ * @param {Number} ctnDim.left
+ * @param {Number} ctnDim.top
+ * @param {Number} ctnDim.width
+ * @param {Number} ctnDim.height
+ * {Array} dimension [dimension.left, dimension.top]
+ */
+const keepRectInContainer = (objDim, ctnDim = {
+	left: 0,
+	top: 0,
+	width: window.innerWidth,
+	height: window.innerHeight
+}) => {
+	let ret = {left: objDim.left, top: objDim.top};
+
+	//oversize
+	if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
+		return ret;
+	}
+
+	//右边超出
+	if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
+		ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
+	}
+
+	//底边超出
+	if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
+		ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
+	}
+
+	//优先保证左边露出
+	if(objDim.left < ctnDim.left){
+		ret.left = ctnDim.left;
+	}
+
+	//优先保证上边露出
+	if(objDim.top < ctnDim.top){
+		ret.top = ctnDim.top;
+	}
+	return ret;
 };
 
 /**
@@ -2014,7 +2062,7 @@ let TOAST_COLLECTION = [];
 let CLASS_TOAST_WRAP = 'toast-wrap';
 
 insertStyleSheet(`
-	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; transform:translateX(-50%); display:inline-block;}
+	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; top:0; transform:translateX(-50%); display:inline-block;}
 	.toast {padding:10px 35px 10px 15px; position:relative; display:block; float:left; clear:both; margin-top:10px; min-width:100px; border-radius:3px; box-shadow:5px 4px 12px #0003;}
 	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:5px; right:0; cursor:pointer;}
 	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
@@ -2887,7 +2935,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
 	.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUY4QkZDREVFQjEwMTFFQzg5MDlFMzJFODlEOTk1NkQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUY4QkZDREZFQjEwMTFFQzg5MDlFMzJFODlEOTk1NkQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBRjhCRkNEQ0VCMTAxMUVDODkwOUUzMkU4OUQ5OTU2RCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBRjhCRkNEREVCMTAxMUVDODkwOUUzMkU4OUQ5OTU2RCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqXK7kMAAABdSURBVHjaYvz///9VBjzg7NmzWvjkjY2Nr+GTZ4HSeA0hAPDpvcbEQGMwasEIsIDxzJkz/wmkcwYC+WQ0DkYtGPL5AFofaJGbzgnkk9HietQCKlpwjQZmg80ECDAARIIZDft5xUUAAAAASUVORK5CYII=')}
+	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGMjU3QTNFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGMjU3QTJFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pg2ugmUAAAAGUExURe7u7v///yjTqpoAAAAoSURBVHjaYmDAARhxAIZRDaMaRjWMaqCxhtHQGNUwqmFUwyDTABBgALZcBIFabzQ0AAAAAElFTkSuQmCC')}
 	
 	.${DOM_CLASS}[data-ip-mode="${MODE_SINGLE}"] .civ-nav-btn,
 	.${DOM_CLASS} .civ-nav-list-wrap {display:none;} /** todo **/
@@ -3688,4 +3736,4 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { ACAsync, ACBindComponent, ACBindSelectAll, ACBindSelectNone, ACConfirm, ACDialog, ACEventChainBind, ACGetComponents, ACMultiOperate, ACMultiSelect, ACThumb, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, formatSize, frequencyControl, getCurrentScript, getFormData, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, insertStyleSheet, isElement, isNum, keepRectCenter, loadCss, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };
+export { ACAsync, ACBindComponent, ACBindSelectAll, ACBindSelectNone, ACConfirm, ACDialog, ACEventChainBind, ACGetComponents, ACMultiOperate, ACMultiSelect, ACThumb, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, formatSize, frequencyControl, getCurrentScript, getFormData, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, insertStyleSheet, isElement, isNum, keepRectCenter, keepRectInContainer, loadCss, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };

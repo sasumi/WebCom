@@ -1,6 +1,6 @@
 import {between} from "./Math.js";
 import {KEYS} from "./Event.js";
-import {dimension2Style, strToPascalCase} from "./String.js";
+import {convertBlobToBase64, dimension2Style, strToPascalCase} from "./String.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -50,11 +50,11 @@ export const fireEvent = (el, event) => {
 export const domContained = (contains, child, includeEqual = false) => {
 	if(typeof contains === 'string'){
 		contains = document.querySelectorAll(contains);
-	}else if(typeof contains === 'object'){
+	}else if(Array.isArray(contains)){
+	} else if(typeof contains === 'object'){
 		contains = [contains];
 	}
-
-	for(let i = 0; i < contains.length; i--){
+	for(let i = 0; i < contains.length; i++){
 		if((includeEqual ? contains[i] === child : false) ||
 			contains[i].compareDocumentPosition(child) & 16){
 			return true;
@@ -80,7 +80,7 @@ export const buttonActiveBind = (button, payload, cancelBubble = false) => {
 };
 
 /**
- *
+ * 获取中间对齐布局
  * @param width
  * @param height
  * @param {Object} containerDimension
@@ -100,6 +100,55 @@ export const keepRectCenter = (width, height, containerDimension = {
 		Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
 		Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
 	];
+}
+
+/**
+ * 保持对象尽量在容器内部，优先保证上边、左边显示
+ * @param {Object} objDim
+ * @param {Number} objDim.left
+ * @param {Number} objDim.top
+ * @param {Number} objDim.width
+ * @param {Number} objDim.height
+ * @param {Object} ctnDim
+ * @param {Number} ctnDim.left
+ * @param {Number} ctnDim.top
+ * @param {Number} ctnDim.width
+ * @param {Number} ctnDim.height
+ * {Array} dimension [dimension.left, dimension.top]
+ */
+export const keepRectInContainer = (objDim, ctnDim = {
+	left: 0,
+	top: 0,
+	width: window.innerWidth,
+	height: window.innerHeight
+}) => {
+	let ret = {left: objDim.left, top: objDim.top};
+
+	//oversize
+	if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
+		return ret;
+	}
+
+	//右边超出
+	if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
+		ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
+	}
+
+	//底边超出
+	if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
+		ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
+	}
+
+	//优先保证左边露出
+	if(objDim.left < ctnDim.left){
+		ret.left = ctnDim.left;
+	}
+
+	//优先保证上边露出
+	if(objDim.top < ctnDim.top){
+		ret.top = ctnDim.top;
+	}
+	return ret;
 }
 
 /**

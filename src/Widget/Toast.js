@@ -15,7 +15,7 @@ let TOAST_COLLECTION = [];
 let CLASS_TOAST_WRAP = 'toast-wrap';
 
 insertStyleSheet(`
-	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; transform:translateX(-50%); display:inline-block;}
+	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; top:0; transform:translateX(-50%); display:inline-block;}
 	.toast {padding:10px 35px 10px 15px; position:relative; display:block; float:left; clear:both; margin-top:10px; min-width:100px; border-radius:3px; box-shadow:5px 4px 12px #0003;}
 	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:5px; right:0; cursor:pointer;}
 	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
