@@ -1154,11 +1154,19 @@
 		 * @param {Dialog} dlg
 		 */
 		show(dlg){
-			if(dlg.onShow.fire() === false){
-				console.warn('dialog show cancel by onShow events');
-				return false;
-			}
 			Masker.show();
+			dlg.visible = true;
+			dlg.dom.style.display = '';
+			dialogs.push(dlg);
+			DialogManager.switchToTop(dlg);
+			dlg.onShow.fire();
+		},
+
+		/**
+		 * 激活对话框
+		 * @param {Dialog} dlg
+		 */
+		switchToTop(dlg){
 			let zIndex = Dialog.DIALOG_INIT_Z_INDEX;
 			dialogs = dialogs.filter(d => {
 				if(d !== dlg){
@@ -1170,11 +1178,8 @@
 				return false;
 			});
 			dlg.active = true;
-			dlg.visible = true;
-			dlg.dom.style.display = '';
 			dlg.dom.style.zIndex = zIndex++ + '';
 			dlg.dom.classList.add(DLG_CLS_ACTIVE);
-			dialogs.push(dlg);
 		},
 
 		/**
@@ -1295,7 +1300,7 @@
 
 		//bind active
 		dlg.dom.addEventListener('mousedown', e => {
-			DialogManager.show(dlg);
+			DialogManager.switchToTop(dlg);
 		});
 
 		//bind move
@@ -1538,38 +1543,43 @@
 		 * @returns {Promise<unknown>}
 		 */
 		static prompt(title, option={}){
-			return new Promise(((resolve, reject) => {
-				let input;
+			return new Promise((resolve, reject) => {
 				let p = new Dialog({
 					title:'请输入',
-					content:`<div style="padding:0 10px;"><p style="padding-bottom:0.5em;">${title}</p><input type="text" style="width:100%" class="${DLG_CLS_INPUT}"/></div>`,
+					content:`<div style="padding:0 10px;">
+							<p style="padding-bottom:0.5em;">${title}</p>
+							<input type="text" style="width:100%" class="${DLG_CLS_INPUT}" value="${escapeAttr(option.initValue || '')}"/>
+						</div>`,
 					buttons: [
 						{
 							title: '确定', default: true, callback: () => {
+								let input = p.dom.querySelector('input');
 								if(resolve(input.value) === false){
 									return;
 								}
 								p.close();
 							}
 						},
-						{title: '取消', callback: reject}
+						{title: '取消'}
 					],
 					showTopCloseButton: true,
 					...option
 				});
 				p.onClose.listen(reject);
-				p.show();
-
-				input = p.dom.querySelector('input');
-				input.addEventListener('keydown', e=>{
-					if(e.keyCode === KEYS.Enter){
-						if(resolve(input.value) === false){
-							return false;
+				p.onShow.listen(()=>{
+					let input = p.dom.querySelector('input');
+					input.focus();
+					input.addEventListener('keydown', e=>{
+						if(e.keyCode === KEYS.Enter){
+							if(resolve(input.value) === false){
+								return false;
+							}
+							p.close();
 						}
-						p.close();
-					}
+					});
 				});
-			}));
+				p.show();
+			});
 		}
 
 		/**

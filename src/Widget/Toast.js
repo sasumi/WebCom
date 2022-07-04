@@ -96,8 +96,9 @@ export class Toast {
 	close(){
 		this.dom.parentNode.removeChild(this.dom);
 		let toastWrap = getToastWrap();
-		if(!toastWrap.childNodes.length){
+		if(toastWrap && !toastWrap.childNodes.length){
 			toastWrap.parentNode.removeChild(toastWrap);
+			delete(TOAST_WRAP);
 		}
 		delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
 		clearTimeout(this._closeTm);
