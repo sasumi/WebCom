@@ -1019,6 +1019,80 @@ const createDomByHtml = (html, parentNode = null) => {
 	return nodes.length === 1 ? nodes[0] : nodes;
 };
 
+
+/**
+ * Force repaint of element
+ * @param {HTMLElement} element
+ * @param {Number} delay
+ */
+function repaint(element, delay = 0){
+	setTimeout(() => {
+		try{
+			// eslint-disable-next-line no-param-reassign
+			element.hidden = true;
+
+			// eslint-disable-next-line no-unused-expressions
+			element.offsetHeight;
+
+			// eslint-disable-next-line no-param-reassign
+			element.hidden = false;
+		}catch(_){
+			// Do nothing
+		}
+	}, delay);
+}
+
+/**
+ * 进入全屏模式
+ * @param {HTMLElement} element
+ */
+const enterFullScreen = (element)=>{
+	if(element.requestFullscreen){
+		return element.requestFullscreen();
+	}
+	if(element.webkitRequestFullScreen){
+		return element.webkitRequestFullScreen();
+	}
+	if(element.mozRequestFullScreen){
+		element.mozRequestFullScreen();
+	}
+	if(element.msRequestFullScreen){
+		element.msRequestFullScreen();
+	}
+	throw "Browser no allow full screen";
+};
+
+/**
+ * 退出全屏
+ * @returns {Promise<void>}
+ */
+const exitFullScreen = ()=>{
+	return document.exitFullscreen();
+};
+
+/**
+ * 切换全屏
+ * @param element
+ * @returns {Promise<unknown>}
+ */
+const toggleFullScreen = (element)=>{
+	return new Promise((resolve, reject) => {
+		if(!isInFullScreen()){
+			enterFullScreen(element).then(resolve).catch(reject);
+		} else {
+			exitFullScreen().then(resolve).catch(reject);
+		}
+	})
+};
+
+/**
+ * 检测是否正在全屏
+ * @returns {boolean}
+ */
+const isInFullScreen = ()=>{
+	return !!document.fullscreenElement;
+};
+
 const NS$1 = 'WebCom-';
 const ICON_FONT_CLASS = NS$1 + `icon`;
 const ICON_FONT = NS$1+'iconfont';
@@ -1640,11 +1714,24 @@ const ACMultiOperate = (node, param) => {
 	updState();
 };
 
+/**
+ * 解析文件扩展名
+ * @param {string} fileName
+ * @return {string}
+ */
 const resolveFileExtension = fileName => {
+	if(fileName.indexOf('.')<0){
+		return '';
+	}
 	let segList = fileName.split('.');
 	return segList[segList.length-1];
 };
 
+/**
+ * 获取文件名
+ * @param {string} fileName
+ * @return {string}
+ */
 const resolveFileName = (fileName)=>{
 	fileName = fileName.replace(/.*?[/|\\]/ig, '');
 	return fileName.replace(/\.[^.]*$/g, "");
@@ -2153,8 +2240,9 @@ class Toast {
 	close(){
 		this.dom.parentNode.removeChild(this.dom);
 		let toastWrap = getToastWrap();
-		if(!toastWrap.childNodes.length){
+		if(toastWrap && !toastWrap.childNodes.length){
 			toastWrap.parentNode.removeChild(toastWrap);
+			TOAST_WRAP = null;
 		}
 		delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
 		clearTimeout(this._closeTm);
@@ -2459,6 +2547,20 @@ const arrayIndex = (arr, val)=>{
 	return null;
 };
 
+/**
+ * 数组去重
+ * @param {Array} arr
+ * @returns {*}
+ */
+const arrayDistinct = (arr)=>{
+	let tmpMap = new Map();
+	return arr.filter(item => {
+		if(!tmpMap.has(item)){
+			tmpMap.set(item, true);
+			return true;
+		}
+	});
+};
 
 /**
  * array group
@@ -3746,4 +3848,4 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { ACAsync, ACBindComponent, ACBindSelectAll, ACBindSelectNone, ACConfirm, ACDialog, ACEventChainBind, ACGetComponents, ACMultiOperate, ACMultiSelect, ACThumb, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, entityToString, escapeAttr, escapeHtml, fireEvent, formatSize, frequencyControl, getCurrentScript, getFormData, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, insertStyleSheet, isElement, isNum, keepRectCenter, keepRectInContainer, loadCss, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };
+export { ACAsync, ACBindComponent, ACBindSelectAll, ACBindSelectNone, ACConfirm, ACDialog, ACEventChainBind, ACGetComponents, ACMultiOperate, ACMultiSelect, ACThumb, BLOCK_TAGS, Base64Encode, BizEvent, COM_ATTR_KEY, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, exitFullScreen, fireEvent, formatSize, frequencyControl, getCurrentScript, getFormData, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, insertStyleSheet, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };

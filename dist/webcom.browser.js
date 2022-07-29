@@ -1022,6 +1022,80 @@ var WebCom = (function (exports) {
 		return nodes.length === 1 ? nodes[0] : nodes;
 	};
 
+
+	/**
+	 * Force repaint of element
+	 * @param {HTMLElement} element
+	 * @param {Number} delay
+	 */
+	function repaint(element, delay = 0){
+		setTimeout(() => {
+			try{
+				// eslint-disable-next-line no-param-reassign
+				element.hidden = true;
+
+				// eslint-disable-next-line no-unused-expressions
+				element.offsetHeight;
+
+				// eslint-disable-next-line no-param-reassign
+				element.hidden = false;
+			}catch(_){
+				// Do nothing
+			}
+		}, delay);
+	}
+
+	/**
+	 * 进入全屏模式
+	 * @param {HTMLElement} element
+	 */
+	const enterFullScreen = (element)=>{
+		if(element.requestFullscreen){
+			return element.requestFullscreen();
+		}
+		if(element.webkitRequestFullScreen){
+			return element.webkitRequestFullScreen();
+		}
+		if(element.mozRequestFullScreen){
+			element.mozRequestFullScreen();
+		}
+		if(element.msRequestFullScreen){
+			element.msRequestFullScreen();
+		}
+		throw "Browser no allow full screen";
+	};
+
+	/**
+	 * 退出全屏
+	 * @returns {Promise<void>}
+	 */
+	const exitFullScreen = ()=>{
+		return document.exitFullscreen();
+	};
+
+	/**
+	 * 切换全屏
+	 * @param element
+	 * @returns {Promise<unknown>}
+	 */
+	const toggleFullScreen = (element)=>{
+		return new Promise((resolve, reject) => {
+			if(!isInFullScreen()){
+				enterFullScreen(element).then(resolve).catch(reject);
+			} else {
+				exitFullScreen().then(resolve).catch(reject);
+			}
+		})
+	};
+
+	/**
+	 * 检测是否正在全屏
+	 * @returns {boolean}
+	 */
+	const isInFullScreen = ()=>{
+		return !!document.fullscreenElement;
+	};
+
 	const NS$1 = 'WebCom-';
 	const ICON_FONT_CLASS = NS$1 + `icon`;
 	const ICON_FONT = NS$1+'iconfont';
@@ -1643,11 +1717,24 @@ var WebCom = (function (exports) {
 		updState();
 	};
 
+	/**
+	 * 解析文件扩展名
+	 * @param {string} fileName
+	 * @return {string}
+	 */
 	const resolveFileExtension = fileName => {
+		if(fileName.indexOf('.')<0){
+			return '';
+		}
 		let segList = fileName.split('.');
 		return segList[segList.length-1];
 	};
 
+	/**
+	 * 获取文件名
+	 * @param {string} fileName
+	 * @return {string}
+	 */
 	const resolveFileName = (fileName)=>{
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
 		return fileName.replace(/\.[^.]*$/g, "");
@@ -2156,8 +2243,9 @@ var WebCom = (function (exports) {
 		close(){
 			this.dom.parentNode.removeChild(this.dom);
 			let toastWrap = getToastWrap();
-			if(!toastWrap.childNodes.length){
+			if(toastWrap && !toastWrap.childNodes.length){
 				toastWrap.parentNode.removeChild(toastWrap);
+				TOAST_WRAP = null;
 			}
 			delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
 			clearTimeout(this._closeTm);
@@ -2462,6 +2550,20 @@ var WebCom = (function (exports) {
 		return null;
 	};
 
+	/**
+	 * 数组去重
+	 * @param {Array} arr
+	 * @returns {*}
+	 */
+	const arrayDistinct = (arr)=>{
+		let tmpMap = new Map();
+		return arr.filter(item => {
+			if(!tmpMap.has(item)){
+				tmpMap.set(item, true);
+				return true;
+			}
+		});
+	};
 
 	/**
 	 * array group
@@ -3792,6 +3894,7 @@ var WebCom = (function (exports) {
 	exports.Toast = Toast;
 	exports.Toc = Toc;
 	exports.arrayColumn = arrayColumn;
+	exports.arrayDistinct = arrayDistinct;
 	exports.arrayGroup = arrayGroup;
 	exports.arrayIndex = arrayIndex;
 	exports.base64Decode = base64Decode;
@@ -3810,9 +3913,11 @@ var WebCom = (function (exports) {
 	exports.dimension2Style = dimension2Style;
 	exports.domContained = domContained;
 	exports.downloadFile = downloadFile;
+	exports.enterFullScreen = enterFullScreen;
 	exports.entityToString = entityToString;
 	exports.escapeAttr = escapeAttr;
 	exports.escapeHtml = escapeHtml;
+	exports.exitFullScreen = exitFullScreen;
 	exports.fireEvent = fireEvent;
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
@@ -3832,6 +3937,7 @@ var WebCom = (function (exports) {
 	exports.html2Text = html2Text;
 	exports.insertStyleSheet = insertStyleSheet;
 	exports.isElement = isElement;
+	exports.isInFullScreen = isInFullScreen;
 	exports.isNum = isNum;
 	exports.keepRectCenter = keepRectCenter;
 	exports.keepRectInContainer = keepRectInContainer;
@@ -3847,6 +3953,7 @@ var WebCom = (function (exports) {
 	exports.rectAssoc = rectAssoc;
 	exports.rectInLayout = rectInLayout;
 	exports.regQuote = regQuote;
+	exports.repaint = repaint;
 	exports.resolveFileExtension = resolveFileExtension;
 	exports.resolveFileName = resolveFileName;
 	exports.resolveTocListFromDom = resolveTocListFromDom;
@@ -3859,6 +3966,7 @@ var WebCom = (function (exports) {
 	exports.strToPascalCase = strToPascalCase;
 	exports.stringToEntity = stringToEntity;
 	exports.toggle = toggle;
+	exports.toggleFullScreen = toggleFullScreen;
 	exports.trans = trans;
 	exports.triggerDomEvent = triggerDomEvent;
 	exports.trim = trim;

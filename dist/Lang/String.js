@@ -80,11 +80,6 @@ export const formatSize = (num, precision = 2) => {
 	return str + round(num, precision) + units[i];
 }
 
-/**
- * HTML实例转字符串
- * @param {string} entity
- * @returns {string}
- */
 export const entityToString = (entity) => {
 	let entities = entity.split(';')
 	entities.pop()
