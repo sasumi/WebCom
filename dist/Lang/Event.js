@@ -32,6 +32,29 @@ export class BizEvent {
 }
 
 /**
+ * delegate dom event
+ * @param {Node} container
+ * @param {String} selector
+ * @param {String} eventName
+ * @param {Function} payload
+ */
+export const eventDelegate = (container, selector, eventName, payload)=>{
+	container.addEventListener(eventName, ev=>{
+		let target = ev.target;
+		while(target){
+			if(target.matches(selector)){
+				payload.apply(target, [ev]);
+				return;
+			}
+			if(target === container || !target.parentNode){
+				return;
+			}
+			target = target.parentNode;
+		}
+	});
+}
+
+/**
  * hover event
  * @param {Node} node
  * @param {Function} hoverIn

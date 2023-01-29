@@ -24,6 +24,96 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return text;
 	};
 
+	/**
+	 * array_column
+	 * @param arr
+	 * @param col_name
+	 * @returns {Array}
+	 */
+	const arrayColumn = (arr, col_name)=>{
+		let data = [];
+		for(let i in arr){
+			data.push(arr[i][col_name]);
+		}
+		return data;
+	};
+
+	const arrayIndex = (arr, val)=>{
+		for(let i in arr){
+			if(arr[i] === val){
+				return i;
+			}
+		}
+		return null;
+	};
+
+	/**
+	 * 数组去重
+	 * @param {Array} arr
+	 * @returns {*}
+	 */
+	const arrayDistinct = (arr)=>{
+		let tmpMap = new Map();
+		return arr.filter(item => {
+			if(!tmpMap.has(item)){
+				tmpMap.set(item, true);
+				return true;
+			}
+		});
+	};
+
+	/**
+	 * array group
+	 * @param arr
+	 * @param by_key
+	 * @param limit limit one child
+	 * @returns {*}
+	 */
+	const arrayGroup = (arr, by_key, limit)=>{
+		if(!arr || !arr.length){
+			return arr;
+		}
+		let tmp_rst = {};
+		arr.forEach(item=>{
+			let k = item[by_key];
+			if(!tmp_rst[k]){
+				tmp_rst[k] = [];
+			}
+			tmp_rst[k].push(item);
+		});
+		if(!limit){
+			return tmp_rst;
+		}
+		let rst = [];
+		for(let i in tmp_rst){
+			rst[i] = tmp_rst[i][0];
+		}
+		return rst;
+	};
+
+	/**
+	 * 检测指定值是否在指定区间内
+	 * @param {Number} val
+	 * @param {Number} min
+	 * @param {Number} max
+	 * @param {Boolean} includeEqual 是否包含等于判断
+	 * @returns {boolean}
+	 */
+	const between = (val, min, max, includeEqual = true) => {
+		return includeEqual ? (val >= min && val <= max) : (val > min && val < max);
+	};
+
+	/**
+	 * 取整
+	 * @param {Number} num
+	 * @param {Number} precision 精度，默认为两位小数
+	 * @returns {number}
+	 */
+	const round = (num, precision = 2) => {
+		let multiple = Math.pow(10, precision);
+		return Math.round(num * multiple) / multiple;
+	};
+
 	class BizEvent {
 		events = [];
 		breakOnFalseReturn = false;
@@ -198,87 +288,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	// '"	222
 	};
 
-	const ACMultiSelect = (node, param) => {
-		let targetSelector = param.target || 'input[type=checkbox]:not([disabled])';
-		let checks = document.querySelectorAll(targetSelector);
-		if(!checks.length){
-			throw new Error('No checkbox found:'+targetSelector);
-		}
-
-		let updLock = false;
-		let updState = () => {
-			if(updLock){
-				console.log('lock by checkbox trigger manual');
-				return;
-			}
-			let checked_list = Array.from(checks).filter(chk => {
-				return chk.checked;
-			});
-			node.indeterminate = false;
-			if(checked_list.length === checks.length){
-				node.checked = true;
-			}else if(checked_list.length === 0){
-				node.checked = false;
-			}else {
-				node.indeterminate = true;
-			}
-		};
-
-		node.addEventListener('change',()=>{
-			checks.forEach(chk=>{
-				chk.checked = node.checked;
-				updLock = true;
-				triggerDomEvent(chk, 'change');
-				updLock = false;
-			});
-		});
-
-		checks.forEach(chk=>{
-			chk.addEventListener('change', updState);
-		});
-		updState();
-	};
-
-	const ACBindSelectAll = (node, container)=>{
-		let target = document.querySelector(container || 'body');
-		let checks = target.querySelectorAll('input[type=checkbox]:not([disabled])');
-		//ignore empty
-		if(!checks.length){
-			return;
-		}
-		node.addEventListener('click', e=>{
-			checks.forEach(chk=>chk.checked = true);
-		});
-	};
-
-	const ACBindSelectNone = (node, container)=>{
-		let target = document.querySelector(container || 'body');
-		let checks = target.querySelectorAll('input[type=checkbox]:not([disabled])');
-		//ignore empty
-		if(!checks.length){
-			return;
-		}
-		node.addEventListener('click', e=>{
-			checks.forEach(chk=>chk.checked = true);
-		});
-	};
-
-	const between = (val, min, max)=>{
-		return val >= min && val <= max;
-	};
-
-	/**
-	 * 取整
-	 * @param {Number} num
-	 * @param {Number} digits 小数点位数
-	 * @returns {number}
-	 */
-	const round = (num, digits) => {
-		digits = digits === undefined ? 2 : digits;
-		let multiple = Math.pow(10, digits);
-		return Math.round(num * multiple) / multiple;
-	};
-
 	/**
 	 * 转义HTML
 	 * @param {string} str
@@ -360,6 +369,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return str + round(num, precision) + units[i];
 	};
 
+	/**
+	 * HTML实例转字符串
+	 * @param {string} entity
+	 * @returns {string}
+	 */
 	const entityToString = (entity) => {
 		let entities = entity.split(';');
 		entities.pop();
@@ -497,6 +511,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return t
 	};
 
+	/**
+	 * base64 解码
+	 * @param {*} text
+	 * @returns
+	 */
 	const base64Decode = (text) => {
 		let t = "";
 		let n, r, i;
@@ -927,13 +946,31 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const loadCss = (file, forceReload = false) => {
 		if(!forceReload && _c[file]){
-			return;
+			return _c[file];
 		}
-		_c[file] = true;
-		let link = document.createElement('link');
-		link.rel = "stylesheet";
-		link.href = file;
-		document.head.append(link);
+		_c[file] = new Promise((resolve, reject)=>{
+			let link = document.createElement('link');
+			link.rel = "stylesheet";
+			link.href = file;
+			link.onload = ()=>{resolve();};
+			link.onerror = ()=>{reject();};
+			document.head.append(link);
+		});
+		return _c[file];
+	};
+
+	const loadScript = (file, forceReload = false)=>{
+		if(!forceReload && _c[file]){
+			return _c[file];
+		}
+		_c[file] = new Promise((resolve, reject)=>{
+			let script = document.createElement('script');
+			script.src = file;
+			script.onload = ()=>{resolve();};
+			script.onerror = ()=>{reject();};
+			document.head.append(script);
+		});
+		return _c[file];
 	};
 
 	/**
@@ -1039,7 +1076,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return nodes.length === 1 ? nodes[0] : nodes;
 	};
 
-
 	/**
 	 * Force repaint of element
 	 * @param {HTMLElement} element
@@ -1113,6 +1149,758 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return !!document.fullscreenElement;
 	};
 
+	/**
+	 * 解析文件扩展名
+	 * @param {string} fileName
+	 * @return {string}
+	 */
+	const resolveFileExtension = fileName => {
+		if(fileName.indexOf('.')<0){
+			return '';
+		}
+		let segList = fileName.split('.');
+		return segList[segList.length-1];
+	};
+
+	/**
+	 * 获取文件名
+	 * @param {string} fileName
+	 * @return {string}
+	 */
+	const resolveFileName = (fileName)=>{
+		fileName = fileName.replace(/.*?[/|\\]/ig, '');
+		return fileName.replace(/\.[^.]*$/g, "");
+	};
+
+	/**
+	  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+	  * to work around bugs in some JS interpreters.
+	  */
+	const safeAdd = (x, y) => {
+		let lsw = (x & 0xffff) + (y & 0xffff);
+		let msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+		return (msw << 16) | (lsw & 0xffff)
+	};
+
+	/**
+	* Bitwise rotate a 32-bit number to the left.
+	*/
+	const bitRotateLeft = (num, cnt) => {
+		return (num << cnt) | (num >>> (32 - cnt))
+	};
+
+	/**
+	* These functions implement the four basic operations the algorithm uses.
+	*/
+	const md5cmn = (q, a, b, x, s, t) => {
+		return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
+	};
+
+	const md5ff = (a, b, c, d, x, s, t) => {
+		return md5cmn((b & c) | (~b & d), a, b, x, s, t)
+	};
+
+	const md5gg = (a, b, c, d, x, s, t) => {
+		return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
+	};
+
+	const md5hh = (a, b, c, d, x, s, t) => {
+		return md5cmn(b ^ c ^ d, a, b, x, s, t)
+	};
+
+	const md5ii = (a, b, c, d, x, s, t) => {
+		return md5cmn(c ^ (b | ~d), a, b, x, s, t)
+	};
+
+	/**
+	* Calculate the MD5 of an array of little-endian words, and a bit length.
+	*/
+	const binlMD5 = (x, len) => {
+		/* append padding */
+		x[len >> 5] |= 0x80 << (len % 32);
+		x[((len + 64) >>> 9 << 4) + 14] = len;
+
+		let i;
+		let olda;
+		let oldb;
+		let oldc;
+		let oldd;
+		let a = 1732584193;
+		let b = -271733879;
+		let c = -1732584194;
+		let d = 271733878;
+
+		for(i = 0; i < x.length; i += 16){
+			olda = a;
+			oldb = b;
+			oldc = c;
+			oldd = d;
+
+			a = md5ff(a, b, c, d, x[i], 7, -680876936);
+			d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
+			c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
+			b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
+			a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
+			d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
+			c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
+			b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
+			a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
+			d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
+			c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
+			b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
+			a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
+			d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
+			c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
+			b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
+
+			a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
+			d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
+			c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
+			b = md5gg(b, c, d, a, x[i], 20, -373897302);
+			a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
+			d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
+			c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
+			b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
+			a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
+			d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
+			c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
+			b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
+			a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
+			d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
+			c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
+			b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
+
+			a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
+			d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
+			c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
+			b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
+			a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
+			d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
+			c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
+			b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
+			a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
+			d = md5hh(d, a, b, c, x[i], 11, -358537222);
+			c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
+			b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
+			a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
+			d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
+			c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
+			b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
+
+			a = md5ii(a, b, c, d, x[i], 6, -198630844);
+			d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
+			c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
+			b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
+			a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
+			d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
+			c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
+			b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
+			a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
+			d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
+			c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
+			b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
+			a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
+			d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
+			c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
+			b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
+
+			a = safeAdd(a, olda);
+			b = safeAdd(b, oldb);
+			c = safeAdd(c, oldc);
+			d = safeAdd(d, oldd);
+		}
+		return [a, b, c, d]
+	};
+
+	/**
+	* Convert an array of little-endian words to a string
+	*/
+	const binl2rstr = (input) => {
+		let i;
+		let output = '';
+		let length32 = input.length * 32;
+		for(i = 0; i < length32; i += 8){
+			output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xff);
+		}
+		return output
+	};
+
+	/**
+	* Convert a raw string to an array of little-endian words
+	* Characters >255 have their high-byte silently ignored.
+	*/
+	const rstr2binl = (input) => {
+		let i;
+		let output = [];
+		output[(input.length >> 2) - 1] = undefined;
+		for(i = 0; i < output.length; i += 1){
+			output[i] = 0;
+		}
+		let length8 = input.length * 8;
+		for(i = 0; i < length8; i += 8){
+			output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << (i % 32);
+		}
+		return output
+	};
+
+	/**
+	* Calculate the MD5 of a raw string
+	*/
+	const rstrMD5 = (s) => {
+		return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
+	};
+
+	/**
+	* Calculate the HMAC-MD5, of a key and some data (raw strings)
+	*/
+	const rstrHMACMD5 = (key, data) => {
+		let i;
+		let bkey = rstr2binl(key);
+		let ipad = [];
+		let opad = [];
+		let hash;
+		ipad[15] = opad[15] = undefined;
+		if(bkey.length > 16){
+			bkey = binlMD5(bkey, key.length * 8);
+		}
+		for(i = 0; i < 16; i += 1){
+			ipad[i] = bkey[i] ^ 0x36363636;
+			opad[i] = bkey[i] ^ 0x5c5c5c5c;
+		}
+		hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
+		return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
+	};
+
+	/**
+	* Convert a raw string to a hex string
+	*/
+	const rstr2hex = (input) => {
+		let hexTab = '0123456789abcdef';
+		let output = '';
+		let x;
+		let i;
+		for(i = 0; i < input.length; i += 1){
+			x = input.charCodeAt(i);
+			output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f);
+		}
+		return output
+	};
+
+	/**
+	* Encode a string as utf-8
+	*/
+	const str2rstrUTF8 = (input) => {
+		return unescape(encodeURIComponent(input))
+	};
+
+	/**
+	* Take string arguments and return either raw or hex encoded strings
+	*/
+	const rawMD5 = (s) => {
+		return rstrMD5(str2rstrUTF8(s))
+	};
+
+	const hexMD5 = (s) => {
+		return rstr2hex(rawMD5(s))
+	};
+
+	const rawHMACMD5 = (k, d) => {
+		return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
+	};
+
+	const hexHMACMD5 = (k, d) => {
+		return rstr2hex(rawHMACMD5(k, d))
+	};
+
+	const MD5 = (string, key, raw) => {
+		if(!key){
+			if(!raw){
+				return hexMD5(string)
+			}
+			return rawMD5(string)
+		}
+		if(!raw){
+			return hexHMACMD5(key, string)
+		}
+		return rawHMACMD5(key, string)
+	};
+
+	const CODE_TIMEOUT = 508;
+	const CODE_ABORT = 509;
+	const DEFAULT_TIMEOUT = 10000;
+
+	/**
+	 * HTTP请求方法
+	 * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
+	 */
+	const HTTP_METHOD = {
+		GET: 'GET',
+		POST: 'POST',
+		PUT: 'PUT',
+		DELETE: 'DELETE',
+		OPTIONS: 'OPTIONS',
+		HEAD: 'HEAD',
+		CONNECT: 'CONNECT',
+		TRACE: 'TRACE',
+	};
+
+	/**
+	 * 请求格式
+	 * @type {{FORM_DATA: string, JSON: string}}
+	 */
+	const REQUEST_FORMAT = {
+		JSON: 'JSON',
+		FORM_DATA: 'FORM_DATA',
+	};
+
+	/**
+	 * 响应格式
+	 * @type {{FORM: string, XML: string, JSON: string, HTML: string, TEXT: string}}
+	 */
+	const RESPONSE_FORMAT = {
+		JSON: 'JSON',
+		XML: 'XML',
+		HTML: 'HTML',
+		TEXT: 'TEXT',
+		FORM: 'FORM_DATA',
+	};
+
+	/**
+	 * 合并请求参数
+	 * @param {String} uri
+	 * @param {String|Object} data
+	 * @returns {*}
+	 */
+	const mergerUriParam = (uri, data) => {
+		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
+	};
+
+	const setHash = data => {
+		location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
+	};
+
+	const getHash = () => {
+		return location.hash ? location.hash.substring(1) : '';
+	};
+
+	/**
+	 * 格式化请求数据
+	 * @param {Object} data
+	 * @param {String} format
+	 * @returns {String}
+	 */
+	const formatReqData = (data, format) => {
+		switch(format){
+			case REQUEST_FORMAT.JSON:
+				return JSON.stringify(data);
+			case REQUEST_FORMAT.FORM_DATA:
+				return QueryString.stringify(data);
+			default:
+				throw `Data format illegal(${format})`;
+		}
+	};
+
+	/**
+	 * 解析响应结果
+	 * @param {String} rspStr
+	 * @param {String} format
+	 * @returns {{}|any}
+	 */
+	const parserRspDataAsObj = (rspStr, format) => {
+		switch(format){
+			case RESPONSE_FORMAT.JSON:
+				return JSON.parse(rspStr);
+			case RESPONSE_FORMAT.FORM:
+				return QueryString.parse(rspStr);
+			default:
+				throw `Response string type no support now(${format})`;
+		}
+	};
+
+	class Net {
+		cgi = null; //请求接口
+		data = null; //请求数据
+		option = {
+			method: HTTP_METHOD.GET, //请求方法
+			timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
+			requestDataFormat: REQUEST_FORMAT.FORM_DATA, //请求数据格式
+			responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
+			headers: {}, //请求头部信息
+		};
+		xhr = null;
+		onError = new BizEvent(); //(error,code)
+		onResponse = new BizEvent(); //(body)
+		onStateChange = new BizEvent(); //(state) http 状态码
+		onProgress = new BizEvent(); //(percent)
+
+		constructor(cgi, data, option = {}){
+			this.cgi = cgi;
+			this.data = data;
+			this.option = {
+				...this.option,
+				...option
+			};
+			this.xhr = new XMLHttpRequest();
+			this.xhr.addEventListener("progress", e => {
+				if(e.lengthComputable){
+					this.onProgress.fire(e.loaded / e.total);
+				}else {
+					this.onProgress.fire(null);
+				}
+			});
+			this.xhr.onreadystatechange = (e) => {
+				this.onStateChange.fire(this.xhr.status);
+			};
+			this.xhr.addEventListener("load", () => {
+				this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
+			});
+			this.xhr.addEventListener("error", e => {
+				this.onError.fire(this.xhr.statusText, this.xhr.status);
+			});
+			this.xhr.addEventListener("abort", e => {
+				this.onError.fire('Request aborted.', CODE_ABORT);
+			});
+			for(let key in this.option.headers){
+				this.xhr.setRequestHeader(key, this.option.headers[key]);
+			}
+			if(this.option.requestDataFormat === REQUEST_FORMAT.JSON){
+				this.xhr.setRequestHeader('content-type', 'application/json');
+			}
+			if(this.option.timeout){
+				setTimeout(() => {
+					this.onError.fire('Request timeout', CODE_TIMEOUT);
+				}, this.option.timeout);
+			}
+		}
+
+		send(){
+			this.xhr.open(this.option.method, this.cgi, true);
+			if(this.option.method === 'POST'){
+				this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			}
+			this.xhr.send(formatReqData(this.data, this.option.requestDataFormat));
+		}
+
+		abort(){
+			this.xhr.abort();
+		}
+
+		static get(cgi, data, option = {}){
+			option.method = option.method || HTTP_METHOD.GET;
+			return Net.request(cgi, data, option);
+		}
+
+		static getJSON(cgi, data, option = {}){
+			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
+			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+			return Net.get(cgi, data, option);
+		}
+
+		static post(cgi, data, option = {}){
+			option.method = option.method || HTTP_METHOD.POST;
+			return Net.request(cgi, data, option);
+		}
+
+		static postJSON(cgi, data, option = {}){
+			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
+			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+			return Net.post(cgi, data, option);
+		}
+
+		static request(cgi, data, option = {}){
+			return new Promise((resolve, reject) => {
+				let req = new Net(cgi, data, option);
+				req.onResponse = resolve;
+				req.onError = reject;
+				req.send();
+			});
+		}
+	}
+
+	/**
+	 * 文件下载
+	 * @param src 文件地址
+	 * @param save_name 保存名称
+	 * @param ext 保存扩展名，缺省自动解析文件地址后缀
+	 */
+	const downloadFile = (src, save_name, ext) => {
+		ext = ext || resolveFileExtension(src);
+		save_name = save_name || resolveFileName(src);
+		let link = document.createElement('a');
+		link.href = src;
+		link.download = save_name + ext;
+		document.body.appendChild(link);
+		link.click();
+		link.parentNode.removeChild(link);
+	};
+
+	/**
+	 * 获取表单提交的数据
+	 * @description 不包含文件表单(后续HTML5版本可能会提供支持)
+	 * @param {HTMLFormElement} form
+	 * @returns {string}
+	 */
+	const getFormData = (form) => {
+		let data = {};
+		let elements = form.elements;
+
+		elements.forEach(function(item){
+			let name = item.name;
+			if(!data[name]){
+				data[name] = [];
+			}
+			if(item.type === 'radio'){
+				if(item.checked){
+					data[name].push(item.value);
+				}
+			}else if(item.getAttribute('name') !== undefined && item.getAttribute('value') !== undefined){
+				data[name].push(item.value);
+			}
+		});
+		return QueryString.stringify(data);
+	};
+
+	const QueryString = {
+		parse(str){
+			if(str[0] === '?'){
+				str = str.substring(1);
+			}
+			let retObj = {};
+			let qs = str.split('&');
+			qs.forEach(q=>{
+				let [k,v]=q.split('=');
+				if(!k.length){
+					return;
+				}
+				retObj[decodeURIComponent(k)] = decodeURIComponent(v);
+			});
+			return retObj;
+		},
+
+		stringify(data){
+			if(typeof (data) === 'string'){
+				return data;
+			}
+			let strList = [];
+			if(typeof (data) === 'object'){
+				for(let i in data){
+					strList.push(encodeURIComponent(i) + '=' + encodeURIComponent(data[i]));
+				}
+			}
+			return strList.join('&');
+		}
+	};
+
+	/**
+	 * open link without referer
+	 * @param link
+	 * @returns {boolean}
+	 */
+	const openLinkWithoutReferer = (link) => {
+		let instance = window.open("about:blank");
+		instance.document.write("<meta http-equiv=\"refresh\" content=\"0;url=" + link + "\">");
+		instance.document.close();
+		return false;
+	};
+
+	let hook_flag = false;
+	const RptEv = new BizEvent();
+	const doHook = () => {
+		let observer = new ReportingObserver((reports) => {
+			onReportApi.fire(reports);
+		}, {
+			types: ['deprecation'],
+			buffered: true
+		});
+		observer.observe();
+	};
+
+	const onReportApi = {
+		listen(payload){
+			!hook_flag && doHook();
+			hook_flag = true;
+			RptEv.listen(payload);
+		},
+		remove(payload){
+			return RptEv.remove(payload);
+		},
+		fire(...args){
+			return RptEv.fire(...args);
+		}
+	};
+
+	let payloads = [];
+
+	const pushState = (param, title = '') => {
+		let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
+		window.history.pushState(param, title, url);
+		exePayloads(param);
+	};
+
+	const exePayloads = (param) => {
+		payloads.forEach(payload => {
+			payload(param);
+		});
+	};
+
+	window.onpopstate = function(e){
+		let state = e.state ?? {};
+		let hashObj = QueryString.parse(getHash());
+		exePayloads({...state, ...hashObj});
+	};
+
+	const onStateChange = (payload) => {
+		payloads.push(payload);
+	};
+
+	const ONE_MINUTE = 60000;
+	const ONE_HOUR = 3600000;
+	const ONE_DAY = 86400000;
+	const ONE_WEEK = 604800000;
+	const ONE_MONTH_30 = 2592000000;
+	const ONE_MONTH_31 = 2678400000;
+	const ONE_YEAR_365 = 31536000000;
+
+	function frequencyControl(payload, hz, executeOnFistTime = false){
+		if(payload._frq_tm){
+			clearTimeout(payload._frq_tm);
+		}
+		payload._frq_tm = setTimeout(() => {
+			frequencyControl(payload, hz, executeOnFistTime);
+		}, hz);
+	}
+
+	let _guid = 0;
+	const guid = (prefix = '') => {
+		return 'guid_' + (prefix || randomString(6)) + (++_guid);
+	};
+
+	/**
+	 * 获取当前函数所在script路径
+	 * @return {string|null}
+	 */
+	const getCurrentScript = function(){
+		let error = new Error()
+			, source
+			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+			return source[1];
+		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+			return source[1];
+		}else if(error['fileName'] !== undefined){
+			return error['fileName'];
+		}
+		return null;
+	};
+
+	const CURRENT_FILE = '/Lang/Util.js';
+	const ENTRY_FILE = '/index.js';
+
+	/**
+	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
+	 * @return {string}
+	 */
+	const getLibEntryScript = ()=>{
+		let script = getCurrentScript();
+		if(!script){
+			throw "Get script failed";
+		}
+		if(script.indexOf(CURRENT_FILE) >= 0){
+			return script.replace(CURRENT_FILE, ENTRY_FILE);
+		}
+		return script;
+	};
+
+	/**
+	 * 加载当前库模块
+	 * @return {Promise<*>}
+	 */
+	const getLibModule = async () => {
+		let script = getLibEntryScript();
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+	};
+
+	/**
+	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
+	 * @type {(function(): Promise<*>)|undefined}
+	 */
+	const getLibModuleTop =(()=>{
+		if(top === window){
+			return getLibModule;
+		}
+		if(top.WEBCOM_GET_LIB_MODULE){
+			return top.WEBCOM_GET_LIB_MODULE;
+		}
+		throw "No WebCom library script loaded detected.";
+	})();
+
+	/**
+	 * 清理版本，去除无用字符
+	 * @param {String} version
+	 * @return {Number[]}
+	 */
+	const normalizeVersion = (version)=>{
+		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+			pieces = trimmed.split('.'),
+			partsLength,
+			parts = [],
+			value,
+			piece,
+			num,
+			i;
+		for(i = 0; i < pieces.length; i += 1){
+			piece = pieces[i].replace(/\D/g, '');
+			num = parseInt(piece, 10);
+			if(isNaN(num)){
+				num = 0;
+			}
+			parts.push(num);
+		}
+		partsLength = parts.length;
+		for(i = partsLength - 1; i >= 0; i -= 1){
+			value = parts[i];
+			if(value === 0){
+				parts.length -= 1;
+			}else {
+				break;
+			}
+		}
+		return parts;
+	};
+
+	/**
+	 * 版本比较
+	 * @param {String} version1
+	 * @param {String} version2
+	 * @param {Number} index
+	 * @return {number|number}
+	 */
+	const versionCompare = (version1, version2, index)=>{
+		let stringLength = index + 1,
+			v1 = normalizeVersion(version1),
+			v2 = normalizeVersion(version2);
+		if(v1.length > stringLength){
+			v1.length = stringLength;
+		}
+		if(v2.length > stringLength){
+			v2.length = stringLength;
+		}
+		let size = Math.min(v1.length, v2.length),i;
+		for(i = 0; i < size; i += 1){
+			if(v1[i] !== v2[i]){
+				return v1[i] < v2[i] ? -1 : 1;
+			}
+		}
+		if(v1.length === v2.length){
+			return 0;
+		}
+		return (v1.length < v2.length) ? -1 : 1;
+	};
+
+	window.WEBCOM_GET_LIB_MODULE = getLibModule;
+	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
 	const NS$1 = 'WebCom-';
 	const ICON_FONT_CLASS = NS$1 + `icon`;
 	const ICON_FONT = NS$1+'iconfont';
@@ -1143,6 +1931,169 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		DialogIndex: 1000, //对话框等窗口类垂直索引
 		MaskIndex: 100, //遮罩
 		FullScreenModeIndex: 10000 //全屏类
+	};
+
+	let toastWrap = null;
+
+	const TOAST_CLS_MAIN = Theme.Namespace+'toast';
+	const rotate_id = 'rotate111';
+
+	insertStyleSheet(`
+	@keyframes ${rotate_id} {
+		0% {
+			transform: translate3d(-50%, -50%, 0) rotate(0deg);
+		}
+		100% {
+		transform: translate3d(-50%, -50%, 0) rotate(360deg);
+		}
+	}
+	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; line-height:1.5; z-index:${Theme.ToastIndex}}
+	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block; border-radius:3px; padding:.75em 3em .75em 2em; background-color:#fff; color:var(--color); border:1px solid #ccc}
+	.${TOAST_CLS_MAIN} .close{color:gray; line-height:1}
+	.${TOAST_CLS_MAIN} .close:before{content:"×"; font-size:25px; cursor:pointer; position:absolute; margin:6px 0 0 -30px; transition:all 0.1s linear;}
+	.${TOAST_CLS_MAIN} .close:hover{color:var(--color);}
+
+	.${TOAST_CLS_MAIN}-success .ctn {color:#26b524;}
+
+	.${TOAST_CLS_MAIN}-error .ctn{color:red; position:relative;}
+	.${TOAST_CLS_MAIN}-loading .ctn {padding-left:3.5em;}
+	.${TOAST_CLS_MAIN}-loading .ctn:before {
+		animation: 1.5s linear infinite ${rotate_id};
+        animation-play-state: inherit;
+        border: solid 3px #cfd0d1;
+        border-bottom-color: #1c87c9;
+        border-radius: 50%;
+        content: "";
+        height: 1.2em;
+        width: 1.2em;
+		margin:10px 0 0 -20px;
+        position: absolute;
+        transform: translate3d(-50%, -50%, 0);
+        will-change: transform;
+	}
+`);
+
+	class Toast {
+		static TYPE_INFO = 'info';
+		static TYPE_SUCCESS = 'success';
+		static TYPE_WARNING = 'warning';
+		static TYPE_ERROR = 'error';
+		static TYPE_LOADING = 'loading';
+
+		static DEFAULT_TIME_MAP = {
+			[this.TYPE_INFO]: 1500,
+			[this.TYPE_SUCCESS]: 1500,
+			[this.TYPE_WARNING]: 2000,
+			[this.TYPE_ERROR]: 2500,
+			[this.TYPE_LOADING]: 10000,
+		}
+
+		static showInfo = (msg) => {
+			this.showToast(msg, this.TYPE_INFO, this.DEFAULT_TIME_MAP[this.TYPE_INFO]);
+		};
+		static showSuccess = (msg) => {
+			this.showToast(msg, this.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[this.TYPE_SUCCESS]);
+		};
+		static showWarning = (msg) => {
+			this.showToast(msg, this.TYPE_WARNING, this.DEFAULT_TIME_MAP[this.TYPE_WARNING]);
+		};
+		static showError = (msg) => {
+			this.showToast(msg, this.TYPE_ERROR, this.DEFAULT_TIME_MAP[this.TYPE_ERROR]);
+		};
+		static showLoading = (msg) => {
+			this.showToast(msg, this.TYPE_LOADING, this.DEFAULT_TIME_MAP[this.TYPE_LOADING]);
+		};
+
+		static showToast = (msg, type = 'success', timeout = 1500) => {
+			if(!toastWrap){
+				toastWrap = document.createElement('div');
+				document.body.appendChild(toastWrap);
+				toastWrap.className = TOAST_CLS_MAIN+'-wrap';
+			}
+			toastWrap.style.display = 'block';
+			let toast = document.createElement('span');
+			toastWrap.appendChild(toast);
+			toast.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + type;
+			toast.innerHTML = `<span class="ctn">${msg}</span><span class="close"></span><div></div>`;
+			toast.querySelector('.close').addEventListener('click', e => {
+				this.hideToast(toast);
+			});
+			setTimeout(() => {
+				this.hideToast(toast);
+			}, timeout);
+		};
+
+		static hideToast = (toast) => {
+			toast.parentNode.removeChild(toast);
+			if(toastWrap.childNodes.length === 0){
+				toastWrap.style.display = 'none';
+			}
+		};
+	}
+
+	/**
+	 * copy text
+	 * @param {String} text
+	 * @param {Boolean} silent 是否在不兼容是进行提醒
+	 * @returns {boolean} 是否复制成功
+	 */
+	const copy = (text, silent = false) => {
+		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
+		txtNode.style.cssText = 'position:absolute; left:-9999px;';
+		let y = window.pageYOffset || document.documentElement.scrollTop;
+		txtNode.addEventListener('focus', function(){
+			window.scrollTo(0, y);
+		});
+		txtNode.value = text;
+		txtNode.select();
+		try{
+			let succeeded = document.execCommand('copy');
+			!silent && Toast.showSuccess(trans('复制成功'));
+			return succeeded;
+		}catch(err){
+			Toast.showWarning(trans('请按键: Ctrl+C, Enter复制内容'), text);
+			console.error(err);
+		} finally{
+			txtNode.parentNode.removeChild(txtNode);
+		}
+		return false;
+	};
+
+	/**
+	 * Copy formatted html content
+	 * @param html
+	 * @param silent
+	 */
+	const copyFormatted = (html, silent = false) => {
+		// Create container for the HTML
+		let container = createDomByHtml(`
+		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
+	`, document.body);
+
+		// Detect all style sheets of the page
+		let activeSheets = Array.prototype.slice.call(document.styleSheets)
+			.filter(function(sheet){
+				return !sheet.disabled;
+			});
+
+		// Copy to clipboard
+		window.getSelection().removeAllRanges();
+
+		let range = document.createRange();
+		range.selectNode(container);
+		window.getSelection().addRange(range);
+
+		document.execCommand('copy');
+		for(let i = 0; i < activeSheets.length; i++){
+			activeSheets[i].disabled = true;
+		}
+		document.execCommand('copy');
+		for(let i = 0; i < activeSheets.length; i++){
+			activeSheets[i].disabled = false;
+		}
+		document.body.removeChild(container);
+		!silent && Toast.showSuccess(trans('复制成功'));
 	};
 
 	let masker = null;
@@ -1489,7 +2440,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	class Dialog {
-		static CONTENT_MIN_HEIGHT = 100; //最小高度
+		static CONTENT_MIN_HEIGHT = 30; //最小高度
 		static DEFAULT_WIDTH = 600; //默认宽度
 		static DIALOG_INIT_Z_INDEX = 1000;
 
@@ -1706,1294 +2657,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			DialogManager.closeAll(dialog => dialog.close());
 		}
 	}
-
-	const ACConfirm = (node, param) => {
-		ACEventChainBind(node, 'click', next=>{
-			Dialog.confirm('确认', param.message).then(()=>{
-				next();
-			}, ()=>{
-				console.log('cancel');
-			});
-		});
-	};
-
-	const ACMultiOperate = (node, param) => {
-		let targetSelector = param.target || 'input[type=checkbox][name][value]:not([disabled])';
-		let checks = document.querySelectorAll(targetSelector);
-		if(!checks.length){
-			console.error('No checkbox found:'+targetSelector);
-			return;
-		}
-		let updState = () => {
-			let chk = Array.from(checks).filter(chk => {
-				return chk.checked
-			});
-			chk.length ? node.removeAttribute('disabled') : node.setAttribute('disabled', 'disabled');
-		};
-		checks.forEach(chk => chk.addEventListener('change', updState));
-		updState();
-	};
-
-	/**
-	 * 解析文件扩展名
-	 * @param {string} fileName
-	 * @return {string}
-	 */
-	const resolveFileExtension = fileName => {
-		if(fileName.indexOf('.')<0){
-			return '';
-		}
-		let segList = fileName.split('.');
-		return segList[segList.length-1];
-	};
-
-	/**
-	 * 获取文件名
-	 * @param {string} fileName
-	 * @return {string}
-	 */
-	const resolveFileName = (fileName)=>{
-		fileName = fileName.replace(/.*?[/|\\]/ig, '');
-		return fileName.replace(/\.[^.]*$/g, "");
-	};
-
-	const CODE_TIMEOUT = 508;
-	const CODE_ABORT = 509;
-	const DEFAULT_TIMEOUT = 10000;
-
-	/**
-	 * HTTP请求方法
-	 * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
-	 */
-	const HTTP_METHOD = {
-		GET: 'GET',
-		POST: 'POST',
-		PUT: 'PUT',
-		DELETE: 'DELETE',
-		OPTIONS: 'OPTIONS',
-		HEAD: 'HEAD',
-		CONNECT: 'CONNECT',
-		TRACE: 'TRACE',
-	};
-
-	/**
-	 * 请求格式
-	 * @type {{FORM_DATA: string, JSON: string}}
-	 */
-	const REQUEST_FORMAT = {
-		JSON: 'JSON',
-		FORM_DATA: 'FORM_DATA',
-	};
-
-	/**
-	 * 响应格式
-	 * @type {{FORM: string, XML: string, JSON: string, HTML: string, TEXT: string}}
-	 */
-	const RESPONSE_FORMAT = {
-		JSON: 'JSON',
-		XML: 'XML',
-		HTML: 'HTML',
-		TEXT: 'TEXT',
-		FORM: 'FORM_DATA',
-	};
-
-	/**
-	 * 合并请求参数
-	 * @param {String} uri
-	 * @param {String|Object} data
-	 * @returns {*}
-	 */
-	const mergerUriParam = (uri, data) => {
-		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
-	};
-
-	const setHash = data => {
-		location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
-	};
-
-	const getHash = () => {
-		return location.hash ? location.hash.substring(1) : '';
-	};
-
-	/**
-	 * 格式化请求数据
-	 * @param {Object} data
-	 * @param {String} format
-	 * @returns {String}
-	 */
-	const formatReqData = (data, format) => {
-		switch(format){
-			case REQUEST_FORMAT.JSON:
-				return JSON.stringify(data);
-			case REQUEST_FORMAT.FORM_DATA:
-				return QueryString.stringify(data);
-			default:
-				throw `Data format illegal(${format})`;
-		}
-	};
-
-	/**
-	 * 解析响应结果
-	 * @param {String} rspStr
-	 * @param {String} format
-	 * @returns {{}|any}
-	 */
-	const parserRspDataAsObj = (rspStr, format) => {
-		switch(format){
-			case RESPONSE_FORMAT.JSON:
-				return JSON.parse(rspStr);
-			case RESPONSE_FORMAT.FORM:
-				return QueryString.parse(rspStr);
-			default:
-				throw `Response string type no support now(${format})`;
-		}
-	};
-
-	class Net {
-		cgi = null; //请求接口
-		data = null; //请求数据
-		option = {
-			method: HTTP_METHOD.GET, //请求方法
-			timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
-			requestDataFormat: REQUEST_FORMAT.FORM_DATA, //请求数据格式
-			responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
-			headers: {}, //请求头部信息
-		};
-		xhr = null;
-		onError = new BizEvent(); //(error,code)
-		onResponse = new BizEvent(); //(body)
-		onStateChange = new BizEvent(); //(state) http 状态码
-		onProgress = new BizEvent(); //(percent)
-
-		constructor(cgi, data, option = {}){
-			this.cgi = cgi;
-			this.data = data;
-			this.option = {
-				...this.option,
-				...option
-			};
-			this.xhr = new XMLHttpRequest();
-			this.xhr.addEventListener("progress", e => {
-				if(e.lengthComputable){
-					this.onProgress.fire(e.loaded / e.total);
-				}else {
-					this.onProgress.fire(null);
-				}
-			});
-			this.xhr.onreadystatechange = (e) => {
-				this.onStateChange.fire(this.xhr.status);
-			};
-			this.xhr.addEventListener("load", () => {
-				this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
-			});
-			this.xhr.addEventListener("error", e => {
-				this.onError.fire(this.xhr.statusText, this.xhr.status);
-			});
-			this.xhr.addEventListener("abort", e => {
-				this.onError.fire('Request aborted.', CODE_ABORT);
-			});
-			for(let key in this.option.headers){
-				this.xhr.setRequestHeader(key, this.option.headers[key]);
-			}
-			if(this.option.requestDataFormat === REQUEST_FORMAT.JSON){
-				this.xhr.setRequestHeader('content-type', 'application/json');
-			}
-			if(this.option.timeout){
-				setTimeout(() => {
-					this.onError.fire('Request timeout', CODE_TIMEOUT);
-				}, this.option.timeout);
-			}
-		}
-
-		send(){
-			this.xhr.open(this.option.method, this.cgi, true);
-			if(this.option.method === 'POST'){
-				this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-			}
-			this.xhr.send(formatReqData(this.data, this.option.requestDataFormat));
-		}
-
-		abort(){
-			this.xhr.abort();
-		}
-
-		static get(cgi, data, option = {}){
-			option.method = option.method || HTTP_METHOD.GET;
-			return Net.request(cgi, data, option);
-		}
-
-		static getJSON(cgi, data, option = {}){
-			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
-			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
-			return Net.get(cgi, data, option);
-		}
-
-		static post(cgi, data, option = {}){
-			option.method = option.method || HTTP_METHOD.POST;
-			return Net.request(cgi, data, option);
-		}
-
-		static postJSON(cgi, data, option = {}){
-			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
-			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
-			return Net.post(cgi, data, option);
-		}
-
-		static request(cgi, data, option = {}){
-			return new Promise((resolve, reject) => {
-				let req = new Net(cgi, data, option);
-				req.onResponse = resolve;
-				req.onError = reject;
-				req.send();
-			});
-		}
-	}
-
-	/**
-	 * 文件下载
-	 * @param src 文件地址
-	 * @param save_name 保存名称
-	 * @param ext 保存扩展名，缺省自动解析文件地址后缀
-	 */
-	const downloadFile = (src, save_name, ext) => {
-		ext = ext || resolveFileExtension(src);
-		save_name = save_name || resolveFileName(src);
-		let link = document.createElement('a');
-		link.href = src;
-		link.download = save_name + ext;
-		document.body.appendChild(link);
-		link.click();
-		link.parentNode.removeChild(link);
-	};
-
-	/**
-	 * 获取表单提交的数据
-	 * @description 不包含文件表单(后续HTML5版本可能会提供支持)
-	 * @param {HTMLFormElement} form
-	 * @returns {string}
-	 */
-	const getFormData = (form) => {
-		let data = {};
-		let elements = form.elements;
-
-		elements.forEach(function(item){
-			let name = item.name;
-			if(!data[name]){
-				data[name] = [];
-			}
-			if(item.type === 'radio'){
-				if(item.checked){
-					data[name].push(item.value);
-				}
-			}else if(item.getAttribute('name') !== undefined && item.getAttribute('value') !== undefined){
-				data[name].push(item.value);
-			}
-		});
-		return QueryString.stringify(data);
-	};
-
-	const QueryString = {
-		parse(str){
-			if(str[0] === '?'){
-				str = str.substring(1);
-			}
-			let retObj = {};
-			let qs = str.split('&');
-			qs.forEach(q=>{
-				let [k,v]=q.split('=');
-				if(!k.length){
-					return;
-				}
-				retObj[decodeURIComponent(k)] = decodeURIComponent(v);
-			});
-			return retObj;
-		},
-
-		stringify(data){
-			if(typeof (data) === 'string'){
-				return data;
-			}
-			let strList = [];
-			if(typeof (data) === 'object'){
-				for(let i in data){
-					strList.push(encodeURIComponent(i) + '=' + encodeURIComponent(data[i]));
-				}
-			}
-			return strList.join('&');
-		}
-	};
-
-	/**
-	 * open link without referer
-	 * @param link
-	 * @returns {boolean}
-	 */
-	const openLinkWithoutReferer = (link) => {
-		let instance = window.open("about:blank");
-		instance.document.write("<meta http-equiv=\"refresh\" content=\"0;url=" + link + "\">");
-		instance.document.close();
-		return false;
-	};
-
-	let _guid = 0;
-	const guid = (prefix = '') => {
-		return 'guid_' + (prefix || randomString(6)) + (++_guid);
-	};
-
-	/**
-	 * 获取当前函数所在script路径
-	 * @return {string|null}
-	 */
-	const getCurrentScript = function(){
-		let error = new Error()
-			, source
-			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
-			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
-		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
-			return source[1];
-		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
-			return source[1];
-		}else if(error['fileName'] !== undefined){
-			return error['fileName'];
-		}
-		return null;
-	};
-
-	const CURRENT_FILE = '/Lang/Util.js';
-	const ENTRY_FILE = '/index.js';
-
-	/**
-	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
-	 * @return {string}
-	 */
-	const getLibEntryScript = ()=>{
-		let script = getCurrentScript();
-		if(!script){
-			throw "Get script failed";
-		}
-		if(script.indexOf(CURRENT_FILE) >= 0){
-			return script.replace(CURRENT_FILE, ENTRY_FILE);
-		}
-		return script;
-	};
-
-	/**
-	 * 加载当前库模块
-	 * @return {Promise<*>}
-	 */
-	const getLibModule = async () => {
-		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
-	};
-
-	/**
-	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
-	 * @type {(function(): Promise<*>)|undefined}
-	 */
-	const getLibModuleTop =(()=>{
-		if(top === window){
-			return getLibModule;
-		}
-		if(top.WEBCOM_GET_LIB_MODULE){
-			return top.WEBCOM_GET_LIB_MODULE;
-		}
-		throw "No WebCom library script loaded detected.";
-	})();
-
-	/**
-	 * 清理版本，去除无用字符
-	 * @param {String} version
-	 * @return {Number[]}
-	 */
-	const normalizeVersion = (version)=>{
-		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
-			pieces = trimmed.split('.'),
-			partsLength,
-			parts = [],
-			value,
-			piece,
-			num,
-			i;
-		for(i = 0; i < pieces.length; i += 1){
-			piece = pieces[i].replace(/\D/g, '');
-			num = parseInt(piece, 10);
-			if(isNaN(num)){
-				num = 0;
-			}
-			parts.push(num);
-		}
-		partsLength = parts.length;
-		for(i = partsLength - 1; i >= 0; i -= 1){
-			value = parts[i];
-			if(value === 0){
-				parts.length -= 1;
-			}else {
-				break;
-			}
-		}
-		return parts;
-	};
-
-	/**
-	 * 版本比较
-	 * @param {String} version1
-	 * @param {String} version2
-	 * @param {Number} index
-	 * @return {number|number}
-	 */
-	const versionCompare = (version1, version2, index)=>{
-		let stringLength = index + 1,
-			v1 = normalizeVersion(version1),
-			v2 = normalizeVersion(version2);
-		if(v1.length > stringLength){
-			v1.length = stringLength;
-		}
-		if(v2.length > stringLength){
-			v2.length = stringLength;
-		}
-		let size = Math.min(v1.length, v2.length),i;
-		for(i = 0; i < size; i += 1){
-			if(v1[i] !== v2[i]){
-				return v1[i] < v2[i] ? -1 : 1;
-			}
-		}
-		if(v1.length === v2.length){
-			return 0;
-		}
-		return (v1.length < v2.length) ? -1 : 1;
-	};
-
-	window.WEBCOM_GET_LIB_MODULE = getLibModule;
-	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
-
-	/**
-	 * 类型定义
-	 */
-	const TYPE_INFO = 'info';
-	const TYPE_SUCCESS = 'success';
-	const TYPE_WARING = 'warning';
-	const TYPE_ERROR = 'error';
-	const TYPE_LOADING = 'loading';
-
-	let TOAST_COLLECTION = [];
-	let CLASS_TOAST_WRAP = 'toast-wrap';
-
-	insertStyleSheet(`
-	.${CLASS_TOAST_WRAP} {position:absolute; z-index:${Theme.ToastIndex}; left:50%; top:0; transform:translateX(-50%); display:inline-block;}
-	.toast {padding:10px 35px 10px 15px; position:relative; display:block; float:left; clear:both; margin-top:10px; min-width:100px; border-radius:3px; box-shadow:5px 4px 12px #0003;}
-	.toast-close {position:absolute; opacity:0.6; display:inline-block; padding:4px 8px; top:5px; right:0; cursor:pointer;}
-	.toast-close:before {content:"×"; font-size:18px; line-height:1;}
-	.toast-close:hover {opacity:1}
-	.toast-${TYPE_INFO} {background-color:#fffffff0;}
-	.toast-${TYPE_SUCCESS} {background-color:#1a70e1b8; color:white;}
-	.toast-${TYPE_WARING} {background-color:#ff88008c; color:white;}
-	.toast-${TYPE_ERROR} {background:radial-gradient(#ff5b5b, #f143438f); color:white;}
-	.toast-${TYPE_LOADING} {background-color:#fffffff0; text-shadow:1px 1px 1px #eee;}
-`, Theme.Namespace + 'toast-style');
-
-	let TOAST_WRAP;
-	const getToastWrap = () => {
-		if(!TOAST_WRAP){
-			TOAST_WRAP = createDomByHtml(`<div class="${CLASS_TOAST_WRAP}" style="display:none;"></div>`, document.body);
-		}
-		return TOAST_WRAP;
-	};
-
-	/**
-	 * 默认隐藏时间
-	 */
-	const DEFAULT_ELAPSED_TIME = {
-		[TYPE_INFO]: 2000,
-		[TYPE_SUCCESS]: 1500,
-		[TYPE_WARING]: 3000,
-		[TYPE_ERROR]: 3500,
-		[TYPE_LOADING]: 10000,
-	};
-
-	class Toast {
-		id = null;
-		dom = null;
-		option = {
-			timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
-			show: true,
-			closeAble: true,
-			class: TYPE_INFO
-		};
-		_closeTm = null;
-
-		constructor(text, option = {}){
-			this.option = {...this.option, ...option};
-			let close_html = this.option.closeAble ? '<span class="toast-close"></span>' : '';
-			this.id = this.option.id || guid('Toast');
-			this.dom = createDomByHtml(`
-			<div id="${this.id}" class="toast toast-${this.option.class}" style="display:none">
-			${close_html} ${text}
-			</div>
-		`, getToastWrap());
-			if(this.option.closeAble){
-				this.dom.querySelector('.toast-close').addEventListener('click', () => {
-					this.close();
-				});
-			}
-			TOAST_COLLECTION.push(this);
-
-			if(this.option.show){
-				this.show();
-				if(this.option.timeout){
-					this._closeTm = setTimeout(() => {
-						this.close();
-					}, this.option.timeout);
-				}
-			}
-		}
-
-		setContent(html){
-			this.dom.innerHTML = html;
-		}
-
-		show(){
-			this.dom.style.display = '';
-			let toastWrap = getToastWrap();
-			toastWrap.style.display = '';
-		}
-
-		close(){
-			this.dom.parentNode.removeChild(this.dom);
-			let toastWrap = getToastWrap();
-			if(toastWrap && !toastWrap.childNodes.length){
-				toastWrap.parentNode.removeChild(toastWrap);
-				TOAST_WRAP = null;
-			}
-			delete (TOAST_COLLECTION[TOAST_COLLECTION.indexOf(this)]);
-			clearTimeout(this._closeTm);
-		}
-
-		static closeAll(){
-			TOAST_COLLECTION.forEach(t => {
-				t.close();
-			});
-		}
-
-		static showSuccess(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_SUCCESS],
-				show: true,
-				...option,
-				class: TYPE_SUCCESS
-			});
-		}
-
-		static showInfo(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_INFO],
-				show: true,
-				...option,
-				class: TYPE_INFO
-			});
-		}
-
-		static showWarning(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_WARING],
-				show: true,
-				...option,
-				class: TYPE_WARING
-			});
-		}
-
-		static showError(text, option = {}){
-			return new Toast(text, {
-				timeout: DEFAULT_ELAPSED_TIME[TYPE_ERROR],
-				show: true,
-				...option,
-				class: TYPE_ERROR
-			});
-		}
-
-		/**
-		 * Show loading toast
-		 * @param text
-		 * @param option
-		 * @returns {Toast}
-		 */
-		static showLoading(text = '加载中···', option = {}){
-			return new Toast(text, {
-				timeout: 0,
-				show: true,
-				class: 'loading',
-				...option
-			});
-		};
-	}
-
-	const getDataObjectByForm = (form) => {
-		let data = new FormData(form);
-		return Object.fromEntries(data.entries());
-	};
-
-	const ACAsync = (node, param) => {
-		let AS_FORM = false;
-		if(node.nodeName === 'A'){
-			param.cgi = param.cgi || node.href;
-			param.method = param.method || HTTP_METHOD.GET;
-		}
-		if(node.nodeName === 'FORM'){
-			param.cgi = param.cgi || node.action;
-			param.method = param.cgi || node.method || HTTP_METHOD.GET;
-			AS_FORM = true;
-		}
-
-		param.requestDataFormat = REQUEST_FORMAT.JSON;
-		param.responseDataFormat = RESPONSE_FORMAT.JSON;
-
-		ACEventChainBind(node, 'click', next => {
-			console.log('send async');
-			if(AS_FORM){
-				if(!node.reportValidity()){
-					return false;
-				}
-				param.data = getDataObjectByForm(node);
-			}
-			Net.request(param.cgi, param.data, param).then(ACAsync.commonResponseSuccessHandle, ACAsync.commonResponseErrorHandle);
-			next();
-		});
-	};
-
-	ACAsync.commonResponseSuccessHandle = (rsp) => {
-		if(rsp.code !== 0){
-			Toast.showWarning(rsp.message);
-			return;
-		}
-		parent.location.reload();
-	};
-
-	ACAsync.commonResponseErrorHandle = (error)=>{
-		Toast.showError(error);
-	};
-
-	const Thumb = {
-		globalConfig: {},
-
-		setThumbGlobalConfig({loadingClass, errorClass}){
-			this.globalConfig.loadingClass = loadingClass;
-			this.globalConfig.errorClass = errorClass;
-		},
-
-		bindThumbImgNode(imgNode, param){
-			if(!param.src){
-				console.error('Image src required');
-				return;
-			}
-			let loadingClass = param.loadingClass || this.globalConfig.loadingClass;
-			let errorClass = param.loadingClass || this.globalConfig.errorClass;
-			let pNode = imgNode.parentNode;
-			pNode.classList.add(loadingClass);
-			pNode.classList.remove(errorClass);
-
-			imgNode.addEventListener('error', () => {
-				pNode.classList.add(errorClass);
-				pNode.classList.remove(loadingClass);
-				hide(imgNode);
-			});
-			imgNode.addEventListener('load', ()=>{
-				pNode.classList.remove(loadingClass);
-				pNode.classList.remove(errorClass);
-				show(imgNode);
-			});
-			imgNode.setAttribute('src', param.src);
-		}
-	};
-
-	function ACThumb(imgNode, param){
-		Thumb.bindThumbImgNode(imgNode, param);
-	}
-
-	const ACDialog = (node, param) => {
-		if(!param.src && node.tagName === 'A' && node.href){
-			param.src = node.href;
-		}
-		if(!param.src){
-			throw "ACDialog require src value";
-		}
-		if(!param.title && node.tagName === 'A'){
-			param.title = node.getAttribute('title') || node.innerText;
-		}
-
-		ACEventChainBind(node, 'click', next=>{
-			top.WEBCOM_GET_LIB_MODULE().then(rsp=>{
-				let dlg = new rsp.Dialog({
-					title: param.title,
-					content: {src: mergerUriParam(param.src, ACDialog.IFRAME_FLAG)},
-					width: ACDialog.DEFAULT_WIDTH
-				});
-				dlg.show();
-			});
-		});
-	};
-
-	ACDialog.IFRAME_FLAG = {refEnv: 'inIframe'};
-	ACDialog.DEFAULT_WIDTH = 600;
-
-	const COM_ATTR_KEY = 'data-com';
-	const COM_BIND_FLAG = COM_ATTR_KEY + '-flag';
-
-	const ComponentMaps = {
-		Async: ACAsync,
-		Confirm: ACConfirm,
-		Dialog: ACDialog,
-		MultiSelect: ACMultiSelect,
-		MultiOperate: ACMultiOperate,
-		Thumb: ACThumb,
-	};
-
-	const resolveParam = (node, Name) => {
-		let param = {};
-		let prefix = 'data-' + Name.toLowerCase() + '-';
-		node.getAttributeNames().forEach(attr => {
-			if(attr.indexOf(prefix) === 0){
-				let k = attr.substring(prefix.length);
-				let v = node.getAttribute(attr);
-				param[k] = v;
-			}
-		});
-		return param;
-	};
-
-	/**
-	 * 校验组件列表
-	 * @param ComStrList
-	 * @returns {*[]}
-	 */
-	const validateComponents = (ComStrList) => {
-		let cs = [];
-		for(let i = 0; i < ComStrList.length; i++){
-			if(!ComponentMaps[ComStrList[i]]){
-				throw "Component ID no found:" + ComStrList[i];
-			}
-			cs.push(ComponentMaps[ComStrList[i]]);
-		}
-		return cs;
-	};
-
-	let DOM_UUID_INDEX = 1;
-	let EVENT_MAPS = {};
-	const EVENT_CHAIN_UUID_KEY = 'trigger-once-uuid';
-
-	/**
-	 * event chain bind
-	 * @param {Element} dom
-	 * @param {String} event
-	 * @param {Function} payload (next_callback)
-	 * @constructor
-	 */
-	const ACEventChainBind = (dom, event, payload)=>{
-		let uuid = dom[EVENT_CHAIN_UUID_KEY];
-		if(!dom[EVENT_CHAIN_UUID_KEY]){
-			uuid = dom[EVENT_CHAIN_UUID_KEY] = DOM_UUID_INDEX++;
-			dom.addEventListener(event, e => {
-				EventChainTrigger([].concat(EVENT_MAPS[uuid]));
-				e.preventDefault();
-				return false;
-			});
-		}
-		if(!EVENT_MAPS[uuid]){
-			EVENT_MAPS[uuid] = [];
-		}
-		EVENT_MAPS[uuid].push(payload);
-	};
-
-	/**
-	 * trigger event chain
-	 * @param {Array} payloads
-	 * @constructor
-	 */
-	const EventChainTrigger = (payloads)=>{
-		if(!payloads.length){
-			return;
-		}
-		let payload = payloads.shift();
-		payload(()=>{
-			EventChainTrigger(payloads);
-		});
-	};
-
-	const ACGetComponents = (node) => {
-		let ComList = node.getAttribute(COM_ATTR_KEY).split(',');
-		return validateComponents(ComList);
-	};
-
-	const ACBindComponent = (dom = document.body, withModifiedEvent = false) => {
-		onDocReady(()=>{
-			dom.querySelectorAll(`[${COM_ATTR_KEY}]:not([${COM_BIND_FLAG}="1"])`).forEach(node => {
-				node.setAttribute(COM_BIND_FLAG, '1');
-				let Components = ACGetComponents(node);
-				if(!Components.length){
-					return;
-				}
-				Components.forEach(Com => {
-					let params = resolveParam(node, Com.name);
-					console.info(`Component <${Com.name}> init`, params);
-					Com(node, params);
-				});
-			});
-		});
-		if(withModifiedEvent){
-			dom.addEventListener('DOMSubtreeModified', e=>{
-				ACBindComponent(dom, false);
-			});
-		}
-	};
-
-	/**
-	 * array_column
-	 * @param arr
-	 * @param col_name
-	 * @returns {Array}
-	 */
-	const arrayColumn = (arr, col_name)=>{
-		let data = [];
-		for(let i in arr){
-			data.push(arr[i][col_name]);
-		}
-		return data;
-	};
-
-	const arrayIndex = (arr, val)=>{
-		for(let i in arr){
-			if(arr[i] === val){
-				return i;
-			}
-		}
-		return null;
-	};
-
-	/**
-	 * 数组去重
-	 * @param {Array} arr
-	 * @returns {*}
-	 */
-	const arrayDistinct = (arr)=>{
-		let tmpMap = new Map();
-		return arr.filter(item => {
-			if(!tmpMap.has(item)){
-				tmpMap.set(item, true);
-				return true;
-			}
-		});
-	};
-
-	/**
-	 * array group
-	 * @param arr
-	 * @param by_key
-	 * @param limit limit one child
-	 * @returns {*}
-	 */
-	const arrayGroup = (arr, by_key, limit)=>{
-		if(!arr || !arr.length){
-			return arr;
-		}
-		let tmp_rst = {};
-		arr.forEach(item=>{
-			let k = item[by_key];
-			if(!tmp_rst[k]){
-				tmp_rst[k] = [];
-			}
-			tmp_rst[k].push(item);
-		});
-		if(!limit){
-			return tmp_rst;
-		}
-		let rst = [];
-		for(let i in tmp_rst){
-			rst[i] = tmp_rst[i][0];
-		}
-		return rst;
-	};
-
-	/**
-	  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
-	  * to work around bugs in some JS interpreters.
-	  */
-	const safeAdd = (x, y) => {
-		let lsw = (x & 0xffff) + (y & 0xffff);
-		let msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-		return (msw << 16) | (lsw & 0xffff)
-	};
-
-	/**
-	* Bitwise rotate a 32-bit number to the left.
-	*/
-	const bitRotateLeft = (num, cnt) => {
-		return (num << cnt) | (num >>> (32 - cnt))
-	};
-
-	/**
-	* These functions implement the four basic operations the algorithm uses.
-	*/
-	const md5cmn = (q, a, b, x, s, t) => {
-		return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
-	};
-
-	const md5ff = (a, b, c, d, x, s, t) => {
-		return md5cmn((b & c) | (~b & d), a, b, x, s, t)
-	};
-
-	const md5gg = (a, b, c, d, x, s, t) => {
-		return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
-	};
-
-	const md5hh = (a, b, c, d, x, s, t) => {
-		return md5cmn(b ^ c ^ d, a, b, x, s, t)
-	};
-
-	const md5ii = (a, b, c, d, x, s, t) => {
-		return md5cmn(c ^ (b | ~d), a, b, x, s, t)
-	};
-
-	/**
-	* Calculate the MD5 of an array of little-endian words, and a bit length.
-	*/
-	const binlMD5 = (x, len) => {
-		/* append padding */
-		x[len >> 5] |= 0x80 << (len % 32);
-		x[((len + 64) >>> 9 << 4) + 14] = len;
-
-		let i;
-		let olda;
-		let oldb;
-		let oldc;
-		let oldd;
-		let a = 1732584193;
-		let b = -271733879;
-		let c = -1732584194;
-		let d = 271733878;
-
-		for(i = 0; i < x.length; i += 16){
-			olda = a;
-			oldb = b;
-			oldc = c;
-			oldd = d;
-
-			a = md5ff(a, b, c, d, x[i], 7, -680876936);
-			d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
-			c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
-			b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
-			a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
-			d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
-			c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
-			b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
-			a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
-			d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
-			c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
-			b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
-			a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
-			d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
-			c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
-			b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
-
-			a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
-			d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
-			c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
-			b = md5gg(b, c, d, a, x[i], 20, -373897302);
-			a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
-			d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
-			c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
-			b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
-			a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
-			d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
-			c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
-			b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
-			a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
-			d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
-			c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
-			b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
-
-			a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
-			d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
-			c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
-			b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
-			a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
-			d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
-			c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
-			b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
-			a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
-			d = md5hh(d, a, b, c, x[i], 11, -358537222);
-			c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
-			b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
-			a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
-			d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
-			c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
-			b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
-
-			a = md5ii(a, b, c, d, x[i], 6, -198630844);
-			d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
-			c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
-			b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
-			a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
-			d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
-			c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
-			b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
-			a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
-			d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
-			c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
-			b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
-			a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
-			d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
-			c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
-			b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
-
-			a = safeAdd(a, olda);
-			b = safeAdd(b, oldb);
-			c = safeAdd(c, oldc);
-			d = safeAdd(d, oldd);
-		}
-		return [a, b, c, d]
-	};
-
-	/**
-	* Convert an array of little-endian words to a string
-	*/
-	const binl2rstr = (input) => {
-		let i;
-		let output = '';
-		let length32 = input.length * 32;
-		for(i = 0; i < length32; i += 8){
-			output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xff);
-		}
-		return output
-	};
-
-	/**
-	* Convert a raw string to an array of little-endian words
-	* Characters >255 have their high-byte silently ignored.
-	*/
-	const rstr2binl = (input) => {
-		let i;
-		let output = [];
-		output[(input.length >> 2) - 1] = undefined;
-		for(i = 0; i < output.length; i += 1){
-			output[i] = 0;
-		}
-		let length8 = input.length * 8;
-		for(i = 0; i < length8; i += 8){
-			output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << (i % 32);
-		}
-		return output
-	};
-
-	/**
-	* Calculate the MD5 of a raw string
-	*/
-	const rstrMD5 = (s) => {
-		return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
-	};
-
-	/**
-	* Calculate the HMAC-MD5, of a key and some data (raw strings)
-	*/
-	const rstrHMACMD5 = (key, data) => {
-		let i;
-		let bkey = rstr2binl(key);
-		let ipad = [];
-		let opad = [];
-		let hash;
-		ipad[15] = opad[15] = undefined;
-		if(bkey.length > 16){
-			bkey = binlMD5(bkey, key.length * 8);
-		}
-		for(i = 0; i < 16; i += 1){
-			ipad[i] = bkey[i] ^ 0x36363636;
-			opad[i] = bkey[i] ^ 0x5c5c5c5c;
-		}
-		hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
-		return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
-	};
-
-	/**
-	* Convert a raw string to a hex string
-	*/
-	const rstr2hex = (input) => {
-		let hexTab = '0123456789abcdef';
-		let output = '';
-		let x;
-		let i;
-		for(i = 0; i < input.length; i += 1){
-			x = input.charCodeAt(i);
-			output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f);
-		}
-		return output
-	};
-
-	/**
-	* Encode a string as utf-8
-	*/
-	const str2rstrUTF8 = (input) => {
-		return unescape(encodeURIComponent(input))
-	};
-
-	/**
-	* Take string arguments and return either raw or hex encoded strings
-	*/
-	const rawMD5 = (s) => {
-		return rstrMD5(str2rstrUTF8(s))
-	};
-
-	const hexMD5 = (s) => {
-		return rstr2hex(rawMD5(s))
-	};
-
-	const rawHMACMD5 = (k, d) => {
-		return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
-	};
-
-	const hexHMACMD5 = (k, d) => {
-		return rstr2hex(rawHMACMD5(k, d))
-	};
-
-	const MD5 = (string, key, raw) => {
-		if(!key){
-			if(!raw){
-				return hexMD5(string)
-			}
-			return rawMD5(string)
-		}
-		if(!raw){
-			return hexHMACMD5(key, string)
-		}
-		return rawHMACMD5(key, string)
-	};
-
-	let hook_flag = false;
-	const RptEv = new BizEvent();
-	const doHook = () => {
-		let observer = new ReportingObserver((reports) => {
-			onReportApi.fire(reports);
-		}, {
-			types: ['deprecation'],
-			buffered: true
-		});
-		observer.observe();
-	};
-
-	const onReportApi = {
-		listen(payload){
-			!hook_flag && doHook();
-			hook_flag = true;
-			RptEv.listen(payload);
-		},
-		remove(payload){
-			return RptEv.remove(payload);
-		},
-		fire(...args){
-			return RptEv.fire(...args);
-		}
-	};
-
-	let payloads = [];
-
-	const pushState = (param, title = '') => {
-		let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
-		window.history.pushState(param, title, url);
-		exePayloads(param);
-	};
-
-	const exePayloads = (param) => {
-		payloads.forEach(payload => {
-			payload(param);
-		});
-	};
-
-	window.onpopstate = function(e){
-		let state = e.state ?? {};
-		let hashObj = QueryString.parse(getHash());
-		exePayloads({...state, ...hashObj});
-	};
-
-	const onStateChange = (payload) => {
-		payloads.push(payload);
-	};
-
-	const ONE_MINUTE = 60000;
-	const ONE_HOUR = 3600000;
-	const ONE_DAY = 86400000;
-	const ONE_WEEK = 604800000;
-	const ONE_MONTH_30 = 2592000000;
-	const ONE_MONTH_31 = 2678400000;
-	const ONE_YEAR_365 = 31536000000;
-
-	function frequencyControl(payload, hz, executeOnFistTime = false){
-		if(payload._frq_tm){
-			clearTimeout(payload._frq_tm);
-		}
-		payload._frq_tm = setTimeout(() => {
-			frequencyControl(payload, hz, executeOnFistTime);
-		}, hz);
-	}
-
-	/**
-	 * copy text
-	 * @param {String} text
-	 * @param {Boolean} silent 是否在不兼容是进行提醒
-	 * @returns {boolean} 是否复制成功
-	 */
-	const copy = (text, silent = false) => {
-		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
-		txtNode.style.cssText = 'position:absolute; left:-9999px;';
-		let y = window.pageYOffset || document.documentElement.scrollTop;
-		txtNode.addEventListener('focus', function(){
-			window.scrollTo(0, y);
-		});
-		txtNode.value = text;
-		txtNode.select();
-		try{
-			let succeeded = document.execCommand('copy');
-			!silent && Toast.showSuccess(trans('复制成功'));
-			return succeeded;
-		}catch(err){
-			Toast.showWarning(trans('请按键: Ctrl+C, Enter复制内容'), text);
-			console.error(err);
-		} finally{
-			txtNode.parentNode.removeChild(txtNode);
-		}
-		return false;
-	};
-
-	/**
-	 * Copy formatted html content
-	 * @param html
-	 * @param silent
-	 */
-	const copyFormatted = (html, silent = false) => {
-		// Create container for the HTML
-		let container = createDomByHtml(`
-		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
-	`, document.body);
-
-		// Detect all style sheets of the page
-		let activeSheets = Array.prototype.slice.call(document.styleSheets)
-			.filter(function(sheet){
-				return !sheet.disabled;
-			});
-
-		// Copy to clipboard
-		window.getSelection().removeAllRanges();
-
-		let range = document.createRange();
-		range.selectNode(container);
-		window.getSelection().addRange(range);
-
-		document.execCommand('copy');
-		for(let i = 0; i < activeSheets.length; i++){
-			activeSheets[i].disabled = true;
-		}
-		document.execCommand('copy');
-		for(let i = 0; i < activeSheets.length; i++){
-			activeSheets[i].disabled = false;
-		}
-		document.body.removeChild(container);
-		!silent && Toast.showSuccess(trans('复制成功'));
-	};
 
 	/**
 	 * 通过 src 加载图片
@@ -3501,6 +3164,39 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	};
 
+	const Thumb = {
+		globalConfig: {},
+
+		setThumbGlobalConfig({loadingClass, errorClass}){
+			this.globalConfig.loadingClass = loadingClass;
+			this.globalConfig.errorClass = errorClass;
+		},
+
+		bindThumbImgNode(imgNode, param){
+			if(!param.src){
+				console.error('Image src required');
+				return;
+			}
+			let loadingClass = param.loadingClass || this.globalConfig.loadingClass;
+			let errorClass = param.loadingClass || this.globalConfig.errorClass;
+			let pNode = imgNode.parentNode;
+			pNode.classList.add(loadingClass);
+			pNode.classList.remove(errorClass);
+
+			imgNode.addEventListener('error', () => {
+				pNode.classList.add(errorClass);
+				pNode.classList.remove(loadingClass);
+				hide(imgNode);
+			});
+			imgNode.addEventListener('load', ()=>{
+				pNode.classList.remove(loadingClass);
+				pNode.classList.remove(errorClass);
+				show(imgNode);
+			});
+			imgNode.setAttribute('src', param.src);
+		}
+	};
+
 	let TIP_COLLECTION = {};
 	let GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
 	let NS = Theme.Namespace + 'tip';
@@ -3868,21 +3564,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	</dl>`, document.body);
 	};
 
-	exports.ACAsync = ACAsync;
-	exports.ACBindComponent = ACBindComponent;
-	exports.ACBindSelectAll = ACBindSelectAll;
-	exports.ACBindSelectNone = ACBindSelectNone;
-	exports.ACConfirm = ACConfirm;
-	exports.ACDialog = ACDialog;
-	exports.ACEventChainBind = ACEventChainBind;
-	exports.ACGetComponents = ACGetComponents;
-	exports.ACMultiOperate = ACMultiOperate;
-	exports.ACMultiSelect = ACMultiSelect;
-	exports.ACThumb = ACThumb;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
-	exports.COM_ATTR_KEY = COM_ATTR_KEY;
 	exports.Dialog = Dialog;
 	exports.DialogManager = DialogManager;
 	exports.HTTP_METHOD = HTTP_METHOD;
@@ -3959,6 +3643,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.keepRectCenter = keepRectCenter;
 	exports.keepRectInContainer = keepRectInContainer;
 	exports.loadCss = loadCss;
+	exports.loadScript = loadScript;
 	exports.mergerUriParam = mergerUriParam;
 	exports.onDocReady = onDocReady;
 	exports.onHover = onHover;

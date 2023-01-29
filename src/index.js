@@ -1,13 +1,5 @@
 export * from "./I18N/Lang.js";
 
-export * from "./AutoCom/ACBase.js";//keep ACBase first
-export * from "./AutoCom/ACAsync.js";
-export * from "./AutoCom/ACConfirm.js";
-export * from "./AutoCom/ACDialog.js";
-export * from "./AutoCom/ACMultiOperate.js";
-export * from "./AutoCom/ACMultiSelect.js";
-export * from "./AutoCom/ACThumb.js";
-
 export * from "./Lang/Array.js";
 export * from "./Lang/Dom.js";
 export * from "./Lang/Event.js";

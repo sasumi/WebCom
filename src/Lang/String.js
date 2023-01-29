@@ -223,6 +223,11 @@ export const Base64Encode = (text) => {
 	return t
 };
 
+/**
+ * base64 解码
+ * @param {*} text
+ * @returns
+ */
 export const base64Decode = (text) => {
 	let t = "";
 	let n, r, i;

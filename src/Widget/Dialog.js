@@ -327,7 +327,7 @@ const renderContent = (dlg) => {
 };
 
 export class Dialog {
-	static CONTENT_MIN_HEIGHT = 100; //最小高度
+	static CONTENT_MIN_HEIGHT = 30; //最小高度
 	static DEFAULT_WIDTH = 600; //默认宽度
 	static DIALOG_INIT_Z_INDEX = 1000;
 

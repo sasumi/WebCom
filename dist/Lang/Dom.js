@@ -199,16 +199,43 @@ let _c = {};
  * 挂载css文件
  * @param {String} file
  * @param {Boolean} forceReload 是否强制重新挂载，缺省不重复挂载
+ * @returns {Promise}
  */
 export const loadCss = (file, forceReload = false) => {
 	if(!forceReload && _c[file]){
-		return;
+		return _c[file];
 	}
-	_c[file] = true;
-	let link = document.createElement('link');
-	link.rel = "stylesheet";
-	link.href = file;
-	document.head.append(link);
+	_c[file] = new Promise((resolve, reject)=>{
+		let link = document.createElement('link');
+		link.rel = "stylesheet";
+		link.href = file;
+		link.onload = ()=>{resolve();};
+		link.onerror = ()=>{reject();};
+		document.head.append(link);
+	});
+	return _c[file];
+};
+
+/**
+ * 挂在script
+ * @param {String} file
+ * @param {Boolean} forceReload
+ * @returns {Promise}
+ */
+export const loadScript = (file, forceReload = false)=>{
+	console.log('_c', _c[file], forceReload);
+	if(!forceReload && _c[file]){
+		console.log('hit', _c, file);
+		return _c[file];
+	}
+	_c[file] = new Promise((resolve, reject)=>{
+		let script = document.createElement('script');
+		script.src = file;
+		script.onload = ()=>{resolve();};
+		script.onerror = ()=>{reject();};
+		document.head.append(script);
+	});
+	return _c[file];
 };
 
 /**

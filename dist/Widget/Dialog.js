@@ -410,10 +410,16 @@ export class Dialog {
 	 * @param {Boolean} config.showTopCloseButton
 	 * @returns {Dialog}
 	 */
-	static show(title, content, config){
+	static show(title, content, config = {}){
 		let p = new Dialog({title, content, ...config});
 		p.show();
 		return p;
+	}
+
+	static showModal(title, content, config = {}){
+		config.modal = true;
+		let p = new Dialog({title, content, ...config});
+		p.show();
 	}
 
 	/**
@@ -428,6 +434,7 @@ export class Dialog {
 			let p = new Dialog({
 				title,
 				content,
+				modal: true,
 				buttons: [
 					{title: '确定', default: true, callback:()=>{p.close();resolve();}},
 					{title: '取消', callback:()=>{p.close(); reject && reject()}}
@@ -451,6 +458,7 @@ export class Dialog {
 			let p = new Dialog({
 				title,
 				content,
+				modal: true,
 				buttons: [
 					{title: '确定', default: true, callback:()=>{p.close(); resolve();}},
 				],
@@ -476,6 +484,7 @@ export class Dialog {
 							<p style="padding-bottom:0.5em;">${title}</p>
 							<input type="text" style="width:100%" class="${DLG_CLS_INPUT}" value="${escapeAttr(option.initValue || '')}"/>
 						</div>`,
+				modal: true,
 				buttons: [
 					{
 						title: '确定', default: true, callback: () => {
