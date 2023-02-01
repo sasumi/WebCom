@@ -2069,7 +2069,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		message = '';
 		type = Toast.TYPE_INFO;
-		timeout = Toast.DEFAULT_TIME_MAP[Toast.TYPE];
+		timeout = Toast.DEFAULT_TIME_MAP[this.type];
 
 		dom = null;
 
@@ -2081,8 +2081,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		constructor(message, type = null, timeout = null){
 			this.message = message;
 			this.type = type || Toast.TYPE_SUCCESS;
-			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[Toast.TYPE] : timeout;
-			this.timeout = 1000000;
+			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;
 		}
 
 		/**
