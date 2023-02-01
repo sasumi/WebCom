@@ -1,11 +1,13 @@
 import {
-	insertStyleSheet
+	hide,
+	insertStyleSheet,
+	show
 } from "./../Lang/Dom.js"
-import {Theme} from "./Theme.js";
+import {
+	Theme
+} from "./Theme.js";
 
-let toastWrap = null;
-
-const TOAST_CLS_MAIN = Theme.Namespace+'toast';
+const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 const rotate_id = 'rotate111';
 
 insertStyleSheet(`
@@ -44,6 +46,17 @@ insertStyleSheet(`
 	}
 `);
 
+let toastWrap = null;
+
+const getWrapper = () => {
+	if(!toastWrap){
+		toastWrap = document.createElement('div');
+		document.body.appendChild(toastWrap);
+		toastWrap.className = TOAST_CLS_MAIN + '-wrap';
+	}
+	return toastWrap;
+}
+
 export class Toast {
 	static TYPE_INFO = 'info';
 	static TYPE_SUCCESS = 'success';
@@ -52,52 +65,90 @@ export class Toast {
 	static TYPE_LOADING = 'loading';
 
 	static DEFAULT_TIME_MAP = {
-		[this.TYPE_INFO]: 1500,
-		[this.TYPE_SUCCESS]: 1500,
-		[this.TYPE_WARNING]: 2000,
-		[this.TYPE_ERROR]: 2500,
-		[this.TYPE_LOADING]: 10000,
+		[Toast.TYPE_INFO]: 1500,
+		[Toast.TYPE_SUCCESS]: 1500,
+		[Toast.TYPE_WARNING]: 2000,
+		[Toast.TYPE_ERROR]: 2500,
+		[Toast.TYPE_LOADING]: 10000,
 	}
 
-	static showInfo = (msg) => {
-		this.showToast(msg, this.TYPE_INFO, this.DEFAULT_TIME_MAP[this.TYPE_INFO]);
-	};
-	static showSuccess = (msg) => {
-		this.showToast(msg, this.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[this.TYPE_SUCCESS]);
-	};
-	static showWarning = (msg) => {
-		this.showToast(msg, this.TYPE_WARNING, this.DEFAULT_TIME_MAP[this.TYPE_WARNING]);
-	};
-	static showError = (msg) => {
-		this.showToast(msg, this.TYPE_ERROR, this.DEFAULT_TIME_MAP[this.TYPE_ERROR]);
-	};
-	static showLoading = (msg) => {
-		this.showToast(msg, this.TYPE_LOADING, this.DEFAULT_TIME_MAP[this.TYPE_LOADING]);
-	};
+	message = '';
+	type = Toast.TYPE_INFO;
+	timeout = Toast.DEFAULT_TIME_MAP[Toast.TYPE];
 
-	static showToast = (msg, type = 'success', timeout = 1500) => {
-		if(!toastWrap){
-			toastWrap = document.createElement('div');
-			document.body.appendChild(toastWrap);
-			toastWrap.className = TOAST_CLS_MAIN+'-wrap';
+	dom = null;
+
+	/**
+	 * @param {String} message
+	 * @param {String} type
+	 * @param {Number} timeout 超时时间，0表示不关闭
+	 */
+	constructor(message, type = null, timeout = null){
+		this.message = message;
+		this.type = type || Toast.TYPE_SUCCESS;
+		this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[Toast.TYPE] : timeout;
+		this.timeout = 1000000;
+	}
+
+	/**
+	 * 显示提示
+	 * @param {String} message
+	 * @param {String} type
+	 * @param {Number} timeout 超时时间，0表示不关闭
+	 * @returns
+	 */
+	static showToast = (message, type = null, timeout = null) => {
+		let toast = new Toast(message, type, timeout);
+		toast.show();
+		return toast;
+	}
+
+	static showInfo = (message) => {
+		return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO]);
+	}
+
+	static showSuccess = (message) => {
+		return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS]);
+	}
+
+	static showWarning = (message) => {
+		return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING]);
+	}
+
+	static showError = (message) => {
+		return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR]);
+	}
+
+	static showLoading = (message) => {
+		return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING]);
+	}
+
+	show(){
+		let wrapper = getWrapper();
+		show(wrapper);
+		this.dom = document.createElement('span');
+		wrapper.appendChild(this.dom);
+		this.dom.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + this.type;
+		this.dom.innerHTML = `<span class="ctn">${this.message}</span><span class="close"></span><div></div>`;
+
+		let hide_tm = null;
+		if(this.timeout){
+			hide_tm = setTimeout(() => {
+				this.hide();
+			}, this.timeout);
 		}
-		toastWrap.style.display = 'block';
-		let toast = document.createElement('span');
-		toastWrap.appendChild(toast);
-		toast.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + type;
-		toast.innerHTML = `<span class="ctn">${msg}</span><span class="close"></span><div></div>`;
-		toast.querySelector('.close').addEventListener('click', e => {
-			this.hideToast(toast);
+
+		this.dom.querySelector('.close').addEventListener('click', ()=> {
+			hide_tm && clearTimeout(hide_tm);
+			this.hide();
 		});
-		setTimeout(() => {
-			this.hideToast(toast);
-		}, timeout);
-	};
+	}
 
-	static hideToast = (toast) => {
-		toast.parentNode.removeChild(toast);
-		if(toastWrap.childNodes.length === 0){
-			toastWrap.style.display = 'none';
+	hide(){
+		this.dom.parentNode.removeChild(this.dom);
+		let wrapper = getWrapper();
+		if(!wrapper.childNodes.length){
+			hide(wrapper);
 		}
-	};
+	}
 }

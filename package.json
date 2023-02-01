@@ -4,7 +4,7 @@
   "description": "[TOC]",
   "main": "dist/webcom.es.js",
   "scripts": {
-    "build": "rollup --config",
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "sasumi",

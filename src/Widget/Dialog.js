@@ -5,7 +5,7 @@ import {KEYS} from "../Lang/Event.js";
 import {BizEvent} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 
-const DLG_CLS_PREF = Theme.Namespace+'dialog';
+const DLG_CLS_PREF = Theme.Namespace + 'dialog';
 const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
@@ -20,8 +20,8 @@ const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
  * Content Type
  * @type {string}
  */
-const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF+'-ctn-iframe';
-const DLG_CTN_TYPE_HTML = DLG_CLS_PREF+'-ctn-html';
+const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
+const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 insertStyleSheet(`
 	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:10000;position:fixed;}
@@ -29,7 +29,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:24px;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee;}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; padding:10px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:10px; text-align:right;}
@@ -38,18 +38,18 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
-`, Theme.Namespace+'dialog-style');
+`, Theme.Namespace + 'dialog-style');
 
 /** @var Dialog[] **/
 let dialogs = [];
 
-let closeDlg =  (dlg, destroy = true) => {
+let closeDlg = (dlg, destroy = true) => {
 	if(dlg.onClose.fire() === false){
 		console.warn('dialog close cancel by onClose events');
 		return false;
 	}
 	dialogs = dialogs.filter(d => dlg !== d);
-	let nextShow = dialogs.find(d=> d.active);
+	let nextShow = dialogs.find(d => d.active);
 	if(!nextShow){
 		nextShow = dialogs.find(d => d.visible);
 	}
@@ -60,7 +60,7 @@ let closeDlg =  (dlg, destroy = true) => {
 	}
 	if(destroy){
 		dlg.dom.parentNode.removeChild(dlg.dom);
-	} else {
+	}else{
 		dlg.active = false;
 		dlg.visible = false;
 		dlg.dom.style.display = 'none';
@@ -83,8 +83,7 @@ export const DialogManager = {
 		Masker.show();
 		dlg.visible = true;
 		dlg.dom.style.display = '';
-		dialogs.push(dlg);
-		DialogManager.switchToTop(dlg);
+		DialogManager.active(dlg);
 		dlg.onShow.fire();
 	},
 
@@ -92,9 +91,9 @@ export const DialogManager = {
 	 * 激活对话框
 	 * @param {Dialog} dlg
 	 */
-	switchToTop(dlg){
+	active(dlg){
 		let zIndex = Dialog.DIALOG_INIT_Z_INDEX;
-		dialogs = dialogs.filter(d => {
+		dialogs.filter(d => {
 			if(d !== dlg){
 				d.active = false;
 				d.dom.classList.remove(DLG_CLS_ACTIVE);
@@ -149,13 +148,15 @@ export const DialogManager = {
 	 * @returns {Dialog}
 	 */
 	findById(id){
-		return dialogs.find(dlg => {return dlg.id === id});
+		return dialogs.find(dlg => {
+			return dlg.id === id
+		});
 	}
 };
 
 window['DialogManager'] = DialogManager;
 
-const resolveContentType = (content)=>{
+const resolveContentType = (content) => {
 	if(typeof (content) === 'object' && content.src){
 		return DLG_CTN_TYPE_IFRAME;
 	}
@@ -167,7 +168,7 @@ const resolveContentType = (content)=>{
  */
 const domConstruct = (dlg) => {
 	let html = `
-		<div class="${DLG_CLS_PREF}" id="${dlg.config.id}" style="${dlg.config.width?'width:'+dlg.config.width+'px':''}">
+		<div class="${DLG_CLS_PREF}" id="${dlg.config.id}" style="${dlg.config.width ? 'width:' + dlg.config.width + 'px' : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : ''}
 	`;
@@ -223,11 +224,6 @@ const eventBind = (dlg) => {
 		let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
 		btn.addEventListener('click', cb.bind(dlg), false);
 	}
-
-	//bind active
-	dlg.dom.addEventListener('mousedown', e => {
-		DialogManager.switchToTop(dlg);
-	})
 
 	//bind move
 	if(dlg.config.moveAble){
@@ -423,14 +419,24 @@ export class Dialog {
 	 * @param {Object} opt
 	 * @returns {Promise<unknown>}
 	 */
-	static confirm(title, content, opt={}){
+	static confirm(title, content, opt = {}){
 		return new Promise((resolve, reject) => {
 			let p = new Dialog({
 				title,
 				content,
 				buttons: [
-					{title: '确定', default: true, callback:()=>{p.close();resolve();}},
-					{title: '取消', callback:()=>{p.close(); reject && reject()}}
+					{
+						title: '确定', default: true, callback: () => {
+							p.close();
+							resolve();
+						}
+					},
+					{
+						title: '取消', callback: () => {
+							p.close();
+							reject && reject()
+						}
+					}
 				],
 				showTopCloseButton: false,
 				...opt
@@ -446,13 +452,18 @@ export class Dialog {
 	 * @param {Object} opt
 	 * @returns {Promise<unknown>}
 	 */
-	static alert(title, content, opt={}){
+	static alert(title, content, opt = {}){
 		return new Promise(((resolve) => {
 			let p = new Dialog({
 				title,
 				content,
 				buttons: [
-					{title: '确定', default: true, callback:()=>{p.close(); resolve();}},
+					{
+						title: '确定', default: true, callback: () => {
+							p.close();
+							resolve();
+						}
+					},
 				],
 				showTopCloseButton: false,
 				...opt
@@ -468,11 +479,11 @@ export class Dialog {
 	 * @param {Object} option
 	 * @returns {Promise<unknown>}
 	 */
-	static prompt(title, option={}){
+	static prompt(title, option = {}){
 		return new Promise((resolve, reject) => {
 			let p = new Dialog({
-				title:'请输入',
-				content:`<div style="padding:0 10px;">
+				title: '请输入',
+				content: `<div style="padding:0 10px;">
 							<p style="padding-bottom:0.5em;">${title}</p>
 							<input type="text" style="width:100%" class="${DLG_CLS_INPUT}" value="${escapeAttr(option.initValue || '')}"/>
 						</div>`,
@@ -492,10 +503,10 @@ export class Dialog {
 				...option
 			});
 			p.onClose.listen(reject);
-			p.onShow.listen(()=>{
+			p.onShow.listen(() => {
 				let input = p.dom.querySelector('input');
 				input.focus();
-				input.addEventListener('keydown', e=>{
+				input.addEventListener('keydown', e => {
 					if(e.keyCode === KEYS.Enter){
 						if(resolve(input.value) === false){
 							return false;

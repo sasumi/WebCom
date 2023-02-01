@@ -56,7 +56,7 @@ export const Ladder = (ladder, opt)=>{
 	$selector.click(function(){
 		let $node = $(this);
 		let aim = $node.attr(opt.dataTag);
-		if(aim != '#top' && !$(aim).size()){
+		if(aim !== '#top' && !$(aim).size()){
 			return;
 		}
 

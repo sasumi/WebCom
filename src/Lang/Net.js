@@ -124,16 +124,16 @@ export class Net {
 				this.onProgress.fire(null);
 			}
 		});
-		this.xhr.onreadystatechange = (e) => {
+		this.xhr.onreadystatechange = () => {
 			this.onStateChange.fire(this.xhr.status);
 		}
 		this.xhr.addEventListener("load", () => {
 			this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
 		});
-		this.xhr.addEventListener("error", e => {
+		this.xhr.addEventListener("error", () => {
 			this.onError.fire(this.xhr.statusText, this.xhr.status);
 		});
-		this.xhr.addEventListener("abort", e => {
+		this.xhr.addEventListener("abort", () => {
 			this.onError.fire('Request aborted.', CODE_ABORT);
 		});
 		for(let key in this.option.headers){
@@ -210,32 +210,6 @@ export const downloadFile = (src, save_name, ext) => {
 	link.parentNode.removeChild(link);
 };
 
-/**
- * 获取表单提交的数据
- * @description 不包含文件表单(后续HTML5版本可能会提供支持)
- * @param {HTMLFormElement} form
- * @returns {string}
- */
-export const getFormData = (form) => {
-	let data = {};
-	let elements = form.elements;
-
-	elements.forEach(function(item){
-		let name = item.name;
-		if(!data[name]){
-			data[name] = [];
-		}
-		if(item.type === 'radio'){
-			if(item.checked){
-				data[name].push(item.value);
-			}
-		}else if(item.getAttribute('name') !== undefined && item.getAttribute('value') !== undefined){
-			data[name].push(item.value);
-		}
-	});
-	return QueryString.stringify(data);
-};
-
 export const QueryString = {
 	parse(str){
 		if(str[0] === '?'){
@@ -254,16 +228,24 @@ export const QueryString = {
 	},
 
 	stringify(data){
-		if(typeof (data) === 'string'){
-			return data;
-		}
-		let strList = [];
-		if(typeof (data) === 'object'){
-			for(let i in data){
-				strList.push(encodeURIComponent(i) + '=' + encodeURIComponent(data[i]));
+		if(typeof (data) === 'undefined' || typeof (data) !== 'object') return data
+		let query = []
+		for(let param in data){
+			if(data.hasOwnProperty(param)){
+				if(typeof(data[param]) === 'object' && data[param].length){
+					data[param].forEach(item=>{
+						query.push(encodeURI(param + '=' + item))
+					});
+				}
+				else if(typeof(data[param]) === 'object'){
+					//todo 不处理子级object、空数组情况
+				}
+				else {
+					query.push(encodeURI(param + '=' + data[param]))
+				}
 			}
 		}
-		return strList.join('&');
+		return query.join('&')
 	}
 };
 

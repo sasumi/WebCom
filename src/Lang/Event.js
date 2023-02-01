@@ -69,6 +69,29 @@ export const triggerDomEvent = (node, event) => {
 	}
 };
 
+/**
+ * 事件代理
+ * @param {Node} container
+ * @param {String} selector
+ * @param {String} eventName
+ * @param {Function} payload
+ */
+export const eventDelegate = (container, selector, eventName, payload)=>{
+	container.addEventListener(eventName, ev=>{
+		let target = ev.target;
+		while(target){
+			if(target.matches(selector)){
+				payload.apply(target);
+				return;
+			}
+			if(target === container){
+				return;
+			}
+			target = target.parentNode;
+		}
+	});
+}
+
 export const KEYS = {
 	A: 65,
 	B: 66,

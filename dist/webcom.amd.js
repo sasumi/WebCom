@@ -185,6 +185,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	};
 
+	/**
+	 * 事件代理
+	 * @param {Node} container
+	 * @param {String} selector
+	 * @param {String} eventName
+	 * @param {Function} payload
+	 */
+	const eventDelegate = (container, selector, eventName, payload)=>{
+		container.addEventListener(eventName, ev=>{
+			let target = ev.target;
+			while(target){
+				if(target.matches(selector)){
+					payload.apply(target);
+					return;
+				}
+				if(target === container){
+					return;
+				}
+				target = target.parentNode;
+			}
+		});
+	};
+
 	const KEYS = {
 		A: 65,
 		B: 66,
@@ -1150,6 +1173,72 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	/**
+	 * 获取form元素值。
+	 * 该函数过滤元素disabled情况，但不判断name是否存在
+	 * 针对多重选择，提取数据格式为数组
+	 * @param {HTMLFormElement} el
+	 * @returns {String|Array|null} 元素值，发生错误时返回null
+	 */
+	const getElementValue = (el) => {
+		if(el.disabled){
+			return null;
+		}
+		if(el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')){
+			return el.checked ? el.value : null;
+		}
+		if(el.tagName === 'SELECT' && el.multiple){
+			let vs = [];
+			el.querySelectorAll('option[selected]').forEach(item=>{
+				vs.push(item.value);
+			});
+			return vs;
+		}
+		return el.value;
+	};
+
+	/**
+	 * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+	 * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
+	 * @param {Element} dom
+	 * @param {Boolean} validate
+	 * @returns {Object|null} 如果校验失败，则返回null
+	 */
+	const formSerializeJSON = (dom, validate = true) => {
+		let els = dom.querySelectorAll('input,textarea,select');
+		let data = {};
+		let err = Array.from(els).every(el => {
+			if(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.type)){
+				return true;
+			}
+			if(el.disabled || !el.name){
+				console.warn('elemment no legal for fetch form data');
+				return true;
+			}
+			if(validate && !el.checkValidity()){
+				el.reportValidity();
+				return false;
+			}
+			let name = el.name;
+			let value = getElementValue(el);
+			if(value === null){
+				return true;
+			}
+			let isArr = dom.querySelectorAll(`input[name=${cssSelectorEscape(name)}]:not([type=radio]),textarea[name=${cssSelectorEscape(name)}],select[name=${cssSelectorEscape(name)}]`).length > 1;
+			if(isArr){
+				if(data[name] === undefined){
+					data[name] = [value];
+				} else {
+					data[name].push(value);
+				}
+			} else {
+				data[name] = value;
+			}
+			return true;
+		});
+		return err === false ? null : data;
+	};
+
+	/**
 	 * 解析文件扩展名
 	 * @param {string} fileName
 	 * @return {string}
@@ -1548,16 +1637,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					this.onProgress.fire(null);
 				}
 			});
-			this.xhr.onreadystatechange = (e) => {
+			this.xhr.onreadystatechange = () => {
 				this.onStateChange.fire(this.xhr.status);
 			};
 			this.xhr.addEventListener("load", () => {
 				this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
 			});
-			this.xhr.addEventListener("error", e => {
+			this.xhr.addEventListener("error", () => {
 				this.onError.fire(this.xhr.statusText, this.xhr.status);
 			});
-			this.xhr.addEventListener("abort", e => {
+			this.xhr.addEventListener("abort", () => {
 				this.onError.fire('Request aborted.', CODE_ABORT);
 			});
 			for(let key in this.option.headers){
@@ -1634,32 +1723,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		link.parentNode.removeChild(link);
 	};
 
-	/**
-	 * 获取表单提交的数据
-	 * @description 不包含文件表单(后续HTML5版本可能会提供支持)
-	 * @param {HTMLFormElement} form
-	 * @returns {string}
-	 */
-	const getFormData = (form) => {
-		let data = {};
-		let elements = form.elements;
-
-		elements.forEach(function(item){
-			let name = item.name;
-			if(!data[name]){
-				data[name] = [];
-			}
-			if(item.type === 'radio'){
-				if(item.checked){
-					data[name].push(item.value);
-				}
-			}else if(item.getAttribute('name') !== undefined && item.getAttribute('value') !== undefined){
-				data[name].push(item.value);
-			}
-		});
-		return QueryString.stringify(data);
-	};
-
 	const QueryString = {
 		parse(str){
 			if(str[0] === '?'){
@@ -1678,16 +1741,22 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		},
 
 		stringify(data){
-			if(typeof (data) === 'string'){
-				return data;
-			}
-			let strList = [];
-			if(typeof (data) === 'object'){
-				for(let i in data){
-					strList.push(encodeURIComponent(i) + '=' + encodeURIComponent(data[i]));
+			if(typeof (data) === 'undefined' || typeof (data) !== 'object') return data
+			let query = [];
+			for(let param in data){
+				if(data.hasOwnProperty(param)){
+					if(typeof(data[param]) === 'object' && data[param].length){
+						data[param].forEach(item=>{
+							query.push(encodeURI(param + '=' + item));
+						});
+					}
+					else if(typeof(data[param]) === 'object');
+					else {
+						query.push(encodeURI(param + '=' + data[param]));
+					}
 				}
 			}
-			return strList.join('&');
+			return query.join('&')
 		}
 	};
 
@@ -1933,9 +2002,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		FullScreenModeIndex: 10000 //全屏类
 	};
 
-	let toastWrap = null;
-
-	const TOAST_CLS_MAIN = Theme.Namespace+'toast';
+	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_id = 'rotate111';
 
 	insertStyleSheet(`
@@ -1974,6 +2041,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 `);
 
+	let toastWrap = null;
+
+	const getWrapper = () => {
+		if(!toastWrap){
+			toastWrap = document.createElement('div');
+			document.body.appendChild(toastWrap);
+			toastWrap.className = TOAST_CLS_MAIN + '-wrap';
+		}
+		return toastWrap;
+	};
+
 	class Toast {
 		static TYPE_INFO = 'info';
 		static TYPE_SUCCESS = 'success';
@@ -1982,54 +2060,92 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static TYPE_LOADING = 'loading';
 
 		static DEFAULT_TIME_MAP = {
-			[this.TYPE_INFO]: 1500,
-			[this.TYPE_SUCCESS]: 1500,
-			[this.TYPE_WARNING]: 2000,
-			[this.TYPE_ERROR]: 2500,
-			[this.TYPE_LOADING]: 10000,
+			[Toast.TYPE_INFO]: 1500,
+			[Toast.TYPE_SUCCESS]: 1500,
+			[Toast.TYPE_WARNING]: 2000,
+			[Toast.TYPE_ERROR]: 2500,
+			[Toast.TYPE_LOADING]: 10000,
 		}
 
-		static showInfo = (msg) => {
-			this.showToast(msg, this.TYPE_INFO, this.DEFAULT_TIME_MAP[this.TYPE_INFO]);
-		};
-		static showSuccess = (msg) => {
-			this.showToast(msg, this.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[this.TYPE_SUCCESS]);
-		};
-		static showWarning = (msg) => {
-			this.showToast(msg, this.TYPE_WARNING, this.DEFAULT_TIME_MAP[this.TYPE_WARNING]);
-		};
-		static showError = (msg) => {
-			this.showToast(msg, this.TYPE_ERROR, this.DEFAULT_TIME_MAP[this.TYPE_ERROR]);
-		};
-		static showLoading = (msg) => {
-			this.showToast(msg, this.TYPE_LOADING, this.DEFAULT_TIME_MAP[this.TYPE_LOADING]);
-		};
+		message = '';
+		type = Toast.TYPE_INFO;
+		timeout = Toast.DEFAULT_TIME_MAP[Toast.TYPE];
 
-		static showToast = (msg, type = 'success', timeout = 1500) => {
-			if(!toastWrap){
-				toastWrap = document.createElement('div');
-				document.body.appendChild(toastWrap);
-				toastWrap.className = TOAST_CLS_MAIN+'-wrap';
+		dom = null;
+
+		/**
+		 * @param {String} message
+		 * @param {String} type
+		 * @param {Number} timeout 超时时间，0表示不关闭
+		 */
+		constructor(message, type = null, timeout = null){
+			this.message = message;
+			this.type = type || Toast.TYPE_SUCCESS;
+			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[Toast.TYPE] : timeout;
+			this.timeout = 1000000;
+		}
+
+		/**
+		 * 显示提示
+		 * @param {String} message
+		 * @param {String} type
+		 * @param {Number} timeout 超时时间，0表示不关闭
+		 * @returns
+		 */
+		static showToast = (message, type = null, timeout = null) => {
+			let toast = new Toast(message, type, timeout);
+			toast.show();
+			return toast;
+		}
+
+		static showInfo = (message) => {
+			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO]);
+		}
+
+		static showSuccess = (message) => {
+			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS]);
+		}
+
+		static showWarning = (message) => {
+			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING]);
+		}
+
+		static showError = (message) => {
+			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR]);
+		}
+
+		static showLoading = (message) => {
+			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING]);
+		}
+
+		show(){
+			let wrapper = getWrapper();
+			show(wrapper);
+			this.dom = document.createElement('span');
+			wrapper.appendChild(this.dom);
+			this.dom.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + this.type;
+			this.dom.innerHTML = `<span class="ctn">${this.message}</span><span class="close"></span><div></div>`;
+
+			let hide_tm = null;
+			if(this.timeout){
+				hide_tm = setTimeout(() => {
+					this.hide();
+				}, this.timeout);
 			}
-			toastWrap.style.display = 'block';
-			let toast = document.createElement('span');
-			toastWrap.appendChild(toast);
-			toast.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + type;
-			toast.innerHTML = `<span class="ctn">${msg}</span><span class="close"></span><div></div>`;
-			toast.querySelector('.close').addEventListener('click', e => {
-				this.hideToast(toast);
+
+			this.dom.querySelector('.close').addEventListener('click', ()=> {
+				hide_tm && clearTimeout(hide_tm);
+				this.hide();
 			});
-			setTimeout(() => {
-				this.hideToast(toast);
-			}, timeout);
-		};
+		}
 
-		static hideToast = (toast) => {
-			toast.parentNode.removeChild(toast);
-			if(toastWrap.childNodes.length === 0){
-				toastWrap.style.display = 'none';
+		hide(){
+			this.dom.parentNode.removeChild(this.dom);
+			let wrapper = getWrapper();
+			if(!wrapper.childNodes.length){
+				hide(wrapper);
 			}
-		};
+		}
 	}
 
 	/**
@@ -2118,7 +2234,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
 
-	const DLG_CLS_PREF = Theme.Namespace+'dialog';
+	const DLG_CLS_PREF = Theme.Namespace + 'dialog';
 	const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 	const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
@@ -2133,8 +2249,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * Content Type
 	 * @type {string}
 	 */
-	const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF+'-ctn-iframe';
-	const DLG_CTN_TYPE_HTML = DLG_CLS_PREF+'-ctn-html';
+	const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
+	const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 	insertStyleSheet(`
 	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:10000;position:fixed;}
@@ -2142,7 +2258,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:24px;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee;}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; padding:10px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:10px; text-align:right;}
@@ -2151,18 +2267,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
 	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
-`, Theme.Namespace+'dialog-style');
+`, Theme.Namespace + 'dialog-style');
 
 	/** @var Dialog[] **/
 	let dialogs = [];
 
-	let closeDlg =  (dlg, destroy = true) => {
+	let closeDlg = (dlg, destroy = true) => {
 		if(dlg.onClose.fire() === false){
 			console.warn('dialog close cancel by onClose events');
 			return false;
 		}
 		dialogs = dialogs.filter(d => dlg !== d);
-		let nextShow = dialogs.find(d=> d.active);
+		let nextShow = dialogs.find(d => d.active);
 		if(!nextShow){
 			nextShow = dialogs.find(d => d.visible);
 		}
@@ -2173,7 +2289,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		if(destroy){
 			dlg.dom.parentNode.removeChild(dlg.dom);
-		} else {
+		}else {
 			dlg.active = false;
 			dlg.visible = false;
 			dlg.dom.style.display = 'none';
@@ -2196,8 +2312,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			Masker.show();
 			dlg.visible = true;
 			dlg.dom.style.display = '';
-			dialogs.push(dlg);
-			DialogManager.switchToTop(dlg);
+			DialogManager.active(dlg);
 			dlg.onShow.fire();
 		},
 
@@ -2205,9 +2320,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * 激活对话框
 		 * @param {Dialog} dlg
 		 */
-		switchToTop(dlg){
+		active(dlg){
 			let zIndex = Dialog.DIALOG_INIT_Z_INDEX;
-			dialogs = dialogs.filter(d => {
+			dialogs.filter(d => {
 				if(d !== dlg){
 					d.active = false;
 					d.dom.classList.remove(DLG_CLS_ACTIVE);
@@ -2262,13 +2377,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @returns {Dialog}
 		 */
 		findById(id){
-			return dialogs.find(dlg => {return dlg.id === id});
+			return dialogs.find(dlg => {
+				return dlg.id === id
+			});
 		}
 	};
 
 	window['DialogManager'] = DialogManager;
 
-	const resolveContentType = (content)=>{
+	const resolveContentType = (content) => {
 		if(typeof (content) === 'object' && content.src){
 			return DLG_CTN_TYPE_IFRAME;
 		}
@@ -2280,7 +2397,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const domConstruct = (dlg) => {
 		let html = `
-		<div class="${DLG_CLS_PREF}" id="${dlg.config.id}" style="${dlg.config.width?'width:'+dlg.config.width+'px':''}">
+		<div class="${DLG_CLS_PREF}" id="${dlg.config.id}" style="${dlg.config.width ? 'width:' + dlg.config.width + 'px' : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : ''}
 	`;
@@ -2336,11 +2453,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
 			btn.addEventListener('click', cb.bind(dlg), false);
 		}
-
-		//bind active
-		dlg.dom.addEventListener('mousedown', e => {
-			DialogManager.switchToTop(dlg);
-		});
 
 		//bind move
 		if(dlg.config.moveAble){
@@ -2536,14 +2648,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param {Object} opt
 		 * @returns {Promise<unknown>}
 		 */
-		static confirm(title, content, opt={}){
+		static confirm(title, content, opt = {}){
 			return new Promise((resolve, reject) => {
 				let p = new Dialog({
 					title,
 					content,
 					buttons: [
-						{title: '确定', default: true, callback:()=>{p.close();resolve();}},
-						{title: '取消', callback:()=>{p.close(); reject && reject();}}
+						{
+							title: '确定', default: true, callback: () => {
+								p.close();
+								resolve();
+							}
+						},
+						{
+							title: '取消', callback: () => {
+								p.close();
+								reject && reject();
+							}
+						}
 					],
 					showTopCloseButton: false,
 					...opt
@@ -2559,13 +2681,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param {Object} opt
 		 * @returns {Promise<unknown>}
 		 */
-		static alert(title, content, opt={}){
+		static alert(title, content, opt = {}){
 			return new Promise(((resolve) => {
 				let p = new Dialog({
 					title,
 					content,
 					buttons: [
-						{title: '确定', default: true, callback:()=>{p.close(); resolve();}},
+						{
+							title: '确定', default: true, callback: () => {
+								p.close();
+								resolve();
+							}
+						},
 					],
 					showTopCloseButton: false,
 					...opt
@@ -2581,11 +2708,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param {Object} option
 		 * @returns {Promise<unknown>}
 		 */
-		static prompt(title, option={}){
+		static prompt(title, option = {}){
 			return new Promise((resolve, reject) => {
 				let p = new Dialog({
-					title:'请输入',
-					content:`<div style="padding:0 10px;">
+					title: '请输入',
+					content: `<div style="padding:0 10px;">
 							<p style="padding-bottom:0.5em;">${title}</p>
 							<input type="text" style="width:100%" class="${DLG_CLS_INPUT}" value="${escapeAttr(option.initValue || '')}"/>
 						</div>`,
@@ -2605,10 +2732,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					...option
 				});
 				p.onClose.listen(reject);
-				p.onShow.listen(()=>{
+				p.onShow.listen(() => {
 					let input = p.dom.querySelector('input');
 					input.focus();
-					input.addEventListener('keydown', e=>{
+					input.addEventListener('keydown', e => {
 						if(e.keyCode === KEYS.Enter){
 							if(resolve(input.value) === false){
 								return false;
@@ -3093,7 +3220,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		$selector.click(function(){
 			let $node = $(this);
 			let aim = $node.attr(opt.dataTag);
-			if(aim != '#top' && !$(aim).size()){
+			if(aim !== '#top' && !$(aim).size()){
 				return;
 			}
 
@@ -3618,12 +3745,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.entityToString = entityToString;
 	exports.escapeAttr = escapeAttr;
 	exports.escapeHtml = escapeHtml;
+	exports.eventDelegate = eventDelegate;
 	exports.exitFullScreen = exitFullScreen;
 	exports.fireEvent = fireEvent;
+	exports.formSerializeJSON = formSerializeJSON;
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
 	exports.getCurrentScript = getCurrentScript;
-	exports.getFormData = getFormData;
+	exports.getElementValue = getElementValue;
 	exports.getHash = getHash;
 	exports.getLibEntryScript = getLibEntryScript;
 	exports.getLibModule = getLibModule;

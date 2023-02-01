@@ -1,6 +1,6 @@
 import {between} from "./Math.js";
 import {KEYS} from "./Event.js";
-import {dimension2Style, strToPascalCase} from "./String.js";
+import {dimension2Style, strToPascalCase, cssSelectorEscape} from "./String.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -404,3 +404,69 @@ export const toggleFullScreen = (element)=>{
 export const isInFullScreen = ()=>{
 	return !!document.fullscreenElement;
 }
+
+/**
+ * 获取form元素值。
+ * 该函数过滤元素disabled情况，但不判断name是否存在
+ * 针对多重选择，提取数据格式为数组
+ * @param {HTMLFormElement} el
+ * @returns {String|Array|null} 元素值，发生错误时返回null
+ */
+export const getElementValue = (el) => {
+	if(el.disabled){
+		return null;
+	}
+	if(el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')){
+		return el.checked ? el.value : null;
+	}
+	if(el.tagName === 'SELECT' && el.multiple){
+		let vs = [];
+		el.querySelectorAll('option[selected]').forEach(item=>{
+			vs.push(item.value);
+		});
+		return vs;
+	}
+	return el.value;
+};
+
+/**
+ * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+ * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
+ * @param {Element} dom
+ * @param {Boolean} validate
+ * @returns {Object|null} 如果校验失败，则返回null
+ */
+export const formSerializeJSON = (dom, validate = true) => {
+	let els = dom.querySelectorAll('input,textarea,select');
+	let data = {};
+	let err = Array.from(els).every(el => {
+		if(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.type)){
+			return true;
+		}
+		if(el.disabled || !el.name){
+			console.warn('elemment no legal for fetch form data');
+			return true;
+		}
+		if(validate && !el.checkValidity()){
+			el.reportValidity();
+			return false;
+		}
+		let name = el.name;
+		let value = getElementValue(el);
+		if(value === null){
+			return true;
+		}
+		let isArr = dom.querySelectorAll(`input[name=${cssSelectorEscape(name)}]:not([type=radio]),textarea[name=${cssSelectorEscape(name)}],select[name=${cssSelectorEscape(name)}]`).length > 1;
+		if(isArr){
+			if(data[name] === undefined){
+				data[name] = [value];
+			} else {
+				data[name].push(value);
+			}
+		} else {
+			data[name] = value;
+		}
+		return true;
+	});
+	return err === false ? null : data;
+};
