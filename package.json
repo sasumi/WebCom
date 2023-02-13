@@ -1,30 +1,31 @@
 {
-  "name": "lfjs-webcom",
-  "version": "1.0.0",
-  "description": "[TOC]",
-  "main": "dist/webcom.es.js",
-  "scripts": {
-    "build": "rollup -c",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "sasumi",
-  "license": "MIT",
-  "devDependencies": {
-    "base64-image-loader": "^1.2.0",
-    "css-content-loader": "^1.0.0",
-    "webpack": "^2.2.0-rc.3",
-    "webpack-cli": "^4.9.2"
-  },
-  "directories": {
-    "test": "test"
-  },
-  "dependencies": {},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sasumi/WebCom.git"
-  },
-  "bugs": {
-    "url": "https://github.com/sasumi/WebCom/issues"
-  },
-  "homepage": "https://github.com/sasumi/WebCom#readme"
+	"name": "lfjs-webcom",
+	"version": "1.0.0",
+	"description": "[TOC]",
+	"main": "dist/webcom.es.js",
+	"type": "module",
+	"scripts": {
+		"build": "rollup -c",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "sasumi",
+	"license": "MIT",
+	"devDependencies": {
+		"base64-image-loader": "^1.2.0",
+		"css-content-loader": "^1.0.0",
+		"webpack": "^2.2.0-rc.3",
+		"webpack-cli": "^4.9.2"
+	},
+	"directories": {
+		"test": "test"
+	},
+	"dependencies": {},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sasumi/WebCom.git"
+	},
+	"bugs": {
+		"url": "https://github.com/sasumi/WebCom/issues"
+	},
+	"homepage": "https://github.com/sasumi/WebCom#readme"
 }

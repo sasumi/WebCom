@@ -1,7 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,7 +13,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -316,28 +315,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {string} str
 	 * @returns {string}
 	 */
-
 	const escapeHtml = str => {
-		return str
+		return String(str)
 			.replace(/&/g, "&amp;")
 			.replace(/</g, "&lt;")
 			.replace(/>/g, "&gt;")
 			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#039;");
+			.replace(/'/g, "&#039;")
+			.replace(/[\r\n]/g, '<br/>');
 	};
 
 	/**
 	 * 反转义HTML
-	 * @param {String} str
+	 * @param {String} html
 	 * @returns {string}
 	 */
-	const unescapeHtml = (str)=>{
-		return String(str)
+	const unescapeHtml = (html)=>{
+		return String(html)
 			.replace(/&quot;/g, '"')
 			.replace(/&#39;/g, "'")
 			.replace(/&lt;/g, '<')
 			.replace(/&gt;/g, '>')
-			.replace(/&amp;/g, '&');
+			.replace(/&amp;/g, '&')
+			.replace(/<br.*>/, "\n");
 	};
 
 	/**
@@ -1887,7 +1887,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -3804,7 +3804,5 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

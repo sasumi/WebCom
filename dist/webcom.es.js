@@ -296,28 +296,29 @@ const KEYS = {
  * @param {string} str
  * @returns {string}
  */
-
 const escapeHtml = str => {
-	return str
+	return String(str)
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;");
+		.replace(/'/g, "&#039;")
+		.replace(/[\r\n]/g, '<br/>');
 };
 
 /**
  * 反转义HTML
- * @param {String} str
+ * @param {String} html
  * @returns {string}
  */
-const unescapeHtml = (str)=>{
-	return String(str)
+const unescapeHtml = (html)=>{
+	return String(html)
 		.replace(/&quot;/g, '"')
 		.replace(/&#39;/g, "'")
 		.replace(/&lt;/g, '<')
 		.replace(/&gt;/g, '>')
-		.replace(/&amp;/g, '&');
+		.replace(/&amp;/g, '&')
+		.replace(/<br.*>/, "\n");
 };
 
 /**

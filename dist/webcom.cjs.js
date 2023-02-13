@@ -1,25 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
-	var n = Object.create(null);
-	if (e) {
-		Object.keys(e).forEach(function (k) {
-			if (k !== 'default') {
-				var d = Object.getOwnPropertyDescriptor(e, k);
-				Object.defineProperty(n, k, d.get ? d : {
-					enumerable: true,
-					get: function () { return e[k]; }
-				});
-			}
-		});
-	}
-	n["default"] = e;
-	return Object.freeze(n);
-}
-
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -318,28 +298,29 @@ const KEYS = {
  * @param {string} str
  * @returns {string}
  */
-
 const escapeHtml = str => {
-	return str
+	return String(str)
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;");
+		.replace(/'/g, "&#039;")
+		.replace(/[\r\n]/g, '<br/>');
 };
 
 /**
  * 反转义HTML
- * @param {String} str
+ * @param {String} html
  * @returns {string}
  */
-const unescapeHtml = (str)=>{
-	return String(str)
+const unescapeHtml = (html)=>{
+	return String(html)
 		.replace(/&quot;/g, '"')
 		.replace(/&#39;/g, "'")
 		.replace(/&lt;/g, '<')
 		.replace(/&gt;/g, '>')
-		.replace(/&amp;/g, '&');
+		.replace(/&amp;/g, '&')
+		.replace(/<br.*>/, "\n");
 };
 
 /**
@@ -1889,7 +1870,7 @@ const getLibEntryScript = ()=>{
  */
 const getLibModule = async () => {
 	let script = getLibEntryScript();
-	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
+	return await import(script);
 };
 
 /**
