@@ -388,6 +388,10 @@ export class Dialog {
 		DialogManager.close(this);
 	}
 
+	updatePosition(){
+		updatePosition(this);
+	}
+
 	/**
 	 * 显示对话框
 	 * @param {String} title

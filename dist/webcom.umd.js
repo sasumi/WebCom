@@ -2603,6 +2603,10 @@
 			DialogManager.close(this);
 		}
 
+		updatePosition(){
+			updatePosition$1(this);
+		}
+
 		/**
 		 * 显示对话框
 		 * @param {String} title
@@ -3552,12 +3556,22 @@
 			}
 		}
 
+		/**
+		 * 快速显示Tip
+		 * @param {String} content
+		 * @param {HTMLElement} relNode
+		 * @param option
+		 * @returns {Tip}
+		 */
 		static show(content, relNode, option = {}){
 			let tip = new Tip(content, relNode, option);
 			tip.show();
 			return tip;
 		}
 
+		/**
+		 * 隐藏所有Tip
+		 */
 		static hideAll(){
 			for(let i in TIP_COLLECTION){
 				TIP_COLLECTION[i].hide();
@@ -3599,10 +3613,10 @@
 		/**
 		 * 通过异步获取数据方式绑定显示Tip
 		 * @param {HTMLElement} relNode
-		 * @param {Promise} dataFetcher
+		 * @param {Function} dataFetcher 返回 Promise 对象
 		 * @param {Object} option
 		 */
-		bindAsync(relNode, dataFetcher, option = {}){
+		static bindAsync(relNode, dataFetcher, option = {}){
 			let guid = relNode.getAttribute(`data-${GUID_BIND_KEY}`);
 			let obj = TIP_COLLECTION[guid];
 			if(!obj){
@@ -3613,7 +3627,7 @@
 						return;
 					}
 					loading = true;
-					dataFetcher.then(rspHtml => {
+					dataFetcher().then(rspHtml => {
 						loading = false;
 						obj.setContent(rspHtml);
 					}, error => {
