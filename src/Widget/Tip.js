@@ -1,7 +1,6 @@
-import {createDomByHtml, getRegion, hide, insertStyleSheet, rectInLayout, show} from "../Lang/Dom.js";
+import {createDomByHtml, getDomOffset, getRegion, hide, insertStyleSheet, rectInLayout, show} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
-import {KEYS} from "../Lang/Event.js";
-import {BizEvent} from "../Lang/Event.js";
+import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
 
@@ -164,8 +163,9 @@ const updatePosition = function(){
 	let direction = this.option.direction;
 	let width = this.dom.offsetWidth;
 	let height = this.dom.offsetHeight;
-	let px = this.relNode.offsetLeft;
-	let py = this.relNode.offsetTop;
+	let pos = getDomOffset(this.relNode);
+	let px = pos.left;
+	let py = pos.top;
 	let rh = this.relNode.offsetHeight;
 	let rw = this.relNode.offsetWidth;
 	if(direction === 'auto'){
@@ -180,13 +180,16 @@ const updatePosition = function(){
 export class Tip {
 	guid = null;
 	relNode = null;
+
+	/** @var {HtmlElement} dom **/
 	dom = null;
 	option = {
 		showCloseButton: false,
-		timeout: 0,
 		width: 'auto',
 		direction: 'auto',
 	};
+
+	_hideTm = null;
 
 	onShow = new BizEvent(true);
 	onHide = new BizEvent(true);
@@ -224,15 +227,13 @@ export class Tip {
 	 * 去重判断，避免onShow时间多次触发
 	 */
 	show(){
-		console.log('show');
 		show(this.dom);
 		updatePosition.call(this);
-		this.option.timeout && setTimeout(this.hide, this.option.timeout);
 		this.onShow.fire(this);
 	}
 
 	hide(){
-		console.log('hide');
+		console.log('hide call');
 		hide(this.dom);
 		this.onHide.fire(this);
 	}
@@ -273,32 +274,34 @@ export class Tip {
 	 * 绑定节点
 	 * @param {String} content
 	 * @param {HTMLElement} relNode
-	 * @param {String} triggerEventType
-	 * @param option
+	 * @param {Object} option
 	 * @return {Tip}
 	 */
-	static bindNode(content, relNode, triggerEventType = 'hover', option = {}){
+	static bindNode(content, relNode, option = {}){
 		let guid = relNode.getAttribute(GUID_BIND_KEY);
-		let obj = TIP_COLLECTION[guid];
-		if(!obj){
-			let tm;
-			let hide = function(){
-				tm = setTimeout(function(){
-					obj && obj.hide();
-				}, 10);
+		let tipObj = TIP_COLLECTION[guid];
+		if(!tipObj){
+			tipObj = new Tip(content, relNode, option);
+			relNode.setAttribute(GUID_BIND_KEY, tipObj.guid);
+			relNode.addEventListener('mouseover', ()=>{
+				tipObj.show();
+			});
+			let tm = null;
+			let hide = ()=>{
+				tm && clearTimeout(tm);
+				tm = setTimeout(()=>{
+					tipObj.hide();
+				}, 100);
 			};
-
-			let show = function(){
-				clearTimeout(tm);
-				obj.show();
-			};
-
-			obj = new Tip(content, relNode, option);
-			relNode.setAttribute(GUID_BIND_KEY, obj.guid);
-			relNode.addEventListener('mouseover',show);
+			let show = ()=>{
+				tm && clearTimeout(tm);
+				tipObj.show();
+			}
 			relNode.addEventListener('mouseout', hide);
+			tipObj.dom.addEventListener('mouseout', hide);
+			tipObj.dom.addEventListener('mouseover', show);
 		}
-		return obj;
+		return tipObj;
 	}
 
 	/**

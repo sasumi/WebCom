@@ -780,6 +780,19 @@
 		toShow ? show(dom) : hide(dom);
 	};
 
+	const getDomOffset = (target)=> {
+		let top = 0, left = 0;
+		while(target.offsetParent) {
+			top += target.offsetTop;
+			left += target.offsetLeft;
+			target = target.offsetParent;
+		}
+		return {
+			top: top,
+			left: left,
+		}
+	};
+
 	/**
 	 * 主动触发事件
 	 * @param {HTMLElement} el
@@ -3473,8 +3486,9 @@
 		let direction = this.option.direction;
 		let width = this.dom.offsetWidth;
 		let height = this.dom.offsetHeight;
-		let px = this.relNode.offsetLeft;
-		let py = this.relNode.offsetTop;
+		let pos = getDomOffset(this.relNode);
+		let px = pos.left;
+		let py = pos.top;
 		let rh = this.relNode.offsetHeight;
 		let rw = this.relNode.offsetWidth;
 		if(direction === 'auto'){
@@ -3489,13 +3503,16 @@
 	class Tip {
 		guid = null;
 		relNode = null;
+
+		/** @var {HtmlElement} dom **/
 		dom = null;
 		option = {
 			showCloseButton: false,
-			timeout: 0,
 			width: 'auto',
 			direction: 'auto',
 		};
+
+		_hideTm = null;
 
 		onShow = new BizEvent(true);
 		onHide = new BizEvent(true);
@@ -3533,15 +3550,13 @@
 		 * 去重判断，避免onShow时间多次触发
 		 */
 		show(){
-			console.log('show');
 			show(this.dom);
 			updatePosition.call(this);
-			this.option.timeout && setTimeout(this.hide, this.option.timeout);
 			this.onShow.fire(this);
 		}
 
 		hide(){
-			console.log('hide');
+			console.log('hide call');
 			hide(this.dom);
 			this.onHide.fire(this);
 		}
@@ -3582,32 +3597,34 @@
 		 * 绑定节点
 		 * @param {String} content
 		 * @param {HTMLElement} relNode
-		 * @param {String} triggerEventType
-		 * @param option
+		 * @param {Object} option
 		 * @return {Tip}
 		 */
-		static bindNode(content, relNode, triggerEventType = 'hover', option = {}){
+		static bindNode(content, relNode, option = {}){
 			let guid = relNode.getAttribute(GUID_BIND_KEY);
-			let obj = TIP_COLLECTION[guid];
-			if(!obj){
-				let tm;
-				let hide = function(){
-					tm = setTimeout(function(){
-						obj && obj.hide();
-					}, 10);
+			let tipObj = TIP_COLLECTION[guid];
+			if(!tipObj){
+				tipObj = new Tip(content, relNode, option);
+				relNode.setAttribute(GUID_BIND_KEY, tipObj.guid);
+				relNode.addEventListener('mouseover', ()=>{
+					tipObj.show();
+				});
+				let tm = null;
+				let hide = ()=>{
+					tm && clearTimeout(tm);
+					tm = setTimeout(()=>{
+						tipObj.hide();
+					}, 100);
 				};
-
-				let show = function(){
-					clearTimeout(tm);
-					obj.show();
+				let show = ()=>{
+					tm && clearTimeout(tm);
+					tipObj.show();
 				};
-
-				obj = new Tip(content, relNode, option);
-				relNode.setAttribute(GUID_BIND_KEY, obj.guid);
-				relNode.addEventListener('mouseover',show);
 				relNode.addEventListener('mouseout', hide);
+				tipObj.dom.addEventListener('mouseout', hide);
+				tipObj.dom.addEventListener('mouseover', show);
 			}
-			return obj;
+			return tipObj;
 		}
 
 		/**
@@ -3752,6 +3769,7 @@
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
 	exports.getCurrentScript = getCurrentScript;
+	exports.getDomOffset = getDomOffset;
 	exports.getElementValue = getElementValue;
 	exports.getHash = getHash;
 	exports.getLibEntryScript = getLibEntryScript;
@@ -3805,5 +3823,7 @@
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
 	exports.versionCompare = versionCompare;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

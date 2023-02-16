@@ -774,6 +774,19 @@ const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
 };
 
+const getDomOffset = (target)=> {
+	let top = 0, left = 0;
+	while(target.offsetParent) {
+		top += target.offsetTop;
+		left += target.offsetLeft;
+		target = target.offsetParent;
+	}
+	return {
+		top: top,
+		left: left,
+	}
+};
+
 /**
  * 主动触发事件
  * @param {HTMLElement} el
@@ -3467,8 +3480,9 @@ const updatePosition = function(){
 	let direction = this.option.direction;
 	let width = this.dom.offsetWidth;
 	let height = this.dom.offsetHeight;
-	let px = this.relNode.offsetLeft;
-	let py = this.relNode.offsetTop;
+	let pos = getDomOffset(this.relNode);
+	let px = pos.left;
+	let py = pos.top;
 	let rh = this.relNode.offsetHeight;
 	let rw = this.relNode.offsetWidth;
 	if(direction === 'auto'){
@@ -3483,13 +3497,16 @@ const updatePosition = function(){
 class Tip {
 	guid = null;
 	relNode = null;
+
+	/** @var {HtmlElement} dom **/
 	dom = null;
 	option = {
 		showCloseButton: false,
-		timeout: 0,
 		width: 'auto',
 		direction: 'auto',
 	};
+
+	_hideTm = null;
 
 	onShow = new BizEvent(true);
 	onHide = new BizEvent(true);
@@ -3527,15 +3544,13 @@ class Tip {
 	 * 去重判断，避免onShow时间多次触发
 	 */
 	show(){
-		console.log('show');
 		show(this.dom);
 		updatePosition.call(this);
-		this.option.timeout && setTimeout(this.hide, this.option.timeout);
 		this.onShow.fire(this);
 	}
 
 	hide(){
-		console.log('hide');
+		console.log('hide call');
 		hide(this.dom);
 		this.onHide.fire(this);
 	}
@@ -3576,32 +3591,34 @@ class Tip {
 	 * 绑定节点
 	 * @param {String} content
 	 * @param {HTMLElement} relNode
-	 * @param {String} triggerEventType
-	 * @param option
+	 * @param {Object} option
 	 * @return {Tip}
 	 */
-	static bindNode(content, relNode, triggerEventType = 'hover', option = {}){
+	static bindNode(content, relNode, option = {}){
 		let guid = relNode.getAttribute(GUID_BIND_KEY);
-		let obj = TIP_COLLECTION[guid];
-		if(!obj){
-			let tm;
-			let hide = function(){
-				tm = setTimeout(function(){
-					obj && obj.hide();
-				}, 10);
+		let tipObj = TIP_COLLECTION[guid];
+		if(!tipObj){
+			tipObj = new Tip(content, relNode, option);
+			relNode.setAttribute(GUID_BIND_KEY, tipObj.guid);
+			relNode.addEventListener('mouseover', ()=>{
+				tipObj.show();
+			});
+			let tm = null;
+			let hide = ()=>{
+				tm && clearTimeout(tm);
+				tm = setTimeout(()=>{
+					tipObj.hide();
+				}, 100);
 			};
-
-			let show = function(){
-				clearTimeout(tm);
-				obj.show();
+			let show = ()=>{
+				tm && clearTimeout(tm);
+				tipObj.show();
 			};
-
-			obj = new Tip(content, relNode, option);
-			relNode.setAttribute(GUID_BIND_KEY, obj.guid);
-			relNode.addEventListener('mouseover',show);
 			relNode.addEventListener('mouseout', hide);
+			tipObj.dom.addEventListener('mouseout', hide);
+			tipObj.dom.addEventListener('mouseover', show);
 		}
-		return obj;
+		return tipObj;
 	}
 
 	/**
@@ -3685,4 +3702,4 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, fireEvent, formSerializeJSON, formatSize, frequencyControl, getCurrentScript, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, insertStyleSheet, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, loadScript, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };
+export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, fireEvent, formSerializeJSON, formatSize, frequencyControl, getCurrentScript, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, insertStyleSheet, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, loadScript, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };

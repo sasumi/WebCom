@@ -1,11 +1,5 @@
-import {
-	hide,
-	insertStyleSheet,
-	show
-} from "./../Lang/Dom.js"
-import {
-	Theme
-} from "./Theme.js";
+import {hide, insertStyleSheet, show} from "./../Lang/Dom.js"
+import {Theme} from "./Theme.js";
 
 const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 const rotate_id = 'rotate111';
