@@ -768,10 +768,18 @@ const hide = (dom) => {
 	dom.style.display = 'none';
 };
 
+/**
+ * @param {HTMLElement} dom
+ * @param dom
+ */
 const show = (dom) => {
 	dom.style.display = '';
 };
 
+/**
+ * @param {HTMLElement} dom
+ * @param toShow
+ */
 const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
 };
@@ -789,6 +797,15 @@ const fireEvent = (el, event) => {
 	}else {
 		el.fireEvent("on" + event);
 	}
+};
+
+/**
+ * 判断元素是否为按钮
+ * @param {HTMLElement} el
+ */
+const isButton = (el)=>{
+	return el.tagName === 'BUTTON' ||
+		(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
 };
 
 /**
@@ -1083,7 +1100,7 @@ const createDomByHtml = (html, parentNode = null) => {
 };
 
 /**
- * Force repaint of element
+ * 强制重绘元素
  * @param {HTMLElement} element
  * @param {Number} delay
  */
@@ -1180,33 +1197,54 @@ const getElementValue = (el) => {
 };
 
 /**
+ * 表单元素校验
+ * @param {HTMLElement} dom
+ * @return boolean 是否校验通过
+ */
+const formValidate = (dom)=>{
+	let els = dom.querySelectorAll('input,textarea,select');
+	let pass = true;
+	els = Array.from(els).filter(el => !isButton(el));
+	Array.from(els).every(el => {
+		if(el.disabled){
+			return true;
+		}
+		if(!el.checkValidity()){
+			el.reportValidity();
+			pass = false;
+			return false;
+		}
+		return true;
+	});
+	return pass;
+};
+
+/**
  * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
  * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
- * @param {Element} dom
+ * @param {HTMLElement} dom
  * @param {Boolean} validate
  * @returns {Object|null} 如果校验失败，则返回null
  */
 const formSerializeJSON = (dom, validate = true) => {
+	if(!formValidate(dom)){
+		return null;
+	}
 	let els = dom.querySelectorAll('input,textarea,select');
 	let data = {};
+	els = Array.from(els).filter(el => !isButton(el));
 	let err = Array.from(els).every(el => {
-		if(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.type)){
+		if(!el.name){
+			console.warn('element no legal for fetch form data');
 			return true;
-		}
-		if(el.disabled || !el.name){
-			console.warn('elemment no legal for fetch form data');
-			return true;
-		}
-		if(validate && !el.checkValidity()){
-			el.reportValidity();
-			return false;
 		}
 		let name = el.name;
 		let value = getElementValue(el);
 		if(value === null){
 			return true;
 		}
-		let isArr = dom.querySelectorAll(`input[name=${cssSelectorEscape(name)}]:not([type=radio]),textarea[name=${cssSelectorEscape(name)}],select[name=${cssSelectorEscape(name)}]`).length > 1;
+		let name_selector = cssSelectorEscape(name);
+		let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]),textarea[name=${name_selector}],select[name=${name_selector}]`).length > 1;
 		if(isArr){
 			if(data[name] === undefined){
 				data[name] = [value];
@@ -3745,6 +3783,7 @@ exports.eventDelegate = eventDelegate;
 exports.exitFullScreen = exitFullScreen;
 exports.fireEvent = fireEvent;
 exports.formSerializeJSON = formSerializeJSON;
+exports.formValidate = formValidate;
 exports.formatSize = formatSize;
 exports.frequencyControl = frequencyControl;
 exports.getCurrentScript = getCurrentScript;
@@ -3762,6 +3801,7 @@ exports.hide = hide;
 exports.highlightText = highlightText;
 exports.html2Text = html2Text;
 exports.insertStyleSheet = insertStyleSheet;
+exports.isButton = isButton;
 exports.isElement = isElement;
 exports.isInFullScreen = isInFullScreen;
 exports.isNum = isNum;
