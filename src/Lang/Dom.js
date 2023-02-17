@@ -33,6 +33,19 @@ export const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
 }
 
+export const getDomOffset = (target)=> {
+	let top = 0, left = 0
+	while(target.offsetParent) {
+		top += target.offsetTop
+		left += target.offsetLeft
+		target = target.offsetParent
+	}
+	return {
+		top: top,
+		left: left,
+	}
+}
+
 /**
  * 主动触发事件
  * @param {HTMLElement} el

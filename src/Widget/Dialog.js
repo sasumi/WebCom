@@ -1,8 +1,7 @@
-import {escapeAttr, dimension2Style} from "../Lang/String.js";
+import {dimension2Style, escapeAttr} from "../Lang/String.js";
 import {buttonActiveBind, createDomByHtml, domContained, insertStyleSheet, keepRectCenter} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
-import {KEYS} from "../Lang/Event.js";
-import {BizEvent} from "../Lang/Event.js";
+import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 
 const DLG_CLS_PREF = Theme.Namespace + 'dialog';
