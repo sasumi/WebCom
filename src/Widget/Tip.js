@@ -17,60 +17,60 @@ insertStyleSheet(`
 	.${NS}-close:hover {color:black;}
 	
 	/** top **/
-	.${NS}-0, .${NS}-1, .${NS}-11 {padding-top:7px;}
-	.${NS}-11 .${NS}-arrow,
-	.${NS}-0 .${NS}-arrow,
-	.${NS}-1 .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS}-0 .${NS}-arrow-pt,
-	.${NS}-11 .${NS}-arrow-pt,
-	.${NS}-1 .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
-	.${NS}-11 .${NS}-arrow {left:25%;}
-	.${NS}-0 .${NS}-arrow {left:50%;}
-	.${NS}-1 .${NS}-arrow {left:75%;}
+	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
 	
 	/** right **/
-	.${NS}-8, .${NS}-9, .${NS}-10 {padding-left:7px;}
-	.${NS}-8 .${NS}-close,
-	.${NS}-9 .${NS}-close,
-	.${NS}-10 .${NS}-close {top:3px;}
-	.${NS}-8 .${NS}-arrow,
-	.${NS}-9 .${NS}-arrow,
-	.${NS}-10 .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS}-8 .${NS}-arrow-pt,
-	.${NS}-9 .${NS}-arrow-pt,
-	.${NS}-10 .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
-	.${NS}-8 .${NS}-arrow {top:75%}
-	.${NS}-9 .${NS}-arrow {top:50%}
-	.${NS}-10 .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
 	
 	/** bottom **/
-	.${NS}-5, .${NS}-6, .${NS}-7 {padding-bottom:7px;}
-	.${NS}-5 .${NS}-close,
-	.${NS}-6 .${NS}-close,
-	.${NS}-7 .${NS}-close {top:3px;}
-	.${NS}-5 .${NS}-arrow,
-	.${NS}-6 .${NS}-arrow,
-	.${NS}-7 .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS}-5 .${NS}-arrow-pt,
-	.${NS}-6 .${NS}-arrow-pt,
-	.${NS}-7 .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
-	.${NS}-7 .${NS}-arrow {left:30px}
-	.${NS}-5 .${NS}-arrow {left:75%}
+	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
 	
 	/** left **/
-	.${NS}-2, .${NS}-3, .${NS}-4 {padding-right:7px;}
-	.${NS}-2 .${NS}-close,
-	.${NS}-3 .${NS}-close,
-	.${NS}-4 .${NS}-close {right:13px; top:3px;}
-	.${NS}-2 .${NS}-arrow,
-	.${NS}-3 .${NS}-arrow,
-	.${NS}-4 .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS}-2 .${NS}-arrow-pt,
-	.${NS}-3 .${NS}-arrow-pt,
-	.${NS}-4 .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
-	.${NS}-2 .${NS}-arrow {top:25%}
-	.${NS}-3 .${NS}-arrow {top:50%}
-	.${NS}-4 .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
 `, Theme.Namespace + 'tip-style');
 
 /**
@@ -171,7 +171,7 @@ const updatePosition = function(){
 	if(direction === 'auto'){
 		direction = calDir.call(this);
 	}
-	this.dom.setAttribute('class', `${NS}-container-wrap ${NS}-${direction}`);
+	this.dom.setAttribute('data-tip-dir',direction);
 	let offset = getDirOffset(direction, width, height, rh, rw);
 	this.dom.style.left = dimension2Style(px + offset[0]);
 	this.dom.style.top = dimension2Style(py + offset[1]);

@@ -1,7 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,7 +13,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -91,512 +90,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return rst;
 	};
 
-<<<<<<< HEAD
-	const getViewWidth = () => {
-		return window.innerWidth;
-	};
-
-	const getViewHeight = () => {
-		return window.innerHeight;
-	};
-
-	/**
-	 * @param {HTMLElement} dom
-	 */
-	const hide = (dom) => {
-		dom.style.display = 'none';
-	};
-
-	/**
-	 * @param {HTMLElement} dom
-	 * @param dom
-	 */
-	const show = (dom) => {
-		dom.style.display = '';
-	};
-
-	/**
-	 * @param {HTMLElement} dom
-	 * @param toShow
-	 */
-	const toggle = (dom, toShow) => {
-		toShow ? show(dom) : hide(dom);
-	};
-
-	/**
-	 * 主动触发事件
-	 * @param {HTMLElement} el
-	 * @param event
-	 */
-	const fireEvent = (el, event) => {
-		if("createEvent" in document){
-			let evo = document.createEvent("HTMLEvents");
-			evo.initEvent(event, false, true);
-			el.dispatchEvent(evo);
-		}else {
-			el.fireEvent("on" + event);
-		}
-	};
-
-	/**
-	 * 判断元素是否为按钮
-	 * @param {HTMLElement} el
-	 */
-	const isButton = (el)=>{
-		return el.tagName === 'BUTTON' ||
-			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
-	};
-
-	/**
-	 * 检测child节点是否在container节点列表里面
-	 * @param {HTMLElement|HTMLElement[]|String} contains
-	 * @param {Node} child
-	 * @param {Boolean} includeEqual 是否包括等于关系
-	 * @returns {boolean}
-	 */
-	const domContained = (contains, child, includeEqual = false) => {
-		if(typeof contains === 'string'){
-			contains = document.querySelectorAll(contains);
-		}else if(Array.isArray(contains)); else if(typeof contains === 'object'){
-			contains = [contains];
-		}
-		for(let i = 0; i < contains.length; i++){
-			if((includeEqual ? contains[i] === child : false) ||
-				contains[i].compareDocumentPosition(child) & 16){
-				return true;
-			}
-		}
-		return false;
-	};
-
-	/**
-	 * 绑定按钮触发（包括鼠标点击、键盘回车、键盘空格）
-	 * @param {HTMLElement} button
-	 * @param {CallableFunction} payload
-	 * @param {Boolean} cancelBubble
-	 */
-	const buttonActiveBind = (button, payload, cancelBubble = false) => {
-		button.addEventListener('click', payload, cancelBubble);
-		button.addEventListener('keyup', e => {
-			console.log(e);
-			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-				payload.call(button);
-			}
-		}, cancelBubble);
-	};
-
-	/**
-	 * 获取中间对齐布局
-	 * @param width
-	 * @param height
-	 * @param {Object} containerDimension
-	 * @param {Number} containerDimension.left
-	 * @param {Number} containerDimension.top
-	 * @param {Number} containerDimension.width
-	 * @param {Number} containerDimension.height
-	 * @return {Array} dimension [dimension.left, dimension.top]
-	 */
-	const keepRectCenter = (width, height, containerDimension = {
-		left: 0,
-		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight
-	}) => {
-		return [
-			Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
-			Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
-		];
-	};
-
-	/**
-	 * 保持对象尽量在容器内部，优先保证上边、左边显示
-	 * @param {Object} objDim
-	 * @param {Number} objDim.left
-	 * @param {Number} objDim.top
-	 * @param {Number} objDim.width
-	 * @param {Number} objDim.height
-	 * @param {Object} ctnDim
-	 * @param {Number} ctnDim.left
-	 * @param {Number} ctnDim.top
-	 * @param {Number} ctnDim.width
-	 * @param {Number} ctnDim.height
-	 * {Array} dimension [dimension.left, dimension.top]
-	 */
-	const keepRectInContainer = (objDim, ctnDim = {
-		left: 0,
-		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight
-	}) => {
-		let ret = {left: objDim.left, top: objDim.top};
-
-		//oversize
-		if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
-			return ret;
-		}
-
-		//右边超出
-		if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
-			ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
-		}
-
-		//底边超出
-		if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
-			ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
-		}
-
-		//优先保证左边露出
-		if(objDim.left < ctnDim.left){
-			ret.left = ctnDim.left;
-		}
-
-		//优先保证上边露出
-		if(objDim.top < ctnDim.top){
-			ret.top = ctnDim.top;
-		}
-		return ret;
-	};
-
-	/**
-	 * 矩形相交（包括边重叠情况）
-	 * @param {Object} rect1
-	 * @param {Object} rect2
-	 * @returns {boolean}
-	 */
-	const rectAssoc = (rect1, rect2) => {
-		if(rect1.left <= rect2.left){
-			return (rect1.left + rect1.width) >= rect2.left && (
-				between(rect2.top, rect1.top, rect1.top + rect1.height) ||
-				between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
-				rect2.top >= rect1.top && rect2.height >= rect1.height
-			);
-		}else {
-			return (rect2.left + rect2.width) >= rect1.left && (
-				between(rect1.top, rect2.top, rect2.top + rect2.height) ||
-				between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
-				rect1.top >= rect2.top && rect1.height >= rect2.height
-			);
-		}
-	};
-
-
-	/**
-	 * isElement
-	 * @param {*} obj
-	 * @returns {boolean}
-	 */
-	const isElement = (obj) => {
-		try{
-			//Using W3 DOM2 (works for FF, Opera and Chrome)
-			return obj instanceof HTMLElement;
-		}catch(e){
-			//Browsers not supporting W3 DOM2 don't have HTMLElement and
-			//an exception is thrown and we end up here. Testing some
-			//properties that all elements have. (works on IE7)
-			return (typeof obj === "object") &&
-				(obj.nodeType === 1) && (typeof obj.style === "object") &&
-				(typeof obj.ownerDocument === "object");
-		}
-	};
-
-	let _c = {};
-
-	/**
-	 * 挂载css文件
-	 * @param {String} file
-	 * @param {Boolean} forceReload 是否强制重新挂载，缺省不重复挂载
-	 */
-	const loadCss = (file, forceReload = false) => {
-		if(!forceReload && _c[file]){
-			return _c[file];
-		}
-		_c[file] = new Promise((resolve, reject)=>{
-			let link = document.createElement('link');
-			link.rel = "stylesheet";
-			link.href = file;
-			link.onload = ()=>{resolve();};
-			link.onerror = ()=>{reject();};
-			document.head.append(link);
-		});
-		return _c[file];
-	};
-
-	const loadScript = (file, forceReload = false)=>{
-		if(!forceReload && _c[file]){
-			return _c[file];
-		}
-		_c[file] = new Promise((resolve, reject)=>{
-			let script = document.createElement('script');
-			script.src = file;
-			script.onload = ()=>{resolve();};
-			script.onerror = ()=>{reject();};
-			document.head.append(script);
-		});
-		return _c[file];
-	};
-
-	/**
-	 * insert style sheet in head
-	 * @param {String} styleSheetStr
-	 * @param {String} id
-	 * @return {HTMLStyleElement}
-	 */
-	const insertStyleSheet = (styleSheetStr, id='')=>{
-		let style = document.createElement('style');
-		document.head.appendChild(style);
-		style.innerHTML = styleSheetStr;
-		if(id){
-			style.id = id;
-		}
-		return style;
-	};
-
-
-	/**
-	 * 获取DOM节点视觉呈现信息
-	 * @param win
-	 * @returns {{
-	 *  screenLeft: number,
-	 *  screenTop: number,
-	 *  visibleWidth: number,
-	 *  visibleHeight: number,
-	 *  horizonScroll: number,
-	 *  documentWidth: number,
-	 *  documentHeight: number,
-	 *  }}
-	 */
-	const getRegion = (win = window) => {
-		let info = {};
-		let doc = win.document;
-		info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
-		info.screenTop = win.screenTop ? win.screenTop : win.screenY;
-
-		//no ie
-		if(win.innerWidth){
-			info.visibleWidth = win.innerWidth;
-			info.visibleHeight = win.innerHeight;
-			info.horizenScroll = win.pageXOffset;
-			info.verticalScroll = win.pageYOffset;
-		}else {
-			//IE + DOCTYPE defined || IE4, IE5, IE6+no DOCTYPE
-			let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
-				doc.documentElement : doc.body;
-			info.visibleWidth = tmp.clientWidth;
-			info.visibleHeight = tmp.clientHeight;
-			info.horizenScroll = tmp.scrollLeft;
-			info.verticalScroll = tmp.scrollTop;
-		}
-
-		let tag = (doc.documentElement && doc.documentElement.scrollWidth) ?
-			doc.documentElement : doc.body;
-		info.documentWidth = Math.max(tag.scrollWidth, info.visibleWidth);
-		info.documentHeight = Math.max(tag.scrollHeight, info.visibleHeight);
-		return info;
-	};
-
-	/**
-	 * 检测矩形是否在指定布局内部
-	 * @param rect
-	 * @param layout
-	 * @returns {*}
-	 */
-	const rectInLayout = (rect, layout) => {
-		return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width) //左上角
-			&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width); //右下角
-	};
-
-	/**
-	 * 设置dom样式
-	 * @param {HTMLElement} dom
-	 * @param {Object} style 样式对象
-	 */
-	const setStyle = (dom, style = {})=>{
-		for(let key in style){
-			key = strToPascalCase(key);
-			dom.style[key] = dimension2Style(style[key]);
-		}
-	};
-
-	/**
-	 * 创建HTML节点
-	 * @param {String} html
-	 * @param {Node|null} parentNode 父级节点
-	 * @returns {HTMLElement|HTMLElement[]}
-	 */
-	const createDomByHtml = (html, parentNode = null) => {
-		let tpl = document.createElement('template');
-		html = html.trim();
-		tpl.innerHTML = html;
-		let nodes = [];
-		if(parentNode){
-			tpl.content.childNodes.forEach(node=>{
-				nodes.push(parentNode.appendChild(node));
-			});
-		} else {
-			nodes = tpl.content.childNodes;
-		}
-		return nodes.length === 1 ? nodes[0] : nodes;
-	};
-
-	/**
-	 * 强制重绘元素
-	 * @param {HTMLElement} element
-	 * @param {Number} delay
-	 */
-	function repaint(element, delay = 0){
-		setTimeout(() => {
-			try{
-				// eslint-disable-next-line no-param-reassign
-				element.hidden = true;
-
-				// eslint-disable-next-line no-unused-expressions
-				element.offsetHeight;
-
-				// eslint-disable-next-line no-param-reassign
-				element.hidden = false;
-			}catch(_){
-				// Do nothing
-			}
-		}, delay);
-	}
-
-	/**
-	 * 进入全屏模式
-	 * @param {HTMLElement} element
-	 */
-	const enterFullScreen = (element)=>{
-		if(element.requestFullscreen){
-			return element.requestFullscreen();
-		}
-		if(element.webkitRequestFullScreen){
-			return element.webkitRequestFullScreen();
-		}
-		if(element.mozRequestFullScreen){
-			element.mozRequestFullScreen();
-		}
-		if(element.msRequestFullScreen){
-			element.msRequestFullScreen();
-		}
-		throw "Browser no allow full screen";
-	};
-
-	/**
-	 * 退出全屏
-	 * @returns {Promise<void>}
-	 */
-	const exitFullScreen = ()=>{
-		return document.exitFullscreen();
-	};
-
-	/**
-	 * 切换全屏
-	 * @param element
-	 * @returns {Promise<unknown>}
-	 */
-	const toggleFullScreen = (element)=>{
-		return new Promise((resolve, reject) => {
-			if(!isInFullScreen()){
-				enterFullScreen(element).then(resolve).catch(reject);
-			} else {
-				exitFullScreen().then(resolve).catch(reject);
-			}
-		})
-	};
-
-	/**
-	 * 检测是否正在全屏
-	 * @returns {boolean}
-	 */
-	const isInFullScreen = ()=>{
-		return !!document.fullscreenElement;
-	};
-
-	/**
-	 * 获取form元素值。
-	 * 该函数过滤元素disabled情况，但不判断name是否存在
-	 * 针对多重选择，提取数据格式为数组
-	 * @param {HTMLFormElement} el
-	 * @returns {String|Array|null} 元素值，发生错误时返回null
-	 */
-	const getElementValue = (el) => {
-		if(el.disabled){
-			return null;
-		}
-		if(el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')){
-			return el.checked ? el.value : null;
-		}
-		if(el.tagName === 'SELECT' && el.multiple){
-			let vs = [];
-			el.querySelectorAll('option[selected]').forEach(item=>{
-				vs.push(item.value);
-			});
-			return vs;
-		}
-		return el.value;
-	};
-
-	/**
-	 * 表单元素校验
-	 * @param {HTMLElement} dom
-	 * @return boolean 是否校验通过
-	 */
-	const formValidate = (dom)=>{
-		let els = dom.querySelectorAll('input,textarea,select');
-		let pass = true;
-		els = Array.from(els).filter(el => !isButton(el));
-		Array.from(els).every(el => {
-			if(el.disabled){
-				return true;
-			}
-			if(!el.checkValidity()){
-				el.reportValidity();
-				pass = false;
-				return false;
-			}
-			return true;
-		});
-		return pass;
-	};
-
-	/**
-	 * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
-	 * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
-	 * @param {HTMLElement} dom
-	 * @param {Boolean} validate
-	 * @returns {Object|null} 如果校验失败，则返回null
-	 */
-	const formSerializeJSON = (dom, validate = true) => {
-		if(!formValidate(dom)){
-			return null;
-		}
-		let els = dom.querySelectorAll('input,textarea,select');
-		let data = {};
-		els = Array.from(els).filter(el => !isButton(el));
-		let err = Array.from(els).every(el => {
-			if(!el.name){
-				console.warn('element no legal for fetch form data');
-				return true;
-			}
-			let name = el.name;
-			let value = getElementValue(el);
-			if(value === null){
-				return true;
-			}
-			let name_selector = cssSelectorEscape(name);
-			let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]),textarea[name=${name_selector}],select[name=${name_selector}]`).length > 1;
-			if(isArr){
-				if(data[name] === undefined){
-					data[name] = [value];
-				} else {
-					data[name].push(value);
-				}
-			} else {
-				data[name] = value;
-			}
-			return true;
-		});
-		return err === false ? null : data;
-=======
 	/**
 	 * 检测指定值是否在指定区间内
 	 * @param {Number} val
@@ -607,7 +100,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const between = (val, min, max, includeEqual = true) => {
 		return includeEqual ? (val >= min && val <= max) : (val > min && val < max);
->>>>>>> 3fa23789a5d13d9b1eb80c1dd48abc5a3e430642
 	};
 
 	/**
@@ -1293,10 +785,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		dom.style.display = 'none';
 	};
 
+	/**
+	 * @param {HTMLElement} dom
+	 * @param dom
+	 */
 	const show = (dom) => {
 		dom.style.display = '';
 	};
 
+	/**
+	 * @param {HTMLElement} dom
+	 * @param toShow
+	 */
 	const toggle = (dom, toShow) => {
 		toShow ? show(dom) : hide(dom);
 	};
@@ -1327,6 +827,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}else {
 			el.fireEvent("on" + event);
 		}
+	};
+
+	/**
+	 * 判断元素是否为按钮
+	 * @param {HTMLElement} el
+	 */
+	const isButton = (el)=>{
+		return el.tagName === 'BUTTON' ||
+			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
 	};
 
 	/**
@@ -1621,7 +1130,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	/**
-	 * Force repaint of element
+	 * 强制重绘元素
 	 * @param {HTMLElement} element
 	 * @param {Number} delay
 	 */
@@ -1718,33 +1227,54 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	/**
+	 * 表单元素校验
+	 * @param {HTMLElement} dom
+	 * @return boolean 是否校验通过
+	 */
+	const formValidate = (dom)=>{
+		let els = dom.querySelectorAll('input,textarea,select');
+		let pass = true;
+		els = Array.from(els).filter(el => !isButton(el));
+		Array.from(els).every(el => {
+			if(el.disabled){
+				return true;
+			}
+			if(!el.checkValidity()){
+				el.reportValidity();
+				pass = false;
+				return false;
+			}
+			return true;
+		});
+		return pass;
+	};
+
+	/**
 	 * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
 	 * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
-	 * @param {Element} dom
+	 * @param {HTMLElement} dom
 	 * @param {Boolean} validate
 	 * @returns {Object|null} 如果校验失败，则返回null
 	 */
 	const formSerializeJSON = (dom, validate = true) => {
+		if(!formValidate(dom)){
+			return null;
+		}
 		let els = dom.querySelectorAll('input,textarea,select');
 		let data = {};
+		els = Array.from(els).filter(el => !isButton(el));
 		let err = Array.from(els).every(el => {
-			if(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.type)){
+			if(!el.name){
+				console.warn('element no legal for fetch form data');
 				return true;
-			}
-			if(el.disabled || !el.name){
-				console.warn('elemment no legal for fetch form data');
-				return true;
-			}
-			if(validate && !el.checkValidity()){
-				el.reportValidity();
-				return false;
 			}
 			let name = el.name;
 			let value = getElementValue(el);
 			if(value === null){
 				return true;
 			}
-			let isArr = dom.querySelectorAll(`input[name=${cssSelectorEscape(name)}]:not([type=radio]),textarea[name=${cssSelectorEscape(name)}],select[name=${cssSelectorEscape(name)}]`).length > 1;
+			let name_selector = cssSelectorEscape(name);
+			let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]),textarea[name=${name_selector}],select[name=${name_selector}]`).length > 1;
 			if(isArr){
 				if(data[name] === undefined){
 					data[name] = [value];
@@ -2408,7 +1938,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -3861,60 +3391,60 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${NS}-close:hover {color:black;}
 	
 	/** top **/
-	.${NS}-0, .${NS}-1, .${NS}-11 {padding-top:7px;}
-	.${NS}-11 .${NS}-arrow,
-	.${NS}-0 .${NS}-arrow,
-	.${NS}-1 .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS}-0 .${NS}-arrow-pt,
-	.${NS}-11 .${NS}-arrow-pt,
-	.${NS}-1 .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
-	.${NS}-11 .${NS}-arrow {left:25%;}
-	.${NS}-0 .${NS}-arrow {left:50%;}
-	.${NS}-1 .${NS}-arrow {left:75%;}
+	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
 	
 	/** right **/
-	.${NS}-8, .${NS}-9, .${NS}-10 {padding-left:7px;}
-	.${NS}-8 .${NS}-close,
-	.${NS}-9 .${NS}-close,
-	.${NS}-10 .${NS}-close {top:3px;}
-	.${NS}-8 .${NS}-arrow,
-	.${NS}-9 .${NS}-arrow,
-	.${NS}-10 .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS}-8 .${NS}-arrow-pt,
-	.${NS}-9 .${NS}-arrow-pt,
-	.${NS}-10 .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
-	.${NS}-8 .${NS}-arrow {top:75%}
-	.${NS}-9 .${NS}-arrow {top:50%}
-	.${NS}-10 .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
 	
 	/** bottom **/
-	.${NS}-5, .${NS}-6, .${NS}-7 {padding-bottom:7px;}
-	.${NS}-5 .${NS}-close,
-	.${NS}-6 .${NS}-close,
-	.${NS}-7 .${NS}-close {top:3px;}
-	.${NS}-5 .${NS}-arrow,
-	.${NS}-6 .${NS}-arrow,
-	.${NS}-7 .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS}-5 .${NS}-arrow-pt,
-	.${NS}-6 .${NS}-arrow-pt,
-	.${NS}-7 .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
-	.${NS}-7 .${NS}-arrow {left:30px}
-	.${NS}-5 .${NS}-arrow {left:75%}
+	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
 	
 	/** left **/
-	.${NS}-2, .${NS}-3, .${NS}-4 {padding-right:7px;}
-	.${NS}-2 .${NS}-close,
-	.${NS}-3 .${NS}-close,
-	.${NS}-4 .${NS}-close {right:13px; top:3px;}
-	.${NS}-2 .${NS}-arrow,
-	.${NS}-3 .${NS}-arrow,
-	.${NS}-4 .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS}-2 .${NS}-arrow-pt,
-	.${NS}-3 .${NS}-arrow-pt,
-	.${NS}-4 .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
-	.${NS}-2 .${NS}-arrow {top:25%}
-	.${NS}-3 .${NS}-arrow {top:50%}
-	.${NS}-4 .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
 `, Theme.Namespace + 'tip-style');
 
 	/**
@@ -4015,7 +3545,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(direction === 'auto'){
 			direction = calDir.call(this);
 		}
-		this.dom.setAttribute('class', `${NS}-container-wrap ${NS}-${direction}`);
+		this.dom.setAttribute('data-tip-dir',direction);
 		let offset = getDirOffset(direction, width, height, rh, rw);
 		this.dom.style.left = dimension2Style(px + offset[0]);
 		this.dom.style.top = dimension2Style(py + offset[1]);
@@ -4346,7 +3876,5 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
