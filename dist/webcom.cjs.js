@@ -1,25 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
-	var n = Object.create(null);
-	if (e) {
-		Object.keys(e).forEach(function (k) {
-			if (k !== 'default') {
-				var d = Object.getOwnPropertyDescriptor(e, k);
-				Object.defineProperty(n, k, d.get ? d : {
-					enumerable: true,
-					get: function () { return e[k]; }
-				});
-			}
-		});
-	}
-	n["default"] = e;
-	return Object.freeze(n);
-}
-
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -788,10 +768,18 @@ const hide = (dom) => {
 	dom.style.display = 'none';
 };
 
+/**
+ * @param {HTMLElement} dom
+ * @param dom
+ */
 const show = (dom) => {
 	dom.style.display = '';
 };
 
+/**
+ * @param {HTMLElement} dom
+ * @param toShow
+ */
 const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
 };
@@ -822,6 +810,15 @@ const fireEvent = (el, event) => {
 	}else {
 		el.fireEvent("on" + event);
 	}
+};
+
+/**
+ * 判断元素是否为按钮
+ * @param {HTMLElement} el
+ */
+const isButton = (el)=>{
+	return el.tagName === 'BUTTON' ||
+		(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
 };
 
 /**
@@ -1116,7 +1113,7 @@ const createDomByHtml = (html, parentNode = null) => {
 };
 
 /**
- * Force repaint of element
+ * 强制重绘元素
  * @param {HTMLElement} element
  * @param {Number} delay
  */
@@ -1213,33 +1210,54 @@ const getElementValue = (el) => {
 };
 
 /**
+ * 表单元素校验
+ * @param {HTMLElement} dom
+ * @return boolean 是否校验通过
+ */
+const formValidate = (dom)=>{
+	let els = dom.querySelectorAll('input,textarea,select');
+	let pass = true;
+	els = Array.from(els).filter(el => !isButton(el));
+	Array.from(els).every(el => {
+		if(el.disabled){
+			return true;
+		}
+		if(!el.checkValidity()){
+			el.reportValidity();
+			pass = false;
+			return false;
+		}
+		return true;
+	});
+	return pass;
+};
+
+/**
  * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
  * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
- * @param {Element} dom
+ * @param {HTMLElement} dom
  * @param {Boolean} validate
  * @returns {Object|null} 如果校验失败，则返回null
  */
 const formSerializeJSON = (dom, validate = true) => {
+	if(!formValidate(dom)){
+		return null;
+	}
 	let els = dom.querySelectorAll('input,textarea,select');
 	let data = {};
+	els = Array.from(els).filter(el => !isButton(el));
 	let err = Array.from(els).every(el => {
-		if(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.type)){
+		if(!el.name){
+			console.warn('element no legal for fetch form data');
 			return true;
-		}
-		if(el.disabled || !el.name){
-			console.warn('elemment no legal for fetch form data');
-			return true;
-		}
-		if(validate && !el.checkValidity()){
-			el.reportValidity();
-			return false;
 		}
 		let name = el.name;
 		let value = getElementValue(el);
 		if(value === null){
 			return true;
 		}
-		let isArr = dom.querySelectorAll(`input[name=${cssSelectorEscape(name)}]:not([type=radio]),textarea[name=${cssSelectorEscape(name)}],select[name=${cssSelectorEscape(name)}]`).length > 1;
+		let name_selector = cssSelectorEscape(name);
+		let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]),textarea[name=${name_selector}],select[name=${name_selector}]`).length > 1;
 		if(isArr){
 			if(data[name] === undefined){
 				data[name] = [value];
@@ -1903,7 +1921,7 @@ const getLibEntryScript = ()=>{
  */
 const getLibModule = async () => {
 	let script = getLibEntryScript();
-	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
+	return await import(script);
 };
 
 /**
@@ -2227,6 +2245,10 @@ const copyFormatted = (html, silent = false) => {
 	!silent && Toast.showSuccess(trans('复制成功'));
 };
 
+<<<<<<< HEAD
+insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342;backdrop-filter:blur(5px);
+ z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
+=======
 let masker = null;
 let CSS_CLASS = 'dialog-masker';
 
@@ -2247,8 +2269,8 @@ const Masker = {
 	hide: hideMasker
 };
 
-insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342;backdrop-filter:blur(5px);
- z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
+insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
+>>>>>>> ab0ab82ac888aa6a219140fb765ee7a60f860a9c
 
 const DLG_CLS_PREF = Theme.Namespace + 'dialog';
 const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
@@ -3357,60 +3379,60 @@ insertStyleSheet(`
 	.${NS}-close:hover {color:black;}
 	
 	/** top **/
-	.${NS}-0, .${NS}-1, .${NS}-11 {padding-top:7px;}
-	.${NS}-11 .${NS}-arrow,
-	.${NS}-0 .${NS}-arrow,
-	.${NS}-1 .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS}-0 .${NS}-arrow-pt,
-	.${NS}-11 .${NS}-arrow-pt,
-	.${NS}-1 .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
-	.${NS}-11 .${NS}-arrow {left:25%;}
-	.${NS}-0 .${NS}-arrow {left:50%;}
-	.${NS}-1 .${NS}-arrow {left:75%;}
+	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
 	
 	/** right **/
-	.${NS}-8, .${NS}-9, .${NS}-10 {padding-left:7px;}
-	.${NS}-8 .${NS}-close,
-	.${NS}-9 .${NS}-close,
-	.${NS}-10 .${NS}-close {top:3px;}
-	.${NS}-8 .${NS}-arrow,
-	.${NS}-9 .${NS}-arrow,
-	.${NS}-10 .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS}-8 .${NS}-arrow-pt,
-	.${NS}-9 .${NS}-arrow-pt,
-	.${NS}-10 .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
-	.${NS}-8 .${NS}-arrow {top:75%}
-	.${NS}-9 .${NS}-arrow {top:50%}
-	.${NS}-10 .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
 	
 	/** bottom **/
-	.${NS}-5, .${NS}-6, .${NS}-7 {padding-bottom:7px;}
-	.${NS}-5 .${NS}-close,
-	.${NS}-6 .${NS}-close,
-	.${NS}-7 .${NS}-close {top:3px;}
-	.${NS}-5 .${NS}-arrow,
-	.${NS}-6 .${NS}-arrow,
-	.${NS}-7 .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS}-5 .${NS}-arrow-pt,
-	.${NS}-6 .${NS}-arrow-pt,
-	.${NS}-7 .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
-	.${NS}-7 .${NS}-arrow {left:30px}
-	.${NS}-5 .${NS}-arrow {left:75%}
+	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
 	
 	/** left **/
-	.${NS}-2, .${NS}-3, .${NS}-4 {padding-right:7px;}
-	.${NS}-2 .${NS}-close,
-	.${NS}-3 .${NS}-close,
-	.${NS}-4 .${NS}-close {right:13px; top:3px;}
-	.${NS}-2 .${NS}-arrow,
-	.${NS}-3 .${NS}-arrow,
-	.${NS}-4 .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS}-2 .${NS}-arrow-pt,
-	.${NS}-3 .${NS}-arrow-pt,
-	.${NS}-4 .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
-	.${NS}-2 .${NS}-arrow {top:25%}
-	.${NS}-3 .${NS}-arrow {top:50%}
-	.${NS}-4 .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
 `, Theme.Namespace + 'tip-style');
 
 /**
@@ -3511,7 +3533,7 @@ const updatePosition = function(){
 	if(direction === 'auto'){
 		direction = calDir.call(this);
 	}
-	this.dom.setAttribute('class', `${NS}-container-wrap ${NS}-${direction}`);
+	this.dom.setAttribute('data-tip-dir',direction);
 	let offset = getDirOffset(direction, width, height, rh, rw);
 	this.dom.style.left = dimension2Style(px + offset[0]);
 	this.dom.style.top = dimension2Style(py + offset[1]);
@@ -3783,6 +3805,7 @@ exports.eventDelegate = eventDelegate;
 exports.exitFullScreen = exitFullScreen;
 exports.fireEvent = fireEvent;
 exports.formSerializeJSON = formSerializeJSON;
+exports.formValidate = formValidate;
 exports.formatSize = formatSize;
 exports.frequencyControl = frequencyControl;
 exports.getCurrentScript = getCurrentScript;
@@ -3801,6 +3824,7 @@ exports.hide = hide;
 exports.highlightText = highlightText;
 exports.html2Text = html2Text;
 exports.insertStyleSheet = insertStyleSheet;
+exports.isButton = isButton;
 exports.isElement = isElement;
 exports.isInFullScreen = isInFullScreen;
 exports.isNum = isNum;
