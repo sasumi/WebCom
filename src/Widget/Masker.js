@@ -5,6 +5,7 @@ let masker = null;
 let CSS_CLASS = 'dialog-masker';
 
 const showMasker = () => {
+	return;
 	if(!masker){
 		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
 	}

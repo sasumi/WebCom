@@ -1,5 +1,25 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopNamespace(e) {
+	if (e && e.__esModule) return e;
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			if (k !== 'default') {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	}
+	n["default"] = e;
+	return Object.freeze(n);
+}
+
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -1921,7 +1941,7 @@ const getLibEntryScript = ()=>{
  */
 const getLibModule = async () => {
 	let script = getLibEntryScript();
-	return await import(script);
+	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
 };
 
 /**
@@ -2245,22 +2265,13 @@ const copyFormatted = (html, silent = false) => {
 	!silent && Toast.showSuccess(trans('复制成功'));
 };
 
-<<<<<<< HEAD
-insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342;backdrop-filter:blur(5px);
- z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
-=======
-let masker = null;
 let CSS_CLASS = 'dialog-masker';
 
 const showMasker = () => {
-	if(!masker){
-		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
-	}
-	masker.style.display = '';
+	return;
 };
 
 const hideMasker = () => {
-	masker && (masker.style.display = 'none');
 };
 
 const Masker = {
@@ -2269,11 +2280,10 @@ const Masker = {
 	hide: hideMasker
 };
 
-insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342; z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
->>>>>>> ab0ab82ac888aa6a219140fb765ee7a60f860a9c
+insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342;backdrop-filter:blur(5px);
+ z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
 
 const DLG_CLS_PREF = Theme.Namespace + 'dialog';
-const DLG_CLS_ACTIVE = DLG_CLS_PREF + '-active';
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
@@ -2282,6 +2292,10 @@ const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
 const DLG_CLS_INPUT = DLG_CLS_PREF + '-input';
 
 const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
+
+const STATE_ACTIVE = 'active'; //激活状态。如果是存在模态对话框，只允许唯一一个激活，如果没有模态对话框情况，允许多个同时激活
+const STATE_DISABLED = 'disabled'; //禁用状态。存在模态框情况下，全局只允许唯一一个激活，其余均为禁用状态
+const STATE_HIDDEN = 'hidden'; //隐藏状态。通过主动调用hide方法使得对话框隐藏
 
 /**
  * Content Type
@@ -2303,35 +2317,54 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
-	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
-	.${DLG_CLS_PREF}.${DLG_CLS_ACTIVE} .dialog-ti {color:#333}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
 `, Theme.Namespace + 'dialog-style');
 
 /** @var Dialog[] **/
-let dialogs = [];
+let DIALOG_COLLECTION = [];
 
-let closeDlg = (dlg, destroy = true) => {
-	if(dlg.onClose.fire() === false){
-		console.warn('dialog close cancel by onClose events');
-		return false;
-	}
-	dialogs = dialogs.filter(d => dlg !== d);
-	let nextShow = dialogs.find(d => d.active);
-	if(!nextShow){
-		nextShow = dialogs.find(d => d.visible);
-	}
-	if(nextShow){
-		DialogManager.show(nextShow);
-	}else {
-		Masker.hide();
-	}
-	if(destroy){
-		dlg.dom.parentNode.removeChild(dlg.dom);
-	}else {
-		dlg.active = false;
-		dlg.visible = false;
-		dlg.dom.style.display = 'none';
-	}
+const sortZIndex = (dialog1, dialog2) => {
+	return dialog1.zIndex > dialog2.zIndex;
+};
+
+/**
+ * 获取非隐藏的模态对话框列表
+ * @return {Dialog[]}
+ */
+const getModalDialogs = (dlg) => {
+	let list = DIALOG_COLLECTION.filter(d => {
+		return d.state !== STATE_HIDDEN && d.modal && d !== dlg;
+	});
+	return list.sort(sortZIndex);
+};
+
+/**
+ * 获取非隐藏的普通对话框列表
+ * @return {Dialog[]}
+ */
+const getNoModalDialogs = (dlg) => {
+	let list = DIALOG_COLLECTION.filter(d => {
+		return d.state !== STATE_HIDDEN && !d.modal && d !== dlg;
+	});
+	return list.sort(sortZIndex);
+};
+
+const getAllAvailableDialogs = (dlg) => {
+	let list = DIALOG_COLLECTION.filter(d => {
+		return d.state !== STATE_HIDDEN && d !== dlg;
+	});
+	return list.sort(sortZIndex);
+};
+
+const setState = (dlg, state)=>{
+	dlg.state = state;
+	dlg.dom.setAttribute('data-dialog-state', state);
+	dlg.dom.style.display = state === STATE_HIDDEN ? 'none' : '';
+};
+
+const setZIndex = (dlg, zIndex)=>{
+	dlg.zIndex = dlg.dom.style.zIndex = String(zIndex);
 };
 
 /**
@@ -2339,7 +2372,7 @@ let closeDlg = (dlg, destroy = true) => {
  */
 const DialogManager = {
 	register(dlg){
-		dialogs.push(dlg);
+		DIALOG_COLLECTION.push(dlg);
 	},
 
 	/**
@@ -2348,36 +2381,47 @@ const DialogManager = {
 	 */
 	show(dlg){
 		Masker.show();
-		dlg.visible = true;
-		dlg.dom.style.display = '';
-		DialogManager.active(dlg);
-		dlg.onShow.fire();
-	},
+		dlg.state = STATE_DISABLED; //避免 getModalxx 获取不到当前对话框
 
-	/**
-	 * 激活对话框
-	 * @param {Dialog} dlg
-	 */
-	active(dlg){
-		let zIndex = Dialog.DIALOG_INIT_Z_INDEX;
-		dialogs.filter(d => {
-			if(d !== dlg){
-				d.active = false;
-				d.dom.classList.remove(DLG_CLS_ACTIVE);
-				d.dom.style.zIndex = zIndex++ + '';
-				return true;
-			}
-			return false;
-		});
-		dlg.active = true;
-		dlg.dom.style.zIndex = zIndex++ + '';
-		dlg.dom.classList.add(DLG_CLS_ACTIVE);
+		let modalDialogs = getModalDialogs(dlg);
+		let noModalDialogs = getNoModalDialogs(dlg);
+		if(dlg.config.modal){
+			noModalDialogs.forEach(d=>{setState(d, STATE_DISABLED);});
+			setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + modalDialogs.length);
+			setState(dlg, STATE_ACTIVE);
+		}else {
+			modalDialogs.forEach((d, idx) => {setZIndex(d, dlg.zIndex + idx + 1);});
+			setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length);
+			setState(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
+		}
+		dlg.onShow.fire();
 	},
 
 	/**
 	 * 关闭对话框
 	 */
-	close: closeDlg,
+	close: (dlg, destroy = true) => {
+		if(dlg.onClose.fire() === false){
+			console.warn('dialog close cancel by onClose events');
+			return false;
+		}
+		let modalDialogs = getModalDialogs(dlg);
+		let noModalDialogs = getNoModalDialogs(dlg);
+		modalDialogs.forEach((d, idx)=>{
+			setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + idx);
+		});
+		noModalDialogs.forEach((d, idx)=>{
+			setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + idx);
+			setState(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
+		});
+		if(destroy){
+			DIALOG_COLLECTION = DIALOG_COLLECTION.filter(d=>d !== dlg);
+			dlg.dom.parentNode.removeChild(dlg.dom);
+		}else {
+			setState(dlg, STATE_HIDDEN);
+		}
+		getAllAvailableDialogs().length || Masker.hide();
+	},
 
 	/**
 	 * 隐藏对话框
@@ -2385,7 +2429,7 @@ const DialogManager = {
 	 * @returns {boolean}
 	 */
 	hide(dlg){
-		return closeDlg(dlg, false);
+		return this.close(dlg, false);
 	},
 
 	/**
@@ -2393,9 +2437,9 @@ const DialogManager = {
 	 * @returns {Dialog|null}
 	 */
 	getCurrentActive(){
-		for(let i = dialogs.length - 1; i >= 0; i--){
-			if(dialogs[i].active){
-				return dialogs[i];
+		for(let i = DIALOG_COLLECTION.length - 1; i >= 0; i--){
+			if(DIALOG_COLLECTION[i].state === STATE_ACTIVE){
+				return DIALOG_COLLECTION[i];
 			}
 		}
 		return null;
@@ -2405,7 +2449,10 @@ const DialogManager = {
 	 * 关闭全部对话框
 	 */
 	closeAll(){
-		dialogs.forEach(dlg => DialogManager.close(dlg));
+		DIALOG_COLLECTION.forEach(dlg => {
+			dlg.dom?.parentNode.removeChild(dlg.dom);
+		});
+		DIALOG_COLLECTION = [];
 		Masker.hide();
 	},
 
@@ -2415,7 +2462,7 @@ const DialogManager = {
 	 * @returns {Dialog}
 	 */
 	findById(id){
-		return dialogs.find(dlg => {
+		return DIALOG_COLLECTION.find(dlg => {
 			return dlg.id === id
 		});
 	}
@@ -2435,7 +2482,9 @@ const resolveContentType = (content) => {
  */
 const domConstruct = (dlg) => {
 	let html = `
-		<div class="${DLG_CLS_PREF}" id="${dlg.config.id}" style="${dlg.config.width ? 'width:' + dlg.config.width + 'px' : ''}">
+		<div class="${DLG_CLS_PREF}" 
+			id="${dlg.config.id}" 
+			style="${dlg.hidden ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : ''}
 	`;
@@ -2543,15 +2592,23 @@ const eventBind = (dlg) => {
 };
 
 /**
- *
+ * 更新对话框位置
  * @param {Dialog} dlg
  */
 const updatePosition$1 = (dlg) => {
-	let [ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+	let _hidden = dlg.state === STATE_HIDDEN;
+	let ml, mt;
+	if(!_hidden){
+		[ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+	}else {
+		dlg.dom.style.visibility = 'hidden';
+		dlg.dom.style.display = 'block';
+		[ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+		dlg.dom.style.display = 'none';
+		dlg.dom.style.visibility = 'visible';
+	}
 	dlg.dom.style.top = mt + 'px';
 	dlg.dom.style.left = ml + 'px';
-	dlg.dom.style.visibility = 'visible';
-
 };
 
 /**
@@ -2592,21 +2649,21 @@ const renderContent = (dlg) => {
 class Dialog {
 	static CONTENT_MIN_HEIGHT = 30; //最小高度
 	static DEFAULT_WIDTH = 600; //默认宽度
-	static DIALOG_INIT_Z_INDEX = 1000;
+	static DIALOG_INIT_Z_INDEX = Theme.DialogIndex;
 
 	id = null;
 
 	/** @var {HTMLElement} dom **/
 	dom = null;
 
-	visible = false;
-	active = false;
+	state = STATE_HIDDEN;
+	zIndex = Theme.DialogIndex;
 
 	onClose = new BizEvent(true);
 	onShow = new BizEvent(true);
 
 	config = {
-		id: '',
+		id: null,
 		title: '',
 		content: '',
 		modal: false,
@@ -2637,7 +2694,7 @@ class Dialog {
 	 */
 	constructor(config = {}){
 		this.config = Object.assign(this.config, config);
-		this.id = this.id || 'dialog-' + Math.random();
+		this.id = this.config.id || 'dialog-' + Math.random();
 		domConstruct(this);
 		eventBind(this);
 		DialogManager.register(this);
