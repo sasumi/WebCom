@@ -2,10 +2,9 @@ import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 
 let masker = null;
-let CSS_CLASS = 'dialog-masker';
+let CSS_CLASS = Theme.Namespace+'-masker';
 
 const showMasker = () => {
-	return;
 	if(!masker){
 		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
 	}

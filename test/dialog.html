@@ -29,11 +29,14 @@
                 Dialog.show('dialog title', {src:'iframe.html'});
             });
 
-            document.getElementById('confirm-dialog').addEventListener('click',()=>{
-                Dialog.confirm('adsfasdf', 'asdfasdf').then(()=>{
-                    alert('ok');
-                })
-            });
+            Dialog.show('dialog 1', 'dialog1 <b>content</b>');
+
+            Dialog.show('dialog 2', 'd <b>content</b>');
+
+            Dialog.show('dialog 3', 'dialog3 <b>content</b>');
+
+            Dialog.show('modal 4', 'dialog4 <b>content</b>', {modal:true});
+            Dialog.show('modal 5', 'dialog5 <b>content</b>', {modal:true});
         </script>
     </div>
 </body>

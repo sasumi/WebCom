@@ -1,7 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,7 +13,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -1939,7 +1938,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -2263,13 +2262,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		!silent && Toast.showSuccess(trans('复制成功'));
 	};
 
-	let CSS_CLASS = 'dialog-masker';
+	let masker = null;
+	let CSS_CLASS = Theme.Namespace+'-masker';
 
 	const showMasker = () => {
-		return;
+		if(!masker){
+			masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
+		}
+		masker.style.display = '';
 	};
 
 	const hideMasker = () => {
+		masker && (masker.style.display = 'none');
 	};
 
 	const Masker = {
@@ -2315,53 +2319,87 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
-	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#aaa;}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#ccc;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%; background-color:#ffffff00; }
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.7 !important}
 `, Theme.Namespace + 'dialog-style');
+
+	/**
+	 * 绑定ESC按键事件关闭最上一层可关闭的对话框
+	 */
+	document.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Esc){
+			let current = DialogManager.getFrontDialog();
+			if(current && current.config.showTopCloseButton){
+				DialogManager.close(current);
+				return false;
+			}
+		}
+	});
 
 	/** @var Dialog[] **/
 	let DIALOG_COLLECTION = [];
 
 	const sortZIndex = (dialog1, dialog2) => {
-		return dialog1.zIndex > dialog2.zIndex;
+		return dialog1.zIndex - dialog2.zIndex;
 	};
 
 	/**
 	 * 获取非隐藏的模态对话框列表
+	 * 顺序由底到上排列
+	 * @param {Dialog|null} excludedDialog 排除在外的对话框
 	 * @return {Dialog[]}
 	 */
-	const getModalDialogs = (dlg) => {
+	const getModalDialogs = (excludedDialog = null) => {
 		let list = DIALOG_COLLECTION.filter(d => {
-			return d.state !== STATE_HIDDEN && d.modal && d !== dlg;
+			return d.state !== STATE_HIDDEN && d.config.modal && (!excludedDialog || d !== excludedDialog);
 		});
 		return list.sort(sortZIndex);
 	};
 
 	/**
 	 * 获取非隐藏的普通对话框列表
+	 * 顺序由底到上排列
+	 * @param {Dialog|null} excludedDialog 排除在外的对话框
 	 * @return {Dialog[]}
 	 */
-	const getNoModalDialogs = (dlg) => {
+	const getNoModalDialogs = (excludedDialog = null) => {
 		let list = DIALOG_COLLECTION.filter(d => {
-			return d.state !== STATE_HIDDEN && !d.modal && d !== dlg;
+			return d.state !== STATE_HIDDEN && !d.config.modal && (!excludedDialog || d !== excludedDialog);
 		});
 		return list.sort(sortZIndex);
 	};
 
-	const getAllAvailableDialogs = (dlg) => {
-		let list = DIALOG_COLLECTION.filter(d => {
-			return d.state !== STATE_HIDDEN && d !== dlg;
-		});
-		return list.sort(sortZIndex);
+	/**
+	 * 获取所有非隐藏对话框
+	 * 顺序由底到上排列
+	 * @param {Dialog|null} excludedDialog 排除在外的对话框
+	 * @return {*[]}
+	 */
+	const getAllAvailableDialogs = (excludedDialog = null) => {
+		let modalDialogs = getModalDialogs(excludedDialog);
+		let noModalDialogs = getNoModalDialogs(excludedDialog);
+		return noModalDialogs.concat(modalDialogs);
 	};
 
-	const setState = (dlg, state)=>{
+	/**
+	 * 设置对话框状态
+	 * @param {Dialog} dlg
+	 * @param {String} state
+	 */
+	const setState = (dlg, state) => {
 		dlg.state = state;
 		dlg.dom.setAttribute('data-dialog-state', state);
 		dlg.dom.style.display = state === STATE_HIDDEN ? 'none' : '';
 	};
 
-	const setZIndex = (dlg, zIndex)=>{
+	/**
+	 * 设置对话框zIndex
+	 * @param {Dialog} dlg
+	 * @param {Number|String} zIndex
+	 */
+	const setZIndex = (dlg, zIndex) => {
 		dlg.zIndex = dlg.dom.style.zIndex = String(zIndex);
 	};
 
@@ -2384,7 +2422,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			let modalDialogs = getModalDialogs(dlg);
 			let noModalDialogs = getNoModalDialogs(dlg);
 			if(dlg.config.modal){
-				noModalDialogs.forEach(d=>{setState(d, STATE_DISABLED);});
+				noModalDialogs.forEach(d => {setState(d, STATE_DISABLED);});
+				modalDialogs.forEach(d => {setState(d, STATE_DISABLED);});
 				setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + modalDialogs.length);
 				setState(dlg, STATE_ACTIVE);
 			}else {
@@ -2405,15 +2444,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 			let modalDialogs = getModalDialogs(dlg);
 			let noModalDialogs = getNoModalDialogs(dlg);
-			modalDialogs.forEach((d, idx)=>{
+			modalDialogs.forEach((d, idx) => {
 				setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + idx);
 			});
-			noModalDialogs.forEach((d, idx)=>{
+			//active last modal dialog
+			if(modalDialogs.length){
+				setState(modalDialogs[modalDialogs.length - 1], STATE_ACTIVE);
+			}
+			noModalDialogs.forEach((d, idx) => {
 				setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + idx);
-				setState(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
+				setState(d, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
 			});
 			if(destroy){
-				DIALOG_COLLECTION = DIALOG_COLLECTION.filter(d=>d !== dlg);
+				DIALOG_COLLECTION = DIALOG_COLLECTION.filter(d => d !== dlg);
 				dlg.dom.parentNode.removeChild(dlg.dom);
 			}else {
 				setState(dlg, STATE_HIDDEN);
@@ -2434,13 +2477,30 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * 获取当前激活的对话框
 		 * @returns {Dialog|null}
 		 */
-		getCurrentActive(){
-			for(let i = DIALOG_COLLECTION.length - 1; i >= 0; i--){
-				if(DIALOG_COLLECTION[i].state === STATE_ACTIVE){
-					return DIALOG_COLLECTION[i];
-				}
+		getFrontDialog(){
+			let dialogs = getAllAvailableDialogs();
+			return dialogs[dialogs.length - 1];
+		},
+
+		trySetFront(dlg){
+			let modalDialogs = getModalDialogs();
+			let currentFrontDialog = this.getFrontDialog();
+
+			if(currentFrontDialog === dlg){
+				return true;
 			}
-			return null;
+
+			//模态模式下，不允许通过该方法切换对话框，
+			//只有在对话框 show、hide的情况下自动调整层级
+			if(modalDialogs.length){
+				return false;
+			}
+
+			let otherNoModalDialogs = getNoModalDialogs(dlg);
+			otherNoModalDialogs.forEach((d, idx) => {
+				setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + idx);
+			});
+			setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + otherNoModalDialogs.length);
 		},
 
 		/**
@@ -2530,8 +2590,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 事件绑定
 	 * @param {Dialog} dlg
 	 */
-	let _bind_esc = false;
 	const eventBind = (dlg) => {
+		//bind dialog active
+		dlg.dom.addEventListener('mousedown', () => {
+			dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
+		});
+
 		//bind buttons event
 		for(let i in dlg.config.buttons){
 			let cb = dlg.config.buttons[i].callback || dlg.close;
@@ -2567,26 +2631,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			buttonActiveBind(close_btn, dlg.close.bind(dlg));
 		}
 
-		//bind window resize
-		if(!dlg.config.moveAble){
-			window.addEventListener('resize', () => {
-				updatePosition$1(dlg);
-			});
-		}
-
-		//bind esc to close current active dialog
-		if(!_bind_esc){
-			_bind_esc = true;
-			document.addEventListener('keyup', e => {
-				if(e.keyCode === KEYS.Esc){
-					let current = DialogManager.getCurrentActive();
-					if(current && current.config.showTopCloseButton){
-						DialogManager.close(current);
-						return false;
-					}
-				}
-			});
-		}
+		//bind window resize un-move-able dialog
+		!dlg.config.moveAble && window.addEventListener('resize', () => {
+			updatePosition$1(dlg);
+		});
 	};
 
 	/**
@@ -2646,7 +2694,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	class Dialog {
 		static CONTENT_MIN_HEIGHT = 30; //最小高度
-		static DEFAULT_WIDTH = 600; //默认宽度
+		static DEFAULT_WIDTH = 500; //默认宽度
 		static DIALOG_INIT_Z_INDEX = Theme.DialogIndex;
 
 		id = null;
@@ -2846,14 +2894,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 
 		/**
-		 * 获取当前激活的对话框
-		 * @returns {Dialog|null}
-		 */
-		static getCurrentActiveDialog(){
-			return DialogManager.getCurrentActive();
-		}
-
-		/**
 		 * 获取当前页面（iframe）所在的对话框
 		 * @returns {Dialog|null}
 		 */
@@ -2872,13 +2912,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				throw "ID no found in iframe element";
 			}
 			return parent.DialogManager.findById(id);
-		}
-
-		/**
-		 * 关闭全部对话框
-		 */
-		static closeAll(){
-			DialogManager.closeAll(dialog => dialog.close());
 		}
 	}
 
@@ -3919,7 +3952,5 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
