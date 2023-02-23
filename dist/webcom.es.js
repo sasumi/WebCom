@@ -2502,7 +2502,7 @@ const DialogManager = {
 	 */
 	findById(id){
 		return DIALOG_COLLECTION.find(dlg => {
-			return dlg.id === id
+			return dlg.config.id === id
 		});
 	}
 };
@@ -2721,7 +2721,7 @@ class Dialog {
 	 */
 	constructor(config = {}){
 		this.config = Object.assign(this.config, config);
-		this.id = this.config.id || 'dialog-' + Math.random();
+		this.config.id = this.config.id || 'dialog-' + Math.random();
 		domConstruct(this);
 		eventBind(this);
 		DialogManager.register(this);
