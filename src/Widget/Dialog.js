@@ -36,12 +36,11 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:10px; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
-	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {border:none; width:100%;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#ccc;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%;}
-	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
 `, Theme.Namespace + 'dialog-style');
 
 /**
