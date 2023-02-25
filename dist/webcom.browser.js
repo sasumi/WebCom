@@ -2011,9 +2011,9 @@ var WebCom = (function (exports) {
 	const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/font_3359671_iu2uo75bqf.woff2?t=1651059735967') format('woff2'),
-       url('//at.alicdn.com/t/font_3359671_iu2uo75bqf.woff?t=1651059735967') format('woff'),
-       url('//at.alicdn.com/t/font_3359671_iu2uo75bqf.ttf?t=1651059735967') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_3359671_tnam7ajg9ua.woff2?t=1677307651902') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_tnam7ajg9ua.woff?t=1677307651902') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_tnam7ajg9ua.ttf?t=1677307651902') format('truetype');
 }
 
 .${ICON_FONT_CLASS} {
@@ -2038,43 +2038,23 @@ var WebCom = (function (exports) {
 	};
 
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
-	const rotate_id = 'rotate111';
+	const rotate_id = Theme.Namespace + '-toast-rotate';
 
 	insertStyleSheet(`
 	@keyframes ${rotate_id} {
-		0% {
-			transform: translate3d(-50%, -50%, 0) rotate(0deg);
-		}
-		100% {
-		transform: translate3d(-50%, -50%, 0) rotate(360deg);
-		}
+	    0% {transform: translate3d(-50%, -50%, 0) rotate(0deg);}
+	    100% {transform: translate3d(-50%, -50%, 0) rotate(360deg);}
 	}
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; line-height:1.5; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block; border-radius:3px; padding:.75em 3em .75em 2em; background-color:#fff; color:var(--color); border:1px solid #ccc}
-	.${TOAST_CLS_MAIN} .close{color:gray; line-height:1}
-	.${TOAST_CLS_MAIN} .close:before{content:"×"; font-size:25px; cursor:pointer; position:absolute; margin:6px 0 0 -30px; transition:all 0.1s linear;}
-	.${TOAST_CLS_MAIN} .close:hover{color:var(--color);}
-
-	.${TOAST_CLS_MAIN}-success .ctn {color:#26b524;}
-
-	.${TOAST_CLS_MAIN}-error .ctn{color:red; position:relative;}
-	.${TOAST_CLS_MAIN}-loading .ctn {padding-left:3.5em;}
-	.${TOAST_CLS_MAIN}-loading .ctn:before {
-		animation: 1.5s linear infinite ${rotate_id};
-        animation-play-state: inherit;
-        border: solid 3px #cfd0d1;
-        border-bottom-color: #1c87c9;
-        border-radius: 50%;
-        content: "";
-        height: 1.2em;
-        width: 1.2em;
-		margin:10px 0 0 -20px;
-        position: absolute;
-        transform: translate3d(-50%, -50%, 0);
-        will-change: transform;
-	}
-`);
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding: 7px 15px 7px 35px;background-color:#fff;color:var(--color);box-shadow: 4px 5px 46px #ccc;position: relative;}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top: 10px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
+	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
+	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
+	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
+	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;}
+	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_id};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin: 8px 0 0 8px;}
+`, Theme.Namespace + 'toast');
 
 	let toastWrap = null;
 
@@ -2094,12 +2074,16 @@ var WebCom = (function (exports) {
 		static TYPE_ERROR = 'error';
 		static TYPE_LOADING = 'loading';
 
+		/**
+		 * 各种类型提示默认隐藏时间
+		 * @type {{"[Toast.TYPE_SUCCESS]": number, "[Toast.TYPE_WARNING]": number, "[Toast.TYPE_ERROR]": number, "[Toast.TYPE_LOADING]": number, "[Toast.TYPE_INFO]": number}}
+		 */
 		static DEFAULT_TIME_MAP = {
 			[Toast.TYPE_INFO]: 1500,
 			[Toast.TYPE_SUCCESS]: 1500,
 			[Toast.TYPE_WARNING]: 2000,
 			[Toast.TYPE_ERROR]: 2500,
-			[Toast.TYPE_LOADING]: 10000,
+			[Toast.TYPE_LOADING]: 0,
 		}
 
 		message = '';
@@ -2124,55 +2108,87 @@ var WebCom = (function (exports) {
 		 * @param {String} message
 		 * @param {String} type
 		 * @param {Number} timeout 超时时间，0表示不关闭
+		 * @param {Function} timeoutCallback 超时关闭回调
 		 * @returns
 		 */
-		static showToast = (message, type = null, timeout = null) => {
+		static showToast = (message, type = null, timeout = null, timeoutCallback = null) => {
 			let toast = new Toast(message, type, timeout);
-			toast.show();
+			toast.show(timeoutCallback);
 			return toast;
 		}
 
-		static showInfo = (message) => {
-			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO]);
+		/**
+		 * 显示[提示]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showInfo = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO], timeoutCallback);
 		}
 
-		static showSuccess = (message) => {
-			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS]);
+		/**
+		 * 显示[成功]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showSuccess = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS], timeoutCallback);
 		}
 
-		static showWarning = (message) => {
-			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING]);
+		/**
+		 * 显示[告警]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showWarning = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING], timeoutCallback);
 		}
 
-		static showError = (message) => {
-			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR]);
+		/**
+		 * 显示[错误]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showError = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR], timeoutCallback);
 		}
 
-		static showLoading = (message) => {
-			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING]);
+		/**
+		 * 显示[加载中]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showLoading = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING], timeoutCallback);
 		}
 
-		show(){
+		/**
+		 * 显示提示
+		 * @param {Function} onTimeoutClose 超时关闭回调
+		 */
+		show(onTimeoutClose = null){
 			let wrapper = getWrapper();
 			show(wrapper);
 			this.dom = document.createElement('span');
 			wrapper.appendChild(this.dom);
 			this.dom.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + this.type;
-			this.dom.innerHTML = `<span class="ctn">${this.message}</span><span class="close"></span><div></div>`;
-
-			let hide_tm = null;
+			this.dom.innerHTML = `<span class="ctn">${this.message}</span><div></div>`;
 			if(this.timeout){
-				hide_tm = setTimeout(() => {
+				setTimeout(() => {
 					this.hide();
+					onTimeoutClose && onTimeoutClose();
 				}, this.timeout);
 			}
-
-			this.dom.querySelector('.close').addEventListener('click', ()=> {
-				hide_tm && clearTimeout(hide_tm);
-				this.hide();
-			});
 		}
 
+		/**
+		 * 隐藏提示信息
+		 */
 		hide(){
 			this.dom.parentNode.removeChild(this.dom);
 			let wrapper = getWrapper();
@@ -2708,19 +2724,19 @@ var WebCom = (function (exports) {
 
 		/**
 		 * @param {Object} config
-		 * @param {String|Null} config.id
-		 * @param {String} config.title
-		 * @param {String} config.content
-		 * @param {Boolean} config.modal
-		 * @param {Number} config.width
-		 * @param {Number} config.height
-		 * @param {Number} config.maxHeight
-		 * @param {Boolean} config.moveAble
-		 * @param {Array} config.buttons
-		 * @param {Boolean} config.buttons.default
-		 * @param {String} config.buttons.title
-		 * @param {Function} config.buttons.callback
-		 * @param {Boolean} config.showTopCloseButton
+		 * @param {String|Null} config.id 为对话框指定ID
+		 * @param {String} config.title 对话框标题
+		 * @param {String} config.content 对话框内容，允许提交 {src:"http://"} 格式，渲染为iframe
+		 * @param {Boolean} config.modal 是否为模态对话框
+		 * @param {Number} config.width 宽度
+		 * @param {Number} config.height 高度
+		 * @param {Number} config.maxHeight 最大高度
+		 * @param {Boolean} config.moveAble 是否可以移动
+		 * @param {Array} config.buttons 按钮列表
+		 * @param {Boolean} config.buttons.default 单个按钮对象中是否作为默认按钮（默认聚焦）
+		 * @param {String} config.buttons.title 按钮标题
+		 * @param {Function} config.buttons.callback 按钮点击后回调，缺省为关闭对话框
+		 * @param {Boolean} config.showTopCloseButton 是否显示对话框右上角关闭按钮，如果显示按钮则支持ESC关闭对话框
 		 */
 		constructor(config = {}){
 			this.config = Object.assign(this.config, config);
