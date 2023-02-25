@@ -12,7 +12,7 @@ insertStyleSheet(`
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; line-height:1.5; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
 	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding: 7px 15px 7px 35px;background-color:#fff;color:var(--color);box-shadow: 4px 5px 46px #ccc;position: relative;}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top: 10px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top:8px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
 	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}

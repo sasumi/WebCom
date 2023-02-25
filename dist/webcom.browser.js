@@ -2007,7 +2007,7 @@ var WebCom = (function (exports) {
 
 	const NS$1 = 'WebCom-';
 	const ICON_FONT_CLASS = NS$1 + `icon`;
-	const ICON_FONT = NS$1+'iconfont';
+	const ICON_FONT = NS$1 + 'iconfont';
 	const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
@@ -2030,11 +2030,11 @@ var WebCom = (function (exports) {
 		Namespace: NS$1,
 		IconFont: ICON_FONT,
 		IconFontClass: ICON_FONT_CLASS,
-		TipIndex: 10, //提示类
-		ToastIndex: 10000, //对话消息
+		TipIndex: 10, //功能提示类(指向具体元素)
+		MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
 		DialogIndex: 1000, //对话框等窗口类垂直索引
-		MaskIndex: 100, //遮罩
-		FullScreenModeIndex: 10000 //全屏类
+		FullScreenModeIndex: 10000, //全屏类（全屏类
+		ToastIndex: 100000, //消息提示（顶部呈现）
 	};
 
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
@@ -2048,7 +2048,7 @@ var WebCom = (function (exports) {
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; line-height:1.5; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
 	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding: 7px 15px 7px 35px;background-color:#fff;color:var(--color);box-shadow: 4px 5px 46px #ccc;position: relative;}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top: 10px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top:8px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
 	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}

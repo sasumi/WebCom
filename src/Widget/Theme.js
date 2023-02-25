@@ -2,7 +2,7 @@ import {insertStyleSheet} from "../Lang/Dom.js";
 
 const NS = 'WebCom-';
 const ICON_FONT_CLASS = NS + `icon`;
-const ICON_FONT = NS+'iconfont';
+const ICON_FONT = NS + 'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
@@ -25,9 +25,9 @@ export const Theme = {
 	Namespace: NS,
 	IconFont: ICON_FONT,
 	IconFontClass: ICON_FONT_CLASS,
-	TipIndex: 10, //提示类
-	ToastIndex: 10000, //对话消息
+	TipIndex: 10, //功能提示类(指向具体元素)
+	MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
 	DialogIndex: 1000, //对话框等窗口类垂直索引
-	MaskIndex: 100, //遮罩
-	FullScreenModeIndex: 10000 //全屏类
+	FullScreenModeIndex: 10000, //全屏类（全屏类
+	ToastIndex: 100000, //消息提示（顶部呈现）
 }
