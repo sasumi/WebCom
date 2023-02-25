@@ -443,19 +443,19 @@ export class Dialog {
 
 	/**
 	 * @param {Object} config
-	 * @param {String|Null} config.id
-	 * @param {String} config.title
-	 * @param {String} config.content
-	 * @param {Boolean} config.modal
-	 * @param {Number} config.width
-	 * @param {Number} config.height
-	 * @param {Number} config.maxHeight
-	 * @param {Boolean} config.moveAble
-	 * @param {Array} config.buttons
-	 * @param {Boolean} config.buttons.default
-	 * @param {String} config.buttons.title
-	 * @param {Function} config.buttons.callback
-	 * @param {Boolean} config.showTopCloseButton
+	 * @param {String|Null} config.id 为对话框指定ID
+	 * @param {String} config.title 对话框标题
+	 * @param {String} config.content 对话框内容，允许提交 {src:"http://"} 格式，渲染为iframe
+	 * @param {Boolean} config.modal 是否为模态对话框
+	 * @param {Number} config.width 宽度
+	 * @param {Number} config.height 高度
+	 * @param {Number} config.maxHeight 最大高度
+	 * @param {Boolean} config.moveAble 是否可以移动
+	 * @param {Array} config.buttons 按钮列表
+	 * @param {Boolean} config.buttons.default 单个按钮对象中是否作为默认按钮（默认聚焦）
+	 * @param {String} config.buttons.title 按钮标题
+	 * @param {Function} config.buttons.callback 按钮点击后回调，缺省为关闭对话框
+	 * @param {Boolean} config.showTopCloseButton 是否显示对话框右上角关闭按钮，如果显示按钮则支持ESC关闭对话框
 	 */
 	constructor(config = {}){
 		this.config = Object.assign(this.config, config);

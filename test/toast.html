@@ -37,7 +37,13 @@
     document.getElementById('success-btn').addEventListener('click', e=>{
         Toast.showSuccess('success');
     });
-</script>
 
+    Toast.showInfo('This is info', ()=>{
+        alert('info done');
+    });
+    Toast.showWarning('warnin asf af af as fsd asg');
+    Toast.showError('error');
+    Toast.showSuccess('success');
+</script>
 </body>
 </html>
