@@ -2040,6 +2040,9 @@ var WebCom = (function (exports) {
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_animate = Theme.Namespace + '-toast-rotate';
 	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
+	const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
+	const FADEIN_TIME = 200;
+	const FADEOUT_TIME = 500;
 
 	insertStyleSheet(`
 	@keyframes ${rotate_animate} {
@@ -2051,10 +2054,15 @@ var WebCom = (function (exports) {
 		0% { opacity: 0; }
 		100% { opacity: 1; } 
 	}
+	@keyframes ${fadeOut_animate} {
+		0% { opacity:1;}
+		100% { opacity: 0} 
+	}
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; line-height:1.5; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding: 7px 15px 7px 35px;background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238;position: relative; animation:${fadeIn_animate} 0.2s}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding: 7px 15px 7px 35px;background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238;position: relative; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
 	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top:8px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
+	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
 	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
@@ -2185,7 +2193,7 @@ var WebCom = (function (exports) {
 			this.dom.innerHTML = `<span class="ctn">${this.message}</span><div></div>`;
 			if(this.timeout){
 				setTimeout(() => {
-					this.hide();
+					this.hide(true);
 					onTimeoutClose && onTimeoutClose();
 				}, this.timeout);
 			}
@@ -2193,8 +2201,16 @@ var WebCom = (function (exports) {
 
 		/**
 		 * 隐藏提示信息
+		 * @param {Boolean} fadeOut 是否使用渐隐式淡出
 		 */
-		hide(){
+		hide(fadeOut = false){
+			if(fadeOut){
+				this.dom.classList.add(TOAST_CLS_MAIN+'-hide');
+				setTimeout(()=>{
+					this.hide(false);
+				}, FADEOUT_TIME);
+				return;
+			}
 			this.dom.parentNode.removeChild(this.dom);
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
