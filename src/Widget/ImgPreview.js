@@ -358,21 +358,31 @@ export const showImgListPreview = (imgSrcList, startIndex = 0) => {
 }
 
 /**
- * 通过绑定图片节点显示图片预览
- * @param {String} imgSelector
+ * 通过绑定节点显示图片预览
+ * @param {String} nodeSelector 触发绑定的节点选择器，可以是img本身节点，也可以是其他代理节点
  * @param {String} triggerEvent
+ * @param {String|Function} srcFetcher 获取大图src的选择器，或者函数，如果是函数传入第一个参数为触发节点
  */
-export const bindImgPreviewViaSelector = (imgSelector = 'img', triggerEvent = 'click') => {
-	let images = document.querySelectorAll(imgSelector);
+export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src') => {
+	let nodes = document.querySelectorAll(nodeSelector);
 	let imgSrcList = [];
-	if(!images.length){
+	if(!nodes.length){
 		console.warn('no images found');
 		return;
 	}
-	Array.from(images).forEach((img, idx) => {
-		imgSrcList.push(img.getAttribute('src'));
-		img.addEventListener(triggerEvent, e => {
-			if(images.length > 1){
+	Array.from(nodes).forEach((node, idx) => {
+		switch(typeof(srcFetcher)){
+			case 'function':
+				imgSrcList.push(srcFetcher(node));
+				break;
+			case 'string':
+				imgSrcList.push(node.getAttribute(srcFetcher));
+				break;
+			default:
+				throw "No support srcFetcher types:"+typeof(srcFetcher);
+		}
+		node.addEventListener(triggerEvent, e => {
+			if(nodes.length > 1){
 				showImgListPreview(imgSrcList, idx);
 			}else{
 				showImgPreview(imgSrcList[0]);
