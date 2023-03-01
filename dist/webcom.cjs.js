@@ -2359,6 +2359,12 @@ document.addEventListener('keyup', e => {
 /** @var Dialog[] **/
 let DIALOG_COLLECTION = [];
 
+/**
+ * 对话框层级比较函数（层级高的排上面）
+ * @param {Dialog} dialog1
+ * @param {Dialog} dialog2
+ * @return {number}
+ */
 const sortZIndex = (dialog1, dialog2) => {
 	return dialog1.zIndex - dialog2.zIndex;
 };
@@ -2434,8 +2440,10 @@ const DialogManager = {
 	 * @param {Dialog} dlg
 	 */
 	show(dlg){
-		Masker.show();
-		dlg.state = STATE_DISABLED; //避免 getModalxx 获取不到当前对话框
+		if(dlg.config.showMasker){
+			Masker.show();
+		}
+		dlg.state = STATE_DISABLED; //避免 getModal* 获取不到当前对话框
 
 		let modalDialogs = getModalDialogs(dlg);
 		let noModalDialogs = getNoModalDialogs(dlg);
@@ -2454,6 +2462,8 @@ const DialogManager = {
 
 	/**
 	 * 关闭对话框
+	 * @param {Dialog} dlg
+	 * @param {Boolean} destroy 是否摧毁
 	 */
 	close: (dlg, destroy = true) => {
 		if(dlg.onClose.fire() === false){
@@ -2500,6 +2510,11 @@ const DialogManager = {
 		return dialogs[dialogs.length - 1];
 	},
 
+	/**
+	 * 尝试设置指定窗口前置
+	 * @param {Dialog} dlg
+	 * @return {boolean}
+	 */
 	trySetFront(dlg){
 		let modalDialogs = getModalDialogs();
 		let currentFrontDialog = this.getFrontDialog();
@@ -2544,8 +2559,6 @@ const DialogManager = {
 	}
 };
 
-window['DialogManager'] = DialogManager;
-
 const resolveContentType = (content) => {
 	if(typeof (content) === 'object' && content.src){
 		return DLG_CTN_TYPE_IFRAME;
@@ -2555,12 +2568,13 @@ const resolveContentType = (content) => {
 
 /**
  * 构造DOM结构
+ * @param {Dialog} dlg
  */
 const domConstruct = (dlg) => {
 	let html = `
 		<div class="${DLG_CLS_PREF}" 
 			id="${dlg.config.id}" 
-			style="${dlg.hidden ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
+			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : ''}
 	`;
@@ -2727,17 +2741,18 @@ class Dialog {
 	onShow = new BizEvent(true);
 
 	config = {
-		id: null,
-		title: '',
+		id: null, //对话框ID，缺省为自动生成
+		title: '', //对话框标题
 		content: '',
-		modal: false,
+		modal: false, //是否为模态窗口
 		width: Dialog.DEFAULT_WIDTH,
-		height: null,
+		height: null, //高度，缺省为自动高度
 		maxHeight: `calc(100vh - ${Dialog.CONTENT_MIN_HEIGHT}px)`,
 		minContentHeight: Dialog.CONTENT_MIN_HEIGHT,
-		moveAble: true,
-		buttons: [/** {title:'', default:true, callback }**/],
-		showTopCloseButton: true,
+		moveAble: true, //是否可移动
+		showMasker: true, //是否显示遮罩，如果是模态对话框，会强制显示遮罩
+		buttons: [/** {title:'', default:true, callback }**/], //对话框配置按钮列表
+		showTopCloseButton: true, //是否显示顶部关闭窗口
 	};
 
 	/**
@@ -2759,6 +2774,10 @@ class Dialog {
 	constructor(config = {}){
 		this.config = Object.assign(this.config, config);
 		this.config.id = this.config.id || 'dialog-' + Math.random();
+		if(!this.config.showMasker && this.config.modal){
+			console.warn('已矫正：模态窗口强制显示遮罩');
+		}
+		this.config.showMasker = this.config.modal || this.config.showMasker;
 		domConstruct(this);
 		eventBind(this);
 		DialogManager.register(this);
@@ -2861,7 +2880,6 @@ class Dialog {
 				...opt
 			});
 			p.show();
-
 		}));
 	}
 
@@ -2869,9 +2887,10 @@ class Dialog {
 	 * 输入提示框
 	 * @param {String} title
 	 * @param {Object} option
+	 * @param {String} option.initValue
 	 * @returns {Promise<unknown>}
 	 */
-	static prompt(title, option = {}){
+	static prompt(title, option = {initValue:""}){
 		return new Promise((resolve, reject) => {
 			let p = new Dialog({
 				title: '请输入',
