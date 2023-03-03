@@ -822,6 +822,39 @@ const isButton = (el)=>{
 };
 
 /**
+ * closest
+ * @param {Node} dom
+ * @param {String} selector
+ * @return {(() => (Node | null))|ParentNode|ActiveX.IXMLDOMNode|null}
+ */
+const matchParent = (dom, selector)=>{
+	let p = dom.parentNode;
+	while(p){
+		if(p.matches(selector)){
+			return p;
+		}
+		p = p.parentNode;
+	}
+	return null;
+};
+
+/**
+ * 检测元素是否可以输入（包含checkbox、radio类）
+ * @param {HTMLElement} el
+ * @returns {boolean}
+ */
+const inputAble = el=>{
+	if(el.disabled ||
+		el.readOnly ||
+		el.tagName === 'BUTTON'||
+		(el.tagName === 'INPUT' && ['HIDDEN', 'BUTTON', 'RESET'].includes(el.type))
+	){
+		return false;
+	}
+	return true;
+};
+
+/**
  * 检测child节点是否在container节点列表里面
  * @param {HTMLElement|HTMLElement[]|String} contains
  * @param {Node} child
@@ -3973,6 +4006,7 @@ exports.guid = guid;
 exports.hide = hide;
 exports.highlightText = highlightText;
 exports.html2Text = html2Text;
+exports.inputAble = inputAble;
 exports.insertStyleSheet = insertStyleSheet;
 exports.isButton = isButton;
 exports.isElement = isElement;
@@ -3982,6 +4016,7 @@ exports.keepRectCenter = keepRectCenter;
 exports.keepRectInContainer = keepRectInContainer;
 exports.loadCss = loadCss;
 exports.loadScript = loadScript;
+exports.matchParent = matchParent;
 exports.mergerUriParam = mergerUriParam;
 exports.onDocReady = onDocReady;
 exports.onHover = onHover;
