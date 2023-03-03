@@ -2091,14 +2091,14 @@ insertStyleSheet(`
 	}
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; line-height:1.5; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding: 7px 15px 7px 35px;background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238;position: relative; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left: 10px;top:8px;font-size: 20px;width: 20px;height: 20px;overflow: hidden;line-height: 1;box-sizing: border-box;}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.1em;background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238;position: relative; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left:0.5em;top:0.45em;font-size:1.2em;width:1em;height:1em;overflow: hidden;line-height: 1;box-sizing: border-box;}
 	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
 	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;}
-	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin: 8px 0 0 8px;}
+	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin:0.52em 0 0 0.5em;}
 `, Theme.Namespace + 'toast');
 
 let toastWrap = null;
