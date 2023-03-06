@@ -96,7 +96,7 @@ export const inputAble = el=>{
 	if(el.disabled ||
 		el.readOnly ||
 		el.tagName === 'BUTTON'||
-		(el.tagName === 'INPUT' && ['HIDDEN', 'BUTTON', 'RESET'].includes(el.type))
+		(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
 	){
 		return false;
 	}

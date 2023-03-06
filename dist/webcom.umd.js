@@ -851,7 +851,7 @@
 		if(el.disabled ||
 			el.readOnly ||
 			el.tagName === 'BUTTON'||
-			(el.tagName === 'INPUT' && ['HIDDEN', 'BUTTON', 'RESET'].includes(el.type))
+			(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
 		){
 			return false;
 		}
@@ -2347,7 +2347,6 @@
 	const DLG_CLS_OP = DLG_CLS_PREF + '-op';
 	const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
 	const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
-	const DLG_CLS_INPUT = DLG_CLS_PREF + '-input';
 
 	const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
 
@@ -2371,9 +2370,9 @@
 	insertStyleSheet(`
 	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:white; color:#333; z-index:${Theme.DialogIndex};position:fixed;}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:#666}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; zoom:0.8; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee; opacity:1;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em 0.5em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
@@ -2385,8 +2384,10 @@
 	
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_IFRAME}"] iframe {width:100%; border:none; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_ALERT}"] .${DLG_CLS_CTN},
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN},
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1em;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} {padding:0.5em 1em;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {padding-bottom:0.5em; display:block;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
 `, Theme.Namespace + 'dialog-style');
 
@@ -2475,7 +2476,7 @@
 	};
 
 	const setType = (dlg, type)=>{
-		dlg.dom.setAttribute('data-dialog-type', 'alert');
+		dlg.dom.setAttribute('data-dialog-type', type);
 	};
 
 	/**
@@ -2627,7 +2628,7 @@
 			id="${dlg.config.id}" 
 			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
-		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" tabindex="0"></span>` : ''}
+		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
 	`;
 
 		let style = [];
@@ -2653,7 +2654,7 @@
 		updatePosition$1(dlg);
 
 		if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-			setType(dlg);
+			setType(dlg, TYPE_IFRAME);
 		}
 
 		//bind iframe content
@@ -2907,7 +2908,7 @@
 					showTopCloseButton: false,
 					...opt
 				});
-				setType(p);
+				setType(p, TYPE_CONFIRM);
 				p.show();
 			});
 		}
@@ -2924,18 +2925,11 @@
 				let p = new Dialog({
 					title,
 					content,
-					buttons: [
-						{
-							title: '确定', default: true, callback: () => {
-								p.close();
-								resolve();
-							}
-						},
-					],
+					buttons: [{title: '确定', default: true, callback: () => {p.close();resolve();}},],
 					showTopCloseButton: false,
 					...opt
 				});
-				setType(p);
+				setType(p, TYPE_ALERT);
 				p.show();
 			}));
 		}
@@ -2949,20 +2943,18 @@
 		 */
 		static prompt(title, option = {initValue:""}){
 			return new Promise((resolve, reject) => {
+				let input_id = guid(Theme.Namespace + '-prompt-input');
+				let input = null;
 				let p = new Dialog({
 					title: '请输入',
-					content: `<div style="padding:0 10px;">
-							<p style="padding-bottom:0.5em;">${title}</p>
-							<input type="text" style="width:100%" class="${DLG_CLS_INPUT}" value="${escapeAttr(option.initValue || '')}"/>
-						</div>`,
+					content: `<label for="${input_id}">${title}</label><input type="text" id="${input_id}" value="${escapeAttr(option.initValue || '')}"/>`,
 					buttons: [
 						{
 							title: '确定', default: true, callback: () => {
-								let input = p.dom.querySelector('input');
 								if(resolve(input.value) === false){
-									return;
+									return false;
 								}
-								p.close();
+								// p.close();
 							}
 						},
 						{title: '取消'}
@@ -2970,10 +2962,10 @@
 					showTopCloseButton: true,
 					...option
 				});
-				setType(p);
+				input = p.dom.querySelector('input[type=text]');
+				setType(p, TYPE_PROMPT);
 				p.onClose.listen(reject);
 				p.onShow.listen(() => {
-					let input = p.dom.querySelector('input');
 					input.focus();
 					input.addEventListener('keydown', e => {
 						if(e.keyCode === KEYS.Enter){

@@ -6,4 +6,4 @@ a{text-decoration:none; color:#519aff}
 .nav li:after{content:"|"; display:inline-block; padding:0 1em; color:#cccccc; font-size:14px;}
 .nav li:last-child:after{display:none;}
 
-input[type=button], button{padding:0.5em 1em; cursor:pointer;}
+input[type=button], button{padding: 0.25em 1em;cursor:pointer;}
