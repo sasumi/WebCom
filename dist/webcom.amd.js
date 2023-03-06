@@ -2383,9 +2383,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	insertStyleSheet(`
 	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:white; color:#333; z-index:${Theme.DialogIndex};position:fixed;}
-	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; padding:0.5em 2.5em 0.5em 0.75em; font-weight:normal;color:#666}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0; width:2.5em; height:2.5em; box-sizing:border-box; line-height:1.1; text-align:center;}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:2em;}
+	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:#666}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee; opacity:1;}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em 0.5em; text-align:right;}
