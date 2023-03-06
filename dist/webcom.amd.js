@@ -2368,6 +2368,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const STATE_DISABLED = 'disabled'; //禁用状态。存在模态框情况下，全局只允许唯一一个激活，其余均为禁用状态
 	const STATE_HIDDEN = 'hidden'; //隐藏状态。通过主动调用hide方法使得对话框隐藏
 
+	const DIALOG_TYPE_ATTR_KEY = 'data-dialog-type';
+	const TYPE_IFRAME = 'iframe';
+	const TYPE_ALERT = 'alert';
+	const TYPE_PROMPT = 'prompt';
+	const TYPE_CONFIRM = 'confirm';
+
 	/**
 	 * Content Type
 	 * @type {string}
@@ -2376,21 +2382,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 	insertStyleSheet(`
-	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box;width:calc(100% - 2 * 30px); --head-height:36px; background-color:white; color:#333; z-index:${Theme.DialogIndex};position:fixed;}
-	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {font-size :16px; user-select:none; height:var(--head-height); box-sizing:border-box; padding:6px 10px 0 10px; font-weight:normal;color:#666}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; cursor:pointer; right:0; top:0; width:var(--head-height); height:var(--head-height); box-sizing:border-box; line-height:var(--head-height); text-align:center;}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:24px;}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee;}
+	.${DLG_CLS_PREF} {display:block;border:1px solid #ddd; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:white; color:#333; z-index:${Theme.DialogIndex};position:fixed;}
+	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; padding:0.5em 2.5em 0.5em 0.75em; font-weight:normal;color:#666}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0; width:2.5em; height:2.5em; box-sizing:border-box; line-height:1.1; text-align:center;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"×"; font-size:2em;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {background-color:#eee; opacity:1;}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
-	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} {padding:0}
-	.${DLG_CLS_PREF} .${DLG_CTN_TYPE_IFRAME} iframe {width:100%; border:none; display:block;}
-	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:10px; text-align:right;}
+	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em 0.5em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#ccc;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
+	
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_IFRAME}"] iframe {width:100%; border:none; display:block;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_ALERT}"] .${DLG_CLS_CTN},
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN},
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1em;}
+	
 `, Theme.Namespace + 'dialog-style');
 
 	/**
@@ -2475,6 +2485,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const setZIndex = (dlg, zIndex) => {
 		dlg.zIndex = dlg.dom.style.zIndex = String(zIndex);
+	};
+
+	const setType = (dlg, type)=>{
+		dlg.dom.setAttribute('data-dialog-type', 'alert');
 	};
 
 	/**
@@ -2650,6 +2664,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 
 		updatePosition$1(dlg);
+
+		if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
+			setType(dlg);
+		}
 
 		//bind iframe content
 		if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
@@ -2902,6 +2920,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					showTopCloseButton: false,
 					...opt
 				});
+				setType(p);
 				p.show();
 			});
 		}
@@ -2929,6 +2948,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					showTopCloseButton: false,
 					...opt
 				});
+				setType(p);
 				p.show();
 			}));
 		}
@@ -2963,6 +2983,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					showTopCloseButton: true,
 					...option
 				});
+				setType(p);
 				p.onClose.listen(reject);
 				p.onShow.listen(() => {
 					let input = p.dom.querySelector('input');
