@@ -2947,7 +2947,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @returns {Promise<unknown>}
 		 */
 		static alert(title, content, opt = {}){
-			return new Promise(((resolve) => {
+			return new Promise(resolve => {
 				let p = new Dialog({
 					title,
 					content,
@@ -2957,7 +2957,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				});
 				setType(p, TYPE_ALERT);
 				p.show();
-			}));
+			});
 		}
 
 		/**
@@ -2980,7 +2980,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 								if(resolve(input.value) === false){
 									return false;
 								}
-								// p.close();
+								p.close();
 							}
 						},
 						{title: '取消'}

@@ -2930,7 +2930,7 @@ class Dialog {
 	 * @returns {Promise<unknown>}
 	 */
 	static alert(title, content, opt = {}){
-		return new Promise(((resolve) => {
+		return new Promise(resolve => {
 			let p = new Dialog({
 				title,
 				content,
@@ -2940,7 +2940,7 @@ class Dialog {
 			});
 			setType(p, TYPE_ALERT);
 			p.show();
-		}));
+		});
 	}
 
 	/**
@@ -2963,7 +2963,7 @@ class Dialog {
 							if(resolve(input.value) === false){
 								return false;
 							}
-							// p.close();
+							p.close();
 						}
 					},
 					{title: '取消'}
