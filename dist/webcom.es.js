@@ -352,6 +352,19 @@ const stringToEntity = (str, radix) => {
 };
 
 /**
+ * 混合ES6模板字符串
+ * @example extract("hello ${user_name}", {user_name:"Jack"});
+ * @param {String} es_template 模板
+ * @param {Object} params 数据对象
+ * @return {String}
+ */
+const extract = (es_template, params)=>{
+	const names = Object.keys(params);
+	const values = Object.values(params);
+	return new Function(...names, `return \`${es_template}\`;`)(...values);
+};
+
+/**
  * 格式化数字
  * @param {Number} num
  * @param {Number} precision
@@ -3941,4 +3954,4 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, fireEvent, formSerializeJSON, formValidate, formatSize, frequencyControl, getCurrentScript, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };
+export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formValidate, formatSize, frequencyControl, getCurrentScript, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };

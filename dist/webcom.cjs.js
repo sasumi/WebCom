@@ -354,6 +354,19 @@ const stringToEntity = (str, radix) => {
 };
 
 /**
+ * 混合ES6模板字符串
+ * @example extract("hello ${user_name}", {user_name:"Jack"});
+ * @param {String} es_template 模板
+ * @param {Object} params 数据对象
+ * @return {String}
+ */
+const extract = (es_template, params)=>{
+	const names = Object.keys(params);
+	const values = Object.values(params);
+	return new Function(...names, `return \`${es_template}\`;`)(...values);
+};
+
+/**
  * 格式化数字
  * @param {Number} num
  * @param {Number} precision
@@ -3999,6 +4012,7 @@ exports.escapeAttr = escapeAttr;
 exports.escapeHtml = escapeHtml;
 exports.eventDelegate = eventDelegate;
 exports.exitFullScreen = exitFullScreen;
+exports.extract = extract;
 exports.fireEvent = fireEvent;
 exports.formSerializeJSON = formSerializeJSON;
 exports.formValidate = formValidate;
