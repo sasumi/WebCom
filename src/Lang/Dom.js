@@ -493,18 +493,75 @@ export const getElementValue = (el) => {
 };
 
 /**
+ * 表单元素同步变更
+ * 该方法会检测元素数据合法性（表单校验）
+ * @param {HTMLElement} dom
+ * @param {Function} getter 函数执行返回 Promise，返回null时，不填充input
+ * @param {Function} setter 函数执行返回 Promise，checkbox、radio类型元素未选择时，返回null，设置失败元素将还原初始值
+ */
+export const formSync = (dom, getter, setter)=>{
+	let els = getAvaliableElements(dom);
+	els.forEach(function(el){
+		let name = el.name;
+		let current_val = getElementValue(el);
+		el.disabled = true;
+		getter(name).then(v=>{
+			el.disabled = false;
+			if(el.type === 'radio' || el.type === 'checkbox'){
+				el.checked = el.value == v;
+				current_val = v;
+			} else if(v !== null){
+				el.value = v;
+				current_val = v;
+			}
+		});
+		el.addEventListener('change', e=>{
+			el.disabled = true;
+			if(!el.checkValidity()){
+				el.reportValidity();
+				return;
+			}
+			let val = el.value;
+			if((el.type === 'radio' || el.type === 'checkbox') && !el.checked){
+				val = null;
+			}
+			setter(el.name, val).then(()=>{
+				el.disabled = false;
+			}, ()=>{
+				if(el.type === 'radio' || el.type === 'checkbox'){
+					el.checked = el.value == current_val;
+				} else if(current_val !== null){
+					el.value = current_val;
+				}
+			});
+		});
+	});
+}
+
+/**
+ * 获取指定容器下所有可用表单元素
+ * @param {HTMLElement} dom
+ * @param {Boolean} ignore_empty_name 是否忽略没有name属性的元素，缺省为必须校验
+ * @return {HTMLInputElement|HTMLSelectElement,HTMLTextAreaElement}
+ */
+export const getAvaliableElements = (dom, ignore_empty_name = false)=>{
+	let els = dom.querySelectorAll('input,textarea,select');
+	els = Array.from(els).filter(el => {
+		return !isButton(el) && !el.disabled && (!ignore_empty_name && el.name);
+	});
+	return els;
+}
+
+/**
  * 表单元素校验
  * @param {HTMLElement} dom
+ * @param {Boolean} name_validate 是否校验名称必填
  * @return boolean 是否校验通过
  */
-export const formValidate = (dom)=>{
-	let els = dom.querySelectorAll('input,textarea,select');
+export const formValidate = (dom, name_validate = false)=>{
+	let els = getAvaliableElements(dom, !name_validate);
 	let pass = true;
-	els = Array.from(els).filter(el => !isButton(el));
 	Array.from(els).every(el => {
-		if(el.disabled){
-			return true;
-		}
 		if(!el.checkValidity()){
 			el.reportValidity();
 			pass = false;
@@ -526,14 +583,9 @@ export const formSerializeJSON = (dom, validate = true) => {
 	if(!formValidate(dom)){
 		return null;
 	}
-	let els = dom.querySelectorAll('input,textarea,select');
+	let els = getAvaliableElements(dom);
 	let data = {};
-	els = Array.from(els).filter(el => !isButton(el));
 	let err = Array.from(els).every(el => {
-		if(!el.name){
-			console.warn('element no legal for fetch form data');
-			return true;
-		}
 		let name = el.name;
 		let value = getElementValue(el);
 		if(value === null){

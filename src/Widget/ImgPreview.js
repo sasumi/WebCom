@@ -1,11 +1,16 @@
-import {createDomByHtml, hide, insertStyleSheet, loadCss, setStyle, show} from "../Lang/Dom.js";
+import {createDomByHtml, formSync, hide, loadCss, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
 import {Masker} from "./Masker.js";
+import {downloadFile} from "../Lang/Net.js";
+import {Dialog} from "./Dialog.js";
+import {Toast} from "./Toast.js";
 
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
+const SETTING_STORAGE_PRE_KEY = Theme.Namespace+'com-image-viewer';
+
 const DEFAULT_VIEW_PADDING = 20;
 const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
 const MIN_ZOOM_OUT_SIZE = 50; //最小显示像素
@@ -13,16 +18,19 @@ const MIN_ZOOM_OUT_SIZE = 50; //最小显示像素
 const THUMB_WIDTH = 50;
 const THUMB_HEIGHT = 50;
 
-const ZOOM_IN_RATIO =  0.8; //缩小比率
+const ZOOM_IN_RATIO =0.8; //缩小比率
 const ZOOM_OUT_RATIO = 1.2; //放大比率
 
 const ATTR_W_BIND_KEY = 'data-original-width';
 const ATTR_H_BIND_KEY = 'data-original-height';
 
+const DISABLED_ATTR_KEY = 'data-disabled';
+
 const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGMjU3QTNFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGMjU3QTJFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pg2ugmUAAAAGUExURe7u7v///yjTqpoAAAAoSURBVHjaYmDAARhxAIZRDaMaRjWMaqCxhtHQGNUwqmFUwyDTABBgALZcBIFabzQ0AAAAAElFTkSuQmCC';
 
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
+const OPTION_DLG_INDEX = BASE_INDEX+2;
 
 export const IMG_PREVIEW_MODE_SINGLE = 1;
 export const IMG_PREVIEW_MODE_MULTIPLE = 2;
@@ -38,6 +46,8 @@ let IMG_SRC_LIST = [];
 let IMG_CURRENT_INDEX = 0;
 let SHOW_THUMB_LIST = false;
 let SHOW_OPTION = false;
+loadCss('./ip.css');
+
 /**
 insertStyleSheet(`
 	@keyframes ${Theme.Namespace}spin{100%{transform:rotate(360deg);}}
@@ -53,7 +63,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-prev:before {content:"\\e6103"}
 	.${DOM_CLASS} .civ-next {right:10px}
 	.${DOM_CLASS} .civ-next:before {content:"\\e73b";}
-	
+
 	.${DOM_CLASS} .civ-nav-list-wrap {position:absolute; background-color:#fff3; padding-left:20px; padding-right:20px; bottom:10px; left:50%; transform: translate(-50%, 0); overflow:hidden; z-index:${OP_INDEX}; max-width:300px; min-width:300px; border:1px solid green;}
 	.${DOM_CLASS} .civ-nav-list-prev:before,
 	.${DOM_CLASS} .civ-nav-list-next:before {font-family:"${Theme.IconFont}"; font-size:18px; position:absolute; top:30%; left:0; width:20px; height:100%;}
@@ -62,19 +72,31 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-nav-list {height:${THUMB_HEIGHT}px}
 	.${DOM_CLASS} .civ-nav-thumb {width:${THUMB_WIDTH}px; height:${THUMB_HEIGHT}px; overflow:hidden; display:inline-block; box-sizing:border-box; padding:0 5px;}
 	.${DOM_CLASS} .civ-nav-thumb img {width:100%; height:100%; object-fit:cover;}
-	
+
 	.${DOM_CLASS} .civ-ctn {height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
 	.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
 	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
-	
+
 	.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-btn,
 	.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-list-wrap {display:none;}
 `, Theme.Namespace + 'img-preview-style'); **/
 
-loadCss('./ip.css');
+/**
+ * 销毁组件
+ */
+const destroy = () => {
+	if(!PREVIEW_DOM){
+		return;
+	}
+	PREVIEW_DOM.parentNode.removeChild(PREVIEW_DOM);
+	PREVIEW_DOM = null;
+	Masker.hide();
+	window.removeEventListener('resize', onWinResize);
+	document.body.removeEventListener('keydown', bindKeyDown);
+};
 
 /**
  * 更新导航按钮状态
@@ -84,14 +106,14 @@ const updateNavState = () => {
 	let next = PREVIEW_DOM.querySelector('.civ-next');
 	let total = IMG_SRC_LIST.length;
 	if(IMG_CURRENT_INDEX === 0){
-		prev.setAttribute('disabled', 'disabled');
+		prev.setAttribute(DISABLED_ATTR_KEY, '1');
 	}else{
-		prev.removeAttribute('disabled');
+		prev.removeAttribute(DISABLED_ATTR_KEY);
 	}
 	if(IMG_CURRENT_INDEX === (total - 1)){
-		next.setAttribute('disabled', 'disabled');
+		next.setAttribute(DISABLED_ATTR_KEY, '1');
 	}else{
-		next.removeAttribute('disabled');
+		next.removeAttribute(DISABLED_ATTR_KEY);
 	}
 
 	updateThumbNavState();
@@ -192,7 +214,6 @@ const showImgSrc = (img_index = 0) => {
 		bindImgMove(img);
 		img_ctn.appendChild(img);
 	}, error => {
-		debugger;
 		hide(loading);
 		err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
 		show(err);
@@ -220,13 +241,9 @@ const constructDom = () => {
 	if(SHOW_OPTION){
 		option_html = `
 		<span class="civ-view-option">
-			<span class="civ-opt-btn" data-cmd="zoomOut">放大</span>
-			<span class="civ-opt-btn" data-cmd="zoomIn">缩小</span>
-			<span class="civ-opt-btn" data-cmd="zoomOrg">1:1</span>
-			<span class="civ-opt-btn" data-cmd="rotateLeft">左旋90°</span>
-			<span class="civ-opt-btn" data-cmd="rotateRight">右旋90°</span>
-			<span class="civ-opt-btn" data-cmd="viewOrg">查看原图</span>
-			<span class="civ-opt-btn" data-cmd="download">下载图片</span>
+			${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
+				return lastVal + `<span class="civ-opt-btn" data-cmd="${CMD}" title="${COMMANDS[CMD][0]}"></span>`;
+			},"")}
 		</span>`;
 	}
 
@@ -248,53 +265,13 @@ const constructDom = () => {
 	//bind close click & space click
 	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
 		let cmd = target.getAttribute('data-cmd');
-		switch(cmd){
-			case 'close':
-				destroy();
-				break;
-
-			case 'navTo':
-				navTo(target.getAttribute('data-dir') !== '1');
-				break;
-
-			case 'switchTo':
-				switchTo(target.getAttribute('data-index'));
-				break;
-
-			case 'thumb-scroll-prev':
-				thumbScroll(-1);
-				break;
-
-			case 'thumb-scroll-next':
-				thumbScroll(1);
-				break;
-			case 'zoomOut':
-				zoom(ZOOM_OUT_RATIO);
-				break;
-
-			case 'zoomIn':
-				zoom(ZOOM_IN_RATIO);
-				break;
-
-			case 'zoomOrg':
-				zoom(null);
-				break;
-
-			case 'rotateLeft':
-				rotate(-90);
-				break;
-			case 'rotateRight':
-				rotate(90);
-				break;
-
-			case 'viewOrg':
-				viewOriginal();
-				break;
-
-			case 'download':
-				download();
-				break;
+		if(target.getAttribute(DISABLED_ATTR_KEY)){
+			return false;
 		}
+		if(COMMANDS[cmd]){
+			return COMMANDS[cmd][1](target);
+		}
+		throw "no command found.";
 	});
 
 	PREVIEW_DOM.querySelector('.civ-ctn').addEventListener('click', e => {
@@ -347,20 +324,6 @@ const onWinResize = () => {
 };
 
 /**
- * 销毁组件
- */
-const destroy = () => {
-	if(!PREVIEW_DOM){
-		return;
-	}
-	PREVIEW_DOM.parentNode.removeChild(PREVIEW_DOM);
-	PREVIEW_DOM = null;
-	Masker.hide();
-	window.removeEventListener('resize', onWinResize);
-	document.body.removeEventListener('keydown', bindKeyDown);
-};
-
-/**
  * 重置视图
  */
 const resetView = () => {
@@ -401,6 +364,7 @@ const switchTo = (index)=>{
 }
 
 const thumbScroll = (toPrev)=>{
+	let $thumb_list = PREVIEW_DOM.querySelector('.civ-nav-list');
 
 }
 
@@ -427,6 +391,7 @@ const zoom = (ratioOffset) => {
 		console.warn('zoom out limited');
 		return;
 	}
+
 	img.style.left = dimension2Style(parseInt(img.style.left, 10) * ratioOffset);
 	img.style.top = dimension2Style(parseInt(img.style.top, 10) * ratioOffset);
 	img.style.width = dimension2Style(parseInt(img.style.width, 10) * ratioOffset);
@@ -438,12 +403,74 @@ const rotate = (degreeOffset)=>{
 }
 
 const viewOriginal = ()=>{
-
+	window.open(IMG_SRC_LIST[IMG_CURRENT_INDEX]);
 };
 
-const download = () => {
-
+const showOption = ()=>{
+	let html = `
+<ul class="${DOM_CLASS}-option-list">
+	<li>
+		<label>界面：</label>
+		<label>
+			<input type="checkbox" name="show_thumb_list" value="1">多图模式下显示图片缩略图列表
+		</label>
+		<label>
+			<input type="checkbox" name="show_toolbar" value="1">显示图片操作工具栏
+		</label>
+	</li>	
+	<li>
+		<label>鼠标滚轮：</label>
+		<label><input type="radio" name="rolltype" value="${IMG_PREVIEW_SCROLL_TYPE_NAV}">切换前一张、后一张图片</label>
+		<label><input type="radio" name="rolltype" value="${IMG_PREVIEW_SCROLL_TYPE_SCALE}">缩放图片</label>
+		<label><input type="radio" name="rolltype" value="${IMG_PREVIEW_SCROLL_TYPE_NONE}">无动作</label>
+	</li>
+	<li>
+		<label>移动：</label>
+		<label><input type="checkbox" name="allow_move" value="1">允许移动图片</label>
+	</li>
+</ul>
+	`
+	let dlg = Dialog.show('设置', html, {
+		showMasker:false,
+		modal:false
+	});
+	dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
+	formSync(dlg.dom, settingGetter, settingSetter);
 }
+
+const settingGetter = (name)=>{
+	return new Promise((resolve, reject)=>{
+		resolve(localStorage.getItem(SETTING_STORAGE_PRE_KEY+'/'+name));
+	});
+}
+
+let last_tip = null;
+const settingSetter = (name, val)=>{
+	return new Promise((resolve, reject)=>{
+		localStorage.setItem(SETTING_STORAGE_PRE_KEY+'/'+name, val);
+		last_tip && last_tip.hide();
+		last_tip = Toast.showSuccess('设置已保存');
+		resolve();
+	});
+}
+
+const COMMANDS = {
+	'close':['关闭',destroy],
+	'navTo':['关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}],
+	'switchTo': ['关闭',(target)=>{switchTo(target.getAttribute('data-index'));}],
+	'thumb-scroll-prev': ['关闭', ()=>{thumbScroll(-1)}],
+	'thumb-scroll-next': ['关闭', ()=>{thumbScroll(1)}],
+	'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO)}],
+	'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO)}],
+	'zoomOrg':['原始比例',()=>{zoom(null)}],
+	'rotateLeft': ['左旋90°', ()=>{rotate(-90)}],
+	'rotateRight':['右旋90°',()=>{rotate(90)}],
+	'viewOrg':['查看原图', viewOriginal],
+	'download': ['下载图片',()=>{downloadFile(IMG_SRC_LIST[IMG_CURRENT_INDEX])}],
+	'option': ['选项',showOption],
+};
+
+const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRight', 'viewOrg', 'download', 'option'];
 
 /**
  * 初始化
@@ -459,7 +486,7 @@ const init = ({
 	scrollType = IMG_PREVIEW_SCROLL_TYPE_NAV,
 	showThumbList = true,
 	showOption = true
-  }) => {
+}) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;

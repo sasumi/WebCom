@@ -174,7 +174,8 @@ export class Toast {
 			}, FADEOUT_TIME);
 			return;
 		}
-		this.dom.parentNode.removeChild(this.dom);
+		//稍微容错下，避免setTimeout后没有父节点
+		this.dom.parentNode && this.dom.parentNode.removeChild(this.dom);
 		let wrapper = getWrapper();
 		if(!wrapper.childNodes.length){
 			hide(wrapper);
