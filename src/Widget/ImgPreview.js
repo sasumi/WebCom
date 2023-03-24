@@ -1,4 +1,11 @@
-import {createDomByHtml, formSync, hide, loadCss, setStyle, show} from "../Lang/Dom.js";
+import {
+	createDomByHtml,
+	formSync,
+	hide,
+	loadCss,
+	setStyle,
+	show
+} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
@@ -7,9 +14,8 @@ import {Masker} from "./Masker.js";
 import {downloadFile} from "../Lang/Net.js";
 import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
-
+import {LocalStorageSetting} from "./LocalStorageSetting.js";
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
-const SETTING_STORAGE_PRE_KEY = Theme.Namespace+'com-image-viewer';
 
 const DEFAULT_VIEW_PADDING = 20;
 const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
@@ -32,20 +38,47 @@ const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
 const OPTION_DLG_INDEX = BASE_INDEX+2;
 
-export const IMG_PREVIEW_MODE_SINGLE = 1;
-export const IMG_PREVIEW_MODE_MULTIPLE = 2;
+export const IMG_PREVIEW_MODE_SINGLE = 'single';
+export const IMG_PREVIEW_MODE_MULTIPLE = 'multiple';
 
-export const IMG_PREVIEW_SCROLL_TYPE_NONE = 0;
-export const IMG_PREVIEW_SCROLL_TYPE_SCALE = 1;
-export const IMG_PREVIEW_SCROLL_TYPE_NAV = 2;
+export const IMG_PREVIEW_MS_SCROLL_TYPE_NONE = 'none';
+export const IMG_PREVIEW_MS_SCROLL_TYPE_SCALE = 'scale';
+export const IMG_PREVIEW_MS_SCROLL_TYPE_NAV = 'nav';
 
 let PREVIEW_DOM = null;
 let CURRENT_MODE = 0;
-let CURRENT_SCROLL_TYPE = IMG_PREVIEW_SCROLL_TYPE_NONE;
-let IMG_SRC_LIST = [];
+let CURRENT_MS_SCROLL_TYPE = IMG_PREVIEW_MS_SCROLL_TYPE_NONE;
+
+//srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
+// ① src或[src]: 只有一种图源模式；
+// ② [src1,src2]，1为缩略图，2为大图、原图；
+// ③ [src1,src2,src3] 1为缩略图，2为大图，3为原图
+let IMG_SRC_LIST = [/** srcset1, srcset2 **/];
 let IMG_CURRENT_INDEX = 0;
 let SHOW_THUMB_LIST = false;
 let SHOW_OPTION = false;
+
+let LocalSetting = new LocalStorageSetting({
+	show_thumb_list: false,
+	show_toolbar: true,
+	mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+	allow_move: true,
+}, Theme.Namespace+'com-image-viewer/');
+
+/**
+ * 解析图片src集合
+ * @param {Array|String} item
+ * @return {{normal: string, original: string, thumb: string}}
+ */
+const srcSetResolve = item => {
+	item = typeof (item) === 'string' ? [item] : item;
+	return {
+		thumb: item[0],
+		normal: item[1] || item[0],
+		original: item[2] || item[1] || item[0]
+	};
+}
+
 loadCss('./ip.css');
 
 /**
@@ -191,32 +224,36 @@ const bindImgMove = (img) => {
  * @param {Number} img_index
  */
 const showImgSrc = (img_index = 0) => {
-	let imgSrc = IMG_SRC_LIST[img_index];
-	let loading = PREVIEW_DOM.querySelector('.civ-loading');
-	let err = PREVIEW_DOM.querySelector('.civ-error');
-	let img_ctn = PREVIEW_DOM.querySelector('.civ-img');
-	img_ctn.innerHTML = '';
-	Masker.show();
-	show(loading);
-	hide(err);
-	loadImgBySrc(imgSrc).then(img => {
-		setStyle(img, scaleFixCenter({
-			contentWidth: img.width,
-			contentHeight: img.height,
-			containerWidth: img_ctn.offsetWidth,
-			containerHeight: img_ctn.offsetHeight,
-			spacing: DEFAULT_VIEW_PADDING
-		}));
-		hide(loading);
+	return new Promise((resolve, reject) => {
+		let imgItem = srcSetResolve(IMG_SRC_LIST[img_index]);
+		let loading = PREVIEW_DOM.querySelector('.civ-loading');
+		let err = PREVIEW_DOM.querySelector('.civ-error');
+		let img_ctn = PREVIEW_DOM.querySelector('.civ-img');
 		img_ctn.innerHTML = '';
-		img.setAttribute(ATTR_W_BIND_KEY, img.width);
-		img.setAttribute(ATTR_H_BIND_KEY, img.height);
-		bindImgMove(img);
-		img_ctn.appendChild(img);
-	}, error => {
-		hide(loading);
-		err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
-		show(err);
+		Masker.show();
+		show(loading);
+		hide(err);
+		loadImgBySrc(imgItem.normal).then(img => {
+			setStyle(img, scaleFixCenter({
+				contentWidth: img.width,
+				contentHeight: img.height,
+				containerWidth: img_ctn.offsetWidth,
+				containerHeight: img_ctn.offsetHeight,
+				spacing: DEFAULT_VIEW_PADDING
+			}));
+			hide(loading);
+			img_ctn.innerHTML = '';
+			img.setAttribute(ATTR_W_BIND_KEY, img.width);
+			img.setAttribute(ATTR_H_BIND_KEY, img.height);
+			bindImgMove(img);
+			img_ctn.appendChild(img);
+			resolve(img);
+		}, error => {
+			hide(loading);
+			err.innerHTML = `图片加载失败，<a href="${imgItem.normal}" target="_blank">查看详情(${error})</a>`;
+			show(err);
+			reject(err);
+		});
 	});
 }
 
@@ -228,8 +265,8 @@ const constructDom = () => {
 			<span class="civ-nav-list-prev" data-cmd="thumb-scroll-prev"></span>
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
-				${IMG_SRC_LIST.reduce((preStr, src, idx)=>{
-					return preStr + `<span class="civ-nav-thumb" data-cmd="switchTo" data-index="${idx}"><img src="${src}"/></span>`;
+				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
+					return preStr + `<span class="civ-nav-thumb" data-cmd="switchTo" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
 				},"")}
 				</div>
 			</div>
@@ -262,6 +299,9 @@ const constructDom = () => {
 		</div>
 	`, document.body);
 
+	LocalSetting.each((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+	LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+
 	//bind close click & space click
 	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
 		let cmd = target.getAttribute('data-cmd');
@@ -282,11 +322,11 @@ const constructDom = () => {
 
 	//bind scroll zoom
 	listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e=>{
-		switch(CURRENT_SCROLL_TYPE){
-			case IMG_PREVIEW_SCROLL_TYPE_SCALE:
+		switch(CURRENT_MS_SCROLL_TYPE){
+			case IMG_PREVIEW_MS_SCROLL_TYPE_SCALE:
 				zoom(e.wheelDelta > 0 ? ZOOM_OUT_RATIO : ZOOM_IN_RATIO);
 				break;
-			case IMG_PREVIEW_SCROLL_TYPE_NAV:
+			case IMG_PREVIEW_MS_SCROLL_TYPE_NAV:
 				navTo(e.wheelDelta > 0);
 				break;
 			default:
@@ -403,7 +443,7 @@ const rotate = (degreeOffset)=>{
 }
 
 const viewOriginal = ()=>{
-	window.open(IMG_SRC_LIST[IMG_CURRENT_INDEX]);
+	window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 };
 
 const showOption = ()=>{
@@ -420,9 +460,9 @@ const showOption = ()=>{
 	</li>	
 	<li>
 		<label>鼠标滚轮：</label>
-		<label><input type="radio" name="rolltype" value="${IMG_PREVIEW_SCROLL_TYPE_NAV}">切换前一张、后一张图片</label>
-		<label><input type="radio" name="rolltype" value="${IMG_PREVIEW_SCROLL_TYPE_SCALE}">缩放图片</label>
-		<label><input type="radio" name="rolltype" value="${IMG_PREVIEW_SCROLL_TYPE_NONE}">无动作</label>
+		<label><input type="radio" name="mouse_scroll_type" value="${IMG_PREVIEW_MS_SCROLL_TYPE_NAV}">切换前一张、后一张图片</label>
+		<label><input type="radio" name="mouse_scroll_type" value="${IMG_PREVIEW_MS_SCROLL_TYPE_SCALE}">缩放图片</label>
+		<label><input type="radio" name="mouse_scroll_type" value="${IMG_PREVIEW_MS_SCROLL_TYPE_NONE}">无动作</label>
 	</li>
 	<li>
 		<label>移动：</label>
@@ -435,22 +475,19 @@ const showOption = ()=>{
 		modal:false
 	});
 	dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
-	formSync(dlg.dom, settingGetter, settingSetter);
-}
 
-const settingGetter = (name)=>{
-	return new Promise((resolve, reject)=>{
-		resolve(localStorage.getItem(SETTING_STORAGE_PRE_KEY+'/'+name));
-	});
-}
-
-let last_tip = null;
-const settingSetter = (name, val)=>{
-	return new Promise((resolve, reject)=>{
-		localStorage.setItem(SETTING_STORAGE_PRE_KEY+'/'+name, val);
-		last_tip && last_tip.hide();
-		last_tip = Toast.showSuccess('设置已保存');
-		resolve();
+	let lsSetterTip = null;
+	formSync(dlg.dom, (name) => {
+		return new Promise((resolve, reject) => {
+			resolve(LocalSetting.get(name));
+		});
+	}, (name, value) => {
+		return new Promise((resolve, reject) => {
+			LocalSetting.set(name, value);
+			lsSetterTip && lsSetterTip.hide();
+			lsSetterTip = Toast.showSuccess('设置已保存');
+			resolve();
+		});
 	});
 }
 
@@ -466,7 +503,7 @@ const COMMANDS = {
 	'rotateLeft': ['左旋90°', ()=>{rotate(-90)}],
 	'rotateRight':['右旋90°',()=>{rotate(90)}],
 	'viewOrg':['查看原图', viewOriginal],
-	'download': ['下载图片',()=>{downloadFile(IMG_SRC_LIST[IMG_CURRENT_INDEX])}],
+	'download': ['下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original)}],
 	'option': ['选项',showOption],
 };
 
@@ -475,27 +512,36 @@ const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRi
 /**
  * 初始化
  * @param {Object} option
- * @param {Number} option.mode
- * @param {String[]} option.srcList
- * @param {Number|0} option.startIndex
+ * @param {Number} option.mode 显示模式：IMG_PREVIEW_MODE_SINGLE 单图模式，IMG_PREVIEW_MODE_MULTIPLE 多图模式
+ * @param {String[]} option.srcList 图片列表，单图或者多图模式都需要以数组方式传参
+ * @param {Boolean} option.showOption 是否显示选项条
+ * @param {Number|0} option.mouse_scroll_type 鼠标滚动控制类型：IMG_PREVIEW_MS_SCROLL_TYPE_NONE，IMG_PREVIEW_MS_SCROLL_TYPE_SCALE，IMG_PREVIEW_MS_SCROLL_TYPE_NAV
+ * @param {Number|0} option.startIndex [多图模式]开始图片索引
+ * @param {Boolean} option.showThumbList [多图模式]是否显示缩略图列表
+ * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
 	mode,
 	srcList,
+	showOption = true,
+	mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 	startIndex = 0,
-	scrollType = IMG_PREVIEW_SCROLL_TYPE_NAV,
 	showThumbList = true,
-	showOption = true
+	preloadSrcList = true,
 }) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
 	IMG_CURRENT_INDEX = startIndex;
-	CURRENT_SCROLL_TYPE = scrollType;
+	CURRENT_MS_SCROLL_TYPE = mouse_scroll_type;
 	SHOW_THUMB_LIST = showThumbList;
 	SHOW_OPTION = showOption;
 	constructDom();
-	showImgSrc(IMG_CURRENT_INDEX);
+	showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
+		if(preloadSrcList){
+			srcList.forEach(src=>{new Image().src = src});
+		}
+	});
 	if(mode === IMG_PREVIEW_MODE_MULTIPLE){
 		updateNavState();
 	}
@@ -520,13 +566,19 @@ export const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
 	init({mode:IMG_PREVIEW_MODE_MULTIPLE, srcList:imgSrcList, startIndex, ...option});
 }
 
+export const bindImgPreviewViaSelector1 = (nodeSelector, thumbFetcher = 'src', srcFetcher = 'src', triggerEvent = 'click') => {
+	eventDelegate(document.body, nodeSelector, 'click', target=>{
+
+	});
+}
+
 /**
  * 通过绑定节点显示图片预览
  * @param {String} nodeSelector 触发绑定的节点选择器，可以是img本身节点，也可以是其他代理节点
  * @param {String} triggerEvent
  * @param {String|Function} srcFetcher 获取大图src的选择器，或者函数，如果是函数传入第一个参数为触发节点
  */
-export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src') => {
+export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
 	let nodes = document.querySelectorAll(nodeSelector);
 	let imgSrcList = [];
 	if(!nodes.length){
@@ -546,9 +598,9 @@ export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = '
 		}
 		node.addEventListener(triggerEvent, e => {
 			if(nodes.length > 1){
-				showImgListPreview(imgSrcList, idx);
+				showImgListPreview(imgSrcList, idx, option);
 			}else{
-				showImgPreview(imgSrcList[0]);
+				showImgPreview(imgSrcList[0], option);
 			}
 		})
 	});

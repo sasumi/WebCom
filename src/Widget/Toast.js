@@ -144,6 +144,25 @@ export class Toast {
 	}
 
 	/**
+	 * 延期显示 loading（推荐使用）
+	 * 在一些业务后台能够快速响应场景，不显示loading过程能够提升用户体验
+	 * @param {String} message
+	 * @param {Number} delayMicroseconds 延迟显示
+	 * @param {Function} timeoutCallback
+	 * @return {Toast}
+	 */
+	static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback) => {
+		let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
+		let toast = new Toast(message, Toast.TYPE_LOADING, time);
+		toast.show(timeoutCallback);
+		hide(toast.dom);
+		setTimeout(()=>{
+			toast.dom && show(toast.dom);
+		}, delayMicroseconds);
+		return toast;
+	}
+
+	/**
 	 * 显示提示
 	 * @param {Function} onTimeoutClose 超时关闭回调
 	 */
@@ -176,6 +195,7 @@ export class Toast {
 		}
 		//稍微容错下，避免setTimeout后没有父节点
 		this.dom.parentNode && this.dom.parentNode.removeChild(this.dom);
+		this.dom = null;
 		let wrapper = getWrapper();
 		if(!wrapper.childNodes.length){
 			hide(wrapper);

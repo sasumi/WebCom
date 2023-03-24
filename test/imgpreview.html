@@ -6,6 +6,7 @@
 	<style>
 		.single img,
 		.multiple-images img {height:50px; width:80px;}
+		li {list-style:none;}
 	</style>
 </head>
 <body>
@@ -20,48 +21,21 @@
 
 <h1>Multiple Images</h1>
 <ul class="multiple-images">
-	<li><a href="img/small.png"><img src="img/small.png" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210220.jpg"><img src="img/BingImageOfTheDay_20210220.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210221.jpg"><img src="img/BingImageOfTheDay_20210221.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210222.jpg"><img src="img/BingImageOfTheDay_20210222.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210223.jpg"><img src="img/BingImageOfTheDay_20210223.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210224.jpg"><img src="img/BingImageOfTheDay_20210224.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210225.jpg"><img src="img/BingImageOfTheDay_20210225.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210226.jpg"><img src="img/BingImageOfTheDay_20210226.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210227.jpg"><img src="img/BingImageOfTheDay_20210227.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210228.jpg"><img src="img/BingImageOfTheDay_20210228.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210301.jpg"><img src="img/BingImageOfTheDay_20210301.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210302.jpg"><img src="img/BingImageOfTheDay_20210302.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210303.jpg"><img src="img/BingImageOfTheDay_20210303.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210304.jpg"><img src="img/BingImageOfTheDay_20210304.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210305.jpg"><img src="img/BingImageOfTheDay_20210305.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210306.jpg"><img src="img/BingImageOfTheDay_20210306.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210307.jpg"><img src="img/BingImageOfTheDay_20210307.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210308.jpg"><img src="img/BingImageOfTheDay_20210308.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210309.jpg"><img src="img/BingImageOfTheDay_20210309.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210310.jpg"><img src="img/BingImageOfTheDay_20210310.jpg" alt=""></a></li>
-	<li><a href="img/BingImageOfTheDay_20210311.jpg"><img src="img/BingImageOfTheDay_20210311.jpg" alt=""></a></li>
+	<li><img src="img/small.thumb.png" alt=""></li>
+	<li><img src="img/BingImageOfTheDay_20210308.thumb.jpg" alt="BingImageOfTheDay_20210308"></li>
+	<li><img src="img/BingImageOfTheDay_20210309.thumb.jpg" alt="BingImageOfTheDay_20210309"></li>
+	<li><img src="img/BingImageOfTheDay_20210310.thumb.jpg" alt="BingImageOfTheDay_20210310"></li>
+	<li><img src="img/BingImageOfTheDay_20210311.thumb.jpg" alt="BingImageOfTheDay_20210311"></li>
 </ul>
 
 <script type="module">
-	import {showImgListPreview, showImgPreview} from "../src/index.js";
+	import {bindImgPreviewViaSelector, showImgPreview} from "../src/index.js";
 
 	document.querySelector('.single a').addEventListener('click', function(e){
 		showImgPreview(this.querySelector('img').src);
 		e.preventDefault();
 	});
-
-	let as = Array.from(document.querySelectorAll('.multiple-images a'));
-	for(let i=0; i<as.length; i++){
-		as[i].addEventListener('click', (e)=>{
-			let srcList = [];
-			document.querySelectorAll('.multiple-images img').forEach(img => {
-				srcList.push(img.src);
-			});
-			showImgListPreview(srcList, i);
-			e.preventDefault();
-		});
-	}
+	bindImgPreviewViaSelector('img', 'click', (img)=>{return img.src.replace('.thumb', '')}, {preloadSrcList:false});
 </script>
 </body>
 </html>

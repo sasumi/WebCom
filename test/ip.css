@@ -27,7 +27,6 @@
 .WebCom-com-image-viewer .civ-opt-btn[data-cmd="download"]:before {content:"\e839"}
 .WebCom-com-image-viewer .civ-opt-btn[data-cmd="option"]:before {content:"\e6a9";zoom: 0.85;margin: 5% 0 0 10%;}
 
-
 .WebCom-com-image-viewer .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:2000;display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
 .WebCom-com-image-viewer .civ-nav-wrap:hover {opacity:1}
 .WebCom-com-image-viewer .civ-nav-list-wrap {width: calc(100% - 40px);overflow:hidden;}
@@ -62,3 +61,7 @@
 .WebCom-com-image-viewer-option-list>li:last-child {margin:0;}
 .WebCom-com-image-viewer-option-list>li>label:first-child {display:block;float: left;width: 5em;margin-left: -5em;user-select:none;}
 .WebCom-com-image-viewer-option-list>li>label:not(:first-child) {display:block;user-select:none;margin-bottom: 0.25em;}
+
+.WebCom-com-image-viewer[show_thumb_list="false"] .civ-nav-wrap,
+.WebCom-com-image-viewer[show_thumb_list="null"] .civ-nav-wrap,
+.WebCom-com-image-viewer[show_thumb_list="0"] .civ-nav-wrap {display:none;}

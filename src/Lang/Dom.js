@@ -308,7 +308,6 @@ export const insertStyleSheet = (styleSheetStr, id='')=>{
 	return style;
 };
 
-
 /**
  * 获取DOM节点视觉呈现信息
  * @param win
@@ -537,6 +536,7 @@ export const formSync = (dom, getter, setter)=>{
 		});
 	});
 }
+
 
 /**
  * 获取指定容器下所有可用表单元素

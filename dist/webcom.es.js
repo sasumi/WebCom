@@ -177,7 +177,7 @@ const eventDelegate = (container, selector, eventName, payload)=>{
 		let target = ev.target;
 		while(target){
 			if(target.matches(selector)){
-				payload.call(target, ev);
+				payload.call(target, target);
 				return;
 			}
 			if(target === container){
@@ -1069,7 +1069,6 @@ const insertStyleSheet = (styleSheetStr, id='')=>{
 	return style;
 };
 
-
 /**
  * 获取DOM节点视觉呈现信息
  * @param win
@@ -1254,18 +1253,76 @@ const getElementValue = (el) => {
 };
 
 /**
+ * 表单元素同步变更
+ * 该方法会检测元素数据合法性（表单校验）
+ * @param {HTMLElement} dom
+ * @param {Function} getter 函数执行返回 Promise，返回null时，不填充input
+ * @param {Function} setter 函数执行返回 Promise，checkbox、radio类型元素未选择时，返回null，设置失败元素将还原初始值
+ */
+const formSync = (dom, getter, setter)=>{
+	let els = getAvaliableElements(dom);
+	els.forEach(function(el){
+		let name = el.name;
+		let current_val = getElementValue(el);
+		el.disabled = true;
+		getter(name).then(v=>{
+			el.disabled = false;
+			if(el.type === 'radio' || el.type === 'checkbox'){
+				el.checked = el.value == v;
+				current_val = v;
+			} else if(v !== null){
+				el.value = v;
+				current_val = v;
+			}
+		});
+		el.addEventListener('change', e=>{
+			el.disabled = true;
+			if(!el.checkValidity()){
+				el.reportValidity();
+				return;
+			}
+			let val = el.value;
+			if((el.type === 'radio' || el.type === 'checkbox') && !el.checked){
+				val = null;
+			}
+			setter(el.name, val).then(()=>{
+				el.disabled = false;
+			}, ()=>{
+				if(el.type === 'radio' || el.type === 'checkbox'){
+					el.checked = el.value == current_val;
+				} else if(current_val !== null){
+					el.value = current_val;
+				}
+			});
+		});
+	});
+};
+
+
+/**
+ * 获取指定容器下所有可用表单元素
+ * @param {HTMLElement} dom
+ * @param {Boolean} ignore_empty_name 是否忽略没有name属性的元素，缺省为必须校验
+ * @return {HTMLInputElement|HTMLSelectElement,HTMLTextAreaElement}
+ */
+const getAvaliableElements = (dom, ignore_empty_name = false)=>{
+	let els = dom.querySelectorAll('input,textarea,select');
+	els = Array.from(els).filter(el => {
+		return !isButton(el) && !el.disabled && (!ignore_empty_name && el.name);
+	});
+	return els;
+};
+
+/**
  * 表单元素校验
  * @param {HTMLElement} dom
+ * @param {Boolean} name_validate 是否校验名称必填
  * @return boolean 是否校验通过
  */
-const formValidate = (dom)=>{
-	let els = dom.querySelectorAll('input,textarea,select');
+const formValidate = (dom, name_validate = false)=>{
+	let els = getAvaliableElements(dom, !name_validate);
 	let pass = true;
-	els = Array.from(els).filter(el => !isButton(el));
 	Array.from(els).every(el => {
-		if(el.disabled){
-			return true;
-		}
 		if(!el.checkValidity()){
 			el.reportValidity();
 			pass = false;
@@ -1287,14 +1344,9 @@ const formSerializeJSON = (dom, validate = true) => {
 	if(!formValidate(dom)){
 		return null;
 	}
-	let els = dom.querySelectorAll('input,textarea,select');
+	let els = getAvaliableElements(dom);
 	let data = {};
-	els = Array.from(els).filter(el => !isButton(el));
 	let err = Array.from(els).every(el => {
-		if(!el.name){
-			console.warn('element no legal for fetch form data');
-			return true;
-		}
 		let name = el.name;
 		let value = getElementValue(el);
 		if(value === null){
@@ -2054,9 +2106,9 @@ const ICON_FONT = NS$1 + 'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_tnam7ajg9ua.woff2?t=1677307651902') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_tnam7ajg9ua.woff?t=1677307651902') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_tnam7ajg9ua.ttf?t=1677307651902') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.woff2?t=1678956422665') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.woff?t=1678956422665') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.ttf?t=1678956422665') format('truetype');
 }
 
 .${ICON_FONT_CLASS} {
@@ -2253,7 +2305,8 @@ class Toast {
 			}, FADEOUT_TIME);
 			return;
 		}
-		this.dom.parentNode.removeChild(this.dom);
+		//稍微容错下，避免setTimeout后没有父节点
+		this.dom.parentNode && this.dom.parentNode.removeChild(this.dom);
 		let wrapper = getWrapper();
 		if(!wrapper.childNodes.length){
 			hide(wrapper);
@@ -2345,8 +2398,16 @@ const Masker = {
 	hide: hideMasker
 };
 
-insertStyleSheet(`.${CSS_CLASS} {position:fixed;top:0;left:0;right:0;bottom:0;background:#33333342;backdrop-filter:blur(5px);
- z-index:${Masker.zIndex}}`, Theme.Namespace+'masker-style');
+insertStyleSheet(`
+.${CSS_CLASS} {
+	position:fixed;
+	top:0;left:0;
+	right:0;
+	bottom:0;
+	background:#33333342;
+	backdrop-filter:blur(5px);
+	z-index:${Masker.zIndex}}
+`, Theme.Namespace + 'masker-style');
 
 const DLG_CLS_PREF = Theme.Namespace + 'dialog';
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
@@ -3030,40 +3091,160 @@ const loadImgBySrc = (src)=>{
 	});
 };
 
+const json_decode = (v) => {
+	return v === null ? null : JSON.parse(v);
+};
+
+const json_encode = (v) => {
+	return JSON.stringify(v);
+};
+
+const ls_get = (key) => {
+	let v = localStorage.getItem(key);
+	if(v === null){
+		return null;
+	}
+	return json_decode(v);
+};
+
+const ls_set = (key, value) => {
+	console.log('localStorage.setItem', key, value);
+	localStorage.setItem(key, json_encode(value));
+};
+
+let callbacks = [];
+
+let start_ls_listen = ()=>{
+	start_ls_listen = ()=>{};
+	let handler = (k, newVal, oldVal)=>{
+		if(!undefined.namespace || k.indexOf(undefined.namespace) === 0){
+			let key = k.substring(0, undefined.namespace.length);
+			if(undefined.settingKeys.includes(key)){
+				callbacks.forEach(cb=>{cb(key, json_decode(newVal), json_decode(oldVal));});
+			}
+		}
+	};
+	window.addEventListener('storage', e => {
+		console.log('onstorage', e);
+		handler(e.key, e.newValue, e.oldValue);
+	});
+
+	console.log('reset ls.setItem');
+	const {setItem} = window.localStorage;
+	window.localStorage.setItem = function(key, value){
+		console.log('override localStorage.setItem', key, value);
+		let oldVal = window.localStorage.getItem(key);
+		setItem.call(this, key, value);
+		handler(key, value, oldVal);
+	};
+};
+
+class LocalStorageSetting {
+	namespace = '';
+	settingKeys = [];
+	constructor(defaultSetting, namespace = ''){
+		this.namespace = namespace;
+		this.settingKeys = Object.keys(defaultSetting);
+		for(let key in defaultSetting){
+			let v = ls_get(this.namespace + key);
+			if(v === null){
+				ls_set(this.namespace + key, defaultSetting[key]);
+			}
+		}
+	}
+
+	onUpdated(callback){
+		console.log('watch', callback);
+		callbacks.push(callback);
+		start_ls_listen();
+	}
+
+	set(key, value){
+		ls_set(this.namespace + key, value);
+	}
+
+	get(key){
+		return ls_get(this.namespace + key);
+	}
+
+	each(payload){
+		this.settingKeys.forEach(k=>{
+			payload(k, this.get(k));
+		});
+	}
+
+	getAll(){
+		let obj = {};
+		this.settingKeys.forEach(k=>{
+			obj[k] = this.get(k);
+		});
+		return obj;
+	}
+}
+
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
+
 const DEFAULT_VIEW_PADDING = 20;
 const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
 const MIN_ZOOM_OUT_SIZE = 50; //最小显示像素
 
 const THUMB_WIDTH = 50;
-const THUMB_HEIGHT = 50;
 
-const ZOOM_IN_RATIO =  0.8; //缩小比率
+const ZOOM_IN_RATIO =0.8; //缩小比率
 const ZOOM_OUT_RATIO = 1.2; //放大比率
 
 const ATTR_W_BIND_KEY = 'data-original-width';
 const ATTR_H_BIND_KEY = 'data-original-height';
 
-const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGMjU3QTNFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGMjU3QTJFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pg2ugmUAAAAGUExURe7u7v///yjTqpoAAAAoSURBVHjaYmDAARhxAIZRDaMaRjWMaqCxhtHQGNUwqmFUwyDTABBgALZcBIFabzQ0AAAAAElFTkSuQmCC';
+const DISABLED_ATTR_KEY = 'data-disabled';
 
 const BASE_INDEX = Theme.FullScreenModeIndex;
-const OP_INDEX = BASE_INDEX + 1;
+const OPTION_DLG_INDEX = BASE_INDEX+2;
 
 const IMG_PREVIEW_MODE_SINGLE = 1;
 const IMG_PREVIEW_MODE_MULTIPLE = 2;
 
-const IMG_PREVIEW_SCROLL_TYPE_NONE = 0;
-const IMG_PREVIEW_SCROLL_TYPE_SCALE = 1;
-const IMG_PREVIEW_SCROLL_TYPE_NAV = 2;
+const IMG_PREVIEW_MS_SCROLL_TYPE_NONE = 0;
+const IMG_PREVIEW_MS_SCROLL_TYPE_SCALE = 1;
+const IMG_PREVIEW_MS_SCROLL_TYPE_NAV = 2;
 
 let PREVIEW_DOM = null;
 let CURRENT_MODE = 0;
-let CURRENT_SCROLL_TYPE = IMG_PREVIEW_SCROLL_TYPE_NONE;
-let IMG_SRC_LIST = [];
+let CURRENT_MS_SCROLL_TYPE = IMG_PREVIEW_MS_SCROLL_TYPE_NONE;
+
+//srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
+// ① src或[src]: 只有一种图源模式；
+// ② [src1,src2]，1为缩略图，2为大图、原图；
+// ③ [src1,src2,src3] 1为缩略图，2为大图，3为原图
+let IMG_SRC_LIST = [/** srcset1, srcset2 **/];
 let IMG_CURRENT_INDEX = 0;
 let SHOW_THUMB_LIST = false;
 let SHOW_OPTION = false;
 
+let LocalSetting = new LocalStorageSetting({
+	show_thumb_list: false,
+	show_toolbar: true,
+	mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+	allow_move: true,
+}, Theme.Namespace+'com-image-viewer/');
+
+/**
+ * 解析图片src集合
+ * @param {Array|String} item
+ * @return {{normal: string, original: string, thumb: string}}
+ */
+const srcSetResolve = item => {
+	item = typeof (item) === 'string' ? [item] : item;
+	return {
+		thumb: item[0],
+		normal: item[1] || item[0],
+		original: item[2] || item[1] || item[0]
+	};
+};
+
+loadCss('./ip.css');
+
+/**
 insertStyleSheet(`
 	@keyframes ${Theme.Namespace}spin{100%{transform:rotate(360deg);}}
 	.${DOM_CLASS} {position: fixed; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
@@ -3078,7 +3259,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-prev:before {content:"\\e6103"}
 	.${DOM_CLASS} .civ-next {right:10px}
 	.${DOM_CLASS} .civ-next:before {content:"\\e73b";}
-	
+
 	.${DOM_CLASS} .civ-nav-list-wrap {position:absolute; background-color:#fff3; padding-left:20px; padding-right:20px; bottom:10px; left:50%; transform: translate(-50%, 0); overflow:hidden; z-index:${OP_INDEX}; max-width:300px; min-width:300px; border:1px solid green;}
 	.${DOM_CLASS} .civ-nav-list-prev:before,
 	.${DOM_CLASS} .civ-nav-list-next:before {font-family:"${Theme.IconFont}"; font-size:18px; position:absolute; top:30%; left:0; width:20px; height:100%;}
@@ -3087,17 +3268,31 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-nav-list {height:${THUMB_HEIGHT}px}
 	.${DOM_CLASS} .civ-nav-thumb {width:${THUMB_WIDTH}px; height:${THUMB_HEIGHT}px; overflow:hidden; display:inline-block; box-sizing:border-box; padding:0 5px;}
 	.${DOM_CLASS} .civ-nav-thumb img {width:100%; height:100%; object-fit:cover;}
-	
+
 	.${DOM_CLASS} .civ-ctn {height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
 	.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
 	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
-	
+
 	.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-btn,
-	.${DOM_CLASS} .civ-nav-list-wrap {display:none;} /** todo **/
-`, Theme.Namespace + 'img-preview-style');
+	.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-list-wrap {display:none;}
+`, Theme.Namespace + 'img-preview-style'); **/
+
+/**
+ * 销毁组件
+ */
+const destroy = () => {
+	if(!PREVIEW_DOM){
+		return;
+	}
+	PREVIEW_DOM.parentNode.removeChild(PREVIEW_DOM);
+	PREVIEW_DOM = null;
+	Masker.hide();
+	window.removeEventListener('resize', onWinResize);
+	document.body.removeEventListener('keydown', bindKeyDown);
+};
 
 /**
  * 更新导航按钮状态
@@ -3107,29 +3302,27 @@ const updateNavState = () => {
 	let next = PREVIEW_DOM.querySelector('.civ-next');
 	let total = IMG_SRC_LIST.length;
 	if(IMG_CURRENT_INDEX === 0){
-		prev.setAttribute('disabled', 'disabled');
+		prev.setAttribute(DISABLED_ATTR_KEY, '1');
 	}else {
-		prev.removeAttribute('disabled');
+		prev.removeAttribute(DISABLED_ATTR_KEY);
 	}
 	if(IMG_CURRENT_INDEX === (total - 1)){
-		next.setAttribute('disabled', 'disabled');
+		next.setAttribute(DISABLED_ATTR_KEY, '1');
 	}else {
-		next.removeAttribute('disabled');
+		next.removeAttribute(DISABLED_ATTR_KEY);
 	}
+
+	updateThumbNavState();
+};
+
+const updateThumbNavState = ()=>{
+	PREVIEW_DOM.querySelectorAll(`.civ-nav-list .civ-nav-thumb`).forEach(item=>item.classList.remove('active'));
+	PREVIEW_DOM.querySelector(`.civ-nav-list .civ-nav-thumb[data-index="${IMG_CURRENT_INDEX}"]`).classList.add('active');
 };
 
 const listenSelector = (parentNode, selector, event, handler)=>{
 	parentNode.querySelectorAll(selector).forEach(target=>{
 		target.addEventListener(event, handler);
-	});
-};
-
-const activeSelector = (parentNode, selector, handler)=>{
-	listenSelector(parentNode, selector, 'click', handler);
-	listenSelector(parentNode, selector, 'keyup', e=>{
-		if(e.keyCode === KEYS.Enter){
-			handler(e);
-		}
 	});
 };
 
@@ -3185,31 +3378,36 @@ const bindImgMove = (img) => {
  * @param {Number} img_index
  */
 const showImgSrc = (img_index = 0) => {
-	let imgSrc = IMG_SRC_LIST[img_index];
-	let loading = PREVIEW_DOM.querySelector('.civ-loading');
-	let err = PREVIEW_DOM.querySelector('.civ-error');
-	let img_ctn = PREVIEW_DOM.querySelector('.civ-img');
-	img_ctn.innerHTML = '';
-	show(loading);
-	hide(err);
-	loadImgBySrc(imgSrc).then(img => {
-		setStyle(img, scaleFixCenter({
-			contentWidth: img.width,
-			contentHeight: img.height,
-			containerWidth: img_ctn.offsetWidth,
-			containerHeight: img_ctn.offsetHeight,
-			spacing: DEFAULT_VIEW_PADDING
-		}));
-		hide(loading);
+	return new Promise((resolve, reject) => {
+		let imgItem = srcSetResolve(IMG_SRC_LIST[img_index]);
+		let loading = PREVIEW_DOM.querySelector('.civ-loading');
+		let err = PREVIEW_DOM.querySelector('.civ-error');
+		let img_ctn = PREVIEW_DOM.querySelector('.civ-img');
 		img_ctn.innerHTML = '';
-		img.setAttribute(ATTR_W_BIND_KEY, img.width);
-		img.setAttribute(ATTR_H_BIND_KEY, img.height);
-		bindImgMove(img);
-		img_ctn.appendChild(img);
-	}, error => {
-		hide(loading);
-		err.innerHTML = `图片加载失败，<a href="${imgSrc}" target="_blank">查看详情(${error})</a>`;
-		show(err);
+		Masker.show();
+		show(loading);
+		hide(err);
+		loadImgBySrc(imgItem.normal).then(img => {
+			setStyle(img, scaleFixCenter({
+				contentWidth: img.width,
+				contentHeight: img.height,
+				containerWidth: img_ctn.offsetWidth,
+				containerHeight: img_ctn.offsetHeight,
+				spacing: DEFAULT_VIEW_PADDING
+			}));
+			hide(loading);
+			img_ctn.innerHTML = '';
+			img.setAttribute(ATTR_W_BIND_KEY, img.width);
+			img.setAttribute(ATTR_H_BIND_KEY, img.height);
+			bindImgMove(img);
+			img_ctn.appendChild(img);
+			resolve(img);
+		}, error => {
+			hide(loading);
+			err.innerHTML = `图片加载失败，<a href="${imgItem.normal}" target="_blank">查看详情(${error})</a>`;
+			show(err);
+			reject(err);
+		});
 	});
 };
 
@@ -3217,14 +3415,16 @@ const constructDom = () => {
 	let nav_thumb_list_html = '';
 	if(SHOW_THUMB_LIST && CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
 		nav_thumb_list_html = `
-		<div class="civ-nav-list-wrap">
-			<span class="civ-nav-list-prev" data-cmd="prev"></span>
-			<span class="civ-nav-list-next" data-cmd="next"></span>
-			<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
-			${IMG_SRC_LIST.reduce((preStr, src, idx)=>{
-				return preStr + `<span class="civ-nav-thumb" data-cmd="switchTo" data-index="${idx}"><img src="${src}"/></span>`;
-			},"")}
+		<div class="civ-nav-wrap">
+			<span class="civ-nav-list-prev" data-cmd="thumb-scroll-prev"></span>
+			<div class="civ-nav-list-wrap">
+				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
+				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
+					return preStr + `<span class="civ-nav-thumb" data-cmd="switchTo" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+				},"")}
+				</div>
 			</div>
+			<span class="civ-nav-list-next" data-cmd="thumb-scroll-next"></span>
 		</div>`;
 	}
 
@@ -3232,13 +3432,9 @@ const constructDom = () => {
 	if(SHOW_OPTION){
 		option_html = `
 		<span class="civ-view-option">
-			<span class="civ-opt-btn" data-cmd="zoomOut">放大</span>
-			<span class="civ-opt-btn" data-cmd="zoomIn">缩小</span>
-			<span class="civ-opt-btn" data-cmd="zoomOrg">1:1</span>
-			<span class="civ-opt-btn" data-cmd="rotateLeft">左旋90°</span>
-			<span class="civ-opt-btn" data-cmd="rotateRight">右旋90°</span>
-			<span class="civ-opt-btn" data-cmd="viewOrg">查看原图</span>
-			<span class="civ-opt-btn" data-cmd="download">下载图片</span>
+			${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
+				return lastVal + `<span class="civ-opt-btn" data-cmd="${CMD}" title="${COMMANDS[CMD][0]}"></span>`;
+			},"")}
 		</span>`;
 	}
 
@@ -3257,37 +3453,22 @@ const constructDom = () => {
 		</div>
 	`, document.body);
 
+	LocalSetting.each((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+	LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+
 	//bind close click & space click
-	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', e=>{
-		let cmd = e.target.getAttribute('data-cmd');
-		switch(cmd){
-			case 'close':
-				destroy();
-				break;
-
-			case 'navTo':
-				navTo(e.target.getAttribute('data-dir') !== '1');
-				break;
-
-			case 'switchTo':
-				switchTo(e.target.getAttribute('data-index'));
-				break;
-
-			case 'zoomOut':
-				zoom(ZOOM_OUT_RATIO);
-				break;
-
-			case 'zoomIn':
-				zoom(ZOOM_IN_RATIO);
-				break;
-
-			case 'zoomOrg':
-				zoom(null);
-				break;
+	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
+		let cmd = target.getAttribute('data-cmd');
+		if(target.getAttribute(DISABLED_ATTR_KEY)){
+			return false;
 		}
+		if(COMMANDS[cmd]){
+			return COMMANDS[cmd][1](target);
+		}
+		throw "no command found.";
 	});
 
-	activeSelector(PREVIEW_DOM, '.civ-ctn', e => {
+	PREVIEW_DOM.querySelector('.civ-ctn').addEventListener('click', e => {
 		if(e.target.tagName !== 'IMG'){
 			destroy();
 		}
@@ -3295,11 +3476,11 @@ const constructDom = () => {
 
 	//bind scroll zoom
 	listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e=>{
-		switch(CURRENT_SCROLL_TYPE){
-			case IMG_PREVIEW_SCROLL_TYPE_SCALE:
+		switch(CURRENT_MS_SCROLL_TYPE){
+			case IMG_PREVIEW_MS_SCROLL_TYPE_SCALE:
 				zoom(e.wheelDelta > 0 ? ZOOM_OUT_RATIO : ZOOM_IN_RATIO);
 				break;
-			case IMG_PREVIEW_SCROLL_TYPE_NAV:
+			case IMG_PREVIEW_MS_SCROLL_TYPE_NAV:
 				navTo(e.wheelDelta > 0);
 				break;
 		}
@@ -3332,19 +3513,6 @@ const onWinResize = () => {
 	resize_tm = setTimeout(() => {
 		resetView();
 	}, 50);
-};
-
-/**
- * 销毁组件
- */
-const destroy = () => {
-	if(!PREVIEW_DOM){
-		return;
-	}
-	PREVIEW_DOM.parentNode.removeChild(PREVIEW_DOM);
-	PREVIEW_DOM = null;
-	window.removeEventListener('resize', onWinResize);
-	document.body.removeEventListener('keydown', bindKeyDown);
 };
 
 /**
@@ -3382,6 +3550,13 @@ const navTo = (toPrev = false) => {
 };
 
 const switchTo = (index)=>{
+	IMG_CURRENT_INDEX = index;
+	showImgSrc(IMG_CURRENT_INDEX);
+	updateNavState();
+};
+
+const thumbScroll = (toPrev)=>{
+	PREVIEW_DOM.querySelector('.civ-nav-list');
 
 };
 
@@ -3408,37 +3583,117 @@ const zoom = (ratioOffset) => {
 		console.warn('zoom out limited');
 		return;
 	}
+
 	img.style.left = dimension2Style(parseInt(img.style.left, 10) * ratioOffset);
 	img.style.top = dimension2Style(parseInt(img.style.top, 10) * ratioOffset);
 	img.style.width = dimension2Style(parseInt(img.style.width, 10) * ratioOffset);
 	img.style.height = dimension2Style(parseInt(img.style.height, 10) * ratioOffset);
 };
 
+const viewOriginal = ()=>{
+	window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
+};
+
+const showOption = ()=>{
+	let html = `
+<ul class="${DOM_CLASS}-option-list">
+	<li>
+		<label>界面：</label>
+		<label>
+			<input type="checkbox" name="show_thumb_list" value="1">多图模式下显示图片缩略图列表
+		</label>
+		<label>
+			<input type="checkbox" name="show_toolbar" value="1">显示图片操作工具栏
+		</label>
+	</li>	
+	<li>
+		<label>鼠标滚轮：</label>
+		<label><input type="radio" name="mouse_scroll_type" value="${IMG_PREVIEW_MS_SCROLL_TYPE_NAV}">切换前一张、后一张图片</label>
+		<label><input type="radio" name="mouse_scroll_type" value="${IMG_PREVIEW_MS_SCROLL_TYPE_SCALE}">缩放图片</label>
+		<label><input type="radio" name="mouse_scroll_type" value="${IMG_PREVIEW_MS_SCROLL_TYPE_NONE}">无动作</label>
+	</li>
+	<li>
+		<label>移动：</label>
+		<label><input type="checkbox" name="allow_move" value="1">允许移动图片</label>
+	</li>
+</ul>
+	`;
+	let dlg = Dialog.show('设置', html, {
+		showMasker:false,
+		modal:false
+	});
+	dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
+
+	let lsSetterTip = null;
+	formSync(dlg.dom, (name) => {
+		return new Promise((resolve, reject) => {
+			resolve(LocalSetting.get(name));
+		});
+	}, (name, value) => {
+		return new Promise((resolve, reject) => {
+			debugger;
+			LocalSetting.set(name, value);
+
+			debugger;
+
+			lsSetterTip && lsSetterTip.hide();
+			lsSetterTip = Toast.showSuccess('设置已保存');
+			resolve();
+		});
+	});
+};
+
+const COMMANDS = {
+	'close':['关闭',destroy],
+	'navTo':['关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}],
+	'switchTo': ['关闭',(target)=>{switchTo(target.getAttribute('data-index'));}],
+	'thumb-scroll-prev': ['关闭', ()=>{thumbScroll();}],
+	'thumb-scroll-next': ['关闭', ()=>{thumbScroll();}],
+	'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO);}],
+	'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO);}],
+	'zoomOrg':['原始比例',()=>{zoom(null);}],
+	'rotateLeft': ['左旋90°', ()=>{}],
+	'rotateRight':['右旋90°',()=>{}],
+	'viewOrg':['查看原图', viewOriginal],
+	'download': ['下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);}],
+	'option': ['选项',showOption],
+};
+
+const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRight', 'viewOrg', 'download', 'option'];
+
 /**
  * 初始化
  * @param {Object} option
- * @param {Number} option.mode
- * @param {String[]} option.srcList
- * @param {Number|0} option.startIndex
+ * @param {Number} option.mode 显示模式：IMG_PREVIEW_MODE_SINGLE 单图模式，IMG_PREVIEW_MODE_MULTIPLE 多图模式
+ * @param {String[]} option.srcList 图片列表，单图或者多图模式都需要以数组方式传参
+ * @param {Boolean} option.showOption 是否显示选项条
+ * @param {Number|0} option.mouse_scroll_type 鼠标滚动控制类型：IMG_PREVIEW_MS_SCROLL_TYPE_NONE，IMG_PREVIEW_MS_SCROLL_TYPE_SCALE，IMG_PREVIEW_MS_SCROLL_TYPE_NAV
+ * @param {Number|0} option.startIndex [多图模式]开始图片索引
+ * @param {Boolean} option.showThumbList [多图模式]是否显示缩略图列表
+ * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
 	mode,
 	srcList,
+	showOption = true,
+	mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 	startIndex = 0,
-	scrollType = IMG_PREVIEW_SCROLL_TYPE_NAV,
 	showThumbList = true,
-	showOption = true
-  }) => {
-	debugger;
+	preloadSrcList = true,
+}) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
 	IMG_CURRENT_INDEX = startIndex;
-	CURRENT_SCROLL_TYPE = scrollType;
+	CURRENT_MS_SCROLL_TYPE = mouse_scroll_type;
 	SHOW_THUMB_LIST = showThumbList;
 	SHOW_OPTION = showOption;
 	constructDom();
-	showImgSrc(IMG_CURRENT_INDEX);
+	showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
+		if(preloadSrcList){
+			srcList.forEach(src=>{new Image().src = src;});
+		}
+	});
 	if(mode === IMG_PREVIEW_MODE_MULTIPLE){
 		updateNavState();
 	}
@@ -3463,13 +3718,19 @@ const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
 	init({mode:IMG_PREVIEW_MODE_MULTIPLE, srcList:imgSrcList, startIndex, ...option});
 };
 
+const bindImgPreviewViaSelector1 = (nodeSelector, thumbFetcher = 'src', srcFetcher = 'src', triggerEvent = 'click') => {
+	eventDelegate(document.body, nodeSelector, 'click', target=>{
+
+	});
+};
+
 /**
  * 通过绑定节点显示图片预览
  * @param {String} nodeSelector 触发绑定的节点选择器，可以是img本身节点，也可以是其他代理节点
  * @param {String} triggerEvent
  * @param {String|Function} srcFetcher 获取大图src的选择器，或者函数，如果是函数传入第一个参数为触发节点
  */
-const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src') => {
+const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
 	let nodes = document.querySelectorAll(nodeSelector);
 	let imgSrcList = [];
 	if(!nodes.length){
@@ -3489,9 +3750,9 @@ const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click',
 		}
 		node.addEventListener(triggerEvent, e => {
 			if(nodes.length > 1){
-				showImgListPreview(imgSrcList, idx);
+				showImgListPreview(imgSrcList, idx, option);
 			}else {
-				showImgPreview(imgSrcList[0]);
+				showImgPreview(imgSrcList[0], option);
 			}
 		});
 	});
@@ -4040,4 +4301,4 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_SCROLL_TYPE_NAV, IMG_PREVIEW_SCROLL_TYPE_NONE, IMG_PREVIEW_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formValidate, formatSize, frequencyControl, getCurrentScript, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };
+export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindImgPreviewViaSelector, bindImgPreviewViaSelector1, buttonActiveBind, capitalize, convertBlobToBase64, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvaliableElements, getCurrentScript, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isInFullScreen, isNum, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, versionCompare };
