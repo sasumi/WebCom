@@ -1,11 +1,4 @@
-import {
-	createDomByHtml,
-	formSync,
-	hide,
-	loadCss,
-	setStyle,
-	show
-} from "../Lang/Dom.js";
+import {createDomByHtml, hide, loadCss, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
@@ -15,6 +8,8 @@ import {downloadFile} from "../Lang/Net.js";
 import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
+import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
+
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
 const DEFAULT_VIEW_PADDING = 20;
@@ -38,12 +33,12 @@ const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
 const OPTION_DLG_INDEX = BASE_INDEX+2;
 
-export const IMG_PREVIEW_MODE_SINGLE = 'single';
-export const IMG_PREVIEW_MODE_MULTIPLE = 'multiple';
+export const IMG_PREVIEW_MODE_SINGLE = 1;
+export const IMG_PREVIEW_MODE_MULTIPLE = 2;
 
-export const IMG_PREVIEW_MS_SCROLL_TYPE_NONE = 'none';
-export const IMG_PREVIEW_MS_SCROLL_TYPE_SCALE = 'scale';
-export const IMG_PREVIEW_MS_SCROLL_TYPE_NAV = 'nav';
+export const IMG_PREVIEW_MS_SCROLL_TYPE_NONE = 0;
+export const IMG_PREVIEW_MS_SCROLL_TYPE_SCALE = 1;
+export const IMG_PREVIEW_MS_SCROLL_TYPE_NAV = 2;
 
 let PREVIEW_DOM = null;
 let CURRENT_MODE = 0;
@@ -58,12 +53,13 @@ let IMG_CURRENT_INDEX = 0;
 let SHOW_THUMB_LIST = false;
 let SHOW_OPTION = false;
 
-let LocalSetting = new LocalStorageSetting({
+const DEFAULT_SETTING = {
 	show_thumb_list: false,
 	show_toolbar: true,
 	mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 	allow_move: true,
-}, Theme.Namespace+'com-image-viewer/');
+};
+let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
 
 /**
  * 解析图片src集合
@@ -479,11 +475,13 @@ const showOption = ()=>{
 	let lsSetterTip = null;
 	formSync(dlg.dom, (name) => {
 		return new Promise((resolve, reject) => {
-			resolve(LocalSetting.get(name));
+			let tmp = convertObjectToFormData({[name]:LocalSetting.get(name)});
+			resolve(tmp[name]);
 		});
 	}, (name, value) => {
 		return new Promise((resolve, reject) => {
-			LocalSetting.set(name, value);
+			let obj = convertFormDataToObject({[name]: value}, DEFAULT_SETTING);
+			LocalSetting.set(name, obj[name]);
 			lsSetterTip && lsSetterTip.hide();
 			lsSetterTip = Toast.showSuccess('设置已保存');
 			resolve();

@@ -4,6 +4,7 @@ export * from "./Lang/Array.js";
 export * from "./Lang/Dom.js";
 export * from "./Lang/Event.js";
 export * from "./Lang/File.js";
+export * from "./Lang/Form.js";
 export * from "./Lang/Math.js";
 export * from "./Lang/MD5.js";
 export * from "./Lang/Net.js";
