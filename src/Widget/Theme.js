@@ -29,5 +29,6 @@ export const Theme = {
 	MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
 	DialogIndex: 1000, //对话框等窗口类垂直索引
 	FullScreenModeIndex: 10000, //全屏类（全屏类
-	ToastIndex: 100000, //消息提示（顶部呈现）
+	ContextIndex: 100000, //右键菜单
+	ToastIndex: 1000000, //消息提示（顶部呈现）
 }

@@ -149,6 +149,15 @@ export const keepRectCenter = (width, height, containerDimension = {
 	];
 }
 
+export const keepDomInContainer = (target, container = document.body)=>{
+	let ret = keepRectInContainer({
+		left: target.left,
+		top: target.top,
+		width:target.clientWidth,
+		height:target.clientHeight,
+	}, {}, posAbs = true);
+}
+
 /**
  * 保持对象尽量在容器内部，优先保证上边、左边显示
  * @param {Object} objDim
@@ -196,6 +205,26 @@ export const keepRectInContainer = (objDim, ctnDim = {
 		ret.top = ctnDim.top;
 	}
 	return ret;
+}
+
+/**
+ * 获取对象宽、高
+ * 通过设置 visibility 方式进行获取
+ * @param {Node} dom
+ * @return {{width: number, height: number}}
+ */
+export const getDomDimension = (dom)=>{
+	let org_visibility = dom.style.visibility;
+	let org_display = dom.style.display;
+	let width, height;
+
+	dom.style.visibility = 'hidden';
+	dom.style.display = '';
+	width = dom.clientWidth;
+	height = dom.clientHeight;
+	dom.style.visibility = org_visibility;
+	dom.style.display = org_display;
+	return {width, height};
 }
 
 /**

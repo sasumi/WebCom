@@ -186,6 +186,10 @@ export class Toast {
 	 * @param {Boolean} fadeOut 是否使用渐隐式淡出
 	 */
 	hide(fadeOut = false){
+		//稍微容错下，避免setTimeout后没有父节点
+		if(!this.dom || !this.dom.parentNode){
+			return;
+		}
 		if(fadeOut){
 			this.dom.classList.add(TOAST_CLS_MAIN+'-hide');
 			setTimeout(()=>{
@@ -193,8 +197,7 @@ export class Toast {
 			}, FADEOUT_TIME);
 			return;
 		}
-		//稍微容错下，避免setTimeout后没有父节点
-		this.dom.parentNode && this.dom.parentNode.removeChild(this.dom);
+		this.dom.parentNode.removeChild(this.dom);
 		this.dom = null;
 		let wrapper = getWrapper();
 		if(!wrapper.childNodes.length){

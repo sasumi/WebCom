@@ -62,6 +62,9 @@
 .WebCom-com-image-viewer-option-list>li>label:first-child {display:block;float: left;width: 5em;margin-left: -5em;user-select:none;}
 .WebCom-com-image-viewer-option-list>li>label:not(:first-child) {display:block;user-select:none;margin-bottom: 0.25em;}
 
+.WebCom-com-image-viewer-tools-menu {position:fixed;background: white;padding: 5px 0;min-width: 150px;border-radius: 4px;box-shadow: 1px 1px 10px #3e3e3e94;}
+.WebCom-com-image-viewer-tools-menu>li {padding: 0.45em 1em;}
+.WebCom-com-image-viewer-tools-menu>li:hover {background: #eee;cursor: pointer;user-select: none;}
+
 .WebCom-com-image-viewer[show_thumb_list="false"] .civ-nav-wrap,
-.WebCom-com-image-viewer[show_thumb_list="null"] .civ-nav-wrap,
-.WebCom-com-image-viewer[show_thumb_list="0"] .civ-nav-wrap {display:none;}
+.WebCom-com-image-viewer[show_toolbar="false"] .civ-view-option {display:none;}

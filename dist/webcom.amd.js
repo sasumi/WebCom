@@ -814,9 +814,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		toShow ? show(dom) : hide(dom);
 	};
 
-	const getDomOffset = (target)=> {
+	const getDomOffset = (target) => {
 		let top = 0, left = 0;
-		while(target.offsetParent) {
+		while(target.offsetParent){
 			top += target.offsetTop;
 			left += target.offsetLeft;
 			target = target.offsetParent;
@@ -846,7 +846,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 判断元素是否为按钮
 	 * @param {HTMLElement} el
 	 */
-	const isButton = (el)=>{
+	const isButton = (el) => {
 		return el.tagName === 'BUTTON' ||
 			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
 	};
@@ -857,7 +857,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} selector
 	 * @return {(() => (Node | null))|ParentNode|ActiveX.IXMLDOMNode|null}
 	 */
-	const matchParent = (dom, selector)=>{
+	const matchParent = (dom, selector) => {
 		let p = dom.parentNode;
 		while(p){
 			if(p.matches(selector)){
@@ -866,22 +866,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			p = p.parentNode;
 		}
 		return null;
-	};
-
-	/**
-	 * 检测元素是否可以输入（包含checkbox、radio类）
-	 * @param {HTMLElement} el
-	 * @returns {boolean}
-	 */
-	const inputAble = el=>{
-		if(el.disabled ||
-			el.readOnly ||
-			el.tagName === 'BUTTON'||
-			(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
-		){
-			return false;
-		}
-		return true;
 	};
 
 	/**
@@ -894,7 +878,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const domContained = (contains, child, includeEqual = false) => {
 		if(typeof contains === 'string'){
 			contains = document.querySelectorAll(contains);
-		}else if(Array.isArray(contains)); else if(typeof contains === 'object'){
+		}else if(Array.isArray(contains));else if(typeof contains === 'object'){
 			contains = [contains];
 		}
 		for(let i = 0; i < contains.length; i++){
@@ -945,6 +929,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		];
 	};
 
+	const keepDomInContainer = (target, container = document.body)=>{
+		keepRectInContainer({
+			left: target.left,
+			top: target.top,
+			width:target.clientWidth,
+			height:target.clientHeight,
+		}, {}, posAbs = true);
+	};
+
 	/**
 	 * 保持对象尽量在容器内部，优先保证上边、左边显示
 	 * @param {Object} objDim
@@ -992,6 +985,26 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			ret.top = ctnDim.top;
 		}
 		return ret;
+	};
+
+	/**
+	 * 获取对象宽、高
+	 * 通过设置 visibility 方式进行获取
+	 * @param {Node} dom
+	 * @return {{width: number, height: number}}
+	 */
+	const getDomDimension = (dom)=>{
+		let org_visibility = dom.style.visibility;
+		let org_display = dom.style.display;
+		let width, height;
+
+		dom.style.visibility = 'hidden';
+		dom.style.display = '';
+		width = dom.clientWidth;
+		height = dom.clientHeight;
+		dom.style.visibility = org_visibility;
+		dom.style.display = org_display;
+		return {width, height};
 	};
 
 	/**
@@ -1047,26 +1060,34 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(!forceReload && _c[file]){
 			return _c[file];
 		}
-		_c[file] = new Promise((resolve, reject)=>{
+		_c[file] = new Promise((resolve, reject) => {
 			let link = document.createElement('link');
 			link.rel = "stylesheet";
 			link.href = file;
-			link.onload = ()=>{resolve();};
-			link.onerror = ()=>{reject();};
+			link.onload = () => {
+				resolve();
+			};
+			link.onerror = () => {
+				reject();
+			};
 			document.head.append(link);
 		});
 		return _c[file];
 	};
 
-	const loadScript = (file, forceReload = false)=>{
+	const loadScript = (file, forceReload = false) => {
 		if(!forceReload && _c[file]){
 			return _c[file];
 		}
-		_c[file] = new Promise((resolve, reject)=>{
+		_c[file] = new Promise((resolve, reject) => {
 			let script = document.createElement('script');
 			script.src = file;
-			script.onload = ()=>{resolve();};
-			script.onerror = ()=>{reject();};
+			script.onload = () => {
+				resolve();
+			};
+			script.onerror = () => {
+				reject();
+			};
 			document.head.append(script);
 		});
 		return _c[file];
@@ -1078,7 +1099,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} id
 	 * @return {HTMLStyleElement}
 	 */
-	const insertStyleSheet = (styleSheetStr, id='')=>{
+	const insertStyleSheet = (styleSheetStr, id = '') => {
 		let style = document.createElement('style');
 		document.head.appendChild(style);
 		style.innerHTML = styleSheetStr;
@@ -1146,7 +1167,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {HTMLElement} dom
 	 * @param {Object} style 样式对象
 	 */
-	const setStyle = (dom, style = {})=>{
+	const setStyle = (dom, style = {}) => {
 		for(let key in style){
 			key = strToPascalCase(key);
 			dom.style[key] = dimension2Style(style[key]);
@@ -1165,10 +1186,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		tpl.innerHTML = html;
 		let nodes = [];
 		if(parentNode){
-			tpl.content.childNodes.forEach(node=>{
+			tpl.content.childNodes.forEach(node => {
 				nodes.push(parentNode.appendChild(node));
 			});
-		} else {
+		}else {
 			nodes = tpl.content.childNodes;
 		}
 		return nodes.length === 1 ? nodes[0] : nodes;
@@ -1200,7 +1221,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 进入全屏模式
 	 * @param {HTMLElement} element
 	 */
-	const enterFullScreen = (element)=>{
+	const enterFullScreen = (element) => {
 		if(element.requestFullscreen){
 			return element.requestFullscreen();
 		}
@@ -1220,7 +1241,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 退出全屏
 	 * @returns {Promise<void>}
 	 */
-	const exitFullScreen = ()=>{
+	const exitFullScreen = () => {
 		return document.exitFullscreen();
 	};
 
@@ -1229,11 +1250,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param element
 	 * @returns {Promise<unknown>}
 	 */
-	const toggleFullScreen = (element)=>{
+	const toggleFullScreen = (element) => {
 		return new Promise((resolve, reject) => {
 			if(!isInFullScreen()){
 				enterFullScreen(element).then(resolve).catch(reject);
-			} else {
+			}else {
 				exitFullScreen().then(resolve).catch(reject);
 			}
 		})
@@ -1243,148 +1264,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 检测是否正在全屏
 	 * @returns {boolean}
 	 */
-	const isInFullScreen = ()=>{
+	const isInFullScreen = () => {
 		return !!document.fullscreenElement;
-	};
-
-	/**
-	 * 获取form元素值。
-	 * 该函数过滤元素disabled情况，但不判断name是否存在
-	 * 针对多重选择，提取数据格式为数组
-	 * @param {HTMLFormElement} el
-	 * @returns {String|Array|null} 元素值，发生错误时返回null
-	 */
-	const getElementValue = (el) => {
-		if(el.disabled){
-			return null;
-		}
-		if(el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')){
-			return el.checked ? el.value : null;
-		}
-		if(el.tagName === 'SELECT' && el.multiple){
-			let vs = [];
-			el.querySelectorAll('option[selected]').forEach(item=>{
-				vs.push(item.value);
-			});
-			return vs;
-		}
-		return el.value;
-	};
-
-	/**
-	 * 表单元素同步变更
-	 * 该方法会检测元素数据合法性（表单校验）
-	 * @param {HTMLElement} dom
-	 * @param {Function} getter 函数执行返回 Promise，返回null时，不填充input
-	 * @param {Function} setter 函数执行返回 Promise，checkbox、radio类型元素未选择时，返回null，设置失败元素将还原初始值
-	 */
-	const formSync = (dom, getter, setter)=>{
-		let els = getAvaliableElements(dom);
-		els.forEach(function(el){
-			let name = el.name;
-			let current_val = getElementValue(el);
-			el.disabled = true;
-			getter(name).then(v=>{
-				el.disabled = false;
-				if(el.type === 'radio' || el.type === 'checkbox'){
-					el.checked = el.value == v;
-					current_val = v;
-				} else if(v !== null){
-					el.value = v;
-					current_val = v;
-				}
-			});
-			el.addEventListener('change', e=>{
-				el.disabled = true;
-				if(!el.checkValidity()){
-					el.reportValidity();
-					return;
-				}
-				let val = el.value;
-				if((el.type === 'radio' || el.type === 'checkbox') && !el.checked){
-					val = null;
-				}
-				setter(el.name, val).then(()=>{
-					el.disabled = false;
-				}, ()=>{
-					if(el.type === 'radio' || el.type === 'checkbox'){
-						el.checked = el.value == current_val;
-					} else if(current_val !== null){
-						el.value = current_val;
-					}
-				});
-			});
-		});
-	};
-
-
-	/**
-	 * 获取指定容器下所有可用表单元素
-	 * @param {HTMLElement} dom
-	 * @param {Boolean} ignore_empty_name 是否忽略没有name属性的元素，缺省为必须校验
-	 * @return {HTMLInputElement|HTMLSelectElement,HTMLTextAreaElement}
-	 */
-	const getAvaliableElements = (dom, ignore_empty_name = false)=>{
-		let els = dom.querySelectorAll('input,textarea,select');
-		els = Array.from(els).filter(el => {
-			return !isButton(el) && !el.disabled && (!ignore_empty_name && el.name);
-		});
-		return els;
-	};
-
-	/**
-	 * 表单元素校验
-	 * @param {HTMLElement} dom
-	 * @param {Boolean} name_validate 是否校验名称必填
-	 * @return boolean 是否校验通过
-	 */
-	const formValidate = (dom, name_validate = false)=>{
-		let els = getAvaliableElements(dom, !name_validate);
-		let pass = true;
-		Array.from(els).every(el => {
-			if(!el.checkValidity()){
-				el.reportValidity();
-				pass = false;
-				return false;
-			}
-			return true;
-		});
-		return pass;
-	};
-
-	/**
-	 * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
-	 * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
-	 * @param {HTMLElement} dom
-	 * @param {Boolean} validate
-	 * @returns {Object|null} 如果校验失败，则返回null
-	 */
-	const formSerializeJSON = (dom, validate = true) => {
-		if(!formValidate(dom)){
-			return null;
-		}
-		let els = getAvaliableElements(dom);
-		let data = {};
-		let err = Array.from(els).every(el => {
-			let name = el.name;
-			let value = getElementValue(el);
-			if(value === null){
-				return true;
-			}
-			let name_selector = cssSelectorEscape(name);
-			let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]),textarea[name=${name_selector}],select[name=${name_selector}]`).length > 1;
-			if(isArr){
-				if(data[name] === undefined){
-					data[name] = [value];
-				} else {
-					data[name].push(value);
-				}
-			} else {
-				data[name] = value;
-			}
-			return true;
-		});
-		return err === false ? null : data;
 	};
 
 	/**
@@ -1408,6 +1289,228 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const resolveFileName = (fileName)=>{
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
 		return fileName.replace(/\.[^.]*$/g, "");
+	};
+
+	/**
+	 * 检测元素是否可以输入（包含checkbox、radio类）
+	 * @param {HTMLElement} el
+	 * @returns {boolean}
+	 */
+	const inputAble = el => {
+		if(el.disabled ||
+			el.readOnly ||
+			el.tagName === 'BUTTON' ||
+			(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
+		){
+			return false;
+		}
+		return true;
+	};
+
+	/**
+	 * 获取form元素值。
+	 * 该函数过滤元素disabled情况，但不判断name是否存在
+	 * 针对多重选择，提取数据格式为数组
+	 * @param {HTMLFormElement} el
+	 * @returns {String|Array|null} 元素值，发生错误时返回null
+	 */
+	const getElementValue = (el) => {
+		if(el.disabled){
+			return null;
+		}
+		if(el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')){
+			return el.checked ? el.value : null;
+		}
+		if(el.tagName === 'SELECT' && el.multiple){
+			let vs = [];
+			el.querySelectorAll('option[selected]').forEach(item => {
+				vs.push(item.value);
+			});
+			return vs;
+		}
+		return el.value;
+	};
+
+	/**
+	 * 表单元素同步变更
+	 * 该方法会检测元素数据合法性（表单校验）
+	 * @param {HTMLElement} dom
+	 * @param {Function} getter 函数执行返回 Promise，返回null时，不填充input
+	 * @param {Function} setter 函数执行返回 Promise，checkbox、radio类型元素未选择时，返回null，设置失败元素将还原初始值
+	 */
+	const formSync = (dom, getter, setter) => {
+		let els = getAvailableElements(dom);
+		els.forEach(function(el){
+			let name = el.name;
+			let current_val = getElementValue(el);
+			el.disabled = true;
+			getter(name).then(v => {
+				el.disabled = false;
+				if(el.type === 'radio' || el.type === 'checkbox'){
+					el.checked = el.value == v;
+					current_val = v;
+				}else if(v !== null){
+					el.value = v;
+					current_val = v;
+				}
+			});
+			el.addEventListener('change', e => {
+				el.disabled = true;
+				if(!el.checkValidity()){
+					el.reportValidity();
+					return;
+				}
+				let val = el.value;
+				if((el.type === 'radio' || el.type === 'checkbox') && !el.checked){
+					val = null;
+				}
+				setter(el.name, val).then(() => {
+					el.disabled = false;
+				}, () => {
+					if(el.type === 'radio' || el.type === 'checkbox'){
+						el.checked = el.value == current_val;
+					}else if(current_val !== null){
+						el.value = current_val;
+					}
+				});
+			});
+		});
+	};
+
+
+	/**
+	 * 获取指定容器下所有可用表单元素
+	 * @param {HTMLElement} dom
+	 * @param {Boolean} ignore_empty_name 是否忽略没有name属性的元素，缺省为必须校验
+	 * @return {Array.<HTMLInputElement>|Array.<HTMLSelectElement>|Array.<HTMLTextAreaElement>}
+	 */
+	const getAvailableElements = (dom, ignore_empty_name = false) => {
+		let els = dom.querySelectorAll('input,te>xtarea,select');
+		els = Array.from(els).filter(el => {
+			return !isButton(el) && !el.disabled && (!ignore_empty_name && el.name);
+		});
+		return els;
+	};
+
+	/**
+	 * 表单元素校验
+	 * @param {HTMLElement} dom
+	 * @param {Boolean} name_validate 是否校验名称必填
+	 * @return boolean 是否校验通过
+	 */
+	const formValidate = (dom, name_validate = false) => {
+		let els = getAvailableElements(dom, !name_validate);
+		let pass = true;
+		Array.from(els).every(el => {
+			if(!el.checkValidity()){
+				el.reportValidity();
+				pass = false;
+				return false;
+			}
+			return true;
+		});
+		return pass;
+	};
+
+	/**
+	 * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+	 * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
+	 * @param {HTMLElement} dom
+	 * @param {Boolean} validate
+	 * @returns {Object|null} 如果校验失败，则返回null
+	 */
+	const formSerializeJSON = (dom, validate = true) => {
+		if(!formValidate(dom)){
+			return null;
+		}
+		let els = getAvailableElements(dom);
+		let data = {};
+		let err = Array.from(els).every(el => {
+			let name = el.name;
+			let value = getElementValue(el);
+			if(value === null){
+				return true;
+			}
+			let name_selector = cssSelectorEscape(name);
+			let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]), textarea[name=${name_selector}], select[name=${name_selector}]`).length > 1;
+			if(isArr){
+				if(data[name] === undefined){
+					data[name] = [value];
+				}else {
+					data[name].push(value);
+				}
+			}else {
+				data[name] = value;
+			}
+			return true;
+		});
+		return err === false ? null : data;
+	};
+
+	/**
+	 * 转换表单数据对象到JSON对象
+	 * @param {Object} formDataMap
+	 * @param {Object} formatSchema 格式
+	 * @param {Boolean} mustExistsInSchema 是否必须存在格式定义中
+	 */
+	const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInSchema = true) => {
+		let ret = {};
+		for(let key in formDataMap){
+			let value = formDataMap[key];
+			let define = formatSchema[key];
+			if(define === undefined){
+				if(mustExistsInSchema){
+					continue;
+				}
+				ret[key] = value;
+				continue;
+			}
+			switch(typeof (define)){
+				case 'string':
+					ret[key] = value;
+					break;
+				case 'boolean':
+					ret[key] = value === '1' || value === 'true';
+					break;
+				case 'number':
+					ret[key] = parseInt(value, 10);
+					break;
+				case 'object':
+					ret[key] = value ? JSON.parse(value) : {};
+					break;
+				default:
+					throw "format schema no supported";
+			}
+		}
+		return ret;
+	};
+
+	/**
+	 * 转换对象为表单元素数值
+	 * @param {Object} objectMap
+	 * @param {Array} boolMapping
+	 * @return {Object}
+	 */
+	const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => {
+		let ret = {};
+		for(let key in objectMap){
+			let value = objectMap[key];
+			switch(typeof (value)){
+				case 'string':
+				case 'number':
+					ret[key] = String(value);
+					break;
+				case 'boolean':
+					ret[key] = value ? boolMapping[0] : boolMapping[1];
+					break;
+				case 'object':
+					ret[key] = JSON.stringify(value);
+					break;
+				default:
+					throw "format schema no supported";
+			}
+		}
+		return ret;
 	};
 
 	/**
@@ -2148,7 +2251,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
 		DialogIndex: 1000, //对话框等窗口类垂直索引
 		FullScreenModeIndex: 10000, //全屏类（全屏类
-		ToastIndex: 100000, //消息提示（顶部呈现）
+		ContextIndex: 100000, //右键菜单
+		ToastIndex: 1000000, //消息提示（顶部呈现）
 	};
 
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
@@ -2294,6 +2398,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 
 		/**
+		 * 延期显示 loading（推荐使用）
+		 * 在一些业务后台能够快速响应场景，不显示loading过程能够提升用户体验
+		 * @param {String} message
+		 * @param {Number} delayMicroseconds 延迟显示
+		 * @param {Function} timeoutCallback
+		 * @return {Toast}
+		 */
+		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback) => {
+			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
+			let toast = new Toast(message, Toast.TYPE_LOADING, time);
+			toast.show(timeoutCallback);
+			hide(toast.dom);
+			setTimeout(()=>{
+				toast.dom && show(toast.dom);
+			}, delayMicroseconds);
+			return toast;
+		}
+
+		/**
 		 * 显示提示
 		 * @param {Function} onTimeoutClose 超时关闭回调
 		 */
@@ -2317,6 +2440,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param {Boolean} fadeOut 是否使用渐隐式淡出
 		 */
 		hide(fadeOut = false){
+			//稍微容错下，避免setTimeout后没有父节点
+			if(!this.dom || !this.dom.parentNode){
+				return;
+			}
 			if(fadeOut){
 				this.dom.classList.add(TOAST_CLS_MAIN+'-hide');
 				setTimeout(()=>{
@@ -2324,8 +2451,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}, FADEOUT_TIME);
 				return;
 			}
-			//稍微容错下，避免setTimeout后没有父节点
-			this.dom.parentNode && this.dom.parentNode.removeChild(this.dom);
+			this.dom.parentNode.removeChild(this.dom);
+			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
 				hide(wrapper);
@@ -3118,46 +3245,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return JSON.stringify(v);
 	};
 
-	const ls_get = (key) => {
-		let v = localStorage.getItem(key);
-		if(v === null){
-			return null;
-		}
-		return json_decode(v);
-	};
-
-	const ls_set = (key, value) => {
-		console.log('localStorage.setItem', key, value);
-		localStorage.setItem(key, json_encode(value));
-	};
-
 	let callbacks = [];
-
-	let start_ls_listen = ()=>{
-		start_ls_listen = ()=>{};
-		let handler = (k, newVal, oldVal)=>{
-			if(!undefined.namespace || k.indexOf(undefined.namespace) === 0){
-				let key = k.substring(0, undefined.namespace.length);
-				if(undefined.settingKeys.includes(key)){
-					callbacks.forEach(cb=>{cb(key, json_decode(newVal), json_decode(oldVal));});
-				}
-			}
-		};
-		window.addEventListener('storage', e => {
-			console.log('onstorage', e);
-			handler(e.key, e.newValue, e.oldValue);
-		});
-
-		console.log('reset ls.setItem');
-		const {setItem} = window.localStorage;
-		window.localStorage.setItem = function(key, value){
-			console.log('override localStorage.setItem', key, value);
-			let oldVal = window.localStorage.getItem(key);
-			setItem.call(this, key, value);
-			handler(key, value, oldVal);
-		};
+	let handler_callbacks = (key, newVal, oldVal)=>{
+		callbacks.forEach(cb=>{cb(key, newVal, oldVal);});
 	};
 
+	let ls_listen_flag = false;
 	class LocalStorageSetting {
 		namespace = '';
 		settingKeys = [];
@@ -3165,25 +3258,36 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			this.namespace = namespace;
 			this.settingKeys = Object.keys(defaultSetting);
 			for(let key in defaultSetting){
-				let v = ls_get(this.namespace + key);
+				let v = this.get(key);
 				if(v === null){
-					ls_set(this.namespace + key, defaultSetting[key]);
+					this.set(key, defaultSetting[key]);
 				}
 			}
 		}
 
 		onUpdated(callback){
-			console.log('watch', callback);
 			callbacks.push(callback);
-			start_ls_listen();
+			if(!ls_listen_flag){
+				ls_listen_flag = true;
+				window.addEventListener('storage', e => {
+					if(!this.namespace || e.key.indexOf(this.namespace) === 0){
+						handler_callbacks(e.key.substring(this.namespace.length), json_decode(e.newValue), json_decode(e.oldValue));
+					}
+				});
+			}
 		}
 
 		set(key, value){
-			ls_set(this.namespace + key, value);
+			handler_callbacks(key, value, this.get(key));
+			localStorage.setItem(this.namespace+key, json_encode(value));
 		}
 
 		get(key){
-			return ls_get(this.namespace + key);
+			let v = localStorage.getItem(this.namespace+key);
+			if(v === null){
+				return null;
+			}
+			return json_decode(v);
 		}
 
 		each(payload){
@@ -3200,6 +3304,91 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			return obj;
 		}
 	}
+
+	let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
+	let CTX_Z_INDEX = Theme.ContextIndex;
+	let context_menu_el;
+	let context_commands = [];
+
+	insertStyleSheet(`
+	.${CTX_CLASS_PREFIX} {padding: 0.5em 0;box-shadow:1px 1px 10px 0px #44444457;border-radius:4px;background:#fff;min-width:180px;z-index:${CTX_Z_INDEX}; position:fixed;}
+	.${CTX_CLASS_PREFIX}>[role=menuitem] {padding:0 1em 0 1em; min-height:2em; display:flex; background: transparent;transition: all 0.1s linear;user-select:none;opacity: 0.9;}
+	.${CTX_CLASS_PREFIX}>[role=menuitem]>* {flex:1; line-height:1}
+	.${CTX_CLASS_PREFIX}>[role=menuitem]:not(.disabled){cursor:pointer;}
+	.${CTX_CLASS_PREFIX}>[role=menuitem]:not(.disabled):hover {background-color: #eeeeee9c;text-shadow: 1px 1px 1px white;opacity: 1;}
+	.${CTX_CLASS_PREFIX}>.sep {margin: 2px 0.5em;border-bottom:1px solid #ddd;}
+	.${CTX_CLASS_PREFIX}>.caption {padding-left: 1em;opacity: 0.7;user-select: none;display:flex;align-items: center;}
+	.${CTX_CLASS_PREFIX}>.caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
+	.${CTX_CLASS_PREFIX}>li>a,
+	.${CTX_CLASS_PREFIX}>li>span {display:block;}
+`);
+
+	/**
+	 * @param {array} commands [{title, payload}, '-',...]
+	 * @param {Object} position
+	 * @param {Number} position.left
+	 * @param {Number} position.top
+	 */
+	const showContextMenu = (commands, position) => {
+		context_commands = commands;
+		if(!context_menu_el){
+			context_menu_el = createDomByHtml(`<ul class="${CTX_CLASS_PREFIX}"></ul>`, document.body);
+			document.body.addEventListener('click', e => {
+				if(!domContained(context_menu_el, e.target, true)){
+					hide(context_menu_el);
+				}
+			});
+			console.log('[context] start bind key up');
+			document.addEventListener('keyup', e => {
+				if(e.keyCode === KEYS.Esc){
+					debugger;
+					hide(context_menu_el);
+					e.stopImmediatePropagation();
+					e.preventDefault();
+					return false;
+				}
+			});
+			eventDelegate(context_menu_el, '[role=menuitem]', 'click', target => {
+				let idx = arrayIndex(context_menu_el.querySelectorAll('li'), target);
+				let [title, cmd] = context_commands[idx];
+				if(!cmd || cmd() !== false){ //cmd 可以通过返回false阻止菜单关闭
+					hide(context_menu_el);
+				}
+			});
+		}
+		let inner_html = '';
+		commands.forEach(item => {
+			if(item === '-'){
+				inner_html += '<li class="sep"></li>';
+			}else {
+				inner_html += `<li role="menuitem"><span>${item[0]}</span></li>`;
+			}
+		});
+		context_menu_el.innerHTML = inner_html;
+		let menu_dim = getDomDimension(context_menu_el);
+		let dim = keepRectInContainer({
+			left: position.left,
+			top: position.top,
+			width: menu_dim.width,
+			height: menu_dim.height
+		});
+		context_menu_el.style.left = dimension2Style(dim.left);
+		context_menu_el.style.top = dimension2Style(dim.top);
+		show(context_menu_el);
+	};
+
+	/**
+	 * 绑定对象显示定制右键菜单
+	 * @param {HTMLElement} target
+	 * @param {Array} commands
+	 */
+	const bindTargetContextMenu = (target, commands) => {
+		target.addEventListener('contextmenu', e => {
+			showContextMenu(commands, {left: e.clientX, top: e.clientY});
+			e.preventDefault();
+			return false;
+		});
+	};
 
 	const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
@@ -3240,12 +3429,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	let SHOW_THUMB_LIST = false;
 	let SHOW_OPTION = false;
 
-	let LocalSetting = new LocalStorageSetting({
+	const DEFAULT_SETTING = {
 		show_thumb_list: false,
 		show_toolbar: true,
 		mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 		allow_move: true,
-	}, Theme.Namespace+'com-image-viewer/');
+	};
+	let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
 
 	/**
 	 * 解析图片src集合
@@ -3310,7 +3500,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		PREVIEW_DOM = null;
 		Masker.hide();
 		window.removeEventListener('resize', onWinResize);
-		document.body.removeEventListener('keydown', bindKeyDown);
+		document.removeEventListener('keyup', bindKeyUp);
+		document.removeEventListener('keydown', bindKeyDown);
 	};
 
 	/**
@@ -3379,13 +3570,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			};
 			e.preventDefault();
 		});
+		let context_commands = [];
+		TOOLBAR_OPTIONS.forEach(item => {
+			context_commands.push([COMMANDS[item][0], COMMANDS[item][1]]);
+		});
+		bindTargetContextMenu(img, context_commands);
+
 		['mouseup', 'mouseout'].forEach(ev => {
 			img.addEventListener(ev, e => {
 				moving = false;
 			});
 		});
 		img.addEventListener('mousemove', e => {
-			if(moving){
+			if(moving && LocalSetting.get('allow_move')){
 				img.style.marginLeft = dimension2Style(lastOffset.marginLeft + (e.clientX - lastOffset.clientX));
 				img.style.marginTop = dimension2Style(lastOffset.marginTop + (e.clientY - lastOffset.clientY));
 			}
@@ -3510,14 +3707,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		//bind resize
 		window.addEventListener('resize', onWinResize);
 
-		//bind key
-		document.body.addEventListener('keydown', bindKeyDown);
+		document.addEventListener('keydown', bindKeyDown);
+		console.log('[IP] start bind key up');
+		document.addEventListener('keyup', bindKeyUp);
+	};
+
+	const bindKeyUp = (e)=>{
+		if(e.keyCode === KEYS.Esc){
+			debugger;
+			destroy();
+		}
 	};
 
 	const bindKeyDown = (e) => {
-		if(e.keyCode === KEYS.Esc){
-			destroy();
-		}
 		if(e.keyCode === KEYS.LeftArrow){
 			navTo(true);
 		}
@@ -3613,7 +3815,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 	};
 
-	const showOption = ()=>{
+	const showOptionDialog = ()=>{
 		let html = `
 <ul class="${DOM_CLASS}-option-list">
 	<li>
@@ -3646,15 +3848,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let lsSetterTip = null;
 		formSync(dlg.dom, (name) => {
 			return new Promise((resolve, reject) => {
-				resolve(LocalSetting.get(name));
+				let tmp = convertObjectToFormData({[name]:LocalSetting.get(name)});
+				resolve(tmp[name]);
 			});
 		}, (name, value) => {
 			return new Promise((resolve, reject) => {
-				debugger;
-				LocalSetting.set(name, value);
-
-				debugger;
-
+				let obj = convertFormDataToObject({[name]: value}, DEFAULT_SETTING);
+				LocalSetting.set(name, obj[name]);
 				lsSetterTip && lsSetterTip.hide();
 				lsSetterTip = Toast.showSuccess('设置已保存');
 				resolve();
@@ -3668,14 +3868,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		'switchTo': ['关闭',(target)=>{switchTo(target.getAttribute('data-index'));}],
 		'thumb-scroll-prev': ['关闭', ()=>{thumbScroll();}],
 		'thumb-scroll-next': ['关闭', ()=>{thumbScroll();}],
-		'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO);}],
-		'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO);}],
-		'zoomOrg':['原始比例',()=>{zoom(null);}],
-		'rotateLeft': ['左旋90°', ()=>{}],
-		'rotateRight':['右旋90°',()=>{}],
+		'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO); return false}],
+		'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}],
+		'zoomOrg':['原始比例',()=>{zoom(null); return false}],
+		'rotateLeft': ['左旋90°', ()=>{ return false}],
+		'rotateRight':['右旋90°',()=>{ return false}],
 		'viewOrg':['查看原图', viewOriginal],
 		'download': ['下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);}],
-		'option': ['选项',showOption],
+		'option': ['选项',showOptionDialog],
 	};
 
 	const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRight', 'viewOrg', 'download', 'option'];
@@ -4367,6 +4567,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.buttonActiveBind = buttonActiveBind;
 	exports.capitalize = capitalize;
 	exports.convertBlobToBase64 = convertBlobToBase64;
+	exports.convertFormDataToObject = convertFormDataToObject;
+	exports.convertObjectToFormData = convertObjectToFormData;
 	exports.copy = copy;
 	exports.copyFormatted = copyFormatted;
 	exports.createDomByHtml = createDomByHtml;
@@ -4389,8 +4591,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.formValidate = formValidate;
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
-	exports.getAvaliableElements = getAvaliableElements;
+	exports.getAvailableElements = getAvailableElements;
 	exports.getCurrentScript = getCurrentScript;
+	exports.getDomDimension = getDomDimension;
 	exports.getDomOffset = getDomOffset;
 	exports.getElementValue = getElementValue;
 	exports.getHash = getHash;
@@ -4411,6 +4614,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.isElement = isElement;
 	exports.isInFullScreen = isInFullScreen;
 	exports.isNum = isNum;
+	exports.keepDomInContainer = keepDomInContainer;
 	exports.keepRectCenter = keepRectCenter;
 	exports.keepRectInContainer = keepRectInContainer;
 	exports.loadCss = loadCss;

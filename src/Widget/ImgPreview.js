@@ -9,6 +9,7 @@ import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
+import {bindTargetContextMenu} from "./ContextMenu.js";
 
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
@@ -32,6 +33,7 @@ const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAA
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
 const OPTION_DLG_INDEX = BASE_INDEX+2;
+const OPTION_MENU_INDEX = BASE_INDEX+3;
 
 export const IMG_PREVIEW_MODE_SINGLE = 1;
 export const IMG_PREVIEW_MODE_MULTIPLE = 2;
@@ -42,7 +44,6 @@ export const IMG_PREVIEW_MS_SCROLL_TYPE_NAV = 2;
 
 let PREVIEW_DOM = null;
 let CURRENT_MODE = 0;
-let CURRENT_MS_SCROLL_TYPE = IMG_PREVIEW_MS_SCROLL_TYPE_NONE;
 
 //srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
 // ① src或[src]: 只有一种图源模式；
@@ -50,8 +51,6 @@ let CURRENT_MS_SCROLL_TYPE = IMG_PREVIEW_MS_SCROLL_TYPE_NONE;
 // ③ [src1,src2,src3] 1为缩略图，2为大图，3为原图
 let IMG_SRC_LIST = [/** srcset1, srcset2 **/];
 let IMG_CURRENT_INDEX = 0;
-let SHOW_THUMB_LIST = false;
-let SHOW_OPTION = false;
 
 const DEFAULT_SETTING = {
 	show_thumb_list: false,
@@ -124,7 +123,8 @@ const destroy = () => {
 	PREVIEW_DOM = null;
 	Masker.hide();
 	window.removeEventListener('resize', onWinResize);
-	document.body.removeEventListener('keydown', bindKeyDown);
+	document.removeEventListener('keyup', bindKeyUp);
+	document.removeEventListener('keydown', bindKeyDown);
 };
 
 /**
@@ -202,13 +202,19 @@ const bindImgMove = (img) => {
 		};
 		e.preventDefault();
 	});
+	let context_commands = [];
+	TOOLBAR_OPTIONS.forEach(item => {
+		context_commands.push([COMMANDS[item][0], COMMANDS[item][1]]);
+	});
+	bindTargetContextMenu(img, context_commands);
+
 	['mouseup', 'mouseout'].forEach(ev => {
 		img.addEventListener(ev, e => {
 			moving = false;
 		})
 	});
 	img.addEventListener('mousemove', e => {
-		if(moving){
+		if(moving && LocalSetting.get('allow_move')){
 			img.style.marginLeft = dimension2Style(lastOffset.marginLeft + (e.clientX - lastOffset.clientX));
 			img.style.marginTop = dimension2Style(lastOffset.marginTop + (e.clientY - lastOffset.clientY));
 		}
@@ -255,7 +261,7 @@ const showImgSrc = (img_index = 0) => {
 
 const constructDom = () => {
 	let nav_thumb_list_html = '';
-	if(SHOW_THUMB_LIST && CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
+	if(CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
 		nav_thumb_list_html = `
 		<div class="civ-nav-wrap">
 			<span class="civ-nav-list-prev" data-cmd="thumb-scroll-prev"></span>
@@ -271,7 +277,7 @@ const constructDom = () => {
 	}
 
 	let option_html = '';
-	if(SHOW_OPTION){
+	if(LocalSetting.get('show_toolbar')){
 		option_html = `
 		<span class="civ-view-option">
 			${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
@@ -318,7 +324,7 @@ const constructDom = () => {
 
 	//bind scroll zoom
 	listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e=>{
-		switch(CURRENT_MS_SCROLL_TYPE){
+		switch(LocalSetting.get('mouse_scroll_type')){
 			case IMG_PREVIEW_MS_SCROLL_TYPE_SCALE:
 				zoom(e.wheelDelta > 0 ? ZOOM_OUT_RATIO : ZOOM_IN_RATIO);
 				break;
@@ -335,14 +341,18 @@ const constructDom = () => {
 	//bind resize
 	window.addEventListener('resize', onWinResize);
 
-	//bind key
-	document.body.addEventListener('keydown', bindKeyDown);
+	document.addEventListener('keydown', bindKeyDown);
+	console.log('[IP] start bind key up');
+	document.addEventListener('keyup', bindKeyUp);
 };
 
-const bindKeyDown = (e) => {
+const bindKeyUp = (e)=>{
 	if(e.keyCode === KEYS.Esc){
 		destroy();
 	}
+}
+
+const bindKeyDown = (e) => {
 	if(e.keyCode === KEYS.LeftArrow){
 		navTo(true);
 	}
@@ -442,7 +452,13 @@ const viewOriginal = ()=>{
 	window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 };
 
-const showOption = ()=>{
+
+let tools_menu;
+const hideOptionContextMenu = ()=>{
+	tools_menu && hide(tools_menu);
+}
+
+const showOptionDialog = ()=>{
 	let html = `
 <ul class="${DOM_CLASS}-option-list">
 	<li>
@@ -495,14 +511,14 @@ const COMMANDS = {
 	'switchTo': ['关闭',(target)=>{switchTo(target.getAttribute('data-index'));}],
 	'thumb-scroll-prev': ['关闭', ()=>{thumbScroll(-1)}],
 	'thumb-scroll-next': ['关闭', ()=>{thumbScroll(1)}],
-	'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO)}],
-	'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO)}],
-	'zoomOrg':['原始比例',()=>{zoom(null)}],
-	'rotateLeft': ['左旋90°', ()=>{rotate(-90)}],
-	'rotateRight':['右旋90°',()=>{rotate(90)}],
+	'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO); return false}],
+	'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}],
+	'zoomOrg':['原始比例',()=>{zoom(null); return false}],
+	'rotateLeft': ['左旋90°', ()=>{rotate(-90); return false}],
+	'rotateRight':['右旋90°',()=>{rotate(90); return false}],
 	'viewOrg':['查看原图', viewOriginal],
 	'download': ['下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original)}],
-	'option': ['选项',showOption],
+	'option': ['选项',showOptionDialog],
 };
 
 const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRight', 'viewOrg', 'download', 'option'];
@@ -512,28 +528,30 @@ const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRi
  * @param {Object} option
  * @param {Number} option.mode 显示模式：IMG_PREVIEW_MODE_SINGLE 单图模式，IMG_PREVIEW_MODE_MULTIPLE 多图模式
  * @param {String[]} option.srcList 图片列表，单图或者多图模式都需要以数组方式传参
- * @param {Boolean} option.showOption 是否显示选项条
- * @param {Number|0} option.mouse_scroll_type 鼠标滚动控制类型：IMG_PREVIEW_MS_SCROLL_TYPE_NONE，IMG_PREVIEW_MS_SCROLL_TYPE_SCALE，IMG_PREVIEW_MS_SCROLL_TYPE_NAV
+ * @param {Boolean} option.showToolbar 是否显示选项条（缺省使用默认配置）
+ * @param {Boolean} option.showThumbList [多图模式]是否显示缩略图列表（缺省使用默认配置）
+ * @param {Number|0} option.mouse_scroll_type 鼠标滚动控制类型：IMG_PREVIEW_MS_SCROLL_TYPE_NONE，IMG_PREVIEW_MS_SCROLL_TYPE_SCALE，IMG_PREVIEW_MS_SCROLL_TYPE_NAV（缺省使用默认配置）
  * @param {Number|0} option.startIndex [多图模式]开始图片索引
- * @param {Boolean} option.showThumbList [多图模式]是否显示缩略图列表
  * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
 	mode,
 	srcList,
-	showOption = true,
+	showToolbar = null,
 	mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 	startIndex = 0,
-	showThumbList = true,
-	preloadSrcList = true,
+	showThumbList = null,
+	preloadSrcList = null,
 }) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
 	IMG_CURRENT_INDEX = startIndex;
-	CURRENT_MS_SCROLL_TYPE = mouse_scroll_type;
-	SHOW_THUMB_LIST = showThumbList;
-	SHOW_OPTION = showOption;
+
+	mouse_scroll_type !== null && LocalSetting.set('mouse_scroll_type', mouse_scroll_type);
+	showThumbList !== null && LocalSetting.set('show_thumb_list', showThumbList);
+	showToolbar !== null && LocalSetting.set('show_toolbar', showToolbar);
+
 	constructDom();
 	showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
 		if(preloadSrcList){
