@@ -10,7 +10,7 @@ let context_menu_el;
 let context_commands = [];
 
 insertStyleSheet(`
-	.${CTX_CLASS_PREFIX} {padding: 0.5em 0;box-shadow:1px 1px 10px 0px #44444457;border-radius:4px;background:#fff;min-width:180px;z-index:${CTX_Z_INDEX}; position:fixed;}
+	.${CTX_CLASS_PREFIX} {padding: 0.5em 0;box-shadow:1px 1px 10px 0px #44444457;border-radius:4px;background:#fff;min-width:150px;z-index:${CTX_Z_INDEX}; position:fixed;}
 	.${CTX_CLASS_PREFIX}>[role=menuitem] {padding:0 1em 0 1em; min-height:2em; display:flex; align-items:center; background: transparent;transition: all 0.1s linear;user-select:none;opacity: 0.9;}
 	.${CTX_CLASS_PREFIX}>[role=menuitem]>* {flex:1; line-height:1}
 	.${CTX_CLASS_PREFIX}>[role=menuitem]:not(.disabled){cursor:pointer;}
