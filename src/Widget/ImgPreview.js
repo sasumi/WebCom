@@ -420,6 +420,15 @@ const zoom = (ratioOffset) => {
 	let origin_width = img.getAttribute(ATTR_W_BIND_KEY);
 	let origin_height = img.getAttribute(ATTR_H_BIND_KEY);
 
+	if(ratioOffset === null){
+		ratioOffset = 1;
+		img.style.left = dimension2Style(parseInt(img.style.left, 10) * ratioOffset);
+		img.style.top = dimension2Style(parseInt(img.style.top, 10) * ratioOffset);
+		img.style.width = dimension2Style(parseInt(origin_width, 10) * ratioOffset);
+		img.style.height = dimension2Style(parseInt(origin_height, 10) * ratioOffset);
+		return;
+	}
+
 	let width = parseInt(img.style.width, 10) * ratioOffset;
 	let height = parseInt(img.style.height, 10) * ratioOffset;
 
@@ -442,7 +451,11 @@ const zoom = (ratioOffset) => {
 }
 
 const rotate = (degreeOffset)=>{
-
+	let img = PREVIEW_DOM.querySelector('.civ-img img');
+	let rotate = parseInt(img.getAttribute('data-rotate') || 0, 10);
+	let newRotate = rotate + degreeOffset;
+	img.setAttribute('data-rotate', newRotate);
+	img.style.transform = `translate(-50%, -50%) rotate(${newRotate}deg)`;
 }
 
 const viewOriginal = ()=>{
