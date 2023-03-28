@@ -20,7 +20,7 @@ const MIN_ZOOM_OUT_SIZE = 50; //最小显示像素
 const THUMB_WIDTH = 50;
 const THUMB_HEIGHT = 50;
 
-const ZOOM_IN_RATIO =0.8; //缩小比率
+const ZOOM_IN_RATIO = 0.8; //缩小比率
 const ZOOM_OUT_RATIO = 1.2; //放大比率
 
 const ATTR_W_BIND_KEY = 'data-original-width';
@@ -276,15 +276,12 @@ const constructDom = () => {
 		</div>`;
 	}
 
-	let option_html = '';
-	if(LocalSetting.get('show_toolbar')){
-		option_html = `
-		<span class="civ-view-option">
-			${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
-				return lastVal + `<span class="civ-opt-btn" data-cmd="${CMD}" title="${COMMANDS[CMD][0]}"></span>`;
-			},"")}
-		</span>`;
-	}
+	let option_html = `
+	<span class="civ-view-option">
+		${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
+			return lastVal + `<span class="civ-opt-btn" data-cmd="${CMD}" title="${COMMANDS[CMD][0]}"></span>`;
+		},"")}
+	</span>`;
 
 	PREVIEW_DOM = createDomByHtml(`
 		<div class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
@@ -302,7 +299,7 @@ const constructDom = () => {
 	`, document.body);
 
 	LocalSetting.each((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
-	LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+	LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM && PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
 
 	//bind close click & space click
 	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
