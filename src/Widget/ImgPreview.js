@@ -1,4 +1,4 @@
-import {createDomByHtml, hide, loadCss, setStyle, show} from "../Lang/Dom.js";
+import {createDomByHtml, hide, insertStyleSheet, loadCss, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
@@ -35,6 +35,7 @@ const OP_INDEX = BASE_INDEX + 1;
 const OPTION_DLG_INDEX = BASE_INDEX+2;
 const OPTION_MENU_INDEX = BASE_INDEX+3;
 
+
 export const IMG_PREVIEW_MODE_SINGLE = 1;
 export const IMG_PREVIEW_MODE_MULTIPLE = 2;
 
@@ -44,6 +45,21 @@ export const IMG_PREVIEW_MS_SCROLL_TYPE_NAV = 2;
 
 let PREVIEW_DOM = null;
 let CURRENT_MODE = 0;
+
+//id, title, payload
+const CMD_CLOSE = ['close', '关闭',()=>{destroy()}];
+const CMD_NAV_TO = ['nav_to', '关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}];
+const CMD_SWITCH_TO = ['switch_to', '关闭',(target)=>{switchTo(target.getAttribute('data-index'));}];
+const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', ()=>{thumbScroll(-1)}];
+const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', ()=>{thumbScroll(1)}];
+const CMD_ZOOM_OUT = ['zoom_out', '放大',()=>{zoom(ZOOM_OUT_RATIO); return false}];
+const CMD_ZOOM_IN = ['zoom_in', '缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}];
+const CMD_ZOOM_ORG = ['zoom_org', '原始比例',()=>{zoom(null); return false}];
+const CMD_ROTATE_LEFT = ['rotate_left', '左旋90°', ()=>{rotate(-90); return false}];
+const CMD_ROTATE_RIGHT = ['rotate_right', '右旋90°',()=>{rotate(90); return false}];
+const CMD_VIEW_ORG = ['view_org', '查看原图', ()=>{viewOriginal()}];
+const CMD_DOWNLOAD = ['download', '下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original)}];
+const CMD_OPTION = ['option', '选项', ()=>{showOptionDialog()}];
 
 //srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
 // ① src或[src]: 只有一种图源模式；
@@ -74,43 +90,80 @@ const srcSetResolve = item => {
 	};
 }
 
-loadCss('./ip.css');
+// loadCss('./ip.css');
 
-/**
 insertStyleSheet(`
-	@keyframes ${Theme.Namespace}spin{100%{transform:rotate(360deg);}}
-	.${DOM_CLASS} {position: fixed; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
-	.${DOM_CLASS} .civ-closer {position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
-	.${DOM_CLASS} .civ-closer:before {font-family: "${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
-	.${DOM_CLASS} .civ-closer:hover {background-color:#eeeeee75;}
-	.${DOM_CLASS} .civ-nav-btn {padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
-	.${DOM_CLASS} .civ-nav-btn[disabled] {color:gray; cursor:default !important;}
-	.${DOM_CLASS} .civ-nav-btn:not([disabled]):hover {opacity:1;}
-	.${DOM_CLASS} .civ-nav-btn:before {font-family:"${Theme.IconFont}"; font-size:20px;}
-	.${DOM_CLASS} .civ-prev {left:10px}
-	.${DOM_CLASS} .civ-prev:before {content:"\\e6103"}
-	.${DOM_CLASS} .civ-next {right:10px}
-	.${DOM_CLASS} .civ-next:before {content:"\\e73b";}
+	 @keyframes WebCom-spin{
+		100%{transform:rotate(360deg);}
+	}
+	.${DOM_CLASS}{position:fixed;z-index:${BASE_INDEX};width:100%;height:100%;overflow:hidden;top:0;left:0;}
+	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
+	.${DOM_CLASS} .civ-closer:before{font-family:"WebCom-iconfont", serif; content:"\\e61a"; font-size:20px;}
+	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
+	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
+	.${DOM_CLASS} .civ-nav-btn[disabled]{color:gray; cursor:default !important;}
+	.${DOM_CLASS} .civ-nav-btn:not([disabled]):hover{opacity:1;}
+	.${DOM_CLASS} .civ-nav-btn:before{font-family:"WebCom-iconfont"; font-size:20px;}
+	.${DOM_CLASS} .civ-prev{left:10px}
+	.${DOM_CLASS} .civ-prev:before{content:"\\e6103"}
+	.${DOM_CLASS} .civ-next{right:10px}
+	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
-	.${DOM_CLASS} .civ-nav-list-wrap {position:absolute; background-color:#fff3; padding-left:20px; padding-right:20px; bottom:10px; left:50%; transform: translate(-50%, 0); overflow:hidden; z-index:${OP_INDEX}; max-width:300px; min-width:300px; border:1px solid green;}
+	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
+	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;--opt-btn-size: 1.5em;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
+	.${DOM_CLASS} .civ-opt-btn:before {font-family:"WebCom-iconfont";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
+	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ZOOM_OUT[0]}"]:before {content: "\\e898";}
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ZOOM_IN[0]}"]:before {content:"\\e683"} 
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ZOOM_ORG[0]}"]:before {content:"\\e64a"} 
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ROTATE_LEFT[0]}"]:before {content:"\\e7be"} 
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ROTATE_RIGHT[0]}"]:before {content:"\\e901"} 
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_VIEW_ORG[0]}"]:before {content:"\\e7de"} 
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_DOWNLOAD[0]}"]:before {content:"\\e839"} 
+	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_OPTION[0]}"]:before {content:"\\e6a9";zoom: 0.85;margin: 5% 0 0 10%;}
+
+	.${DOM_CLASS} .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
+	.${DOM_CLASS} .civ-nav-wrap:hover {opacity:1}
+	.${DOM_CLASS} .civ-nav-list-wrap {width: calc(100% - 40px);overflow:hidden;}
+	.${DOM_CLASS} .civ-nav-list-prev,
+	.${DOM_CLASS} .civ-nav-list-next {flex: 1;width:20px;cursor: pointer;opacity: 0.5;line-height: 48px;transition: all 0.1s linear;}
+	.${DOM_CLASS} .civ-nav-list-prev:hover,
+	.${DOM_CLASS} .civ-nav-list-next:hover {opacity:1}
 	.${DOM_CLASS} .civ-nav-list-prev:before,
-	.${DOM_CLASS} .civ-nav-list-next:before {font-family:"${Theme.IconFont}"; font-size:18px; position:absolute; top:30%; left:0; width:20px; height:100%;}
-	.${DOM_CLASS} .civ-nav-list-prev:before {content:"\\e6103"}
-	.${DOM_CLASS} .civ-nav-list-next:before {content:"\\e73b"; left:auto; right:0;}
-	.${DOM_CLASS} .civ-nav-list {height:${THUMB_HEIGHT}px}
-	.${DOM_CLASS} .civ-nav-thumb {width:${THUMB_WIDTH}px; height:${THUMB_HEIGHT}px; overflow:hidden; display:inline-block; box-sizing:border-box; padding:0 5px;}
-	.${DOM_CLASS} .civ-nav-thumb img {width:100%; height:100%; object-fit:cover;}
+	.${DOM_CLASS} .civ-nav-list-next:before{font-family:"WebCom-iconfont";font-size:18px;}
+	.${DOM_CLASS} .civ-nav-list-prev {}
+	.${DOM_CLASS} .civ-nav-list-next {right: -20px;}
+	.${DOM_CLASS} .civ-nav-list-prev:before{content:"\\e6103"}
+	.${DOM_CLASS} .civ-nav-list-next:before{content:"\\e73b";}
+	.${DOM_CLASS} .civ-nav-list{height: 50px;}
+	.${DOM_CLASS} .civ-nav-thumb{width: 50px;height: 100%;transition:all 0.1s linear;overflow:hidden;display:inline-block;box-sizing:border-box;margin-right: 5px;opacity: 0.6;border: 4px solid transparent;cursor: pointer;}
+	.${DOM_CLASS} .civ-nav-thumb.active,
+	.${DOM_CLASS} .civ-nav-thumb:hover {border: 3px solid white;opacity: 1;}
+	.${DOM_CLASS} .civ-nav-thumb img{width:100%; height:100%; object-fit:cover;}
 
-	.${DOM_CLASS} .civ-ctn {height:100%; width:100%; position:absolute; top:0; left:0;}
-	.${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
-	.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
-	.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
-	.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
+	.${DOM_CLASS} .civ-ctn{height:100%; width:100%; position:absolute; top:0; left:0;}
+	.${DOM_CLASS} .civ-error{margin-top:calc(50% - 60px);}
+	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
+	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"WebCom-iconfont" !important; animation:WebCom-spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
+	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
+	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGMjU3QTNFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGMjU3QTJFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pg2ugmUAAAAGUExURe7u7v///yjTqpoAAAAoSURBVHjaYmDAARhxAIZRDaMaRjWMaqCxhtHQGNUwqmFUwyDTABBgALZcBIFabzQ0AAAAAElFTkSuQmCC')}
 
-	.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-btn,
-	.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-list-wrap {display:none;}
-`, Theme.Namespace + 'img-preview-style'); **/
+	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-btn,
+	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-wrap{display:none;}
+
+	.${DOM_CLASS}-option-list {padding: 1em 2em 2em;display: block;list-style: none;font-size:1rem;}
+	.${DOM_CLASS}-option-list>li {margin-bottom: 1em;padding-left: 5em;}
+	.${DOM_CLASS}-option-list>li:last-child {margin:0;}
+	.${DOM_CLASS}-option-list>li>label:first-child {display:block;float: left;width: 5em;margin-left: -5em;user-select:none;}
+	.${DOM_CLASS}-option-list>li>label:not(:first-child) {display:block;user-select:none;margin-bottom: 0.25em;}
+
+	.${DOM_CLASS}-tools-menu {position:fixed;background: white;padding: 5px 0;min-width: 150px;border-radius: 4px;box-shadow: 1px 1px 10px #3e3e3e94;}
+	.${DOM_CLASS}-tools-menu>li {padding: 0.45em 1em;}
+	.${DOM_CLASS}-tools-menu>li:hover {background: #eee;cursor: pointer;user-select: none;}
+
+	.${DOM_CLASS}[show_thumb_list="false"] .civ-nav-wrap,
+	.${DOM_CLASS}[show_toolbar="false"] .civ-view-option {display:none;}
+`, Theme.Namespace + 'img-preview-style');
 
 /**
  * 销毁组件
@@ -203,8 +256,9 @@ const bindImgMove = (img) => {
 		e.preventDefault();
 	});
 	let context_commands = [];
-	TOOLBAR_OPTIONS.forEach(item => {
-		context_commands.push([COMMANDS[item][0], COMMANDS[item][1]]);
+	TOOLBAR_OPTIONS.forEach(cmdInfo => {
+		let [id, title, payload] = cmdInfo;
+		context_commands.push([title, payload]);
 	});
 	bindTargetContextMenu(img, context_commands);
 
@@ -264,30 +318,30 @@ const constructDom = () => {
 	if(CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
 		nav_thumb_list_html = `
 		<div class="civ-nav-wrap">
-			<span class="civ-nav-list-prev" data-cmd="thumb-scroll-prev"></span>
+			<span class="civ-nav-list-prev" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
 				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
-					return preStr + `<span class="civ-nav-thumb" data-cmd="switchTo" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+					return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
 				},"")}
 				</div>
 			</div>
-			<span class="civ-nav-list-next" data-cmd="thumb-scroll-next"></span>
+			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT}"></span>
 		</div>`;
 	}
 
 	let option_html = `
 	<span class="civ-view-option">
-		${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
-			return lastVal + `<span class="civ-opt-btn" data-cmd="${CMD}" title="${COMMANDS[CMD][0]}"></span>`;
+		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo,idx)=>{
+			return lastVal + `<span class="civ-opt-btn" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
 		},"")}
 	</span>`;
 
 	PREVIEW_DOM = createDomByHtml(`
 		<div class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
-			<span class="civ-closer" data-cmd="close" title="ESC to close">close</span>
-			<span class="civ-nav-btn civ-prev" data-cmd="navTo" data-dir="0"></span>
-			<span class="civ-nav-btn civ-next" data-cmd="navTo" data-dir="1"></span>
+			<span class="civ-closer" data-cmd="${CMD_CLOSE[0]}" title="ESC to close">close</span>
+			<span class="civ-nav-btn civ-prev" data-cmd="${CMD_NAV_TO[0]}" data-dir="0"></span>
+			<span class="civ-nav-btn civ-next" data-cmd="${CMD_NAV_TO[0]}" data-dir="1"></span>
 			${option_html}
 			${nav_thumb_list_html}
 			<div class="civ-ctn">
@@ -307,8 +361,9 @@ const constructDom = () => {
 		if(target.getAttribute(DISABLED_ATTR_KEY)){
 			return false;
 		}
-		if(COMMANDS[cmd]){
-			return COMMANDS[cmd][1](target);
+		let cmdInfo = getCmdViaID(cmd);
+		if(cmdInfo){
+			return cmdInfo[2](target);
 		}
 		throw "no command found.";
 	});
@@ -515,23 +570,48 @@ const showOptionDialog = ()=>{
 	});
 }
 
-const COMMANDS = {
-	'close':['关闭',destroy],
-	'navTo':['关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}],
-	'switchTo': ['关闭',(target)=>{switchTo(target.getAttribute('data-index'));}],
-	'thumb-scroll-prev': ['关闭', ()=>{thumbScroll(-1)}],
-	'thumb-scroll-next': ['关闭', ()=>{thumbScroll(1)}],
-	'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO); return false}],
-	'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}],
-	'zoomOrg':['原始比例',()=>{zoom(null); return false}],
-	'rotateLeft': ['左旋90°', ()=>{rotate(-90); return false}],
-	'rotateRight':['右旋90°',()=>{rotate(90); return false}],
-	'viewOrg':['查看原图', viewOriginal],
-	'download': ['下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original)}],
-	'option': ['选项',showOptionDialog],
-};
+const ALL_COMMANDS = [
+	CMD_CLOSE,
+	CMD_NAV_TO,
+	CMD_SWITCH_TO,
+	CMD_THUMB_SCROLL_PREV,
+	CMD_THUMB_SCROLL_NEXT,
+	CMD_ZOOM_OUT,
+	CMD_ZOOM_IN,
+	CMD_ZOOM_ORG,
+	CMD_ROTATE_LEFT,
+	CMD_ROTATE_RIGHT,
+	CMD_VIEW_ORG,
+	CMD_DOWNLOAD,
+	CMD_OPTION,
+];
 
-const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRight', 'viewOrg', 'download', 'option'];
+const TOOLBAR_OPTIONS = [
+	CMD_ZOOM_OUT,
+	CMD_ZOOM_IN,
+	CMD_ZOOM_ORG,
+	CMD_ROTATE_LEFT,
+	CMD_ROTATE_RIGHT,
+	CMD_VIEW_ORG,
+	CMD_DOWNLOAD,
+	CMD_OPTION
+];
+
+/**
+ * 获取命令信息
+ * @param {String} id
+ * @return {null|Object}
+ */
+const getCmdViaID = (id)=>{
+	for(let k in ALL_COMMANDS){
+		let [_id] = ALL_COMMANDS[k];
+		if(id === _id){
+			return ALL_COMMANDS[k];
+		}
+	}
+	return null;
+}
+
 
 /**
  * 初始化
