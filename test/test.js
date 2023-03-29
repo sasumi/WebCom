@@ -5,6 +5,7 @@ const nav = {
 	'toast.html' : 'Toast',
 	'tip.html' : 'Tip',
 	'html_cut.html' : 'Html Cut',
+	'menu.html':'Menu'
 }
 let html = `
 <link rel="stylesheet" href="test.css">

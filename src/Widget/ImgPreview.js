@@ -606,6 +606,7 @@ const CONTEXT_MENU_OPTIONS = [
 	'-',
 	CMD_VIEW_ORG,
 	CMD_DOWNLOAD,
+	'-',
 	CMD_OPTION
 ];
 

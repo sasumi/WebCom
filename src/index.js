@@ -19,6 +19,7 @@ export * from "./Widget/Dialog.js";
 export * from "./Widget/ImgPreview.js";
 export * from "./Widget/Ladder.js";
 export * from "./Widget/Masker.js";
+export * from "./Widget/Menu.js";
 export * from "./Widget/Theme.js";
 export * from "./Widget/Thumb.js";
 export * from "./Widget/Tip.js";
