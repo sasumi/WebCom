@@ -6,9 +6,10 @@ const ICON_FONT = NS + 'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.woff2?t=1678956422665') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.woff?t=1678956422665') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.ttf?t=1678956422665') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff2?t=1680087001855') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff?t=1680087001855') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.ttf?t=1680087001855') format('truetype');
+
 }
 
 .${ICON_FONT_CLASS} {

@@ -9,8 +9,7 @@ import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
-import {bindTargetContextMenu} from "./ContextMenu.js";
-
+import {bindTargetContextMenu} from "./Menu.js";
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
 const DEFAULT_VIEW_PADDING = 20;
@@ -28,7 +27,7 @@ const ATTR_H_BIND_KEY = 'data-original-height';
 
 const DISABLED_ATTR_KEY = 'data-disabled';
 
-const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGMjU3QTNFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGMjU3QTJFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pg2ugmUAAAAGUExURe7u7v///yjTqpoAAAAoSURBVHjaYmDAARhxAIZRDaMaRjWMaqCxhtHQGNUwqmFUwyDTABBgALZcBIFabzQ0AAAAAElFTkSuQmCC';
+const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEXv7+////9mUzfqAAAAFElEQVQIW2NksN/ISAz+f9CBGAwAxtEddZlnB4IAAAAASUVORK5CYII=';
 
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
@@ -90,8 +89,6 @@ const srcSetResolve = item => {
 	};
 }
 
-// loadCss('./ip.css');
-
 insertStyleSheet(`
 	 @keyframes WebCom-spin{
 		100%{transform:rotate(360deg);}
@@ -111,16 +108,18 @@ insertStyleSheet(`
 
 	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
 	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;--opt-btn-size: 1.5em;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
-	.${DOM_CLASS} .civ-opt-btn:before {font-family:"WebCom-iconfont";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
+	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
 	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ZOOM_OUT[0]}"]:before {content: "\\e898";}
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ZOOM_IN[0]}"]:before {content:"\\e683"} 
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ZOOM_ORG[0]}"]:before {content:"\\e64a"} 
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ROTATE_LEFT[0]}"]:before {content:"\\e7be"} 
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_ROTATE_RIGHT[0]}"]:before {content:"\\e901"} 
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_VIEW_ORG[0]}"]:before {content:"\\e7de"} 
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_DOWNLOAD[0]}"]:before {content:"\\e839"} 
-	.${DOM_CLASS} .civ-opt-btn[data-cmd="${CMD_OPTION[0]}"]:before {content:"\\e6a9";zoom: 0.85;margin: 5% 0 0 10%;}
+	
+	.${DOM_CLASS}-icon:before {content:""; font-family:"${Theme.IconFont}"; font-style:normal;}
+	.${DOM_CLASS}-icon-${CMD_ZOOM_OUT[0]}:before {content: "\\e898";}
+	.${DOM_CLASS}-icon-${CMD_ZOOM_IN[0]}:before {content:"\\e683"} 
+	.${DOM_CLASS}-icon-${CMD_ZOOM_ORG[0]}:before {content:"\\e64a"} 
+	.${DOM_CLASS}-icon-${CMD_ROTATE_LEFT[0]}:before {content:"\\e7be"} 
+	.${DOM_CLASS}-icon-${CMD_ROTATE_RIGHT[0]}:before {content:"\\e901"} 
+	.${DOM_CLASS}-icon-${CMD_VIEW_ORG[0]}:before {content:"\\e7de"} 
+	.${DOM_CLASS}-icon-${CMD_DOWNLOAD[0]}:before {content:"\\e839"} 
+	.${DOM_CLASS}-icon-${CMD_OPTION[0]}:before {content:"\\e6a9";}
 
 	.${DOM_CLASS} .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
 	.${DOM_CLASS} .civ-nav-wrap:hover {opacity:1}
@@ -146,7 +145,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"WebCom-iconfont" !important; animation:WebCom-spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
 	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGMjU3QTNFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGMjU3QTJFRDJGMTFFQzk0QjQ4MDI4QUU0MDgyMDUiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGNTEwM0I4MzJFRURFQzExQThBOEY4MkExMjQ2MDZGOCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pg2ugmUAAAAGUExURe7u7v///yjTqpoAAAAoSURBVHjaYmDAARhxAIZRDaMaRjWMaqCxhtHQGNUwqmFUwyDTABBgALZcBIFabzQ0AAAAAElFTkSuQmCC')}
+	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
 
 	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-btn,
 	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-wrap{display:none;}
@@ -256,9 +255,13 @@ const bindImgMove = (img) => {
 		e.preventDefault();
 	});
 	let context_commands = [];
-	TOOLBAR_OPTIONS.forEach(cmdInfo => {
-		let [id, title, payload] = cmdInfo;
-		context_commands.push([title, payload]);
+	CONTEXT_MENU_OPTIONS.forEach(cmdInfo => {
+		if(cmdInfo === '-'){
+			context_commands.push('-');
+		}else{
+			let [cmd_id, title, payload] = cmdInfo;
+			context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
+		}
 	});
 	bindTargetContextMenu(img, context_commands);
 
@@ -326,14 +329,14 @@ const constructDom = () => {
 				},"")}
 				</div>
 			</div>
-			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT}"></span>
+			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT[0]}"></span>
 		</div>`;
 	}
 
 	let option_html = `
 	<span class="civ-view-option">
 		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo,idx)=>{
-			return lastVal + `<span class="civ-opt-btn" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
+			return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
 		},"")}
 	</span>`;
 
@@ -517,22 +520,16 @@ const viewOriginal = ()=>{
 	window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 };
 
-
-let tools_menu;
-const hideOptionContextMenu = ()=>{
-	tools_menu && hide(tools_menu);
-}
-
 const showOptionDialog = ()=>{
 	let html = `
 <ul class="${DOM_CLASS}-option-list">
 	<li>
 		<label>界面：</label>
 		<label>
-			<input type="checkbox" name="show_thumb_list" value="1">多图模式下显示图片缩略图列表
+			<input type="checkbox" name="show_toolbar" value="1">显示顶部操作栏
 		</label>
 		<label>
-			<input type="checkbox" name="show_toolbar" value="1">显示图片操作工具栏
+			<input type="checkbox" name="show_thumb_list" value="1">显示底部缩略图列表（多图模式）
 		</label>
 	</li>	
 	<li>
@@ -552,7 +549,9 @@ const showOptionDialog = ()=>{
 		modal:false
 	});
 	dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
-
+	dlg.onClose.listen(()=>{
+		setTimeout(()=>{if(PREVIEW_DOM){Masker.show();}}, 0);
+	});
 	let lsSetterTip = null;
 	formSync(dlg.dom, (name) => {
 		return new Promise((resolve, reject) => {
@@ -592,6 +591,19 @@ const TOOLBAR_OPTIONS = [
 	CMD_ZOOM_ORG,
 	CMD_ROTATE_LEFT,
 	CMD_ROTATE_RIGHT,
+	CMD_VIEW_ORG,
+	CMD_DOWNLOAD,
+	CMD_OPTION
+];
+
+const CONTEXT_MENU_OPTIONS = [
+	CMD_ZOOM_OUT,
+	CMD_ZOOM_IN,
+	CMD_ZOOM_ORG,
+	'-',
+	CMD_ROTATE_LEFT,
+	CMD_ROTATE_RIGHT,
+	'-',
 	CMD_VIEW_ORG,
 	CMD_DOWNLOAD,
 	CMD_OPTION

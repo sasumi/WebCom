@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="test.js"></script>
+<h2>Dialog</h2>
+
+<div class="test-case">
+	<button id="normal-dialog">Normal</button>
+	<button id="confirm-dialog">Confirm</button>
+	<button id="prompt-dialog">prompt</button>
+	<button id="iframe-dialog">Iframe</button>
+	<button id="modal1-dialog">modal1</button>
+	<button id="modal2-dialog">modal2</button>
+	<script type="module">
+		import {Dialog} from "../src/index.js";
+
+		document.getElementById('normal-dialog').addEventListener('click', () => {
+			Dialog.alert('dialog title', 'dialog <b>content</b>');
+		});
+		document.getElementById('confirm-dialog').addEventListener('click', () => {
+			Dialog.confirm('dialog title', {src: 'iframe.html'});
+		});
+		document.getElementById('prompt-dialog').addEventListener('click', () => {
+			Dialog.prompt('dialog title').then(txt=>{
+				if(!txt){
+					Dialog.alert('提示', '请输入问题');
+					return false;
+				}
+				alert(txt);
+			});
+		});
+		document.getElementById('iframe-dialog').addEventListener('click', () => {
+			Dialog.alert('dialog title', {src: 'iframe.html'});
+		});
+		document.getElementById('modal1-dialog').addEventListener('click', () => {
+			Dialog.alert('modal 1', 'dialog4 <b>content</b>', {modal: true});
+		});
+		document.getElementById('modal2-dialog').addEventListener('click', () => {
+			Dialog.show('modal 2', 'dialog5 <b>content</b>', {modal: true});
+		});
+	</script>
+</div>
+</body>
+</html>
