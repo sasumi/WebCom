@@ -35,6 +35,18 @@
 			], window.menuctn)
 		}
 	</script>
+
+	<div id="contextctn" style="margin:1em;height:200px; background-color:green;">
+		Context Menu here
+	</div>
+
+	<script type="module">
+		import {bindTargetContextMenu} from "../src/index.js";
+
+		bindTargetContextMenu(window.contextctn, [
+			['common menu', alert]
+		])
+	</script>
 </div>
 </body>
 </html>
