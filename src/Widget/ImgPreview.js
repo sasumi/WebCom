@@ -72,6 +72,7 @@ const DEFAULT_SETTING = {
 	show_toolbar: true,
 	mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 	allow_move: true,
+	show_context_menu: true,
 };
 let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
 
@@ -254,16 +255,18 @@ const bindImgMove = (img) => {
 		};
 		e.preventDefault();
 	});
-	let context_commands = [];
-	CONTEXT_MENU_OPTIONS.forEach(cmdInfo => {
-		if(cmdInfo === '-'){
-			context_commands.push('-');
-		}else{
-			let [cmd_id, title, payload] = cmdInfo;
-			context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
-		}
-	});
-	bindTargetContextMenu(img, context_commands);
+	if(LocalSetting.get('show_context_menu')){
+		let context_commands = [];
+		CONTEXT_MENU_OPTIONS.forEach(cmdInfo => {
+			if(cmdInfo === '-'){
+				context_commands.push('-');
+			}else{
+				let [cmd_id, title, payload] = cmdInfo;
+				context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
+			}
+		});
+		bindTargetContextMenu(img, context_commands);
+	}
 
 	['mouseup', 'mouseout'].forEach(ev => {
 		img.addEventListener(ev, e => {
@@ -638,14 +641,15 @@ const getCmdViaID = (id)=>{
  * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
-	mode,
-	srcList,
-	showToolbar = null,
-	mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
-	startIndex = 0,
-	showThumbList = null,
-	preloadSrcList = null,
-}) => {
+	              mode,
+	              srcList,
+	              mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+	              startIndex = 0,
+	              showContextMenu = null,
+	              showToolbar = null,
+	              showThumbList = null,
+	              preloadSrcList = null,
+              }) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
@@ -654,6 +658,7 @@ const init = ({
 	mouse_scroll_type !== null && LocalSetting.set('mouse_scroll_type', mouse_scroll_type);
 	showThumbList !== null && LocalSetting.set('show_thumb_list', showThumbList);
 	showToolbar !== null && LocalSetting.set('show_toolbar', showToolbar);
+	showContextMenu !== null && LocalSetting.set('show_context_menu', showContextMenu);
 
 	constructDom();
 	showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
@@ -683,12 +688,6 @@ export const showImgPreview = (imgSrc, option = {}) => {
  */
 export const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
 	init({mode:IMG_PREVIEW_MODE_MULTIPLE, srcList:imgSrcList, startIndex, ...option});
-}
-
-export const bindImgPreviewViaSelector1 = (nodeSelector, thumbFetcher = 'src', srcFetcher = 'src', triggerEvent = 'click') => {
-	eventDelegate(document.body, nodeSelector, 'click', target=>{
-
-	});
 }
 
 /**

@@ -47,7 +47,7 @@ const buildItem = (item) => {
 
 /**
  * 显示菜单
- * @param {array} commands [{title, payload, disabled=false}, {title, [submenus], disabled], '-',...]
+ * @param {Array} commands [{title, payload, disabled=false}, {title, [submenus], disabled], '-',...]
  * @param {Node} container
  */
 export const showMenu = (commands, container = null) => {

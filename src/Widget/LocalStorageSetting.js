@@ -12,6 +12,11 @@ let handler_callbacks = (key, newVal, oldVal)=>{
 };
 
 let ls_listen_flag = false;
+
+/**
+ * 基于LocalStorage的设置项存储
+ * localStorage中按照 key-value 方式进行存储，value支持数据类型
+ */
 export class LocalStorageSetting {
 	namespace = '';
 	settingKeys = [];
@@ -26,6 +31,42 @@ export class LocalStorageSetting {
 		}
 	}
 
+	/**
+	 * 获取配置
+	 * @param {String} key
+	 * @return {null|any}
+	 */
+	get(key){
+		let v = localStorage.getItem(this.namespace+key);
+		if(v === null){
+			return null;
+		}
+		return json_decode(v);
+	}
+
+	/**
+	 * 设置配置
+	 * @param {String} key
+	 * @param {any} value
+	 */
+	set(key, value){
+		handler_callbacks(key, value, this.get(key));
+		localStorage.setItem(this.namespace+key, json_encode(value));
+	}
+
+	/**
+	 * 移除指定配置
+	 * @param {String} key
+	 */
+	remove(key){
+		handler_callbacks(key, null, this.get(key));
+		localStorage.removeItem(this.namespace+key);
+	}
+
+	/**
+	 * 配置更新回调（包含配置变更、配置删除）
+	 * @param {Function} callback (key, newValue, oldValue)
+	 */
 	onUpdated(callback){
 		callbacks.push(callback);
 		if(!ls_listen_flag){
@@ -38,25 +79,29 @@ export class LocalStorageSetting {
 		}
 	}
 
-	set(key, value){
-		handler_callbacks(key, value, this.get(key));
-		localStorage.setItem(this.namespace+key, json_encode(value));
-	}
-
-	get(key){
-		let v = localStorage.getItem(this.namespace+key);
-		if(v === null){
-			return null;
-		}
-		return json_decode(v);
-	}
-
+	/**
+	 * 遍历
+	 * @param {Function} payload (key, value)
+	 */
 	each(payload){
 		this.settingKeys.forEach(k=>{
 			payload(k, this.get(k));
 		});
 	}
 
+	/**
+	 * 移除所有
+	 */
+	removeAll(){
+		this.settingKeys.forEach(k=>{
+			this.remove(k);
+		});
+	}
+
+	/**
+	 * 获取所有
+	 * @return {Object} {key:value}
+	 */
 	getAll(){
 		let obj = {};
 		this.settingKeys.forEach(k=>{
