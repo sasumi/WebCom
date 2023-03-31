@@ -10,6 +10,7 @@ import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
 import {bindTargetContextMenu} from "./Menu.js";
+import {resolveFileName} from "../Lang/File.js";
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
 const DEFAULT_VIEW_PADDING = 20;
@@ -49,8 +50,8 @@ let CURRENT_MODE = 0;
 const CMD_CLOSE = ['close', '关闭',()=>{destroy()}];
 const CMD_NAV_TO = ['nav_to', '关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}];
 const CMD_SWITCH_TO = ['switch_to', '关闭',(target)=>{switchTo(target.getAttribute('data-index'));}];
-const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', ()=>{thumbScroll(-1)}];
-const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', ()=>{thumbScroll(1)}];
+const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '向左滚动', ()=>{thumbListScroll(true)}];
+const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '向滚动', ()=>{thumbListScroll(false)}];
 const CMD_ZOOM_OUT = ['zoom_out', '放大',()=>{zoom(ZOOM_OUT_RATIO); return false}];
 const CMD_ZOOM_IN = ['zoom_in', '缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}];
 const CMD_ZOOM_ORG = ['zoom_org', '原始比例',()=>{zoom(null); return false}];
@@ -124,7 +125,7 @@ insertStyleSheet(`
 
 	.${DOM_CLASS} .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
 	.${DOM_CLASS} .civ-nav-wrap:hover {opacity:1}
-	.${DOM_CLASS} .civ-nav-list-wrap {width: calc(100% - 40px);overflow:hidden;}
+	.${DOM_CLASS} .civ-nav-list-wrap {overflow:hidden;}
 	.${DOM_CLASS} .civ-nav-list-prev,
 	.${DOM_CLASS} .civ-nav-list-next {flex: 1;width:20px;cursor: pointer;opacity: 0.5;line-height: 48px;transition: all 0.1s linear;}
 	.${DOM_CLASS} .civ-nav-list-prev:hover,
@@ -209,15 +210,6 @@ const updateThumbNavState = ()=>{
 const listenSelector = (parentNode, selector, event, handler)=>{
 	parentNode.querySelectorAll(selector).forEach(target=>{
 		target.addEventListener(event, handler);
-	});
-}
-
-const activeSelector = (parentNode, selector, handler)=>{
-	listenSelector(parentNode, selector, 'click', handler);
-	listenSelector(parentNode, selector, 'keyup', e=>{
-		if(e.keyCode === KEYS.Enter){
-			handler(e);
-		}
 	});
 }
 
@@ -328,7 +320,7 @@ const constructDom = () => {
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
 				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
-					return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+					return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img alt="${resolveFileName(srcSetResolve(item).thumb)}" src="${srcSetResolve(item).thumb}"/></span>`;
 				},"")}
 				</div>
 			</div>
@@ -338,7 +330,7 @@ const constructDom = () => {
 
 	let option_html = `
 	<span class="civ-view-option">
-		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo,idx)=>{
+		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo)=>{
 			return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
 		},"")}
 	</span>`;
@@ -461,15 +453,36 @@ const navTo = (toPrev = false) => {
 	updateNavState();
 }
 
-const switchTo = (index)=>{
+export const switchTo = (index)=>{
 	IMG_CURRENT_INDEX = index;
 	showImgSrc(IMG_CURRENT_INDEX);
 	updateNavState();
 }
 
-const thumbScroll = (toPrev)=>{
-	let $thumb_list = PREVIEW_DOM.querySelector('.civ-nav-list');
+export const switchToNext = ()=>{
+	if(IMG_SRC_LIST.length === (IMG_CURRENT_INDEX+1)){
+		return false;
+	}
+	switchTo(IMG_CURRENT_INDEX+1);
+}
 
+export const switchToPrev = ()=>{
+	if(IMG_CURRENT_INDEX === 0){
+		return false;
+	}
+	switchTo(IMG_CURRENT_INDEX-1);
+}
+
+const thumbListScroll = (toLeft) => {
+	debugger;
+	let step = THUMB_WIDTH * 3;
+	let thumb_list = PREVIEW_DOM.querySelector('.civ-nav-list');
+	let container_width = PREVIEW_DOM.querySelector('.civ-nav-list-wrap').clientWidth;
+	let cur_margin_left = parseInt(thumb_list.style.marginLeft || '0', 10);
+	let max_left = Math.min(container_width - thumb_list.clientWidth, 0);
+	let ml = (toLeft ? Math.max(max_left, cur_margin_left - step) :
+		Math.min(cur_margin_left + step, 0)) + 'px';
+	thumb_list.style.marginLeft = ml + 'px';
 }
 
 /**
@@ -627,7 +640,6 @@ const getCmdViaID = (id)=>{
 	}
 	return null;
 }
-
 
 /**
  * 初始化
