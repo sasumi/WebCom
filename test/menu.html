@@ -42,11 +42,35 @@
 
 	<script type="module">
 		import {bindTargetContextMenu} from "../src/index.js";
-
 		bindTargetContextMenu(window.contextctn, [
-			['common menu', alert]
+			['剪切'],
+			['复制'],
+			['粘贴'],
+			['选择性粘贴', [
+				['粘贴为纯文本'],
+				['粘贴为富文本']
+			]],
+			'-',
+			['在上方插入']
 		])
 	</script>
+
+	<div id="dd">
+		<script type="module">
+			import {showMenu} from "../src/index.js";
+			showMenu([
+				['剪切'],
+				['复制'],
+				['粘贴'],
+				['选择性粘贴', [
+					['粘贴为纯文本'],
+					['粘贴为富文本']
+				]],
+				'-',
+				['在上方插入']
+			], window.dd);
+		</script>
+	</div>
 </div>
 </body>
 </html>
