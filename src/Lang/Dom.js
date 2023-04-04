@@ -72,9 +72,9 @@ export const isButton = (el) => {
 
 /**
  * closest
- * @param {Node} dom
+ * @param {HTMLElement} dom
  * @param {String} selector
- * @return {(() => (Node | null))|ParentNode|ActiveX.IXMLDOMNode|null}
+ * @return {(() => (HTMLElement | null))|ParentNode|ActiveX.IXMLDOMNode|null}
  */
 export const matchParent = (dom, selector) => {
 	let p = dom.parentNode;
@@ -90,7 +90,7 @@ export const matchParent = (dom, selector) => {
 /**
  * 检测child节点是否在container节点列表里面
  * @param {HTMLElement|HTMLElement[]|String} contains
- * @param {Node} child
+ * @param {HTMLElement} child
  * @param {Boolean} includeEqual 是否包括等于关系
  * @returns {boolean}
  */
@@ -210,7 +210,7 @@ export const keepRectInContainer = (objDim, ctnDim = {
 /**
  * 获取对象宽、高
  * 通过设置 visibility 方式进行获取
- * @param {Node} dom
+ * @param {HTMLElement} dom
  * @return {{width: number, height: number}}
  */
 export const getDomDimension = (dom)=>{
@@ -397,7 +397,7 @@ export const setStyle = (dom, style = {}) => {
 /**
  * 创建HTML节点
  * @param {String} html
- * @param {Node|null} parentNode 父级节点
+ * @param {HTMLElement|null} parentNode 父级节点
  * @returns {HTMLElement|HTMLElement[]}
  */
 export const createDomByHtml = (html, parentNode = null) => {

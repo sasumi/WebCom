@@ -181,7 +181,7 @@ export class Tip {
 	guid = null;
 	relNode = null;
 
-	/** @var {HtmlElement} dom **/
+	/** @var {HTMLElement} dom **/
 	dom = null;
 	option = {
 		showCloseButton: false,

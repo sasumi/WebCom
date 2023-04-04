@@ -1,4 +1,4 @@
-import {createDomByHtml, hide, insertStyleSheet, loadCss, setStyle, show} from "../Lang/Dom.js";
+import {createDomByHtml, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
@@ -10,6 +10,7 @@ import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
 import {bindTargetContextMenu} from "./Menu.js";
+
 const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
 const DEFAULT_VIEW_PADDING = 20;
@@ -32,8 +33,6 @@ const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAA
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
 const OPTION_DLG_INDEX = BASE_INDEX+2;
-const OPTION_MENU_INDEX = BASE_INDEX+3;
-
 
 export const IMG_PREVIEW_MODE_SINGLE = 1;
 export const IMG_PREVIEW_MODE_MULTIPLE = 2;
@@ -68,25 +67,25 @@ let IMG_SRC_LIST = [/** srcset1, srcset2 **/];
 let IMG_CURRENT_INDEX = 0;
 
 const DEFAULT_SETTING = {
-	show_thumb_list: false,
-	show_toolbar: true,
 	mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 	allow_move: true,
+	show_thumb_list: false,
+	show_toolbar: true,
 	show_context_menu: true,
 };
 let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
 
 /**
  * 解析图片src集合
- * @param {Array|String} item
+ * @param {Array|String} srcSet
  * @return {{normal: string, original: string, thumb: string}}
  */
-const srcSetResolve = item => {
-	item = typeof (item) === 'string' ? [item] : item;
+const srcSetResolve = srcSet => {
+	srcSet = typeof (srcSet) === 'string' ? [srcSet] : srcSet;
 	return {
-		thumb: item[0],
-		normal: item[1] || item[0],
-		original: item[2] || item[1] || item[0]
+		thumb: srcSet[0],
+		normal: srcSet[1] || srcSet[0],
+		original: srcSet[2] || srcSet[1] || srcSet[0]
 	};
 }
 
@@ -120,7 +119,7 @@ insertStyleSheet(`
 	.${DOM_CLASS}-icon-${CMD_ROTATE_RIGHT[0]}:before {content:"\\e901"} 
 	.${DOM_CLASS}-icon-${CMD_VIEW_ORG[0]}:before {content:"\\e7de"} 
 	.${DOM_CLASS}-icon-${CMD_DOWNLOAD[0]}:before {content:"\\e839"} 
-	.${DOM_CLASS}-icon-${CMD_OPTION[0]}:before {content:"\\e6a9";}
+	.${DOM_CLASS}-icon-${CMD_OPTION[0]}:before {content:"\\e9cb";}
 
 	.${DOM_CLASS} .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
 	.${DOM_CLASS} .civ-nav-wrap:hover {opacity:1}
@@ -240,7 +239,7 @@ const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerH
 
 /**
  * 绑定图片移动
- * @param img
+ * @param {HTMLImageElement} img
  */
 const bindImgMove = (img) => {
 	let moving = false;
@@ -469,7 +468,6 @@ const switchTo = (index)=>{
 
 const thumbScroll = (toPrev)=>{
 	let $thumb_list = PREVIEW_DOM.querySelector('.civ-nav-list');
-
 }
 
 /**
@@ -695,6 +693,7 @@ export const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
  * @param {String} nodeSelector 触发绑定的节点选择器，可以是img本身节点，也可以是其他代理节点
  * @param {String} triggerEvent
  * @param {String|Function} srcFetcher 获取大图src的选择器，或者函数，如果是函数传入第一个参数为触发节点
+ * @param {Object} option
  */
 export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
 	let nodes = document.querySelectorAll(nodeSelector);

@@ -19,7 +19,7 @@ export const Ladder = (ladder, opt)=>{
 	/**
 	 * scroll to aim
 	 * @param aim
-	 * @param {Node} ladder_node
+	 * @param {HTMLElement} ladder_node
 	 */
 	let scroll_to = function(aim, ladder_node){
 		let $n = (!$(aim).size() && aim === '#top') ? $('body') : $(aim);

@@ -1,12 +1,5 @@
 import {Theme} from "./Theme.js";
-import {
-	createDomByHtml,
-	domContained,
-	getDomDimension,
-	insertStyleSheet,
-	keepRectInContainer,
-	show
-} from "../Lang/Dom.js";
+import {createDomByHtml, domContained, getDomDimension, insertStyleSheet, keepRectInContainer} from "../Lang/Dom.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
 import {arrayIndex} from "../Lang/Array.js";
 import {dimension2Style} from "../Lang/String.js";
@@ -48,7 +41,7 @@ const buildItem = (item) => {
 /**
  * 显示菜单
  * @param {Array} commands [{title, payload, disabled=false}, {title, [submenus], disabled], '-',...]
- * @param {Node} container
+ * @param {HTMLElement} container
  */
 export const showMenu = (commands, container = null) => {
 	hideLastMenu();

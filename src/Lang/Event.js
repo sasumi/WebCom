@@ -33,7 +33,7 @@ export class BizEvent {
 
 /**
  * hover event
- * @param {Node} node
+ * @param {HTMLElement} node
  * @param {Function} hoverIn
  * @param {Function} hoverOut
  */
@@ -56,7 +56,7 @@ export const onDocReady = (callback)=>{
 
 /**
  * 触发HTML节点事件
- * @param {Node} node
+ * @param {HTMLElement} node
  * @param {String} event
  */
 export const triggerDomEvent = (node, event) => {
@@ -71,7 +71,7 @@ export const triggerDomEvent = (node, event) => {
 
 /**
  * 事件代理
- * @param {Node} container
+ * @param {HTMLElement} container
  * @param {String} selector
  * @param {String} eventName
  * @param {Function} payload
