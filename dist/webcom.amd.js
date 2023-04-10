@@ -148,7 +148,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	/**
 	 * hover event
-	 * @param {Node} node
+	 * @param {HTMLElement} node
 	 * @param {Function} hoverIn
 	 * @param {Function} hoverOut
 	 */
@@ -171,7 +171,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	/**
 	 * 触发HTML节点事件
-	 * @param {Node} node
+	 * @param {HTMLElement} node
 	 * @param {String} event
 	 */
 	const triggerDomEvent = (node, event) => {
@@ -186,7 +186,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	/**
 	 * 事件代理
-	 * @param {Node} container
+	 * @param {HTMLElement} container
 	 * @param {String} selector
 	 * @param {String} eventName
 	 * @param {Function} payload
@@ -853,9 +853,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	/**
 	 * closest
-	 * @param {Node} dom
+	 * @param {HTMLElement} dom
 	 * @param {String} selector
-	 * @return {(() => (Node | null))|ParentNode|ActiveX.IXMLDOMNode|null}
+	 * @return {(() => (HTMLElement | null))|ParentNode|ActiveX.IXMLDOMNode|null}
 	 */
 	const matchParent = (dom, selector) => {
 		let p = dom.parentNode;
@@ -871,7 +871,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	/**
 	 * 检测child节点是否在container节点列表里面
 	 * @param {HTMLElement|HTMLElement[]|String} contains
-	 * @param {Node} child
+	 * @param {HTMLElement} child
 	 * @param {Boolean} includeEqual 是否包括等于关系
 	 * @returns {boolean}
 	 */
@@ -990,7 +990,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	/**
 	 * 获取对象宽、高
 	 * 通过设置 visibility 方式进行获取
-	 * @param {Node} dom
+	 * @param {HTMLElement} dom
 	 * @return {{width: number, height: number}}
 	 */
 	const getDomDimension = (dom)=>{
@@ -1177,7 +1177,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	/**
 	 * 创建HTML节点
 	 * @param {String} html
-	 * @param {Node|null} parentNode 父级节点
+	 * @param {HTMLElement|null} parentNode 父级节点
 	 * @returns {HTMLElement|HTMLElement[]}
 	 */
 	const createDomByHtml = (html, parentNode = null) => {
@@ -2228,9 +2228,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.woff2?t=1678956422665') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.woff?t=1678956422665') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_gedigaat19i.ttf?t=1678956422665') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff2?t=1680087001855') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff?t=1680087001855') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.ttf?t=1680087001855') format('truetype');
+
 }
 
 .${ICON_FONT_CLASS} {
@@ -3251,6 +3252,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	let ls_listen_flag = false;
+
+	/**
+	 * 基于LocalStorage的设置项存储
+	 * localStorage中按照 key-value 方式进行存储，value支持数据类型
+	 */
 	class LocalStorageSetting {
 		namespace = '';
 		settingKeys = [];
@@ -3265,6 +3271,42 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 
+		/**
+		 * 获取配置
+		 * @param {String} key
+		 * @return {null|any}
+		 */
+		get(key){
+			let v = localStorage.getItem(this.namespace+key);
+			if(v === null){
+				return null;
+			}
+			return json_decode(v);
+		}
+
+		/**
+		 * 设置配置
+		 * @param {String} key
+		 * @param {any} value
+		 */
+		set(key, value){
+			handler_callbacks(key, value, this.get(key));
+			localStorage.setItem(this.namespace+key, json_encode(value));
+		}
+
+		/**
+		 * 移除指定配置
+		 * @param {String} key
+		 */
+		remove(key){
+			handler_callbacks(key, null, this.get(key));
+			localStorage.removeItem(this.namespace+key);
+		}
+
+		/**
+		 * 配置更新回调（包含配置变更、配置删除）
+		 * @param {Function} callback (key, newValue, oldValue)
+		 */
 		onUpdated(callback){
 			callbacks.push(callback);
 			if(!ls_listen_flag){
@@ -3277,25 +3319,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 
-		set(key, value){
-			handler_callbacks(key, value, this.get(key));
-			localStorage.setItem(this.namespace+key, json_encode(value));
-		}
-
-		get(key){
-			let v = localStorage.getItem(this.namespace+key);
-			if(v === null){
-				return null;
-			}
-			return json_decode(v);
-		}
-
+		/**
+		 * 遍历
+		 * @param {Function} payload (key, value)
+		 */
 		each(payload){
 			this.settingKeys.forEach(k=>{
 				payload(k, this.get(k));
 			});
 		}
 
+		/**
+		 * 移除所有
+		 */
+		removeAll(){
+			this.settingKeys.forEach(k=>{
+				this.remove(k);
+			});
+		}
+
+		/**
+		 * 获取所有
+		 * @return {Object} {key:value}
+		 */
 		getAll(){
 			let obj = {};
 			this.settingKeys.forEach(k=>{
@@ -3307,74 +3353,84 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
 	let CTX_Z_INDEX = Theme.ContextIndex;
-	let context_menu_el;
-	let context_commands = [];
+	let LAST_MENU_EL = null;
 
 	insertStyleSheet(`
-	.${CTX_CLASS_PREFIX} {padding: 0.5em 0;box-shadow:1px 1px 10px 0px #44444457;border-radius:4px;background:#fff;min-width:180px;z-index:${CTX_Z_INDEX}; position:fixed;}
-	.${CTX_CLASS_PREFIX}>[role=menuitem] {padding:0 1em 0 1em; min-height:2em; display:flex; background: transparent;transition: all 0.1s linear;user-select:none;opacity: 0.9;}
-	.${CTX_CLASS_PREFIX}>[role=menuitem]>* {flex:1; line-height:1}
-	.${CTX_CLASS_PREFIX}>[role=menuitem]:not(.disabled){cursor:pointer;}
-	.${CTX_CLASS_PREFIX}>[role=menuitem]:not(.disabled):hover {background-color: #eeeeee9c;text-shadow: 1px 1px 1px white;opacity: 1;}
-	.${CTX_CLASS_PREFIX}>.sep {margin: 2px 0.5em;border-bottom:1px solid #ddd;}
-	.${CTX_CLASS_PREFIX}>.caption {padding-left: 1em;opacity: 0.7;user-select: none;display:flex;align-items: center;}
-	.${CTX_CLASS_PREFIX}>.caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
-	.${CTX_CLASS_PREFIX}>li>a,
-	.${CTX_CLASS_PREFIX}>li>span {display:block;}
+	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
+	.${CTX_CLASS_PREFIX},
+	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; list-style:none; backdrop-filter:blur(5px); box-shadow:1px 1px 10px 0px #44444457;border-radius:4px;background:#ffffffd9;min-width:12em; display:none;}
+	.${CTX_CLASS_PREFIX} ul {left:100%; top:0;}
+	.${CTX_CLASS_PREFIX} li:not([disabled]):hover>ul {display:block;}
+	.${CTX_CLASS_PREFIX} li[role=menuitem] {padding:0 1em; line-height:1; position:relative; min-height:2em; display:flex; align-items:center; background: transparent;user-select:none;opacity: 0.5; cursor:default;}
+	.${CTX_CLASS_PREFIX} li[role=menuitem]>* {flex:1; line-height:1}
+	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]) {cursor:pointer; opacity:1;}
+	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]):hover {background-color: #eeeeee9c;text-shadow: 1px 1px 1px white;opacity: 1;}
+	.${CTX_CLASS_PREFIX} .has-child:after {content:"\\e73b"; font-family:${Theme.IconFont}; zoom:0.7; position:absolute; right:0.5em; color:gray;}
+	.${CTX_CLASS_PREFIX} .has-child:not([disabled]):hover:after {color:black}
+	.${CTX_CLASS_PREFIX} .sep {margin:0.25em 0.5em;border-bottom:1px solid #eee;}
+	.${CTX_CLASS_PREFIX} .caption {padding-left: 1em;opacity: 0.7;user-select: none;display:flex;align-items: center;}
+	.${CTX_CLASS_PREFIX} .caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
+	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
+	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
 `);
 
-	/**
-	 * @param {array} commands [{title, payload}, '-',...]
-	 * @param {Object} position
-	 * @param {Number} position.left
-	 * @param {Number} position.top
-	 */
-	const showContextMenu = (commands, position) => {
-		context_commands = commands;
-		if(!context_menu_el){
-			context_menu_el = createDomByHtml(`<ul class="${CTX_CLASS_PREFIX}"></ul>`, document.body);
-			document.body.addEventListener('click', e => {
-				if(!domContained(context_menu_el, e.target, true)){
-					hide(context_menu_el);
-				}
-			});
-			console.log('[context] start bind key up');
-			document.addEventListener('keyup', e => {
-				if(e.keyCode === KEYS.Esc){
-					debugger;
-					hide(context_menu_el);
-					e.stopImmediatePropagation();
-					e.preventDefault();
-					return false;
-				}
-			});
-			eventDelegate(context_menu_el, '[role=menuitem]', 'click', target => {
-				let idx = arrayIndex(context_menu_el.querySelectorAll('li'), target);
-				let [title, cmd] = context_commands[idx];
-				if(!cmd || cmd() !== false){ //cmd 可以通过返回false阻止菜单关闭
-					hide(context_menu_el);
-				}
-			});
+	const buildItem = (item) => {
+		if(item === '-'){
+			return '<li class="sep"></li>';
 		}
-		let inner_html = '';
-		commands.forEach(item => {
-			if(item === '-'){
-				inner_html += '<li class="sep"></li>';
-			}else {
-				inner_html += `<li role="menuitem"><span>${item[0]}</span></li>`;
+		return `<li role="menuitem" class="${Array.isArray(item[1]) ? 'has-child':''}" ${item[2] ? 'disabled="disabled"' : ''}>${item[0]}` +
+			(Array.isArray(item[1]) ? '<ul>' + item[1].reduce((retVal, subItem, idx) => {
+				return retVal + buildItem(subItem);
+			}, '') + '</ul>' : '')
+			+ `</li>`;
+	};
+
+	/**
+	 * 显示菜单
+	 * @param {Array} commands [{title, payload, disabled=false}, {title, [submenus], disabled], '-',...]
+	 * @param {HTMLElement} container
+	 */
+	const showMenu = (commands, container = null) => {
+		hideLastMenu();
+		let menu = createDomByHtml(`
+		<ul class="${CTX_CLASS_PREFIX}">
+			${commands.reduce((lastVal, item, idx) => {
+				return lastVal + buildItem(item);
+			}, '')}
+		</ul>`, container || document.body);
+		eventDelegate(menu, '[role=menuitem]', 'click', target => {
+			let idx = arrayIndex(menu.querySelectorAll('li'), target);
+			let [title, cmd, disabled] = commands[idx];
+			if(disabled){
+				return;
+			}
+			if(!cmd || cmd() !== false){ //cmd 可以通过返回false阻止菜单关闭
+				hideLastMenu();
 			}
 		});
-		context_menu_el.innerHTML = inner_html;
-		let menu_dim = getDomDimension(context_menu_el);
-		let dim = keepRectInContainer({
-			left: position.left,
-			top: position.top,
-			width: menu_dim.width,
-			height: menu_dim.height
+
+		menu.addEventListener('contextmenu', e => {
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
 		});
-		context_menu_el.style.left = dimension2Style(dim.left);
-		context_menu_el.style.top = dimension2Style(dim.top);
-		show(context_menu_el);
+
+		//简单避开全局 click 隐藏当前菜单
+		setTimeout(() => {
+			LAST_MENU_EL = menu;
+		}, 0);
+		menu.style.display = 'block';
+		return menu;
+	};
+
+	/**
+	 * 隐藏最后一个菜单
+	 */
+	const hideLastMenu = () => {
+		if(LAST_MENU_EL){
+			LAST_MENU_EL.parentNode.removeChild(LAST_MENU_EL);
+			LAST_MENU_EL = null;
+		}
 	};
 
 	/**
@@ -3384,11 +3440,38 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const bindTargetContextMenu = (target, commands) => {
 		target.addEventListener('contextmenu', e => {
-			showContextMenu(commands, {left: e.clientX, top: e.clientY});
+			let context_menu_el = showMenu(commands, document.body);
+			let menu_dim = getDomDimension(context_menu_el);
+			let dim = keepRectInContainer({
+				left: e.clientX,
+				top: e.clientY,
+				width: menu_dim.width,
+				height: menu_dim.height
+			});
+			context_menu_el.addEventListener('contextmenu', e => {
+				e.preventDefault();
+				return false;
+			});
+			context_menu_el.style.left = dimension2Style(dim.left);
+			context_menu_el.style.top = dimension2Style(dim.top);
 			e.preventDefault();
 			return false;
 		});
 	};
+
+	document.addEventListener('click', e => {
+		if(LAST_MENU_EL && !domContained(LAST_MENU_EL, e.target, true)){
+			hideLastMenu();
+		}
+	});
+	document.addEventListener('keyup', e => {
+		if(LAST_MENU_EL && e.keyCode === KEYS.Esc){
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			hideLastMenu();
+			return false;
+		}
+	});
 
 	const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
 
@@ -3398,7 +3481,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const THUMB_WIDTH = 50;
 
-	const ZOOM_IN_RATIO =0.8; //缩小比率
+	const ZOOM_IN_RATIO = 0.8; //缩小比率
 	const ZOOM_OUT_RATIO = 1.2; //放大比率
 
 	const ATTR_W_BIND_KEY = 'data-original-width';
@@ -3406,7 +3489,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const DISABLED_ATTR_KEY = 'data-disabled';
 
+	const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEXv7+////9mUzfqAAAAFElEQVQIW2NksN/ISAz+f9CBGAwAxtEddZlnB4IAAAAASUVORK5CYII=';
+
 	const BASE_INDEX = Theme.FullScreenModeIndex;
+	const OP_INDEX = BASE_INDEX + 1;
 	const OPTION_DLG_INDEX = BASE_INDEX+2;
 
 	const IMG_PREVIEW_MODE_SINGLE = 1;
@@ -3418,7 +3504,21 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	let PREVIEW_DOM = null;
 	let CURRENT_MODE = 0;
-	let CURRENT_MS_SCROLL_TYPE = IMG_PREVIEW_MS_SCROLL_TYPE_NONE;
+
+	//id, title, payload
+	const CMD_CLOSE = ['close', '关闭',()=>{destroy();}];
+	const CMD_NAV_TO = ['nav_to', '关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}];
+	const CMD_SWITCH_TO = ['switch_to', '关闭',(target)=>{switchTo(target.getAttribute('data-index'));}];
+	const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', ()=>{thumbScroll();}];
+	const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', ()=>{thumbScroll();}];
+	const CMD_ZOOM_OUT = ['zoom_out', '放大',()=>{zoom(ZOOM_OUT_RATIO); return false}];
+	const CMD_ZOOM_IN = ['zoom_in', '缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}];
+	const CMD_ZOOM_ORG = ['zoom_org', '原始比例',()=>{zoom(null); return false}];
+	const CMD_ROTATE_LEFT = ['rotate_left', '左旋90°', ()=>{rotate(-90); return false}];
+	const CMD_ROTATE_RIGHT = ['rotate_right', '右旋90°',()=>{rotate(90); return false}];
+	const CMD_VIEW_ORG = ['view_org', '查看原图', ()=>{viewOriginal();}];
+	const CMD_DOWNLOAD = ['download', '下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);}];
+	const CMD_OPTION = ['option', '选项', ()=>{showOptionDialog();}];
 
 	//srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
 	// ① src或[src]: 只有一种图源模式；
@@ -3426,68 +3526,104 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	// ③ [src1,src2,src3] 1为缩略图，2为大图，3为原图
 	let IMG_SRC_LIST = [/** srcset1, srcset2 **/];
 	let IMG_CURRENT_INDEX = 0;
-	let SHOW_THUMB_LIST = false;
-	let SHOW_OPTION = false;
 
 	const DEFAULT_SETTING = {
-		show_thumb_list: false,
-		show_toolbar: true,
 		mouse_scroll_type: IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
 		allow_move: true,
+		show_thumb_list: false,
+		show_toolbar: true,
+		show_context_menu: true,
 	};
 	let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
 
 	/**
 	 * 解析图片src集合
-	 * @param {Array|String} item
+	 * @param {Array|String} srcSet
 	 * @return {{normal: string, original: string, thumb: string}}
 	 */
-	const srcSetResolve = item => {
-		item = typeof (item) === 'string' ? [item] : item;
+	const srcSetResolve = srcSet => {
+		srcSet = typeof (srcSet) === 'string' ? [srcSet] : srcSet;
 		return {
-			thumb: item[0],
-			normal: item[1] || item[0],
-			original: item[2] || item[1] || item[0]
+			thumb: srcSet[0],
+			normal: srcSet[1] || srcSet[0],
+			original: srcSet[2] || srcSet[1] || srcSet[0]
 		};
 	};
 
-	loadCss('./ip.css');
-
-	/**
 	insertStyleSheet(`
-		@keyframes ${Theme.Namespace}spin{100%{transform:rotate(360deg);}}
-		.${DOM_CLASS} {position: fixed; z-index:${BASE_INDEX}; background-color: #00000057; width: 100%; height: 100%; overflow:hidden;top: 0;left: 0;}
-		.${DOM_CLASS} .civ-closer {position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
-		.${DOM_CLASS} .civ-closer:before {font-family: "${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
-		.${DOM_CLASS} .civ-closer:hover {background-color:#eeeeee75;}
-		.${DOM_CLASS} .civ-nav-btn {padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
-		.${DOM_CLASS} .civ-nav-btn[disabled] {color:gray; cursor:default !important;}
-		.${DOM_CLASS} .civ-nav-btn:not([disabled]):hover {opacity:1;}
-		.${DOM_CLASS} .civ-nav-btn:before {font-family:"${Theme.IconFont}"; font-size:20px;}
-		.${DOM_CLASS} .civ-prev {left:10px}
-		.${DOM_CLASS} .civ-prev:before {content:"\\e6103"}
-		.${DOM_CLASS} .civ-next {right:10px}
-		.${DOM_CLASS} .civ-next:before {content:"\\e73b";}
+	 @keyframes WebCom-spin{
+		100%{transform:rotate(360deg);}
+	}
+	.${DOM_CLASS}{position:fixed;z-index:${BASE_INDEX};width:100%;height:100%;overflow:hidden;top:0;left:0;}
+	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
+	.${DOM_CLASS} .civ-closer:before{font-family:"WebCom-iconfont", serif; content:"\\e61a"; font-size:20px;}
+	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
+	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
+	.${DOM_CLASS} .civ-nav-btn[disabled]{color:gray; cursor:default !important;}
+	.${DOM_CLASS} .civ-nav-btn:not([disabled]):hover{opacity:1;}
+	.${DOM_CLASS} .civ-nav-btn:before{font-family:"WebCom-iconfont"; font-size:20px;}
+	.${DOM_CLASS} .civ-prev{left:10px}
+	.${DOM_CLASS} .civ-prev:before{content:"\\e6103"}
+	.${DOM_CLASS} .civ-next{right:10px}
+	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
-		.${DOM_CLASS} .civ-nav-list-wrap {position:absolute; background-color:#fff3; padding-left:20px; padding-right:20px; bottom:10px; left:50%; transform: translate(-50%, 0); overflow:hidden; z-index:${OP_INDEX}; max-width:300px; min-width:300px; border:1px solid green;}
-		.${DOM_CLASS} .civ-nav-list-prev:before,
-		.${DOM_CLASS} .civ-nav-list-next:before {font-family:"${Theme.IconFont}"; font-size:18px; position:absolute; top:30%; left:0; width:20px; height:100%;}
-		.${DOM_CLASS} .civ-nav-list-prev:before {content:"\\e6103"}
-		.${DOM_CLASS} .civ-nav-list-next:before {content:"\\e73b"; left:auto; right:0;}
-		.${DOM_CLASS} .civ-nav-list {height:${THUMB_HEIGHT}px}
-		.${DOM_CLASS} .civ-nav-thumb {width:${THUMB_WIDTH}px; height:${THUMB_HEIGHT}px; overflow:hidden; display:inline-block; box-sizing:border-box; padding:0 5px;}
-		.${DOM_CLASS} .civ-nav-thumb img {width:100%; height:100%; object-fit:cover;}
+	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
+	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;--opt-btn-size: 1.5em;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
+	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
+	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
+	
+	.${DOM_CLASS}-icon:before {content:""; font-family:"${Theme.IconFont}"; font-style:normal;}
+	.${DOM_CLASS}-icon-${CMD_ZOOM_OUT[0]}:before {content: "\\e898";}
+	.${DOM_CLASS}-icon-${CMD_ZOOM_IN[0]}:before {content:"\\e683"} 
+	.${DOM_CLASS}-icon-${CMD_ZOOM_ORG[0]}:before {content:"\\e64a"} 
+	.${DOM_CLASS}-icon-${CMD_ROTATE_LEFT[0]}:before {content:"\\e7be"} 
+	.${DOM_CLASS}-icon-${CMD_ROTATE_RIGHT[0]}:before {content:"\\e901"} 
+	.${DOM_CLASS}-icon-${CMD_VIEW_ORG[0]}:before {content:"\\e7de"} 
+	.${DOM_CLASS}-icon-${CMD_DOWNLOAD[0]}:before {content:"\\e839"} 
+	.${DOM_CLASS}-icon-${CMD_OPTION[0]}:before {content:"\\e9cb";}
 
-		.${DOM_CLASS} .civ-ctn {height:100%; width:100%; position:absolute; top:0; left:0;}
-		.${DOM_CLASS} .civ-error {margin-top:calc(50% - 60px);}
-		.${DOM_CLASS} .civ-loading {--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
-		.${DOM_CLASS} .civ-loading:before {content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation: ${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
-		.${DOM_CLASS} .civ-img {height:100%; display:block; box-sizing:border-box; position:relative;}
-		.${DOM_CLASS} .civ-img img {position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s; transform: translate(-50%, -50%); box-shadow: 1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
+	.${DOM_CLASS} .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
+	.${DOM_CLASS} .civ-nav-wrap:hover {opacity:1}
+	.${DOM_CLASS} .civ-nav-list-wrap {width: calc(100% - 40px);overflow:hidden;}
+	.${DOM_CLASS} .civ-nav-list-prev,
+	.${DOM_CLASS} .civ-nav-list-next {flex: 1;width:20px;cursor: pointer;opacity: 0.5;line-height: 48px;transition: all 0.1s linear;}
+	.${DOM_CLASS} .civ-nav-list-prev:hover,
+	.${DOM_CLASS} .civ-nav-list-next:hover {opacity:1}
+	.${DOM_CLASS} .civ-nav-list-prev:before,
+	.${DOM_CLASS} .civ-nav-list-next:before{font-family:"WebCom-iconfont";font-size:18px;}
+	.${DOM_CLASS} .civ-nav-list-prev {}
+	.${DOM_CLASS} .civ-nav-list-next {right: -20px;}
+	.${DOM_CLASS} .civ-nav-list-prev:before{content:"\\e6103"}
+	.${DOM_CLASS} .civ-nav-list-next:before{content:"\\e73b";}
+	.${DOM_CLASS} .civ-nav-list{height: 50px;}
+	.${DOM_CLASS} .civ-nav-thumb{width: 50px;height: 100%;transition:all 0.1s linear;overflow:hidden;display:inline-block;box-sizing:border-box;margin-right: 5px;opacity: 0.6;border: 4px solid transparent;cursor: pointer;}
+	.${DOM_CLASS} .civ-nav-thumb.active,
+	.${DOM_CLASS} .civ-nav-thumb:hover {border: 3px solid white;opacity: 1;}
+	.${DOM_CLASS} .civ-nav-thumb img{width:100%; height:100%; object-fit:cover;}
 
-		.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-btn,
-		.${DOM_CLASS}[data-ip-mode="${IMG_PREVIEW_MODE_SINGLE}"] .civ-nav-list-wrap {display:none;}
-	`, Theme.Namespace + 'img-preview-style'); **/
+	.${DOM_CLASS} .civ-ctn{height:100%; width:100%; position:absolute; top:0; left:0;}
+	.${DOM_CLASS} .civ-error{margin-top:calc(50% - 60px);}
+	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
+	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"WebCom-iconfont" !important; animation:WebCom-spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
+	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
+	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
+
+	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-btn,
+	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-wrap{display:none;}
+
+	.${DOM_CLASS}-option-list {padding: 1em 2em 2em;display: block;list-style: none;font-size:1rem;}
+	.${DOM_CLASS}-option-list>li {margin-bottom: 1em;padding-left: 5em;}
+	.${DOM_CLASS}-option-list>li:last-child {margin:0;}
+	.${DOM_CLASS}-option-list>li>label:first-child {display:block;float: left;width: 5em;margin-left: -5em;user-select:none;}
+	.${DOM_CLASS}-option-list>li>label:not(:first-child) {display:block;user-select:none;margin-bottom: 0.25em;}
+
+	.${DOM_CLASS}-tools-menu {position:fixed;background: white;padding: 5px 0;min-width: 150px;border-radius: 4px;box-shadow: 1px 1px 10px #3e3e3e94;}
+	.${DOM_CLASS}-tools-menu>li {padding: 0.45em 1em;}
+	.${DOM_CLASS}-tools-menu>li:hover {background: #eee;cursor: pointer;user-select: none;}
+
+	.${DOM_CLASS}[show_thumb_list="false"] .civ-nav-wrap,
+	.${DOM_CLASS}[show_toolbar="false"] .civ-view-option {display:none;}
+`, Theme.Namespace + 'img-preview-style');
 
 	/**
 	 * 销毁组件
@@ -3555,7 +3691,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	/**
 	 * 绑定图片移动
-	 * @param img
+	 * @param {HTMLImageElement} img
 	 */
 	const bindImgMove = (img) => {
 		let moving = false;
@@ -3570,11 +3706,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			};
 			e.preventDefault();
 		});
-		let context_commands = [];
-		TOOLBAR_OPTIONS.forEach(item => {
-			context_commands.push([COMMANDS[item][0], COMMANDS[item][1]]);
-		});
-		bindTargetContextMenu(img, context_commands);
+		if(LocalSetting.get('show_context_menu')){
+			let context_commands = [];
+			CONTEXT_MENU_OPTIONS.forEach(cmdInfo => {
+				if(cmdInfo === '-'){
+					context_commands.push('-');
+				}else {
+					let [cmd_id, title, payload] = cmdInfo;
+					context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
+				}
+			});
+			bindTargetContextMenu(img, context_commands);
+		}
 
 		['mouseup', 'mouseout'].forEach(ev => {
 			img.addEventListener(ev, e => {
@@ -3629,36 +3772,33 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const constructDom = () => {
 		let nav_thumb_list_html = '';
-		if(SHOW_THUMB_LIST && CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
+		if(CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
 			nav_thumb_list_html = `
 		<div class="civ-nav-wrap">
-			<span class="civ-nav-list-prev" data-cmd="thumb-scroll-prev"></span>
+			<span class="civ-nav-list-prev" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
 				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
-					return preStr + `<span class="civ-nav-thumb" data-cmd="switchTo" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+					return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
 				},"")}
 				</div>
 			</div>
-			<span class="civ-nav-list-next" data-cmd="thumb-scroll-next"></span>
+			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT[0]}"></span>
 		</div>`;
 		}
 
-		let option_html = '';
-		if(SHOW_OPTION){
-			option_html = `
-		<span class="civ-view-option">
-			${TOOLBAR_OPTIONS.reduce((lastVal,CMD,idx)=>{
-				return lastVal + `<span class="civ-opt-btn" data-cmd="${CMD}" title="${COMMANDS[CMD][0]}"></span>`;
-			},"")}
-		</span>`;
-		}
+		let option_html = `
+	<span class="civ-view-option">
+		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo,idx)=>{
+			return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
+		},"")}
+	</span>`;
 
 		PREVIEW_DOM = createDomByHtml(`
 		<div class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
-			<span class="civ-closer" data-cmd="close" title="ESC to close">close</span>
-			<span class="civ-nav-btn civ-prev" data-cmd="navTo" data-dir="0"></span>
-			<span class="civ-nav-btn civ-next" data-cmd="navTo" data-dir="1"></span>
+			<span class="civ-closer" data-cmd="${CMD_CLOSE[0]}" title="ESC to close">close</span>
+			<span class="civ-nav-btn civ-prev" data-cmd="${CMD_NAV_TO[0]}" data-dir="0"></span>
+			<span class="civ-nav-btn civ-next" data-cmd="${CMD_NAV_TO[0]}" data-dir="1"></span>
 			${option_html}
 			${nav_thumb_list_html}
 			<div class="civ-ctn">
@@ -3670,7 +3810,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	`, document.body);
 
 		LocalSetting.each((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
-		LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+		LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM && PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
 
 		//bind close click & space click
 		eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
@@ -3678,8 +3818,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			if(target.getAttribute(DISABLED_ATTR_KEY)){
 				return false;
 			}
-			if(COMMANDS[cmd]){
-				return COMMANDS[cmd][1](target);
+			let cmdInfo = getCmdViaID(cmd);
+			if(cmdInfo){
+				return cmdInfo[2](target);
 			}
 			throw "no command found.";
 		});
@@ -3692,7 +3833,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		//bind scroll zoom
 		listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e=>{
-			switch(CURRENT_MS_SCROLL_TYPE){
+			switch(LocalSetting.get('mouse_scroll_type')){
 				case IMG_PREVIEW_MS_SCROLL_TYPE_SCALE:
 					zoom(e.wheelDelta > 0 ? ZOOM_OUT_RATIO : ZOOM_IN_RATIO);
 					break;
@@ -3714,7 +3855,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const bindKeyUp = (e)=>{
 		if(e.keyCode === KEYS.Esc){
-			debugger;
 			destroy();
 		}
 	};
@@ -3778,7 +3918,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const thumbScroll = (toPrev)=>{
 		PREVIEW_DOM.querySelector('.civ-nav-list');
-
 	};
 
 	/**
@@ -3789,6 +3928,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let img = PREVIEW_DOM.querySelector('.civ-img img');
 		let origin_width = img.getAttribute(ATTR_W_BIND_KEY);
 		let origin_height = img.getAttribute(ATTR_H_BIND_KEY);
+
+		if(ratioOffset === null){
+			ratioOffset = 1;
+			img.style.left = dimension2Style(parseInt(img.style.left, 10) * ratioOffset);
+			img.style.top = dimension2Style(parseInt(img.style.top, 10) * ratioOffset);
+			img.style.width = dimension2Style(parseInt(origin_width, 10) * ratioOffset);
+			img.style.height = dimension2Style(parseInt(origin_height, 10) * ratioOffset);
+			return;
+		}
 
 		let width = parseInt(img.style.width, 10) * ratioOffset;
 		let height = parseInt(img.style.height, 10) * ratioOffset;
@@ -3811,6 +3959,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		img.style.height = dimension2Style(parseInt(img.style.height, 10) * ratioOffset);
 	};
 
+	const rotate = (degreeOffset)=>{
+		let img = PREVIEW_DOM.querySelector('.civ-img img');
+		let rotate = parseInt(img.getAttribute('data-rotate') || 0, 10);
+		let newRotate = rotate + degreeOffset;
+		img.setAttribute('data-rotate', newRotate);
+		img.style.transform = `translate(-50%, -50%) rotate(${newRotate}deg)`;
+	};
+
 	const viewOriginal = ()=>{
 		window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 	};
@@ -3821,10 +3977,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	<li>
 		<label>界面：</label>
 		<label>
-			<input type="checkbox" name="show_thumb_list" value="1">多图模式下显示图片缩略图列表
+			<input type="checkbox" name="show_toolbar" value="1">显示顶部操作栏
 		</label>
 		<label>
-			<input type="checkbox" name="show_toolbar" value="1">显示图片操作工具栏
+			<input type="checkbox" name="show_thumb_list" value="1">显示底部缩略图列表（多图模式）
 		</label>
 	</li>	
 	<li>
@@ -3844,7 +4000,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			modal:false
 		});
 		dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
-
+		dlg.onClose.listen(()=>{
+			setTimeout(()=>{if(PREVIEW_DOM){Masker.show();}}, 0);
+		});
 		let lsSetterTip = null;
 		formSync(dlg.dom, (name) => {
 			return new Promise((resolve, reject) => {
@@ -3862,51 +4020,94 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
-	const COMMANDS = {
-		'close':['关闭',destroy],
-		'navTo':['关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}],
-		'switchTo': ['关闭',(target)=>{switchTo(target.getAttribute('data-index'));}],
-		'thumb-scroll-prev': ['关闭', ()=>{thumbScroll();}],
-		'thumb-scroll-next': ['关闭', ()=>{thumbScroll();}],
-		'zoomOut':['放大',()=>{zoom(ZOOM_OUT_RATIO); return false}],
-		'zoomIn': ['缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}],
-		'zoomOrg':['原始比例',()=>{zoom(null); return false}],
-		'rotateLeft': ['左旋90°', ()=>{ return false}],
-		'rotateRight':['右旋90°',()=>{ return false}],
-		'viewOrg':['查看原图', viewOriginal],
-		'download': ['下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);}],
-		'option': ['选项',showOptionDialog],
+	const ALL_COMMANDS = [
+		CMD_CLOSE,
+		CMD_NAV_TO,
+		CMD_SWITCH_TO,
+		CMD_THUMB_SCROLL_PREV,
+		CMD_THUMB_SCROLL_NEXT,
+		CMD_ZOOM_OUT,
+		CMD_ZOOM_IN,
+		CMD_ZOOM_ORG,
+		CMD_ROTATE_LEFT,
+		CMD_ROTATE_RIGHT,
+		CMD_VIEW_ORG,
+		CMD_DOWNLOAD,
+		CMD_OPTION,
+	];
+
+	const TOOLBAR_OPTIONS = [
+		CMD_ZOOM_OUT,
+		CMD_ZOOM_IN,
+		CMD_ZOOM_ORG,
+		CMD_ROTATE_LEFT,
+		CMD_ROTATE_RIGHT,
+		CMD_VIEW_ORG,
+		CMD_DOWNLOAD,
+		CMD_OPTION
+	];
+
+	const CONTEXT_MENU_OPTIONS = [
+		CMD_ZOOM_OUT,
+		CMD_ZOOM_IN,
+		CMD_ZOOM_ORG,
+		'-',
+		CMD_ROTATE_LEFT,
+		CMD_ROTATE_RIGHT,
+		'-',
+		CMD_VIEW_ORG,
+		CMD_DOWNLOAD,
+		'-',
+		CMD_OPTION
+	];
+
+	/**
+	 * 获取命令信息
+	 * @param {String} id
+	 * @return {null|Object}
+	 */
+	const getCmdViaID = (id)=>{
+		for(let k in ALL_COMMANDS){
+			let [_id] = ALL_COMMANDS[k];
+			if(id === _id){
+				return ALL_COMMANDS[k];
+			}
+		}
+		return null;
 	};
 
-	const TOOLBAR_OPTIONS = ['zoomOut', 'zoomIn', 'zoomOrg', 'rotateLeft', 'rotateRight', 'viewOrg', 'download', 'option'];
 
 	/**
 	 * 初始化
 	 * @param {Object} option
 	 * @param {Number} option.mode 显示模式：IMG_PREVIEW_MODE_SINGLE 单图模式，IMG_PREVIEW_MODE_MULTIPLE 多图模式
 	 * @param {String[]} option.srcList 图片列表，单图或者多图模式都需要以数组方式传参
-	 * @param {Boolean} option.showOption 是否显示选项条
-	 * @param {Number|0} option.mouse_scroll_type 鼠标滚动控制类型：IMG_PREVIEW_MS_SCROLL_TYPE_NONE，IMG_PREVIEW_MS_SCROLL_TYPE_SCALE，IMG_PREVIEW_MS_SCROLL_TYPE_NAV
+	 * @param {Boolean} option.showToolbar 是否显示选项条（缺省使用默认配置）
+	 * @param {Boolean} option.showThumbList [多图模式]是否显示缩略图列表（缺省使用默认配置）
+	 * @param {Number|0} option.mouse_scroll_type 鼠标滚动控制类型：IMG_PREVIEW_MS_SCROLL_TYPE_NONE，IMG_PREVIEW_MS_SCROLL_TYPE_SCALE，IMG_PREVIEW_MS_SCROLL_TYPE_NAV（缺省使用默认配置）
 	 * @param {Number|0} option.startIndex [多图模式]开始图片索引
-	 * @param {Boolean} option.showThumbList [多图模式]是否显示缩略图列表
 	 * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
 	 */
 	const init = ({
-		mode,
-		srcList,
-		showOption = true,
-		mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
-		startIndex = 0,
-		showThumbList = true,
-		preloadSrcList = true,
-	}) => {
+		              mode,
+		              srcList,
+		              mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+		              startIndex = 0,
+		              showContextMenu = null,
+		              showToolbar = null,
+		              showThumbList = null,
+		              preloadSrcList = null,
+	              }) => {
 		destroy();
 		CURRENT_MODE = mode;
 		IMG_SRC_LIST = srcList;
 		IMG_CURRENT_INDEX = startIndex;
-		CURRENT_MS_SCROLL_TYPE = mouse_scroll_type;
-		SHOW_THUMB_LIST = showThumbList;
-		SHOW_OPTION = showOption;
+
+		mouse_scroll_type !== null && LocalSetting.set('mouse_scroll_type', mouse_scroll_type);
+		showThumbList !== null && LocalSetting.set('show_thumb_list', showThumbList);
+		showToolbar !== null && LocalSetting.set('show_toolbar', showToolbar);
+		showContextMenu !== null && LocalSetting.set('show_context_menu', showContextMenu);
+
 		constructDom();
 		showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
 			if(preloadSrcList){
@@ -3937,17 +4138,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		init({mode:IMG_PREVIEW_MODE_MULTIPLE, srcList:imgSrcList, startIndex, ...option});
 	};
 
-	const bindImgPreviewViaSelector1 = (nodeSelector, thumbFetcher = 'src', srcFetcher = 'src', triggerEvent = 'click') => {
-		eventDelegate(document.body, nodeSelector, 'click', target=>{
-
-		});
-	};
-
 	/**
 	 * 通过绑定节点显示图片预览
 	 * @param {String} nodeSelector 触发绑定的节点选择器，可以是img本身节点，也可以是其他代理节点
 	 * @param {String} triggerEvent
 	 * @param {String|Function} srcFetcher 获取大图src的选择器，或者函数，如果是函数传入第一个参数为触发节点
+	 * @param {Object} option
 	 */
 	const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
 		let nodes = document.querySelectorAll(nodeSelector);
@@ -3998,7 +4194,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		/**
 		 * scroll to aim
 		 * @param aim
-		 * @param {Node} ladder_node
+		 * @param {HTMLElement} ladder_node
 		 */
 		let scroll_to = function(aim, ladder_node){
 			let $n = (!$(aim).size() && aim === '#top') ? $('body') : $(aim);
@@ -4316,7 +4512,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		guid = null;
 		relNode = null;
 
-		/** @var {HtmlElement} dom **/
+		/** @var {HTMLElement} dom **/
 		dom = null;
 		option = {
 			showCloseButton: false,
@@ -4563,7 +4759,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.base64UrlSafeEncode = base64UrlSafeEncode;
 	exports.between = between;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
-	exports.bindImgPreviewViaSelector1 = bindImgPreviewViaSelector1;
+	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.buttonActiveBind = buttonActiveBind;
 	exports.capitalize = capitalize;
 	exports.convertBlobToBase64 = convertBlobToBase64;
@@ -4641,6 +4837,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.show = show;
 	exports.showImgListPreview = showImgListPreview;
 	exports.showImgPreview = showImgPreview;
+	exports.showMenu = showMenu;
 	exports.strToPascalCase = strToPascalCase;
 	exports.stringToEntity = stringToEntity;
 	exports.toggle = toggle;
