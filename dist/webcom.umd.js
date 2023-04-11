@@ -33,6 +33,13 @@
 		return null;
 	};
 
+	const isEquals = (obj1,obj2)=>{
+		let keys1 = Object.keys(obj1);
+		let keys2 = Object.keys(obj2);
+		//return true when the two json has same length and all the properties has same value key by key
+		return keys1.length === keys2.length && Object.keys(obj1).every(key => obj1[key] === obj2[key]);
+	};
+
 	/**
 	 * 数组去重
 	 * @param {Array} arr
@@ -1278,6 +1285,171 @@
 		return fileName.replace(/\.[^.]*$/g, "");
 	};
 
+	let _guid = 0;
+	const guid = (prefix = '') => {
+		return 'guid_' + (prefix || randomString(6)) + (++_guid);
+	};
+
+	/**
+	 * 获取当前函数所在script路径
+	 * @return {string|null}
+	 */
+	const getCurrentScript = function(){
+		let error = new Error()
+			, source
+			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+			return source[1];
+		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+			return source[1];
+		}else if(error['fileName'] !== undefined){
+			return error['fileName'];
+		}
+		return null;
+	};
+
+	const CURRENT_FILE = '/Lang/Util.js';
+	const ENTRY_FILE = '/index.js';
+
+	/**
+	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
+	 * @return {string}
+	 */
+	const getLibEntryScript = ()=>{
+		let script = getCurrentScript();
+		if(!script){
+			throw "Get script failed";
+		}
+		if(script.indexOf(CURRENT_FILE) >= 0){
+			return script.replace(CURRENT_FILE, ENTRY_FILE);
+		}
+		return script;
+	};
+
+	/**
+	 * 加载当前库模块
+	 * @return {Promise<*>}
+	 */
+	const getLibModule = async () => {
+		let script = getLibEntryScript();
+		return await import(script);
+	};
+
+	/**
+	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
+	 * @type {(function(): Promise<*>)|undefined}
+	 */
+	const getLibModuleTop =(()=>{
+		if(top === window){
+			return getLibModule;
+		}
+		if(top.WEBCOM_GET_LIB_MODULE){
+			return top.WEBCOM_GET_LIB_MODULE;
+		}
+		throw "No WebCom library script loaded detected.";
+	})();
+
+	/**
+	 * 清理版本，去除无用字符
+	 * @param {String} version
+	 * @return {Number[]}
+	 */
+	const normalizeVersion = (version)=>{
+		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+			pieces = trimmed.split('.'),
+			partsLength,
+			parts = [],
+			value,
+			piece,
+			num,
+			i;
+		for(i = 0; i < pieces.length; i += 1){
+			piece = pieces[i].replace(/\D/g, '');
+			num = parseInt(piece, 10);
+			if(isNaN(num)){
+				num = 0;
+			}
+			parts.push(num);
+		}
+		partsLength = parts.length;
+		for(i = partsLength - 1; i >= 0; i -= 1){
+			value = parts[i];
+			if(value === 0){
+				parts.length -= 1;
+			}else {
+				break;
+			}
+		}
+		return parts;
+	};
+
+	/**
+	 * 版本比较
+	 * @param {String} version1
+	 * @param {String} version2
+	 * @param {Number} index
+	 * @return {number|number}
+	 */
+	const versionCompare = (version1, version2, index)=>{
+		let stringLength = index + 1,
+			v1 = normalizeVersion(version1),
+			v2 = normalizeVersion(version2);
+		if(v1.length > stringLength){
+			v1.length = stringLength;
+		}
+		if(v2.length > stringLength){
+			v2.length = stringLength;
+		}
+		let size = Math.min(v1.length, v2.length),i;
+		for(i = 0; i < size; i += 1){
+			if(v1[i] !== v2[i]){
+				return v1[i] < v2[i] ? -1 : 1;
+			}
+		}
+		if(v1.length === v2.length){
+			return 0;
+		}
+		return (v1.length < v2.length) ? -1 : 1;
+	};
+
+	window.WEBCOM_GET_LIB_MODULE = getLibModule;
+	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
+	const NS$1 = 'WebCom-';
+	const ICON_FONT_CLASS = NS$1 + `icon`;
+	const ICON_FONT = NS$1 + 'iconfont';
+	const DEFAULT_ICONFONT_CSS = `
+@font-face {
+  font-family: "${ICON_FONT}"; /* Project id 3359671 */
+  src: url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff2?t=1680087001855') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff?t=1680087001855') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.ttf?t=1680087001855') format('truetype');
+
+}
+
+.${ICON_FONT_CLASS} {
+	font-family: "${ICON_FONT}" !important;
+	font-style: normal;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+`;
+
+	insertStyleSheet(DEFAULT_ICONFONT_CSS);
+
+	const Theme = {
+		Namespace: NS$1,
+		IconFont: ICON_FONT,
+		IconFontClass: ICON_FONT_CLASS,
+		TipIndex: 10, //功能提示类(指向具体元素)
+		MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
+		DialogIndex: 1000, //对话框等窗口类垂直索引
+		FullScreenModeIndex: 10000, //全屏类（全屏类
+		ContextIndex: 100000, //右键菜单
+		ToastIndex: 1000000, //消息提示（顶部呈现）
+	};
+
 	/**
 	 * 检测元素是否可以输入（包含checkbox、radio类）
 	 * @param {HTMLElement} el
@@ -1369,14 +1541,13 @@
 	 * 获取指定容器下所有可用表单元素
 	 * @param {HTMLElement} dom
 	 * @param {Boolean} ignore_empty_name 是否忽略没有name属性的元素，缺省为必须校验
-	 * @return {Array.<HTMLInputElement>|Array.<HTMLSelectElement>|Array.<HTMLTextAreaElement>}
+	 * @return {HTMLFormElement[]}
 	 */
 	const getAvailableElements = (dom, ignore_empty_name = false) => {
-		let els = dom.querySelectorAll('input,te>xtarea,select');
-		els = Array.from(els).filter(el => {
-			return !isButton(el) && !el.disabled && (!ignore_empty_name && el.name);
+		let els = dom.querySelectorAll('input,textarea,select');
+		return Array.from(els).filter(el => {
+			return !isButton(el) && !el.disabled && (ignore_empty_name || el.name);
 		});
-		return els;
 	};
 
 	/**
@@ -1403,11 +1574,11 @@
 	 * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
 	 * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
 	 * @param {HTMLElement} dom
-	 * @param {Boolean} validate
+	 * @param {Boolean} validate 是否校验表单数据合法
 	 * @returns {Object|null} 如果校验失败，则返回null
 	 */
 	const formSerializeJSON = (dom, validate = true) => {
-		if(!formValidate(dom)){
+		if(validate && !formValidate(dom)){
 			return null;
 		}
 		let els = getAvailableElements(dom);
@@ -1470,6 +1641,72 @@
 			}
 		}
 		return ret;
+	};
+
+	let _form_data_cache_init = {};
+	let _form_data_cache_new = {};
+	let _form_us_msg = {};
+	let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
+
+	/**
+	 * 绑定页面离开时，表单未保存警告
+	 * @param {HTMLFormElement} form
+	 * @param {String} alertMsg
+	 */
+	const bindFormUnSavedUnloadAlert = (form, alertMsg = '您的表单尚未保存，是否确认离开？')=>{
+		if(form.getAttribute(_form_us_sid_attr_key)){
+			return;
+		}
+		let us_sid = guid();
+		_form_us_msg[us_sid] = alertMsg;
+		form.setAttribute(_form_us_sid_attr_key, us_sid);
+		window.addEventListener('beforeunload', (e) => {
+			if(!document.body.contains(form)){
+				return "";
+			}
+			let msg = validateFormChanged(form);
+			console.log('unchanged msg', msg);
+			if(msg){
+				e.preventDefault();
+				e.returnValue = msg;
+				return msg;
+			}
+		});
+		let els = getAvailableElements(form, true);
+		els.forEach(el=>{
+			el.addEventListener('input', ()=>{
+				_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+			});
+		});
+		resetFormChangedState(form);
+	};
+
+	/**
+	 * 校验表单内容是否变更
+	 * @param {HTMLFormElement} form
+	 * @return {boolean|String}
+	 */
+	const validateFormChanged = (form) => {
+		let us_sid = form.getAttribute(_form_us_sid_attr_key);
+		if(!us_sid){
+			throw "Form no init by bindFormUnSavedAlert()";
+		}
+		if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
+			return _form_us_msg[us_sid];
+		}
+		return false;
+	};
+
+	/**
+	 * 重置表单未保存提示状态
+	 * @param {HTMLFormElement} form
+	 */
+	const resetFormChangedState = (form) => {
+		let us_sid = form.getAttribute(_form_us_sid_attr_key);
+		if(!us_sid){
+			throw "Form no init by bindFormUnSavedAlert()";
+		}
+		_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
 	};
 
 	/**
@@ -2078,171 +2315,6 @@
 		}, hz);
 	}
 
-	let _guid = 0;
-	const guid = (prefix = '') => {
-		return 'guid_' + (prefix || randomString(6)) + (++_guid);
-	};
-
-	/**
-	 * 获取当前函数所在script路径
-	 * @return {string|null}
-	 */
-	const getCurrentScript = function(){
-		let error = new Error()
-			, source
-			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
-			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
-		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
-			return source[1];
-		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
-			return source[1];
-		}else if(error['fileName'] !== undefined){
-			return error['fileName'];
-		}
-		return null;
-	};
-
-	const CURRENT_FILE = '/Lang/Util.js';
-	const ENTRY_FILE = '/index.js';
-
-	/**
-	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
-	 * @return {string}
-	 */
-	const getLibEntryScript = ()=>{
-		let script = getCurrentScript();
-		if(!script){
-			throw "Get script failed";
-		}
-		if(script.indexOf(CURRENT_FILE) >= 0){
-			return script.replace(CURRENT_FILE, ENTRY_FILE);
-		}
-		return script;
-	};
-
-	/**
-	 * 加载当前库模块
-	 * @return {Promise<*>}
-	 */
-	const getLibModule = async () => {
-		let script = getLibEntryScript();
-		return await import(script);
-	};
-
-	/**
-	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
-	 * @type {(function(): Promise<*>)|undefined}
-	 */
-	const getLibModuleTop =(()=>{
-		if(top === window){
-			return getLibModule;
-		}
-		if(top.WEBCOM_GET_LIB_MODULE){
-			return top.WEBCOM_GET_LIB_MODULE;
-		}
-		throw "No WebCom library script loaded detected.";
-	})();
-
-	/**
-	 * 清理版本，去除无用字符
-	 * @param {String} version
-	 * @return {Number[]}
-	 */
-	const normalizeVersion = (version)=>{
-		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
-			pieces = trimmed.split('.'),
-			partsLength,
-			parts = [],
-			value,
-			piece,
-			num,
-			i;
-		for(i = 0; i < pieces.length; i += 1){
-			piece = pieces[i].replace(/\D/g, '');
-			num = parseInt(piece, 10);
-			if(isNaN(num)){
-				num = 0;
-			}
-			parts.push(num);
-		}
-		partsLength = parts.length;
-		for(i = partsLength - 1; i >= 0; i -= 1){
-			value = parts[i];
-			if(value === 0){
-				parts.length -= 1;
-			}else {
-				break;
-			}
-		}
-		return parts;
-	};
-
-	/**
-	 * 版本比较
-	 * @param {String} version1
-	 * @param {String} version2
-	 * @param {Number} index
-	 * @return {number|number}
-	 */
-	const versionCompare = (version1, version2, index)=>{
-		let stringLength = index + 1,
-			v1 = normalizeVersion(version1),
-			v2 = normalizeVersion(version2);
-		if(v1.length > stringLength){
-			v1.length = stringLength;
-		}
-		if(v2.length > stringLength){
-			v2.length = stringLength;
-		}
-		let size = Math.min(v1.length, v2.length),i;
-		for(i = 0; i < size; i += 1){
-			if(v1[i] !== v2[i]){
-				return v1[i] < v2[i] ? -1 : 1;
-			}
-		}
-		if(v1.length === v2.length){
-			return 0;
-		}
-		return (v1.length < v2.length) ? -1 : 1;
-	};
-
-	window.WEBCOM_GET_LIB_MODULE = getLibModule;
-	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
-
-	const NS$1 = 'WebCom-';
-	const ICON_FONT_CLASS = NS$1 + `icon`;
-	const ICON_FONT = NS$1 + 'iconfont';
-	const DEFAULT_ICONFONT_CSS = `
-@font-face {
-  font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff2?t=1680087001855') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff?t=1680087001855') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.ttf?t=1680087001855') format('truetype');
-
-}
-
-.${ICON_FONT_CLASS} {
-	font-family: "${ICON_FONT}" !important;
-	font-style: normal;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-`;
-
-	insertStyleSheet(DEFAULT_ICONFONT_CSS);
-
-	const Theme = {
-		Namespace: NS$1,
-		IconFont: ICON_FONT,
-		IconFontClass: ICON_FONT_CLASS,
-		TipIndex: 10, //功能提示类(指向具体元素)
-		MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
-		DialogIndex: 1000, //对话框等窗口类垂直索引
-		FullScreenModeIndex: 10000, //全屏类（全屏类
-		ContextIndex: 100000, //右键菜单
-		ToastIndex: 1000000, //消息提示（顶部呈现）
-	};
-
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_animate = Theme.Namespace + '-toast-rotate';
 	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
@@ -2429,7 +2501,7 @@
 		 */
 		hide(fadeOut = false){
 			//稍微容错下，避免setTimeout后没有父节点
-			if(!this.dom || !this.dom.parentNode){
+			if(!document.body.contains(this.dom)){
 				return;
 			}
 			if(fadeOut){
@@ -2440,7 +2512,6 @@
 				return;
 			}
 			this.dom.parentNode.removeChild(this.dom);
-			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
 				hide(wrapper);
@@ -4745,6 +4816,7 @@
 	exports.base64Decode = base64Decode;
 	exports.base64UrlSafeEncode = base64UrlSafeEncode;
 	exports.between = between;
+	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.buttonActiveBind = buttonActiveBind;
@@ -4795,6 +4867,7 @@
 	exports.insertStyleSheet = insertStyleSheet;
 	exports.isButton = isButton;
 	exports.isElement = isElement;
+	exports.isEquals = isEquals;
 	exports.isInFullScreen = isInFullScreen;
 	exports.isNum = isNum;
 	exports.keepDomInContainer = keepDomInContainer;
@@ -4815,6 +4888,7 @@
 	exports.rectInLayout = rectInLayout;
 	exports.regQuote = regQuote;
 	exports.repaint = repaint;
+	exports.resetFormChangedState = resetFormChangedState;
 	exports.resolveFileExtension = resolveFileExtension;
 	exports.resolveFileName = resolveFileName;
 	exports.resolveTocListFromDom = resolveTocListFromDom;
@@ -4835,6 +4909,7 @@
 	exports.unescapeHtml = unescapeHtml;
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
+	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
 
 }));

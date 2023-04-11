@@ -21,6 +21,13 @@ export const arrayIndex = (arr, val)=>{
 	return null;
 };
 
+export const isEquals = (obj1,obj2)=>{
+	let keys1 = Object.keys(obj1);
+	let keys2 = Object.keys(obj2);
+	//return true when the two json has same length and all the properties has same value key by key
+	return keys1.length === keys2.length && Object.keys(obj1).every(key => obj1[key] === obj2[key]);
+}
+
 /**
  * 数组去重
  * @param {Array} arr

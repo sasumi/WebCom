@@ -187,7 +187,7 @@ export class Toast {
 	 */
 	hide(fadeOut = false){
 		//稍微容错下，避免setTimeout后没有父节点
-		if(!this.dom || !this.dom.parentNode){
+		if(!document.body.contains(this.dom)){
 			return;
 		}
 		if(fadeOut){
@@ -198,7 +198,6 @@ export class Toast {
 			return;
 		}
 		this.dom.parentNode.removeChild(this.dom);
-		this.dom = null;
 		let wrapper = getWrapper();
 		if(!wrapper.childNodes.length){
 			hide(wrapper);

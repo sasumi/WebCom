@@ -1,5 +1,8 @@
 import {cssSelectorEscape} from "./String.js";
 import {isButton} from "./Dom.js";
+import {guid} from "./Util.js";
+import {Theme} from "../Widget/Theme.js";
+import {isEquals} from "./Array.js";
 
 /**
  * 检测元素是否可以输入（包含checkbox、radio类）
@@ -92,14 +95,13 @@ export const formSync = (dom, getter, setter) => {
  * 获取指定容器下所有可用表单元素
  * @param {HTMLElement} dom
  * @param {Boolean} ignore_empty_name 是否忽略没有name属性的元素，缺省为必须校验
- * @return {Array.<HTMLInputElement>|Array.<HTMLSelectElement>|Array.<HTMLTextAreaElement>}
+ * @return {HTMLFormElement[]}
  */
 export const getAvailableElements = (dom, ignore_empty_name = false) => {
-	let els = dom.querySelectorAll('input,te>xtarea,select');
-	els = Array.from(els).filter(el => {
-		return !isButton(el) && !el.disabled && (!ignore_empty_name && el.name);
+	let els = dom.querySelectorAll('input,textarea,select');
+	return Array.from(els).filter(el => {
+		return !isButton(el) && !el.disabled && (ignore_empty_name || el.name);
 	});
-	return els;
 }
 
 /**
@@ -126,11 +128,11 @@ export const formValidate = (dom, name_validate = false) => {
  * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
  * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
  * @param {HTMLElement} dom
- * @param {Boolean} validate
+ * @param {Boolean} validate 是否校验表单数据合法
  * @returns {Object|null} 如果校验失败，则返回null
  */
 export const formSerializeJSON = (dom, validate = true) => {
-	if(!formValidate(dom)){
+	if(validate && !formValidate(dom)){
 		return null;
 	}
 	let els = getAvailableElements(dom);
@@ -193,6 +195,72 @@ export const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInS
 		}
 	}
 	return ret;
+}
+
+let _form_data_cache_init = {};
+let _form_data_cache_new = {};
+let _form_us_msg = {};
+let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
+
+/**
+ * 绑定页面离开时，表单未保存警告
+ * @param {HTMLFormElement} form
+ * @param {String} alertMsg
+ */
+export const bindFormUnSavedUnloadAlert = (form, alertMsg = '您的表单尚未保存，是否确认离开？')=>{
+	if(form.getAttribute(_form_us_sid_attr_key)){
+		return;
+	}
+	let us_sid = guid();
+	_form_us_msg[us_sid] = alertMsg;
+	form.setAttribute(_form_us_sid_attr_key, us_sid);
+	window.addEventListener('beforeunload', (e) => {
+		if(!document.body.contains(form)){
+			return "";
+		}
+		let msg = validateFormChanged(form);
+		console.log('unchanged msg', msg);
+		if(msg){
+			e.preventDefault();
+			e.returnValue = msg;
+			return msg;
+		}
+	});
+	let els = getAvailableElements(form, true);
+	els.forEach(el=>{
+		el.addEventListener('input', ()=>{
+			_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+		});
+	});
+	resetFormChangedState(form);
+}
+
+/**
+ * 校验表单内容是否变更
+ * @param {HTMLFormElement} form
+ * @return {boolean|String}
+ */
+export const validateFormChanged = (form) => {
+	let us_sid = form.getAttribute(_form_us_sid_attr_key);
+	if(!us_sid){
+		throw "Form no init by bindFormUnSavedAlert()";
+	}
+	if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
+		return _form_us_msg[us_sid];
+	}
+	return false;
+}
+
+/**
+ * 重置表单未保存提示状态
+ * @param {HTMLFormElement} form
+ */
+export const resetFormChangedState = (form) => {
+	let us_sid = form.getAttribute(_form_us_sid_attr_key);
+	if(!us_sid){
+		throw "Form no init by bindFormUnSavedAlert()";
+	}
+	_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
 }
 
 /**
