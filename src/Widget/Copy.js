@@ -1,6 +1,7 @@
 import {createDomByHtml} from "../Lang/Dom.js";
 import {trans} from "../I18N/Lang.js";
 import {Toast} from "./Toast.js";
+import {Dialog} from "./Dialog.js";
 
 /**
  * copy text
@@ -22,8 +23,8 @@ export const copy = (text, silent = false) => {
 		!silent && Toast.showSuccess(trans('复制成功'));
 		return succeeded;
 	}catch(err){
-		Toast.showWarning(trans('请按键: Ctrl+C, Enter复制内容'), text);
 		console.error(err);
+		Dialog.prompt('复制失败，请手工复制', {initValue:text});
 	} finally{
 		txtNode.parentNode.removeChild(txtNode);
 	}
