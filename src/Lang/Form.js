@@ -10,10 +10,10 @@ import {isEquals} from "./Array.js";
  * @returns {boolean}
  */
 export const inputAble = el => {
-	if(el.disabled ||
-		el.readOnly ||
-		el.tagName === 'BUTTON' ||
-		(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
+	if(el.disabled || //禁用
+		el.readOnly || //只读
+		el.tagName === 'BUTTON' || //按钮
+		(el.tagName === 'INPUT' && ['hidden', 'button','submit', 'reset'].includes(el.type)) //隐藏表单、按钮、提交按钮、重置按钮
 	){
 		return false;
 	}
@@ -161,9 +161,12 @@ export const formSerializeJSON = (dom, validate = true) => {
 
 /**
  * 转换表单数据对象到JSON对象
- * @param {Object} formDataMap
- * @param {Object} formatSchema 格式
+ * @example convertFormDataToObject({name:"hello", age:"10", isBoy:0, ext:"{city:'shenzhen'}"}, {name:"", age:0, isBoy:true, ext:{}})，
+ * 结果返回： {name:"hello", age:10, isBoy:false, ext:{city:shenzhen}}
+ * @param {Object} formDataMap 数据对象（从表单获取到的数据都是字符串类型的）
+ * @param {Object} formatSchema 格式定义对象，如： {name:"Jack", age:10, isBoy:true}
  * @param {Boolean} mustExistsInSchema 是否必须存在格式定义中
+ * @return {Object}
  */
 export const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInSchema = true) => {
 	let ret = {};
