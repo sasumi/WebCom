@@ -295,13 +295,19 @@ export const loadCss = (file, forceReload = false) => {
 	return _c[file];
 };
 
-export const loadScript = (file, forceReload = false) => {
-	if(!forceReload && _c[file]){
-		return _c[file];
+/**
+ * 加载script脚本
+ * @param {String} src 脚本地址
+ * @param {Boolean} forceReload 是否强制重新加载，缺省为去重加载
+ * @return {Promise}
+ */
+export const loadScript = (src, forceReload = false) => {
+	if(!forceReload && _c[src]){
+		return _c[src];
 	}
-	_c[file] = new Promise((resolve, reject) => {
+	_c[src] = new Promise((resolve, reject) => {
 		let script = document.createElement('script');
-		script.src = file;
+		script.src = src;
 		script.onload = () => {
 			resolve()
 		};
@@ -310,7 +316,7 @@ export const loadScript = (file, forceReload = false) => {
 		};
 		document.head.append(script);
 	});
-	return _c[file];
+	return _c[src];
 };
 
 /**
