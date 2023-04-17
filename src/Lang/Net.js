@@ -195,16 +195,17 @@ export class Net {
 
 /**
  * 文件下载
+ * 注意：在浏览器中如果非同域，自定义保存名称无效
  * @param src 文件地址
- * @param save_name 保存名称
- * @param ext 保存扩展名，缺省自动解析文件地址后缀
+ * @param save_name 保存名称（包含扩展名，为空表示自动从src中提取）
  */
-export const downloadFile = (src, save_name, ext) => {
-	ext = ext || resolveFileExtension(src);
-	save_name = save_name || resolveFileName(src);
+export const downloadFile = (src, save_name) => {
+	if(!save_name){
+		save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
+	}
 	let link = document.createElement('a');
 	link.href = src;
-	link.download = save_name + ext;
+	link.download = save_name;
 	document.body.appendChild(link);
 	link.click();
 	link.parentNode.removeChild(link);

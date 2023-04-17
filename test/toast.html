@@ -38,8 +38,9 @@
         Toast.showSuccess('success');
     });
 
+    //长一点时间
     for(let i in Toast.DEFAULT_TIME_MAP){
-        // Toast.DEFAULT_TIME_MAP[i] = Toast.DEFAULT_TIME_MAP[i]*100;
+        Toast.DEFAULT_TIME_MAP[i] = Toast.DEFAULT_TIME_MAP[i]*10;
     }
 
     Toast.showInfo('这是一个提示信息。');
