@@ -151,7 +151,7 @@ export class Toast {
 	 * @param {Function} timeoutCallback
 	 * @return {Toast}
 	 */
-	static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback) => {
+	static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
 		let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
 		let toast = new Toast(message, Toast.TYPE_LOADING, time);
 		toast.show(timeoutCallback);
