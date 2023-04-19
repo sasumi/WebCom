@@ -1066,13 +1066,19 @@ var WebCom = (function (exports) {
 		return _c[file];
 	};
 
-	const loadScript = (file, forceReload = false) => {
-		if(!forceReload && _c[file]){
-			return _c[file];
+	/**
+	 * 加载script脚本
+	 * @param {String} src 脚本地址
+	 * @param {Boolean} forceReload 是否强制重新加载，缺省为去重加载
+	 * @return {Promise}
+	 */
+	const loadScript = (src, forceReload = false) => {
+		if(!forceReload && _c[src]){
+			return _c[src];
 		}
-		_c[file] = new Promise((resolve, reject) => {
+		_c[src] = new Promise((resolve, reject) => {
 			let script = document.createElement('script');
-			script.src = file;
+			script.src = src;
 			script.onload = () => {
 				resolve();
 			};
@@ -1081,7 +1087,7 @@ var WebCom = (function (exports) {
 			};
 			document.head.append(script);
 		});
-		return _c[file];
+		return _c[src];
 	};
 
 	/**
@@ -1453,10 +1459,10 @@ var WebCom = (function (exports) {
 	 * @returns {boolean}
 	 */
 	const inputAble = el => {
-		if(el.disabled ||
-			el.readOnly ||
-			el.tagName === 'BUTTON' ||
-			(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
+		if(el.disabled || //禁用
+			el.readOnly || //只读
+			el.tagName === 'BUTTON' || //按钮
+			(el.tagName === 'INPUT' && ['hidden', 'button','submit', 'reset'].includes(el.type)) //隐藏表单、按钮、提交按钮、重置按钮
 		){
 			return false;
 		}
@@ -1604,9 +1610,12 @@ var WebCom = (function (exports) {
 
 	/**
 	 * 转换表单数据对象到JSON对象
-	 * @param {Object} formDataMap
-	 * @param {Object} formatSchema 格式
+	 * @example convertFormDataToObject({name:"hello", age:"10", isBoy:0, ext:"{city:'shenzhen'}"}, {name:"", age:0, isBoy:true, ext:{}})，
+	 * 结果返回： {name:"hello", age:10, isBoy:false, ext:{city:shenzhen}}
+	 * @param {Object} formDataMap 数据对象（从表单获取到的数据都是字符串类型的）
+	 * @param {Object} formatSchema 格式定义对象，如： {name:"Jack", age:10, isBoy:true}
 	 * @param {Boolean} mustExistsInSchema 是否必须存在格式定义中
+	 * @return {Object}
 	 */
 	const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInSchema = true) => {
 		let ret = {};
@@ -2181,16 +2190,17 @@ var WebCom = (function (exports) {
 
 	/**
 	 * 文件下载
+	 * 注意：在浏览器中如果非同域，自定义保存名称无效
 	 * @param src 文件地址
-	 * @param save_name 保存名称
-	 * @param ext 保存扩展名，缺省自动解析文件地址后缀
+	 * @param save_name 保存名称（包含扩展名，为空表示自动从src中提取）
 	 */
-	const downloadFile = (src, save_name, ext) => {
-		ext = ext || resolveFileExtension(src);
-		save_name = save_name || resolveFileName(src);
+	const downloadFile = (src, save_name) => {
+		if(!save_name){
+			save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
+		}
 		let link = document.createElement('a');
 		link.href = src;
-		link.download = save_name + ext;
+		link.download = save_name;
 		document.body.appendChild(link);
 		link.click();
 		link.parentNode.removeChild(link);
@@ -2272,27 +2282,39 @@ var WebCom = (function (exports) {
 	};
 
 	let payloads = [];
+	let popstate_bind = false;
 
+	/**
+	 * 压栈状态
+	 * @param {Object} param
+	 * @param {String} title
+	 */
 	const pushState = (param, title = '') => {
 		let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
 		window.history.pushState(param, title, url);
 		exePayloads(param);
 	};
 
+	/**
+	 * 监听 window onpopstate 事件
+	 * @param {Function} payload
+	 */
+	const onStateChange = (payload) => {
+		if(!popstate_bind){
+			popstate_bind = true;
+			window.addEventListener('popstate', e=>{
+				let state = e.state ?? {};
+				let hashObj = QueryString.parse(getHash());
+				exePayloads({...state, ...hashObj});
+			});
+		}
+		payloads.push(payload);
+	};
+
 	const exePayloads = (param) => {
 		payloads.forEach(payload => {
 			payload(param);
 		});
-	};
-
-	window.onpopstate = function(e){
-		let state = e.state ?? {};
-		let hashObj = QueryString.parse(getHash());
-		exePayloads({...state, ...hashObj});
-	};
-
-	const onStateChange = (payload) => {
-		payloads.push(payload);
 	};
 
 	const ONE_MINUTE = 60000;
@@ -2462,7 +2484,7 @@ var WebCom = (function (exports) {
 		 * @param {Function} timeoutCallback
 		 * @return {Toast}
 		 */
-		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback) => {
+		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
 			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
 			let toast = new Toast(message, Toast.TYPE_LOADING, time);
 			toast.show(timeoutCallback);
