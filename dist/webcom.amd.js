@@ -2536,7 +2536,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		hide(fadeOut = false){
 			//稍微容错下，避免setTimeout后没有父节点
-			if(!document.body.contains(this.dom)){
+			if(!this.dom || !document.body.contains(this.dom)){
 				return;
 			}
 			if(fadeOut){
@@ -2547,6 +2547,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				return;
 			}
 			this.dom.parentNode.removeChild(this.dom);
+			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
 				hide(wrapper);
