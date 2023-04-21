@@ -24,6 +24,45 @@ export const getCurrentScript = function(){
 	return null;
 }
 
+/**
+ * 节流
+ * 规定在一个单位时间内，只能触发一次函数。如果这个函数单位时间内触发多次函数，只有一次生效。
+ * @param fn
+ * @param intervalMiSec
+ * @return {(function(): void)|*}
+ */
+export const throttle = (fn, intervalMiSec) => {
+	let context, args;
+	let previous = 0;
+	return function(){
+		let now = +new Date();
+		context = this;
+		args = arguments;
+		if(now - previous > intervalMiSec){
+			fn.apply(context, args);
+			previous = now;
+		}
+	}
+}
+
+/**
+ * 在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
+ * @param fn
+ * @param intervalMiSec
+ * @return {(function(): void)|*}
+ */
+export const debounce = (fn, intervalMiSec) => {
+	let timeout;
+	return function(){
+		let context = this;
+		let args = arguments;
+		clearTimeout(timeout)
+		timeout = setTimeout(function(){
+			fn.apply(context, args)
+		}, intervalMiSec);
+	}
+}
+
 const CURRENT_FILE = '/Lang/Util.js';
 const ENTRY_FILE = '/index.js';
 
@@ -31,7 +70,7 @@ const ENTRY_FILE = '/index.js';
  * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
  * @return {string}
  */
-export const getLibEntryScript = ()=>{
+export const getLibEntryScript = () => {
 	let script = getCurrentScript();
 	if(!script){
 		throw "Get script failed";
@@ -55,7 +94,7 @@ export const getLibModule = async () => {
  * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
  * @type {(function(): Promise<*>)|undefined}
  */
-export const getLibModuleTop =(()=>{
+export const getLibModuleTop = (() => {
 	if(top === window){
 		return getLibModule;
 	}
@@ -70,7 +109,7 @@ export const getLibModuleTop =(()=>{
  * @param {String} version
  * @return {Number[]}
  */
-const normalizeVersion = (version)=>{
+const normalizeVersion = (version) => {
 	let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
 		pieces = trimmed.split('.'),
 		partsLength,
@@ -106,7 +145,7 @@ const normalizeVersion = (version)=>{
  * @param {Number} index
  * @return {number|number}
  */
-export const versionCompare = (version1, version2, index)=>{
+export const versionCompare = (version1, version2, index) => {
 	let stringLength = index + 1,
 		v1 = normalizeVersion(version1),
 		v2 = normalizeVersion(version2);
@@ -116,7 +155,7 @@ export const versionCompare = (version1, version2, index)=>{
 	if(v2.length > stringLength){
 		v2.length = stringLength;
 	}
-	let size = Math.min(v1.length, v2.length),i;
+	let size = Math.min(v1.length, v2.length), i;
 	for(i = 0; i < size; i += 1){
 		if(v1[i] !== v2[i]){
 			return v1[i] < v2[i] ? -1 : 1;

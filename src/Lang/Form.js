@@ -1,4 +1,4 @@
-import {cssSelectorEscape} from "./String.js";
+import {cssSelectorEscape, escapeAttr} from "./String.js";
 import {isButton} from "./Dom.js";
 import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
@@ -292,4 +292,18 @@ export const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => 
 		}
 	}
 	return ret;
+}
+
+/**
+ * 构建 HTML Input:hidden 标签
+ * @param {Object} maps {key:value}
+ * @return {string}
+ */
+export const buildHtmlHidden = (maps)=>{
+	let html = '';
+	for(let key in maps){
+		let val = maps[key] === null ? '' : maps[key];
+		html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
+	}
+	return html;
 }
