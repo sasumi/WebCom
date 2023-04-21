@@ -78,7 +78,7 @@ export const isButton = (el) => {
  */
 export const matchParent = (dom, selector) => {
 	let p = dom.parentNode;
-	while(p){
+	while(p && p !== document){
 		if(p.matches(selector)){
 			return p;
 		}

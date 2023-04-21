@@ -71,3 +71,42 @@ export const arrayGroup = (arr, by_key, limit)=>{
 	}
 	return rst;
 };
+
+/**
+ * 按照对象 KEY 排序
+ * @param {Object} obj
+ * @param {String} dir
+ * @return {{}}
+ */
+export const sortByKey = (obj, dir = 'asc') => {
+	return Object.keys(obj).sort().reduce(function(result, key){
+		result[key] = obj[key];
+		return result;
+	}, {});
+}
+
+/**
+ * 数组分块
+ * @param {Array} list 数据
+ * @param {Number} size 每块大小
+ * @return {Array[]}
+ */
+export const chunk = (list, size) => {
+	let len = list.length;
+	if (size < 1 || !len) {
+		return [];
+	}
+	if (size > len) {
+		return [list];
+	}
+	let res = [];
+	let integer = Math.floor(len / size);
+	let rest = len % size;
+	for (let i = 1; i <= integer; i++) {
+		res.push(list.splice(0, size));
+	}
+	if (rest) {
+		res.push(list.splice(0, rest));
+	}
+	return res;
+};

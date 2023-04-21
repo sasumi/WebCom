@@ -79,6 +79,45 @@ const arrayGroup = (arr, by_key, limit)=>{
 };
 
 /**
+ * 按照对象 KEY 排序
+ * @param {Object} obj
+ * @param {String} dir
+ * @return {{}}
+ */
+const sortByKey = (obj, dir = 'asc') => {
+	return Object.keys(obj).sort().reduce(function(result, key){
+		result[key] = obj[key];
+		return result;
+	}, {});
+};
+
+/**
+ * 数组分块
+ * @param {Array} list 数据
+ * @param {Number} size 每块大小
+ * @return {Array[]}
+ */
+const chunk = (list, size) => {
+	let len = list.length;
+	if (size < 1 || !len) {
+		return [];
+	}
+	if (size > len) {
+		return [list];
+	}
+	let res = [];
+	let integer = Math.floor(len / size);
+	let rest = len % size;
+	for (let i = 1; i <= integer; i++) {
+		res.push(list.splice(0, size));
+	}
+	if (rest) {
+		res.push(list.splice(0, rest));
+	}
+	return res;
+};
+
+/**
  * 检测指定值是否在指定区间内
  * @param {Number} val
  * @param {Number} min
@@ -847,7 +886,7 @@ const isButton = (el) => {
  */
 const matchParent = (dom, selector) => {
 	let p = dom.parentNode;
-	while(p){
+	while(p && p !== document){
 		if(p.matches(selector)){
 			return p;
 		}
@@ -2330,6 +2369,98 @@ function frequencyControl(payload, hz, executeOnFistTime = false){
 		frequencyControl(payload, hz, executeOnFistTime);
 	}, hz);
 }
+
+/**
+ * 获取指定月份天数
+ * @param {Number} year
+ * @param {Number} month 月份，从1开始
+ * @returns {number}
+ */
+const getMonthLastDay = (year, month) => {
+	const date1 = new Date(year, month, 0);
+	return date1.getDate()
+};
+
+/**
+ * 获取指定上一个月份
+ * @param {Number} year
+ * @param {Number} month 当前月份，从1开始
+ * @returns {Array}
+ */
+const getLastMonth = (year, month) => {
+	return month === 1 ? [year - 1, 12] : [year, month - 1];
+};
+
+/**
+ * 获取指定下一个月份
+ * @param {Number} year
+ * @param {Number} month 当前月份，从1开始
+ * @returns {Array}
+ */
+const getNextMonth = (year, month) => {
+	return month === 12 ? [year + 1, 1] : [year, month + 1];
+};
+
+/**
+ * 格式化时间长度
+ * @param {Number} micSec 毫秒
+ * @param {String} delimiter 单位之间的间隔文本
+ * @return {string}
+ */
+const prettyTime = (micSec, delimiter = '') => {
+	let d = 0, h = 0, m = 0, s = 0;
+	if(micSec > ONE_DAY){
+		d = Math.floor(micSec / ONE_DAY);
+		micSec -= d * ONE_DAY;
+	}
+	if(micSec > ONE_HOUR){
+		h = Math.floor(micSec / ONE_HOUR);
+		micSec -= h * ONE_HOUR;
+	}
+	if(micSec > ONE_MINUTE){
+		m = Math.floor(micSec / ONE_MINUTE);
+		micSec -= m * ONE_MINUTE;
+	}
+	if(micSec > 1000){
+		s = Math.floor(micSec / 1000);
+		micSec -= s * 1000;
+	}
+	let txt = '';
+	txt += d ? `${d}天` : '';
+	txt += (txt || h) ? `${delimiter}${h}小` : '';
+	txt += (txt || m) ? `${delimiter}${m}分` : '';
+	txt += (txt || s) ? `${delimiter}${s}秒` : '';
+	return txt.trim();
+};
+
+/**
+ * 指定偏移月数计算
+ * @param {Number} monthNum
+ * @param {Date|Null} start_date
+ * @return {{month: number, year: number}} 返回年、月（以1开始）
+ */
+const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
+	let year = start_date.getFullYear();
+	let month = start_date.getMonth()+1;
+	month = month + monthNum;
+	if(month > 12){
+		let yearNum = parseInt((month - 1) / 12);
+		month = month % 12 === 0 ? 12 : month % 12;
+		year += yearNum;
+	}else if(month <= 0){
+		month = Math.abs(month);
+		let yearNum = parseInt((month + 12) / 12);
+		let n = month % 12;
+		if(n === 0){
+			year -= yearNum;
+			month = 12;
+		}else {
+			year -= yearNum;
+			month = Math.abs(12 - n);
+		}
+	}
+	return {year, month}
+};
 
 const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 const rotate_animate = Theme.Namespace + '-toast-rotate';
@@ -4791,4 +4922,4 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buttonActiveBind, capitalize, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, showMenu, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

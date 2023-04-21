@@ -81,6 +81,45 @@ const arrayGroup = (arr, by_key, limit)=>{
 };
 
 /**
+ * 按照对象 KEY 排序
+ * @param {Object} obj
+ * @param {String} dir
+ * @return {{}}
+ */
+const sortByKey = (obj, dir = 'asc') => {
+	return Object.keys(obj).sort().reduce(function(result, key){
+		result[key] = obj[key];
+		return result;
+	}, {});
+};
+
+/**
+ * 数组分块
+ * @param {Array} list 数据
+ * @param {Number} size 每块大小
+ * @return {Array[]}
+ */
+const chunk = (list, size) => {
+	let len = list.length;
+	if (size < 1 || !len) {
+		return [];
+	}
+	if (size > len) {
+		return [list];
+	}
+	let res = [];
+	let integer = Math.floor(len / size);
+	let rest = len % size;
+	for (let i = 1; i <= integer; i++) {
+		res.push(list.splice(0, size));
+	}
+	if (rest) {
+		res.push(list.splice(0, rest));
+	}
+	return res;
+};
+
+/**
  * 检测指定值是否在指定区间内
  * @param {Number} val
  * @param {Number} min
@@ -849,7 +888,7 @@ const isButton = (el) => {
  */
 const matchParent = (dom, selector) => {
 	let p = dom.parentNode;
-	while(p){
+	while(p && p !== document){
 		if(p.matches(selector)){
 			return p;
 		}
@@ -2332,6 +2371,98 @@ function frequencyControl(payload, hz, executeOnFistTime = false){
 		frequencyControl(payload, hz, executeOnFistTime);
 	}, hz);
 }
+
+/**
+ * 获取指定月份天数
+ * @param {Number} year
+ * @param {Number} month 月份，从1开始
+ * @returns {number}
+ */
+const getMonthLastDay = (year, month) => {
+	const date1 = new Date(year, month, 0);
+	return date1.getDate()
+};
+
+/**
+ * 获取指定上一个月份
+ * @param {Number} year
+ * @param {Number} month 当前月份，从1开始
+ * @returns {Array}
+ */
+const getLastMonth = (year, month) => {
+	return month === 1 ? [year - 1, 12] : [year, month - 1];
+};
+
+/**
+ * 获取指定下一个月份
+ * @param {Number} year
+ * @param {Number} month 当前月份，从1开始
+ * @returns {Array}
+ */
+const getNextMonth = (year, month) => {
+	return month === 12 ? [year + 1, 1] : [year, month + 1];
+};
+
+/**
+ * 格式化时间长度
+ * @param {Number} micSec 毫秒
+ * @param {String} delimiter 单位之间的间隔文本
+ * @return {string}
+ */
+const prettyTime = (micSec, delimiter = '') => {
+	let d = 0, h = 0, m = 0, s = 0;
+	if(micSec > ONE_DAY){
+		d = Math.floor(micSec / ONE_DAY);
+		micSec -= d * ONE_DAY;
+	}
+	if(micSec > ONE_HOUR){
+		h = Math.floor(micSec / ONE_HOUR);
+		micSec -= h * ONE_HOUR;
+	}
+	if(micSec > ONE_MINUTE){
+		m = Math.floor(micSec / ONE_MINUTE);
+		micSec -= m * ONE_MINUTE;
+	}
+	if(micSec > 1000){
+		s = Math.floor(micSec / 1000);
+		micSec -= s * 1000;
+	}
+	let txt = '';
+	txt += d ? `${d}天` : '';
+	txt += (txt || h) ? `${delimiter}${h}小` : '';
+	txt += (txt || m) ? `${delimiter}${m}分` : '';
+	txt += (txt || s) ? `${delimiter}${s}秒` : '';
+	return txt.trim();
+};
+
+/**
+ * 指定偏移月数计算
+ * @param {Number} monthNum
+ * @param {Date|Null} start_date
+ * @return {{month: number, year: number}} 返回年、月（以1开始）
+ */
+const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
+	let year = start_date.getFullYear();
+	let month = start_date.getMonth()+1;
+	month = month + monthNum;
+	if(month > 12){
+		let yearNum = parseInt((month - 1) / 12);
+		month = month % 12 === 0 ? 12 : month % 12;
+		year += yearNum;
+	}else if(month <= 0){
+		month = Math.abs(month);
+		let yearNum = parseInt((month + 12) / 12);
+		let n = month % 12;
+		if(n === 0){
+			year -= yearNum;
+			month = 12;
+		}else {
+			year -= yearNum;
+			month = Math.abs(12 - n);
+		}
+	}
+	return {year, month}
+};
 
 const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 const rotate_animate = Theme.Namespace + '-toast-rotate';
@@ -4840,6 +4971,7 @@ exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 exports.bindTargetContextMenu = bindTargetContextMenu;
 exports.buttonActiveBind = buttonActiveBind;
 exports.capitalize = capitalize;
+exports.chunk = chunk;
 exports.convertBlobToBase64 = convertBlobToBase64;
 exports.convertFormDataToObject = convertFormDataToObject;
 exports.convertObjectToFormData = convertObjectToFormData;
@@ -4871,9 +5003,12 @@ exports.getDomDimension = getDomDimension;
 exports.getDomOffset = getDomOffset;
 exports.getElementValue = getElementValue;
 exports.getHash = getHash;
+exports.getLastMonth = getLastMonth;
 exports.getLibEntryScript = getLibEntryScript;
 exports.getLibModule = getLibModule;
 exports.getLibModuleTop = getLibModuleTop;
+exports.getMonthLastDay = getMonthLastDay;
+exports.getNextMonth = getNextMonth;
 exports.getRegion = getRegion;
 exports.getUTF8StrLen = getUTF8StrLen;
 exports.getViewHeight = getViewHeight;
@@ -4896,11 +5031,13 @@ exports.loadCss = loadCss;
 exports.loadScript = loadScript;
 exports.matchParent = matchParent;
 exports.mergerUriParam = mergerUriParam;
+exports.monthsOffsetCalc = monthsOffsetCalc;
 exports.onDocReady = onDocReady;
 exports.onHover = onHover;
 exports.onReportApi = onReportApi;
 exports.onStateChange = onStateChange;
 exports.openLinkWithoutReferer = openLinkWithoutReferer;
+exports.prettyTime = prettyTime;
 exports.pushState = pushState;
 exports.randomString = randomString;
 exports.rectAssoc = rectAssoc;
@@ -4918,6 +5055,7 @@ exports.show = show;
 exports.showImgListPreview = showImgListPreview;
 exports.showImgPreview = showImgPreview;
 exports.showMenu = showMenu;
+exports.sortByKey = sortByKey;
 exports.strToPascalCase = strToPascalCase;
 exports.stringToEntity = stringToEntity;
 exports.toggle = toggle;
