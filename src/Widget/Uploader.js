@@ -105,7 +105,7 @@ const renderDom = (up) => {
 	});
 
 	dom.querySelector(`.${NS}-btn-cancel`).addEventListener('click', e => {
-		stopProgressCheck(up);
+		up.abort();
 	});
 
 	fileEl.addEventListener('change', e => {
