@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('Auto/ACAsync.js'), require('Auto/ACConfirm.js'), require('Auto/ACCopy.js'), require('Auto/ACDialog.js'), require('Auto/ACRun.js'), require('Auto/ACTip.js')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'Auto/ACAsync.js', 'Auto/ACConfirm.js', 'Auto/ACCopy.js', 'Auto/ACDialog.js', 'Auto/ACRun.js', 'Auto/ACTip.js'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.WebCom = {}, global.ACAsync_js, global.ACConfirm_js, global.ACCopy_js, global.ACDialog_js, global.ACRun_js, global.ACTip_js));
-})(this, (function (exports, ACAsync_js, ACConfirm_js, ACCopy_js, ACDialog_js, ACRun_js, ACTip_js) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.WebCom = {}));
+})(this, (function (exports) { 'use strict';
 
 	const DOMAIN_DEFAULT = 'default';
 
@@ -16,7 +16,7 @@
 	 * @param col_name
 	 * @returns {Array}
 	 */
-	const arrayColumn = (arr, col_name)=>{
+	const arrayColumn = (arr, col_name) => {
 		let data = [];
 		for(let i in arr){
 			data.push(arr[i][col_name]);
@@ -24,7 +24,7 @@
 		return data;
 	};
 
-	const arrayIndex = (arr, val)=>{
+	const arrayIndex = (arr, val) => {
 		for(let i in arr){
 			if(arr[i] === val){
 				return i;
@@ -33,7 +33,7 @@
 		return null;
 	};
 
-	const isEquals = (obj1,obj2)=>{
+	const isEquals = (obj1, obj2) => {
 		let keys1 = Object.keys(obj1);
 		let keys2 = Object.keys(obj2);
 		//return true when the two json has same length and all the properties has same value key by key
@@ -45,7 +45,7 @@
 	 * @param {Array} arr
 	 * @returns {*}
 	 */
-	const arrayDistinct = (arr)=>{
+	const arrayDistinct = (arr) => {
 		let tmpMap = new Map();
 		return arr.filter(item => {
 			if(!tmpMap.has(item)){
@@ -62,12 +62,12 @@
 	 * @param limit limit one child
 	 * @returns {*}
 	 */
-	const arrayGroup = (arr, by_key, limit)=>{
+	const arrayGroup = (arr, by_key, limit) => {
 		if(!arr || !arr.length){
 			return arr;
 		}
 		let tmp_rst = {};
-		arr.forEach(item=>{
+		arr.forEach(item => {
 			let k = item[by_key];
 			if(!tmp_rst[k]){
 				tmp_rst[k] = [];
@@ -82,6 +82,20 @@
 			rst[i] = tmp_rst[i][0];
 		}
 		return rst;
+	};
+
+	const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+		let segments = path.split(glue),
+			cursor = srcObj,
+			segment,
+			i;
+
+		for(i = 0; i < segments.length - 1; ++i){
+			segment = segments[i];
+			cursor = cursor[segment] = cursor[segment] || {};
+		}
+
+		return cursor[segments[i]] = value;
 	};
 
 	/**
@@ -5018,6 +5032,237 @@
 		onError = new BizEvent();
 	}
 
+	class ACAsync {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let cgi_url = param.url || node.getAttribute('href');
+				postJSON(cgi_url, null).then(() => {
+					location.reload();
+					resolve();
+				}, err => {
+					Toast.showError(err);
+					reject(err);
+				});
+			})
+		}
+	}
+
+	const postJSON = (url, data) => {
+		return requestJSON(url, data, 'post');
+	};
+
+	const requestJSON = (url, data, method) => {
+		return new Promise((resolve, reject) => {
+			fetch(url, {
+				method: method.toUpperCase(),
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			}).then(rsp => rsp.json()).then(rsp => {
+				if(rsp.code === 0){
+					resolve(rsp.data);
+				}else {
+					reject(rsp.message || '系统错误');
+				}
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	};
+
+	class ACConfirm {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let message = param.message || '确认信息';
+				Dialog.confirm('确认', message).then(resolve, reject);
+			});
+		}
+	}
+
+	class ACCopy {
+		static init(node, param){
+
+		}
+	}
+
+	class ACDialog{
+		static init(node, {title, url}){
+			let iframe_url = url || node.getAttribute('href');
+			return new Promise((resolve, reject) => {
+				Dialog.show(title || '对话框', {src:iframe_url});
+				Dialog.callback = resolve;
+			})
+		}
+	}
+
+	class ACTip {
+		static init(node, {content}){
+			return new Promise((resolve, reject) => {
+				new Tip(content, node);
+				resolve();
+			});
+		}
+	}
+
+	class ACToast {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let message = param.message || '提示信息';
+				let type = param.type || Toast.TYPE_INFO;
+				Toast.showToast(message, type, Toast.DEFAULT_TIME_MAP[type], resolve);
+			});
+		}
+	}
+
+	const COMPONENT_ATTR_KEY = 'data-component'; //data-com="com1,com2"
+	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
+
+	let AC_COMPONENT_MAP = {
+		'async': ACAsync,
+		'popup': ACDialog,
+		'confirm': ACConfirm,
+		'copy': ACCopy,
+		'tip': ACTip,
+		'toast': ACToast,
+	};
+
+	const parseComponents = function(attr){
+		let tmp = attr.split(',');
+		let cs = [];
+		tmp.forEach(v => {
+			v = v.trim();
+			if(v){
+				cs.push(v);
+			}
+		});
+		return cs;
+	};
+
+	/**
+	 * 检测节点是否拥有组件
+	 * @param {HTMLElement} node
+	 * @param component_name
+	 * @returns {*}
+	 */
+	const nodeHasComponent = function(node, component_name){
+		let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+		return cs.includes(component_name);
+	};
+
+	/**
+	 * 从节点中解析出使用 data-key- 为前缀的属性
+	 * @param node
+	 * @param key
+	 * @return {{}}
+	 */
+	const resolveDataParam = (node, key) => {
+		let param = {};
+		Array.from(node.attributes).forEach(attr => {
+			if(attr.name.indexOf('data-'+key + '-') >= 0){
+				let objKeyPath = attr.name.substring(('data-'+key).length+1);
+				objectPushByPath(objKeyPath, attr.value, param);
+			}
+		});
+		return param;
+	};
+
+	const bindNode = function(container = document){
+		container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${COMPONENT_ATTR_KEY}]`).forEach(node => {
+			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+			let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+			let activeStacks = [];
+			cs.forEach(com => {
+				let C = AC_COMPONENT_MAP[com];
+				if(!C){
+					console.warn('component no found', com);
+					return false;
+				}
+				let data = resolveDataParam(node, com);
+				if(C.init){
+					C.init(node, data);
+				}
+				if(C.active){
+					activeStacks.push([C.active, data]);
+				}
+				return true;
+			});
+
+			if(activeStacks.length){
+				bindActiveChain(node, activeStacks);
+			}
+		});
+	};
+
+	const TEXT_TYPES = ['text', 'number', 'password', 'search', 'address', 'date', 'datetime', 'time', 'checkbox', 'radio'];
+
+	/**
+	 * 是否为可输入元素
+	 * @param {HTMLFormElement} node
+	 * @return {boolean}
+	 */
+	const isInputAble = (node) => {
+		if(node.disabled || node.readonly){
+			return false;
+		}
+		return node.tagName === 'TEXTAREA' ||
+			(node.tagName === 'INPUT' && (!node.type || TEXT_TYPES.includes(node.type.toLowerCase())));
+	};
+
+	const bindActiveChain = (node, activeStacks) => {
+		let event = 'click';
+		if(isInputAble(node)){
+			event = 'keyup';
+		}else if(node.tagName === 'FORM'){
+			event = 'submit';
+		}else {
+			event = 'click';
+		}
+		node.addEventListener(event, e => {
+			let [func, args] = activeStacks[0];
+			let pro = func(node, args);
+			for(let i = 1; i < activeStacks.length; i++){
+				pro = pro.then(() => {
+					return activeStacks[i][0](node, activeStacks[i][1]);
+				}, () => {
+				});
+			}
+			e.preventDefault();
+			return false;
+		});
+	};
+
+	const ACComponent = {
+		watch: (container = document.body) => {
+			let m_tm = null;
+			container.addEventListener('DOMSubtreeModified propertychange', function(){
+				clearTimeout(m_tm);
+				m_tm = setTimeout(function(){
+					bindNode();
+				}, 0);
+			});
+			bindNode(container);
+		},
+		/**
+		 * 注册组件
+		 * @param componentName
+		 * @param define
+		 */
+		register: (componentName, define) => {
+			AC_COMPONENT_MAP[componentName] = define;
+		},
+		unRegister: (componentName) => {
+			delete (AC_COMPONENT_MAP[componentName]);
+		}
+	};
+
+	exports.ACAsync = ACAsync;
+	exports.ACComponent = ACComponent;
+	exports.ACConfirm = ACConfirm;
+	exports.ACCopy = ACCopy;
+	exports.ACDialog = ACDialog;
+	exports.ACTip = ACTip;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
@@ -5133,6 +5378,8 @@
 	exports.loadScript = loadScript;
 	exports.matchParent = matchParent;
 	exports.mergerUriParam = mergerUriParam;
+	exports.nodeHasComponent = nodeHasComponent;
+	exports.objectPushByPath = objectPushByPath;
 	exports.onDocReady = onDocReady;
 	exports.onHover = onHover;
 	exports.onReportApi = onReportApi;
@@ -5167,42 +5414,6 @@
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
-	Object.keys(ACAsync_js).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () { return ACAsync_js[k]; }
-		});
-	});
-	Object.keys(ACConfirm_js).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () { return ACConfirm_js[k]; }
-		});
-	});
-	Object.keys(ACCopy_js).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () { return ACCopy_js[k]; }
-		});
-	});
-	Object.keys(ACDialog_js).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () { return ACDialog_js[k]; }
-		});
-	});
-	Object.keys(ACRun_js).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () { return ACRun_js[k]; }
-		});
-	});
-	Object.keys(ACTip_js).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () { return ACTip_js[k]; }
-		});
-	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -1,10 +1,3 @@
-export * from 'Auto/ACAsync.js';
-export * from 'Auto/ACConfirm.js';
-export * from 'Auto/ACCopy.js';
-export * from 'Auto/ACDialog.js';
-export * from 'Auto/ACRun.js';
-export * from 'Auto/ACTip.js';
-
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -17,7 +10,7 @@ const trans = (text, domain = DOMAIN_DEFAULT) => {
  * @param col_name
  * @returns {Array}
  */
-const arrayColumn = (arr, col_name)=>{
+const arrayColumn = (arr, col_name) => {
 	let data = [];
 	for(let i in arr){
 		data.push(arr[i][col_name]);
@@ -25,7 +18,7 @@ const arrayColumn = (arr, col_name)=>{
 	return data;
 };
 
-const arrayIndex = (arr, val)=>{
+const arrayIndex = (arr, val) => {
 	for(let i in arr){
 		if(arr[i] === val){
 			return i;
@@ -34,7 +27,7 @@ const arrayIndex = (arr, val)=>{
 	return null;
 };
 
-const isEquals = (obj1,obj2)=>{
+const isEquals = (obj1, obj2) => {
 	let keys1 = Object.keys(obj1);
 	let keys2 = Object.keys(obj2);
 	//return true when the two json has same length and all the properties has same value key by key
@@ -46,7 +39,7 @@ const isEquals = (obj1,obj2)=>{
  * @param {Array} arr
  * @returns {*}
  */
-const arrayDistinct = (arr)=>{
+const arrayDistinct = (arr) => {
 	let tmpMap = new Map();
 	return arr.filter(item => {
 		if(!tmpMap.has(item)){
@@ -63,12 +56,12 @@ const arrayDistinct = (arr)=>{
  * @param limit limit one child
  * @returns {*}
  */
-const arrayGroup = (arr, by_key, limit)=>{
+const arrayGroup = (arr, by_key, limit) => {
 	if(!arr || !arr.length){
 		return arr;
 	}
 	let tmp_rst = {};
-	arr.forEach(item=>{
+	arr.forEach(item => {
 		let k = item[by_key];
 		if(!tmp_rst[k]){
 			tmp_rst[k] = [];
@@ -83,6 +76,20 @@ const arrayGroup = (arr, by_key, limit)=>{
 		rst[i] = tmp_rst[i][0];
 	}
 	return rst;
+};
+
+const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+	let segments = path.split(glue),
+		cursor = srcObj,
+		segment,
+		i;
+
+	for(i = 0; i < segments.length - 1; ++i){
+		segment = segments[i];
+		cursor = cursor[segment] = cursor[segment] || {};
+	}
+
+	return cursor[segments[i]] = value;
 };
 
 /**
@@ -5019,4 +5026,229 @@ class Uploader {
 	onError = new BizEvent();
 }
 
-export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buttonActiveBind, capitalize, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, showMenu, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+class ACAsync {
+	static active(node, param = {}){
+		return new Promise((resolve, reject) => {
+			let cgi_url = param.url || node.getAttribute('href');
+			postJSON(cgi_url, null).then(() => {
+				location.reload();
+				resolve();
+			}, err => {
+				Toast.showError(err);
+				reject(err);
+			});
+		})
+	}
+}
+
+const postJSON = (url, data) => {
+	return requestJSON(url, data, 'post');
+};
+
+const requestJSON = (url, data, method) => {
+	return new Promise((resolve, reject) => {
+		fetch(url, {
+			method: method.toUpperCase(),
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(data)
+		}).then(rsp => rsp.json()).then(rsp => {
+			if(rsp.code === 0){
+				resolve(rsp.data);
+			}else {
+				reject(rsp.message || '系统错误');
+			}
+		}).catch(err => {
+			reject(err);
+		});
+	});
+};
+
+class ACConfirm {
+	static active(node, param = {}){
+		return new Promise((resolve, reject) => {
+			let message = param.message || '确认信息';
+			Dialog.confirm('确认', message).then(resolve, reject);
+		});
+	}
+}
+
+class ACCopy {
+	static init(node, param){
+
+	}
+}
+
+class ACDialog{
+	static init(node, {title, url}){
+		let iframe_url = url || node.getAttribute('href');
+		return new Promise((resolve, reject) => {
+			Dialog.show(title || '对话框', {src:iframe_url});
+			Dialog.callback = resolve;
+		})
+	}
+}
+
+class ACTip {
+	static init(node, {content}){
+		return new Promise((resolve, reject) => {
+			new Tip(content, node);
+			resolve();
+		});
+	}
+}
+
+class ACToast {
+	static active(node, param = {}){
+		return new Promise((resolve, reject) => {
+			let message = param.message || '提示信息';
+			let type = param.type || Toast.TYPE_INFO;
+			Toast.showToast(message, type, Toast.DEFAULT_TIME_MAP[type], resolve);
+		});
+	}
+}
+
+const COMPONENT_ATTR_KEY = 'data-component'; //data-com="com1,com2"
+const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
+
+let AC_COMPONENT_MAP = {
+	'async': ACAsync,
+	'popup': ACDialog,
+	'confirm': ACConfirm,
+	'copy': ACCopy,
+	'tip': ACTip,
+	'toast': ACToast,
+};
+
+const parseComponents = function(attr){
+	let tmp = attr.split(',');
+	let cs = [];
+	tmp.forEach(v => {
+		v = v.trim();
+		if(v){
+			cs.push(v);
+		}
+	});
+	return cs;
+};
+
+/**
+ * 检测节点是否拥有组件
+ * @param {HTMLElement} node
+ * @param component_name
+ * @returns {*}
+ */
+const nodeHasComponent = function(node, component_name){
+	let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+	return cs.includes(component_name);
+};
+
+/**
+ * 从节点中解析出使用 data-key- 为前缀的属性
+ * @param node
+ * @param key
+ * @return {{}}
+ */
+const resolveDataParam = (node, key) => {
+	let param = {};
+	Array.from(node.attributes).forEach(attr => {
+		if(attr.name.indexOf('data-'+key + '-') >= 0){
+			let objKeyPath = attr.name.substring(('data-'+key).length+1);
+			objectPushByPath(objKeyPath, attr.value, param);
+		}
+	});
+	return param;
+};
+
+const bindNode = function(container = document){
+	container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${COMPONENT_ATTR_KEY}]`).forEach(node => {
+		node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+		let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+		let activeStacks = [];
+		cs.forEach(com => {
+			let C = AC_COMPONENT_MAP[com];
+			if(!C){
+				console.warn('component no found', com);
+				return false;
+			}
+			let data = resolveDataParam(node, com);
+			if(C.init){
+				C.init(node, data);
+			}
+			if(C.active){
+				activeStacks.push([C.active, data]);
+			}
+			return true;
+		});
+
+		if(activeStacks.length){
+			bindActiveChain(node, activeStacks);
+		}
+	});
+};
+
+const TEXT_TYPES = ['text', 'number', 'password', 'search', 'address', 'date', 'datetime', 'time', 'checkbox', 'radio'];
+
+/**
+ * 是否为可输入元素
+ * @param {HTMLFormElement} node
+ * @return {boolean}
+ */
+const isInputAble = (node) => {
+	if(node.disabled || node.readonly){
+		return false;
+	}
+	return node.tagName === 'TEXTAREA' ||
+		(node.tagName === 'INPUT' && (!node.type || TEXT_TYPES.includes(node.type.toLowerCase())));
+};
+
+const bindActiveChain = (node, activeStacks) => {
+	let event = 'click';
+	if(isInputAble(node)){
+		event = 'keyup';
+	}else if(node.tagName === 'FORM'){
+		event = 'submit';
+	}else {
+		event = 'click';
+	}
+	node.addEventListener(event, e => {
+		let [func, args] = activeStacks[0];
+		let pro = func(node, args);
+		for(let i = 1; i < activeStacks.length; i++){
+			pro = pro.then(() => {
+				return activeStacks[i][0](node, activeStacks[i][1]);
+			}, () => {
+			});
+		}
+		e.preventDefault();
+		return false;
+	});
+};
+
+const ACComponent = {
+	watch: (container = document.body) => {
+		let m_tm = null;
+		container.addEventListener('DOMSubtreeModified propertychange', function(){
+			clearTimeout(m_tm);
+			m_tm = setTimeout(function(){
+				bindNode();
+			}, 0);
+		});
+		bindNode(container);
+	},
+	/**
+	 * 注册组件
+	 * @param componentName
+	 * @param define
+	 */
+	register: (componentName, define) => {
+		AC_COMPONENT_MAP[componentName] = define;
+	},
+	unRegister: (componentName) => {
+		delete (AC_COMPONENT_MAP[componentName]);
+	}
+};
+
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buttonActiveBind, capitalize, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, nodeHasComponent, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, showMenu, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

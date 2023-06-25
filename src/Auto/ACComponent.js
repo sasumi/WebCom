@@ -4,11 +4,12 @@ import {ACConfirm} from "./ACConfirm.js";
 import {ACTip} from "./ACTip.js";
 import {ACCopy} from "./ACCopy.js";
 import {ACToast} from "./ACToast.js";
+import {objectPushByPath} from "../Lang/Array.js";
 
 const COMPONENT_ATTR_KEY = 'data-component'; //data-com="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
-const AC_COMPONENT_MAP = {
+let AC_COMPONENT_MAP = {
 	'async': ACAsync,
 	'popup': ACDialog,
 	'confirm': ACConfirm,
@@ -47,28 +48,14 @@ export const nodeHasComponent = function(node, component_name){
  * @return {{}}
  */
 const resolveDataParam = (node, key) => {
-	let ret = {};
-	//todo
 	let param = {};
-	node.attributes.forEach((attrKey, attrVal)=>{
-		if(attrKey.indexOf(key+'-')>=0){
-			let objKeyPath = attrKey.substring(key.length + 1);
-			let ps = objKeyPath.split('-');
-			let p = param;
-			for(let i=0; i<ps.length; i++){
-				if(i === ps.length - 1){
-					p[ps[i]] = p[ps[i]] || {};
-				}
-			}
+	Array.from(node.attributes).forEach(attr => {
+		if(attr.name.indexOf('data-'+key + '-') >= 0){
+			let objKeyPath = attr.name.substring(('data-'+key).length+1);
+			objectPushByPath(objKeyPath, attr.value, param);
 		}
 	})
-	for(let k in node.dataset){
-		if(k.indexOf(key) === 0 && (k.length <= key.length || /A-Z/.test(k[key.length + 1]))){
-			let objKey = k.substring(key.length);
-			ret[objKey] = node.dataset[k];
-		}
-	}
-	return ret;
+	return param;
 }
 
 const bindNode = function(container = document){
@@ -136,7 +123,7 @@ const bindActiveChain = (node, activeStacks) => {
 	});
 }
 
-const ACRun = {
+export const ACComponent = {
 	watch: (container = document.body) => {
 		let m_tm = null;
 		container.addEventListener('DOMSubtreeModified propertychange', function(){
@@ -146,7 +133,16 @@ const ACRun = {
 			}, 0);
 		});
 		bindNode(container);
+	},
+	/**
+	 * 注册组件
+	 * @param componentName
+	 * @param define
+	 */
+	register: (componentName, define) => {
+		AC_COMPONENT_MAP[componentName] = define;
+	},
+	unRegister: (componentName) => {
+		delete (AC_COMPONENT_MAP[componentName]);
 	}
 };
-
-export {ACRun};

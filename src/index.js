@@ -31,5 +31,5 @@ export * from "./Auto/ACAsync.js";
 export * from "./Auto/ACConfirm.js";
 export * from "./Auto/ACCopy.js";
 export * from "./Auto/ACDialog.js";
-export * from "./Auto/ACRun.js";
+export * from "./Auto/ACComponent.js";
 export * from "./Auto/ACTip.js";
