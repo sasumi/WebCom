@@ -1,3 +1,10 @@
+export * from 'Auto/ACAsync.js';
+export * from 'Auto/ACConfirm.js';
+export * from 'Auto/ACCopy.js';
+export * from 'Auto/ACDialog.js';
+export * from 'Auto/ACRun.js';
+export * from 'Auto/ACTip.js';
+
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -1410,9 +1417,9 @@ const versionCompare = (version1, version2, index)=>{
 window.WEBCOM_GET_LIB_MODULE = getLibModule;
 window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
 
-const NS$1 = 'WebCom-';
-const ICON_FONT_CLASS = NS$1 + `icon`;
-const ICON_FONT = NS$1 + 'iconfont';
+const NS$2 = 'WebCom-';
+const ICON_FONT_CLASS = NS$2 + `icon`;
+const ICON_FONT = NS$2 + 'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
@@ -1433,7 +1440,7 @@ const DEFAULT_ICONFONT_CSS = `
 insertStyleSheet(DEFAULT_ICONFONT_CSS);
 
 const Theme = {
-	Namespace: NS$1,
+	Namespace: NS$2,
 	IconFont: ICON_FONT,
 	IconFontClass: ICON_FONT_CLASS,
 	TipIndex: 10, //功能提示类(指向具体元素)
@@ -1450,10 +1457,10 @@ const Theme = {
  * @returns {boolean}
  */
 const inputAble = el => {
-	if(el.disabled ||
-		el.readOnly ||
-		el.tagName === 'BUTTON' ||
-		(el.tagName === 'INPUT' && ['hidden', 'button', 'reset'].includes(el.type))
+	if(el.disabled || //禁用
+		el.readOnly || //只读
+		el.tagName === 'BUTTON' || //按钮
+		(el.tagName === 'INPUT' && ['hidden', 'button','submit', 'reset'].includes(el.type)) //隐藏表单、按钮、提交按钮、重置按钮
 	){
 		return false;
 	}
@@ -1601,9 +1608,12 @@ const formSerializeJSON = (dom, validate = true) => {
 
 /**
  * 转换表单数据对象到JSON对象
- * @param {Object} formDataMap
- * @param {Object} formatSchema 格式
+ * @example convertFormDataToObject({name:"hello", age:"10", isBoy:0, ext:"{city:'shenzhen'}"}, {name:"", age:0, isBoy:true, ext:{}})，
+ * 结果返回： {name:"hello", age:10, isBoy:false, ext:{city:shenzhen}}
+ * @param {Object} formDataMap 数据对象（从表单获取到的数据都是字符串类型的）
+ * @param {Object} formatSchema 格式定义对象，如： {name:"Jack", age:10, isBoy:true}
  * @param {Boolean} mustExistsInSchema 是否必须存在格式定义中
+ * @return {Object}
  */
 const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInSchema = true) => {
 	let ret = {};
@@ -2178,16 +2188,17 @@ class Net {
 
 /**
  * 文件下载
+ * 注意：在浏览器中如果非同域，自定义保存名称无效
  * @param src 文件地址
- * @param save_name 保存名称
- * @param ext 保存扩展名，缺省自动解析文件地址后缀
+ * @param save_name 保存名称（包含扩展名，为空表示自动从src中提取）
  */
-const downloadFile = (src, save_name, ext) => {
-	ext = ext || resolveFileExtension(src);
-	save_name = save_name || resolveFileName(src);
+const downloadFile = (src, save_name) => {
+	if(!save_name){
+		save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
+	}
 	let link = document.createElement('a');
 	link.href = src;
-	link.download = save_name + ext;
+	link.download = save_name;
 	document.body.appendChild(link);
 	link.click();
 	link.parentNode.removeChild(link);
@@ -2269,27 +2280,39 @@ const onReportApi = {
 };
 
 let payloads = [];
+let popstate_bind = false;
 
+/**
+ * 压栈状态
+ * @param {Object} param
+ * @param {String} title
+ */
 const pushState = (param, title = '') => {
 	let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
 	window.history.pushState(param, title, url);
 	exePayloads(param);
 };
 
+/**
+ * 监听 window onpopstate 事件
+ * @param {Function} payload
+ */
+const onStateChange = (payload) => {
+	if(!popstate_bind){
+		popstate_bind = true;
+		window.addEventListener('popstate', e=>{
+			let state = e.state ?? {};
+			let hashObj = QueryString.parse(getHash());
+			exePayloads({...state, ...hashObj});
+		});
+	}
+	payloads.push(payload);
+};
+
 const exePayloads = (param) => {
 	payloads.forEach(payload => {
 		payload(param);
 	});
-};
-
-window.onpopstate = function(e){
-	let state = e.state ?? {};
-	let hashObj = QueryString.parse(getHash());
-	exePayloads({...state, ...hashObj});
-};
-
-const onStateChange = (payload) => {
-	payloads.push(payload);
 };
 
 const ONE_MINUTE = 60000;
@@ -4389,71 +4412,71 @@ const Thumb = {
 
 let TIP_COLLECTION = {};
 let GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-let NS = Theme.Namespace + 'tip';
+let NS$1 = Theme.Namespace + 'tip';
 let TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 insertStyleSheet(`
-	.${NS}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
-	.${NS}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
-	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
-	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
-	.${NS}-close:hover {color:black;}
+	.${NS$1}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
+	.${NS$1}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
+	.${NS$1}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
+	.${NS$1}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
+	.${NS$1}-close:hover {color:black;}
 	
 	/** top **/
-	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
+	${NS$1}-container-wrap[data-tip-dir-0], .${NS$1}-container-wrap[data-tip-dir="1"], .${NS$1}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow {left:25%;}
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow {left:50%;}
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow {left:75%;}
 	
 	/** right **/
-	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
+	.${NS$1}-container-wrap[data-tip-dir="8"], .${NS$1}-container-wrap[data-tip-dir="9"], .${NS$1}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-close {top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow {top:75%}
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow {top:50%}
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow {top:25%}
 	
 	/** bottom **/
-	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
+	.${NS$1}-container-wrap[data-tip-dir="5"], .${NS$1}-container-wrap[data-tip-dir="6"], .${NS$1}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-close {top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow {left:30px}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow {left:75%}
 	
 	/** left **/
-	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
+	.${NS$1}-container-wrap[data-tip-dir="2"], .${NS$1}-container-wrap[data-tip-dir="3"], .${NS$1}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-close {right:13px; top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow {top:25%}
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow {top:50%}
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow {top:75%}
 `, Theme.Namespace + 'tip-style');
 
 /**
@@ -4461,7 +4484,7 @@ insertStyleSheet(`
  */
 let bindEvent = function(){
 	if(this.option.showCloseButton){
-		let btn = this.dom.querySelector(`.${NS}-close`);
+		let btn = this.dom.querySelector(`.${NS$1}-close`);
 		btn.addEventListener('click', () => {
 			this.hide();
 		}, false);
@@ -4583,13 +4606,13 @@ class Tip {
 		this.relNode = relNode;
 		this.option = {...this.option, ...opt};
 
-		let close_button_html = this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ``;
+		let close_button_html = this.option.showCloseButton ? `<span class="${NS$1}-close">&#10005;</span>` : ``;
 		this.dom = createDomByHtml(
-			`<div class="${NS}-container-wrap" style="display:none;">
-				<s class="${NS}-arrow ${NS}-arrow-pt"></s>
-				<s class="${NS}-arrow ${NS}-arrow-bg"></s>
+			`<div class="${NS$1}-container-wrap" style="display:none;">
+				<s class="${NS$1}-arrow ${NS$1}-arrow-pt"></s>
+				<s class="${NS$1}-arrow ${NS$1}-arrow-bg"></s>
 				${close_button_html}
-				<div class="${NS}-content">${content}</div>
+				<div class="${NS$1}-content">${content}</div>
 			</div>`, document.body);
 
 		this.dom.style.width = dimension2Style(this.option.width);
@@ -4602,7 +4625,7 @@ class Tip {
 	 * @param {String} html
 	 */
 	setContent(html){
-		this.dom.querySelector(`.${NS}-content`).innerHTML = html;
+		this.dom.querySelector(`.${NS$1}-content`).innerHTML = html;
 		updatePosition.call(this);
 	}
 
@@ -4768,4 +4791,232 @@ const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
 	</dl>`, document.body);
 };
 
-export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buttonActiveBind, capitalize, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, showMenu, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+const NS = Theme.Namespace + '-uploader';
+insertStyleSheet(`
+	.${NS} {}
+	
+	.${NS}-btn {display:inline-block; use-select:none; cursor:pointer}
+	.${NS}-btn-reset:before {content:"重新上传"}
+	.${NS}-btn-cancel:before {content:"取消"}
+	.${NS}-btn-delete:before {content:"删除"}
+`);
+
+const UPLOAD_STATE_INIT = 0;
+const UPLOAD_STATE_PENDING = 1;
+const UPLOAD_STATE_ERROR = 2;
+const UPLOAD_STATE_SUCCESS = 3;
+
+const UPLOAD_ERROR_FILE_SIZE_OVERLOAD = 'file_size_overload';
+const UPLOAD_ERROR_FILE_EMPTY = 'file_empty';
+
+const FILE_TYPE_IMAGE = 'image/*';
+const FILE_TYPE_VIDEO = 'video/*';
+const FILE_TYPE_AUDIO = 'audio/*';
+const FILE_TYPE_DOC = '.txt,.md,.doc,.docx';
+const FILE_TYPE_SHEET = '.xls,.xlsx,.csv';
+
+/**
+ * 缺省后端返回格式处理器
+ * @param rsp
+ * @return {{thumb, error: *, value}}
+ * @constructor
+ */
+const DEFAULT_RSP_HANDLE = (rsp) => {
+	return {
+		error: rsp.code !== 0 ? rsp.message : '',
+		value: rsp.data,
+		thumb: rsp.data
+	}
+};
+
+/**
+ * @param {Uploader} up
+ * @param {File} file
+ */
+const startUpload = (up, file) => {
+	let xhr = new XMLHttpRequest();
+	up.xhr = xhr;
+	let formData = new FormData();
+	formData.append(up.option.uploadFileFieldName, file);
+	xhr.withCredentials = true;
+	xhr.upload.addEventListener('progress', e => {
+		up.onUploading.fire(e.loaded, e.total);
+	}, false);
+	xhr.addEventListener('load', e => {
+		up.option.uploadResponseHandle(e.returnValue);
+	});
+	xhr.addEventListener('error', e => {
+	});
+	xhr.addEventListener('abort', e => {
+		up.onAbort.fire();
+	});
+	xhr.open('POST', up.option.uploadUrl);
+	xhr.send(formData);
+};
+
+/**
+ * @param {Uploader} up
+ */
+const renderDom = (up) => {
+	let acceptStr = up.option.allowFileTypes.join(',');
+	const html =
+		`<div class="${NS}" data-state="${up.state}">
+		<label class="${NS}-file">
+			<input type="file" accept="${acceptStr}" value="${up.option.initValue || ''}" ${up.option.required ? 'required' : ''}>
+		</label>
+		<div class="${NS}-progress">
+			<progress max="100" value="0">0%</progress>
+			<span>0%</span>
+		</div>
+		<div class="${NS}-content"></div>
+		<div class="${NS}-handle">
+			<span role="button" class="${NS}-btn ${NS}-btn-reset"></span>
+			<span role="button" class="${NS}-btn ${NS}-btn-clean"></span>
+			<span role="button" class="${NS}-btn ${NS}-btn-cancel"></span>
+			<span role="button" class="${NS}-btn ${NS}-btn-delete"></span>
+		</div>
+	</div>`;
+	const dom = createDomByHtml(html, up.container);
+	const fileEl = dom.querySelector('input[type=file]');
+
+	dom.querySelector(`.${NS}-btn-reset`).addEventListener('click', e => {
+		resetUpload(up);
+	});
+	dom.querySelector(`.${NS}-btn-clean`).addEventListener('click', e => {
+	});
+
+	dom.querySelector(`.${NS}-btn-delete`).addEventListener('click', e => {
+
+	});
+
+	dom.querySelector(`.${NS}-btn-cancel`).addEventListener('click', e => {
+		up.abort();
+	});
+
+	fileEl.addEventListener('change', e => {
+		let file = fileEl.files[0];
+		if(file){
+			if(!file.size < 1){
+				up.onError.fire('所选的文件内容为空', UPLOAD_ERROR_FILE_EMPTY);
+				resetUpload(up);
+				return;
+			}
+			if(up.option.fileSizeLimit && file.size < up.option.fileSizeLimit){
+				up.onError.fire('所选的文件大小超出限制', UPLOAD_ERROR_FILE_SIZE_OVERLOAD);
+				resetUpload(up);
+				return;
+			}
+			updateState(up, UPLOAD_STATE_PENDING);
+			startUpload(up, file);
+		}
+	});
+};
+
+const mergeNoNull = (target, source) => {
+	for(let i in source){
+		if(source[i] !== null){
+			target[i] = source[i];
+		}
+	}
+};
+
+const resetUpload = (up) => {
+	const fileEl = up.container.querySelector('input[type=file]');
+	fileEl.value = up.initValue;
+	updateState(up, UPLOAD_STATE_INIT);
+};
+
+const updateState = (up, state) => {
+	const dom = up.container.querySelector('.' + NS);
+	dom.setAttribute('data-state', state);
+	switch(state){
+		case UPLOAD_STATE_PENDING:
+			up.onUploading.fire();
+			break;
+		case UPLOAD_STATE_SUCCESS:
+			up.onSuccess.fire();
+			break;
+		case UPLOAD_STATE_ERROR:
+			up.onError.fire();
+			break;
+	}
+};
+
+class Uploader {
+	/**
+	 * 状态
+	 * @type {number}
+	 */
+	state = UPLOAD_STATE_INIT;
+	xhr = null;
+
+	/**
+	 * 渲染容器
+	 * @type {HTMLElement}
+	 */
+	container = null;
+
+	static globalUploadUrl = '';
+
+	option = {
+		uploadUrl: '',
+		required: false,
+		initValue: null,
+		initThumb: null,
+		allowFileTypes: [],
+		fileSizeLimit: 0,
+		uploadFileFieldName: 'file',
+		uploadResponseHandle: DEFAULT_RSP_HANDLE
+	};
+
+	constructor(container, option = {
+		uploadUrl: null, //上传URL【必填】
+		required: null,
+		initValue: null,
+		initThumb: null,
+		fileSizeLimit: null,
+		allowFileTypes: null,
+		uploadResponseHandle: null
+	}){
+		this.container = container;
+		mergeNoNull(this.option, option);
+		option.uploadUrl = option.uploadUrl || Uploader.globalUploadUrl;
+		if(!option.uploadUrl){
+			throw "upload url required";
+		}
+		renderDom(this);
+	}
+
+	abort(){
+		if(this.xhr && this.xhr.abort()){
+			resetUpload(this);
+		}
+	}
+
+	getData(){
+
+	}
+
+	getDataAsync(){
+		return new Promise((resolve, reject) => {
+			if(this.state !== UPLOAD_STATE_PENDING){
+				resolve(this.getData());
+			}else {
+				let fn = () => {
+					resolve(this.getData());
+					this.onSuccess.remove(fn);
+				};
+				this.onSuccess.listen(fn);
+			}
+		});
+	}
+
+	onSuccess = new BizEvent();
+	onAbort = new BizEvent();
+	onResponse = new BizEvent();
+	onUploading = new BizEvent();
+	onDelete = new BizEvent();
+	onError = new BizEvent();
+}
+
+export { BLOCK_TAGS, Base64Encode, BizEvent, Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buttonActiveBind, capitalize, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLibEntryScript, getLibModule, getLibModuleTop, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setHash, setStyle, show, showImgListPreview, showImgPreview, showMenu, strToPascalCase, stringToEntity, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

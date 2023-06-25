@@ -26,3 +26,10 @@ export * from "./Widget/Tip.js";
 export * from "./Widget/Toast.js";
 export * from "./Widget/Toc.js";
 export * from "./Widget/Uploader.js";
+
+export * from "./Auto/ACAsync.js";
+export * from "./Auto/ACConfirm.js";
+export * from "./Auto/ACCopy.js";
+export * from "./Auto/ACDialog.js";
+export * from "./Auto/ACRun.js";
+export * from "./Auto/ACTip.js";
