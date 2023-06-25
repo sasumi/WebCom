@@ -1,10 +1,21 @@
 import {Toast} from "../Widget/Toast.js";
+import {formSerializeJSON} from "../Lang/Form.js";
 
 export class ACAsync {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
-			let cgi_url = param.url || node.getAttribute('href');
-			postJSON(cgi_url, null).then(() => {
+			let data = null, method = 'get', url = null;
+			if(node.tagName === 'FORM'){
+				url = node.action;
+				data = formSerializeJSON(node);
+				method = node.method.toLowerCase() === 'get' ? 'get' : 'post';
+			}else if(node.tagName === 'A'){
+				url = node.href;
+			}
+			url = param.url || url;
+			method = param.method || method;
+			data = param.data || data;
+			requestJSON(url, data, method).then(() => {
 				location.reload();
 				resolve();
 			}, err => {
@@ -13,14 +24,6 @@ export class ACAsync {
 			})
 		})
 	}
-}
-
-const getJSON = (url, data) => {
-	return requestJSON(url, data, 'get');
-}
-
-const postJSON = (url, data) => {
-	return requestJSON(url, data, 'post');
 }
 
 const requestJSON = (url, data, method) => {

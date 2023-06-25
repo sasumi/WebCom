@@ -31,17 +31,6 @@ const parseComponents = function(attr){
 };
 
 /**
- * 检测节点是否拥有组件
- * @param {HTMLElement} node
- * @param component_name
- * @returns {*}
- */
-export const nodeHasComponent = function(node, component_name){
-	let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
-	return cs.includes(component_name);
-}
-
-/**
  * 从节点中解析出使用 data-key- 为前缀的属性
  * @param node
  * @param key
