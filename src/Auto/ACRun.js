@@ -49,6 +49,19 @@ export const nodeHasComponent = function(node, component_name){
 const resolveDataParam = (node, key) => {
 	let ret = {};
 	//todo
+	let param = {};
+	node.attributes.forEach((attrKey, attrVal)=>{
+		if(attrKey.indexOf(key+'-')>=0){
+			let objKeyPath = attrKey.substring(key.length + 1);
+			let ps = objKeyPath.split('-');
+			let p = param;
+			for(let i=0; i<ps.length; i++){
+				if(i === ps.length - 1){
+					p[ps[i]] = p[ps[i]] || {};
+				}
+			}
+		}
+	})
 	for(let k in node.dataset){
 		if(k.indexOf(key) === 0 && (k.length <= key.length || /A-Z/.test(k[key.length + 1]))){
 			let objKey = k.substring(key.length);
@@ -98,7 +111,6 @@ const isInputAble = (node) => {
 	}
 	return node.tagName === 'TEXTAREA' ||
 		(node.tagName === 'INPUT' && (!node.type || TEXT_TYPES.includes(node.type.toLowerCase())));
-
 }
 
 const bindActiveChain = (node, activeStacks) => {
