@@ -1,19 +1,30 @@
 import {Toast} from "../Widget/Toast.js";
 import {formSerializeJSON} from "../Lang/Form.js";
+import {mergerUriParam, requestJSON} from "../Lang/Net.js";
 
 export class ACAsync {
+	//默认成功回调处理函数
+	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
+		let next = () => {
+			if(rsp.forward_url){
+				parent.location.href = rsp.forward_url;
+			}else{
+				parent.location.reload();
+			}
+		}
+		rsp.message ? Toast.showSuccess(rsp.message, next) : next();
+	};
+
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let url = param.url,
 				data = param.data,
 				method = param.method,
-				onsuccess = param.onsuccess || function(){
-					location.reload();
-				};
+				onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
 			if(node.tagName === 'FORM'){
 				url = node.action;
 				data = formSerializeJSON(node);
-				method = node.method.toLowerCase() === 'post' ? 'get' : 'post';
+				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 			}else if(node.tagName === 'A'){
 				url = node.href;
 			}
@@ -22,34 +33,16 @@ export class ACAsync {
 			url = param.url || url;
 			method = param.method || method;
 			data = param.data || data;
-			requestJSON(url, data, method).then(() => {
-				onsuccess();
-				resolve();
+			requestJSON(url, data, method).then(rsp => {
+				if(rsp.code === 0){
+					onsuccess(rsp);
+					resolve();
+				}else{
+					Toast.showError(rsp.message || '系统错误');
+				}
 			}, err => {
 				Toast.showError(err);
-				reject(err);
 			})
 		})
 	}
-}
-
-const requestJSON = (url, data, method) => {
-	return new Promise((resolve, reject) => {
-		fetch(url, {
-			method: method.toUpperCase(),
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(data)
-		}).then(rsp => rsp.json()).then(rsp => {
-			if(rsp.code === 0){
-				resolve(rsp.data);
-			}else{
-				reject(rsp.message || '系统错误');
-			}
-		}).catch(err => {
-			reject(err);
-		})
-	});
 }

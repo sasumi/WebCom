@@ -60,6 +60,7 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 				return false;
 			}
 			let data = resolveDataParam(node, com);
+			console.info('com detected:', com);
 			if(C.init){
 				C.init(node, data);
 			}
@@ -68,7 +69,6 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 			}
 			return true;
 		})
-
 		if(activeStacks.length){
 			bindActiveChain(node, activeStacks);
 		}

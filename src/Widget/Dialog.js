@@ -1,11 +1,19 @@
 import {dimension2Style, escapeAttr} from "../Lang/String.js";
-import {buttonActiveBind, createDomByHtml, domContained, insertStyleSheet, keepRectCenter} from "../Lang/Dom.js";
+import {
+	buttonActiveBind,
+	createDomByHtml,
+	domContained,
+	getContextWindow,
+	insertStyleSheet,
+	keepRectCenter
+} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
 
-const DLG_CLS_PREF = Theme.Namespace + 'dialog';
+const COM_ID = Theme.Namespace + 'dialog';
+const DLG_CLS_PREF = COM_ID;
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
@@ -54,7 +62,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {padding-bottom:0.5em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
-`, Theme.Namespace + 'dialog-style');
+`, COM_ID + '-style');
 
 /**
  * 绑定ESC按键事件关闭最上一层可关闭的对话框
@@ -445,7 +453,7 @@ const renderContent = (dlg) => {
 	}
 };
 
-export class Dialog {
+class Dialog {
 	static CONTENT_MIN_HEIGHT = 30; //最小高度
 	static DEFAULT_WIDTH = 500; //默认宽度
 	static DIALOG_INIT_Z_INDEX = Theme.DialogIndex;
@@ -667,3 +675,9 @@ export class Dialog {
 		return parent.DialogManager.findById(id);
 	}
 }
+
+window[COM_ID] = Dialog;
+let CONTEXT_WINDOW = getContextWindow();
+let DialogClass = CONTEXT_WINDOW[COM_ID] || Dialog;
+
+export {DialogClass as Dialog};

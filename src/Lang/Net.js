@@ -93,6 +93,38 @@ const parserRspDataAsObj = (rspStr, format) => {
 	}
 }
 
+/**
+ * JSON方式请求
+ * @param {String} url
+ * @param {*} data
+ * @param {String} method
+ * @return {Promise<unknown>}
+ */
+export const requestJSON = (url, data, method) => {
+	return new Promise((resolve, reject) => {
+		method = method.toUpperCase();
+		let opt = {
+			method: method,
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			}
+		};
+		if(method === 'POST'){
+			opt.body = JSON.stringify(data);
+		}else{
+			url = mergerUriParam(url, data);
+		}
+		fetch(url, opt).then(rsp => {
+			return rsp.json();
+		}).then(rsp => {
+			resolve(rsp);
+		}).catch(err => {
+			reject(err);
+		})
+	});
+}
+
 export class Net {
 	cgi = null; //请求接口
 	data = null; //请求数据

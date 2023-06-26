@@ -1,5 +1,7 @@
-import {hide, insertStyleSheet, show} from "./../Lang/Dom.js"
+import {getContextWindow, hide, insertStyleSheet, show} from "./../Lang/Dom.js"
 import {Theme} from "./Theme.js";
+
+const COM_ID = Theme.Namespace + 'toast';
 
 const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 const rotate_animate = Theme.Namespace + '-toast-rotate';
@@ -31,7 +33,7 @@ insertStyleSheet(`
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;}
 	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin:0.52em 0 0 0.5em;}
-`, Theme.Namespace + 'toast');
+`, COM_ID + '-style');
 
 let toastWrap = null;
 
@@ -44,7 +46,7 @@ const getWrapper = () => {
 	return toastWrap;
 }
 
-export class Toast {
+class Toast{
 	static TYPE_INFO = 'info';
 	static TYPE_SUCCESS = 'success';
 	static TYPE_WARNING = 'warning';
@@ -156,7 +158,7 @@ export class Toast {
 		let toast = new Toast(message, Toast.TYPE_LOADING, time);
 		toast.show(timeoutCallback);
 		hide(toast.dom);
-		setTimeout(()=>{
+		setTimeout(() => {
 			toast.dom && show(toast.dom);
 		}, delayMicroseconds);
 		return toast;
@@ -191,8 +193,8 @@ export class Toast {
 			return;
 		}
 		if(fadeOut){
-			this.dom.classList.add(TOAST_CLS_MAIN+'-hide');
-			setTimeout(()=>{
+			this.dom.classList.add(TOAST_CLS_MAIN + '-hide');
+			setTimeout(() => {
 				this.hide(false);
 			}, FADEOUT_TIME);
 			return;
@@ -205,3 +207,9 @@ export class Toast {
 		}
 	}
 }
+
+window[COM_ID] = Toast;
+let CONTEXT_WINDOW = getContextWindow();
+let ToastClass = CONTEXT_WINDOW[COM_ID] || Toast;
+
+export {ToastClass as Toast};

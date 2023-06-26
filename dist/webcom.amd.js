@@ -1006,12 +1006,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		];
 	};
 
-	const keepDomInContainer = (target, container = document.body)=>{
+	const keepDomInContainer = (target, container = document.body) => {
 		keepRectInContainer({
 			left: target.left,
 			top: target.top,
-			width:target.clientWidth,
-			height:target.clientHeight,
+			width: target.clientWidth,
+			height: target.clientHeight,
 		}, {}, posAbs = true);
 	};
 
@@ -1070,7 +1070,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {HTMLElement} dom
 	 * @return {{width: number, height: number}}
 	 */
-	const getDomDimension = (dom)=>{
+	const getDomDimension = (dom) => {
 		let org_visibility = dom.style.visibility;
 		let org_display = dom.style.display;
 		let width, height;
@@ -1182,9 +1182,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} id
 	 * @return {HTMLStyleElement}
 	 */
-	const insertStyleSheet = (styleSheetStr, id = '') => {
-		let style = document.createElement('style');
-		document.head.appendChild(style);
+	const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
+		let style = doc.createElement('style');
+		doc.head.appendChild(style);
 		style.innerHTML = styleSheetStr;
 		if(id){
 			style.id = id;
@@ -1349,6 +1349,44 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const isInFullScreen = () => {
 		return !!document.fullscreenElement;
+	};
+
+	let CURRENT_WINDOW;
+
+	/**
+	 * @param win
+	 */
+	const setContextWindow = (win) => {
+		CURRENT_WINDOW = win;
+	};
+
+	/**
+	 * 获取当前上下文 文档，缺省为获取top
+	 * @return {Document}
+	 */
+	const getContextDocument = () => {
+		let win = getContextWindow();
+		return win.document;
+	};
+
+	/**
+	 * 获取上下文窗口
+	 * @return {Window}
+	 */
+	const getContextWindow = () => {
+		if(CURRENT_WINDOW){
+			return CURRENT_WINDOW;
+		}
+		let win;
+		try{
+			win = window;
+			while(win != win.parent){
+				win = win.parent;
+			}
+		}catch(err){
+			console.warn('context window assign fail:', err);
+		}
+		return win || window;
 	};
 
 	/**
@@ -2227,6 +2265,38 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	};
 
+	/**
+	 * JSON方式请求
+	 * @param {String} url
+	 * @param {*} data
+	 * @param {String} method
+	 * @return {Promise<unknown>}
+	 */
+	const requestJSON = (url, data, method) => {
+		return new Promise((resolve, reject) => {
+			method = method.toUpperCase();
+			let opt = {
+				method: method,
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				}
+			};
+			if(method === 'POST'){
+				opt.body = JSON.stringify(data);
+			}else {
+				url = mergerUriParam(url, data);
+			}
+			fetch(url, opt).then(rsp => {
+				return rsp.json();
+			}).then(rsp => {
+				resolve(rsp);
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	};
+
 	class Net {
 		cgi = null; //请求接口
 		data = null; //请求数据
@@ -2565,6 +2635,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return {year, month}
 	};
 
+	const COM_ID$2 = Theme.Namespace + 'toast';
+
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_animate = Theme.Namespace + '-toast-rotate';
 	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
@@ -2595,7 +2667,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;}
 	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin:0.52em 0 0 0.5em;}
-`, Theme.Namespace + 'toast');
+`, COM_ID$2 + '-style');
 
 	let toastWrap = null;
 
@@ -2608,7 +2680,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return toastWrap;
 	};
 
-	class Toast {
+	class Toast{
 		static TYPE_INFO = 'info';
 		static TYPE_SUCCESS = 'success';
 		static TYPE_WARNING = 'warning';
@@ -2720,7 +2792,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			let toast = new Toast(message, Toast.TYPE_LOADING, time);
 			toast.show(timeoutCallback);
 			hide(toast.dom);
-			setTimeout(()=>{
+			setTimeout(() => {
 				toast.dom && show(toast.dom);
 			}, delayMicroseconds);
 			return toast;
@@ -2755,8 +2827,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				return;
 			}
 			if(fadeOut){
-				this.dom.classList.add(TOAST_CLS_MAIN+'-hide');
-				setTimeout(()=>{
+				this.dom.classList.add(TOAST_CLS_MAIN + '-hide');
+				setTimeout(() => {
 					this.hide(false);
 				}, FADEOUT_TIME);
 				return;
@@ -2769,6 +2841,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 	}
+
+	window[COM_ID$2] = Toast;
+	let CONTEXT_WINDOW$2 = getContextWindow();
+	let ToastClass = CONTEXT_WINDOW$2[COM_ID$2] || Toast;
 
 	let masker = null;
 	let CSS_CLASS = Theme.Namespace+'-masker';
@@ -2801,7 +2877,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	z-index:${Masker.zIndex}}
 `, Theme.Namespace + 'masker-style');
 
-	const DLG_CLS_PREF = Theme.Namespace + 'dialog';
+	const COM_ID$1 = Theme.Namespace + 'dialog';
+	const DLG_CLS_PREF = COM_ID$1;
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 	const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 	const DLG_CLS_OP = DLG_CLS_PREF + '-op';
@@ -2849,7 +2926,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {padding-bottom:0.5em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
-`, Theme.Namespace + 'dialog-style');
+`, COM_ID$1 + '-style');
 
 	/**
 	 * 绑定ESC按键事件关闭最上一层可关闭的对话框
@@ -3463,6 +3540,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
+	window[COM_ID$1] = Dialog;
+	let CONTEXT_WINDOW$1 = getContextWindow();
+	let DialogClass = CONTEXT_WINDOW$1[COM_ID$1] || Dialog;
+
 	/**
 	 * copy text
 	 * @param {String} text
@@ -3480,11 +3561,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		txtNode.select();
 		try{
 			let succeeded = document.execCommand('copy');
-			!silent && Toast.showSuccess(trans('复制成功'));
+			!silent && ToastClass.showSuccess(trans('复制成功'));
 			return succeeded;
 		}catch(err){
 			console.error(err);
-			Dialog.prompt('复制失败，请手工复制', {initValue:text});
+			DialogClass.prompt('复制失败，请手工复制', {initValue:text});
 		} finally{
 			txtNode.parentNode.removeChild(txtNode);
 		}
@@ -3524,7 +3605,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			activeSheets[i].disabled = false;
 		}
 		document.body.removeChild(container);
-		!silent && Toast.showSuccess(trans('复制成功'));
+		!silent && ToastClass.showSuccess(trans('复制成功'));
 	};
 
 	/**
@@ -3783,7 +3864,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	});
 
-	const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
+	const COM_ID = Theme.Namespace + 'com-image-viewer';
+	const DOM_CLASS = COM_ID;
 
 	const DEFAULT_VIEW_PADDING = 20;
 	const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
@@ -3803,7 +3885,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const BASE_INDEX = Theme.FullScreenModeIndex;
 	const OP_INDEX = BASE_INDEX + 1;
-	const OPTION_DLG_INDEX = BASE_INDEX+2;
+	const OPTION_DLG_INDEX = BASE_INDEX + 2;
 
 	const IMG_PREVIEW_MODE_SINGLE = 1;
 	const IMG_PREVIEW_MODE_MULTIPLE = 2;
@@ -3816,19 +3898,50 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	let CURRENT_MODE = 0;
 
 	//id, title, payload
-	const CMD_CLOSE = ['close', '关闭',()=>{destroy();}];
-	const CMD_NAV_TO = ['nav_to', '关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}];
-	const CMD_SWITCH_TO = ['switch_to', '关闭',(target)=>{switchTo(target.getAttribute('data-index'));}];
-	const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', ()=>{thumbScroll();}];
-	const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', ()=>{thumbScroll();}];
-	const CMD_ZOOM_OUT = ['zoom_out', '放大',()=>{zoom(ZOOM_OUT_RATIO); return false}];
-	const CMD_ZOOM_IN = ['zoom_in', '缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}];
-	const CMD_ZOOM_ORG = ['zoom_org', '原始比例',()=>{zoom(null); return false}];
-	const CMD_ROTATE_LEFT = ['rotate_left', '左旋90°', ()=>{rotate(-90); return false}];
-	const CMD_ROTATE_RIGHT = ['rotate_right', '右旋90°',()=>{rotate(90); return false}];
-	const CMD_VIEW_ORG = ['view_org', '查看原图', ()=>{viewOriginal();}];
-	const CMD_DOWNLOAD = ['download', '下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);}];
-	const CMD_OPTION = ['option', '选项', ()=>{showOptionDialog();}];
+	const CMD_CLOSE = ['close', '关闭', () => {
+		destroy();
+	}];
+	const CMD_NAV_TO = ['nav_to', '关闭', (target) => {
+		navTo(target.getAttribute('data-dir') !== '1');
+	}];
+	const CMD_SWITCH_TO = ['switch_to', '关闭', (target) => {
+		switchTo(target.getAttribute('data-index'));
+	}];
+	const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', () => {
+		thumbScroll();
+	}];
+	const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', () => {
+		thumbScroll();
+	}];
+	const CMD_ZOOM_OUT = ['zoom_out', '放大', () => {
+		zoom(ZOOM_OUT_RATIO);
+		return false
+	}];
+	const CMD_ZOOM_IN = ['zoom_in', '缩小', () => {
+		zoom(ZOOM_IN_RATIO);
+		return false
+	}];
+	const CMD_ZOOM_ORG = ['zoom_org', '原始比例', () => {
+		zoom(null);
+		return false
+	}];
+	const CMD_ROTATE_LEFT = ['rotate_left', '左旋90°', () => {
+		rotate(-90);
+		return false
+	}];
+	const CMD_ROTATE_RIGHT = ['rotate_right', '右旋90°', () => {
+		rotate(90);
+		return false
+	}];
+	const CMD_VIEW_ORG = ['view_org', '查看原图', () => {
+		viewOriginal();
+	}];
+	const CMD_DOWNLOAD = ['download', '下载图片', () => {
+		downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
+	}];
+	const CMD_OPTION = ['option', '选项', () => {
+		showOptionDialog();
+	}];
 
 	//srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
 	// ① src或[src]: 只有一种图源模式；
@@ -3844,7 +3957,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		show_toolbar: true,
 		show_context_menu: true,
 	};
-	let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
+	let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace + 'com-image-viewer/');
 
 	/**
 	 * 解析图片src集合
@@ -3971,18 +4084,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		updateThumbNavState();
 	};
 
-	const updateThumbNavState = ()=>{
-		PREVIEW_DOM.querySelectorAll(`.civ-nav-list .civ-nav-thumb`).forEach(item=>item.classList.remove('active'));
+	const updateThumbNavState = () => {
+		PREVIEW_DOM.querySelectorAll(`.civ-nav-list .civ-nav-thumb`).forEach(item => item.classList.remove('active'));
 		PREVIEW_DOM.querySelector(`.civ-nav-list .civ-nav-thumb[data-index="${IMG_CURRENT_INDEX}"]`).classList.add('active');
 	};
 
-	const listenSelector = (parentNode, selector, event, handler)=>{
-		parentNode.querySelectorAll(selector).forEach(target=>{
+	const listenSelector = (parentNode, selector, event, handler) => {
+		parentNode.querySelectorAll(selector).forEach(target => {
 			target.addEventListener(event, handler);
 		});
 	};
 
-	const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, spacing = 0, zoomIn = false}) => {
+	const scaleFixCenter = ({
+								contentWidth,
+								contentHeight,
+								containerWidth,
+								containerHeight,
+								spacing = 0,
+								zoomIn = false
+							}) => {
 		if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 			return {
 				width: contentWidth,
@@ -4088,9 +4208,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			<span class="civ-nav-list-prev" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
-				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
-					return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
-				},"")}
+				${IMG_SRC_LIST.reduce((preStr, item, idx) => {
+			return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+		}, "")}
 				</div>
 			</div>
 			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT[0]}"></span>
@@ -4099,9 +4219,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		let option_html = `
 	<span class="civ-view-option">
-		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo,idx)=>{
-			return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
-		},"")}
+		${TOOLBAR_OPTIONS.reduce((lastVal, cmdInfo, idx) => {
+		return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
+	}, "")}
 	</span>`;
 
 		PREVIEW_DOM = createDomByHtml(`
@@ -4119,11 +4239,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		</div>
 	`, document.body);
 
-		LocalSetting.each((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
-		LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM && PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+		LocalSetting.each((k, v) => {
+			PREVIEW_DOM.setAttribute(k, JSON.stringify(v));
+		});
+		LocalSetting.onUpdated((k, v) => {
+			PREVIEW_DOM && PREVIEW_DOM.setAttribute(k, JSON.stringify(v));
+		});
 
 		//bind close click & space click
-		eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
+		eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target => {
 			let cmd = target.getAttribute('data-cmd');
 			if(target.getAttribute(DISABLED_ATTR_KEY)){
 				return false;
@@ -4142,7 +4266,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 
 		//bind scroll zoom
-		listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e=>{
+		listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e => {
 			switch(LocalSetting.get('mouse_scroll_type')){
 				case IMG_PREVIEW_MS_SCROLL_TYPE_SCALE:
 					zoom(e.wheelDelta > 0 ? ZOOM_OUT_RATIO : ZOOM_IN_RATIO);
@@ -4163,7 +4287,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		document.addEventListener('keyup', bindKeyUp);
 	};
 
-	const bindKeyUp = (e)=>{
+	const bindKeyUp = (e) => {
 		if(e.keyCode === KEYS.Esc){
 			destroy();
 		}
@@ -4220,13 +4344,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		updateNavState();
 	};
 
-	const switchTo = (index)=>{
+	const switchTo = (index) => {
 		IMG_CURRENT_INDEX = index;
 		showImgSrc(IMG_CURRENT_INDEX);
 		updateNavState();
 	};
 
-	const thumbScroll = (toPrev)=>{
+	const thumbScroll = (toPrev) => {
 		PREVIEW_DOM.querySelector('.civ-nav-list');
 	};
 
@@ -4269,7 +4393,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		img.style.height = dimension2Style(parseInt(img.style.height, 10) * ratioOffset);
 	};
 
-	const rotate = (degreeOffset)=>{
+	const rotate = (degreeOffset) => {
 		let img = PREVIEW_DOM.querySelector('.civ-img img');
 		let rotate = parseInt(img.getAttribute('data-rotate') || 0, 10);
 		let newRotate = rotate + degreeOffset;
@@ -4277,11 +4401,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		img.style.transform = `translate(-50%, -50%) rotate(${newRotate}deg)`;
 	};
 
-	const viewOriginal = ()=>{
+	const viewOriginal = () => {
 		window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 	};
 
-	const showOptionDialog = ()=>{
+	const showOptionDialog = () => {
 		let html = `
 <ul class="${DOM_CLASS}-option-list">
 	<li>
@@ -4305,18 +4429,22 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	</li>
 </ul>
 	`;
-		let dlg = Dialog.show('设置', html, {
-			showMasker:false,
-			modal:false
+		let dlg = DialogClass.show('设置', html, {
+			showMasker: false,
+			modal: false
 		});
-		dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
-		dlg.onClose.listen(()=>{
-			setTimeout(()=>{if(PREVIEW_DOM){Masker.show();}}, 0);
+		dlg.dom.style.zIndex = OPTION_DLG_INDEX + "";
+		dlg.onClose.listen(() => {
+			setTimeout(() => {
+				if(PREVIEW_DOM){
+					Masker.show();
+				}
+			}, 0);
 		});
 		let lsSetterTip = null;
 		formSync(dlg.dom, (name) => {
 			return new Promise((resolve, reject) => {
-				let tmp = convertObjectToFormData({[name]:LocalSetting.get(name)});
+				let tmp = convertObjectToFormData({[name]: LocalSetting.get(name)});
 				resolve(tmp[name]);
 			});
 		}, (name, value) => {
@@ -4324,7 +4452,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				let obj = convertFormDataToObject({[name]: value}, DEFAULT_SETTING);
 				LocalSetting.set(name, obj[name]);
 				lsSetterTip && lsSetterTip.hide();
-				lsSetterTip = Toast.showSuccess('设置已保存');
+				lsSetterTip = ToastClass.showSuccess('设置已保存');
 				resolve();
 			});
 		});
@@ -4376,7 +4504,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} id
 	 * @return {null|Object}
 	 */
-	const getCmdViaID = (id)=>{
+	const getCmdViaID = (id) => {
 		for(let k in ALL_COMMANDS){
 			let [_id] = ALL_COMMANDS[k];
 			if(id === _id){
@@ -4399,15 +4527,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
 	 */
 	const init = ({
-		              mode,
-		              srcList,
-		              mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
-		              startIndex = 0,
-		              showContextMenu = null,
-		              showToolbar = null,
-		              showThumbList = null,
-		              preloadSrcList = null,
-	              }) => {
+					  mode,
+					  srcList,
+					  mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+					  startIndex = 0,
+					  showContextMenu = null,
+					  showToolbar = null,
+					  showThumbList = null,
+					  preloadSrcList = null,
+				  }) => {
 		destroy();
 		CURRENT_MODE = mode;
 		IMG_SRC_LIST = srcList;
@@ -4419,9 +4547,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		showContextMenu !== null && LocalSetting.set('show_context_menu', showContextMenu);
 
 		constructDom();
-		showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
+		showImgSrc(IMG_CURRENT_INDEX).finally(() => {
 			if(preloadSrcList){
-				srcList.forEach(src=>{new Image().src = src;});
+				srcList.forEach(src => {
+					new Image().src = src;
+				});
 			}
 		});
 		if(mode === IMG_PREVIEW_MODE_MULTIPLE){
@@ -4435,7 +4565,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {Object} option
 	 */
 	const showImgPreview = (imgSrc, option = {}) => {
-		init({mode:IMG_PREVIEW_MODE_SINGLE, srcList:[imgSrc], ...option});
+		init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 	};
 
 	/**
@@ -4445,7 +4575,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {Object} option
 	 */
 	const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
-		init({mode:IMG_PREVIEW_MODE_MULTIPLE, srcList:imgSrcList, startIndex, ...option});
+		init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 	};
 
 	/**
@@ -4463,7 +4593,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			return;
 		}
 		Array.from(nodes).forEach((node, idx) => {
-			switch(typeof(srcFetcher)){
+			switch(typeof (srcFetcher)){
 				case 'function':
 					imgSrcList.push(srcFetcher(node));
 					break;
@@ -4471,7 +4601,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					imgSrcList.push(node.getAttribute(srcFetcher));
 					break;
 				default:
-					throw "No support srcFetcher types:"+typeof(srcFetcher);
+					throw "No support srcFetcher types:" + typeof (srcFetcher);
 			}
 			node.addEventListener(triggerEvent, e => {
 				if(nodes.length > 1){
@@ -4482,6 +4612,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			});
 		});
 	};
+
+	window[COM_ID] = {
+		showImgPreview,
+		showImgListPreview,
+		bindImgPreviewViaSelector,
+	};
+	let CONTEXT_WINDOW = getContextWindow();
+	let showImgPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || showImgPreview;
+	let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || showImgListPreview;
+	let bindImgPreviewViaSelectorFn = CONTEXT_WINDOW[COM_ID]['bindImgPreviewViaSelector'] || bindImgPreviewViaSelector;
 
 	let last_active_ladder = null;
 	let ladder_scrolling = false;
@@ -5255,18 +5395,28 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 
 	class ACAsync {
+		//默认成功回调处理函数
+		static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
+			let next = () => {
+				if(rsp.forward_url){
+					parent.location.href = rsp.forward_url;
+				}else {
+					parent.location.reload();
+				}
+			};
+			rsp.message ? ToastClass.showSuccess(rsp.message, next) : next();
+		};
+
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
 				let url = param.url,
 					data = param.data,
 					method = param.method,
-					onsuccess = param.onsuccess || function(){
-						location.reload();
-					};
+					onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
 				if(node.tagName === 'FORM'){
 					url = node.action;
 					data = formSerializeJSON(node);
-					method = node.method.toLowerCase() === 'post' ? 'get' : 'post';
+					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 				}else if(node.tagName === 'A'){
 					url = node.href;
 				}
@@ -5275,44 +5425,26 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				url = param.url || url;
 				method = param.method || method;
 				data = param.data || data;
-				requestJSON(url, data, method).then(() => {
-					onsuccess();
-					resolve();
+				requestJSON(url, data, method).then(rsp => {
+					if(rsp.code === 0){
+						onsuccess(rsp);
+						resolve();
+					}else {
+						ToastClass.showError(rsp.message || '系统错误');
+					}
 				}, err => {
-					Toast.showError(err);
-					reject(err);
+					ToastClass.showError(err);
 				});
 			})
 		}
 	}
-
-	const requestJSON = (url, data, method) => {
-		return new Promise((resolve, reject) => {
-			fetch(url, {
-				method: method.toUpperCase(),
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(data)
-			}).then(rsp => rsp.json()).then(rsp => {
-				if(rsp.code === 0){
-					resolve(rsp.data);
-				}else {
-					reject(rsp.message || '系统错误');
-				}
-			}).catch(err => {
-				reject(err);
-			});
-		});
-	};
 
 	class ACConfirm {
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
 				let title = param.title;
 				let message = param.message;
-				Dialog.confirm(title || '确认', message).then(resolve, reject);
+				DialogClass.confirm(title || '确认', message).then(resolve, reject);
 			});
 		}
 	}
@@ -5336,7 +5468,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				if(url){
 					content = {src: url};
 				}
-				Dialog.show(title || '对话框', content, param);
+				DialogClass.show(title || '对话框', content, param);
 			})
 		}
 	}
@@ -5354,8 +5486,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
 				let message = param.message || '提示信息';
-				let type = param.type || Toast.TYPE_INFO;
-				Toast.showToast(message, type, Toast.DEFAULT_TIME_MAP[type], resolve);
+				let type = param.type || ToastClass.TYPE_INFO;
+				ToastClass.showToast(message, type, ToastClass.DEFAULT_TIME_MAP[type], resolve);
 			});
 		}
 	}
@@ -5414,6 +5546,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					return false;
 				}
 				let data = resolveDataParam(node, com);
+				console.info('com detected:', com);
 				if(C.init){
 					C.init(node, data);
 				}
@@ -5422,7 +5555,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 				return true;
 			});
-
 			if(activeStacks.length){
 				bindActiveChain(node, activeStacks);
 			}
@@ -5502,7 +5634,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
-	exports.Dialog = Dialog;
+	exports.Dialog = DialogClass;
 	exports.DialogManager = DialogManager;
 	exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;
 	exports.FILE_TYPE_DOC = FILE_TYPE_DOC;
@@ -5537,7 +5669,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.Theme = Theme;
 	exports.Thumb = Thumb;
 	exports.Tip = Tip;
-	exports.Toast = Toast;
+	exports.Toast = ToastClass;
 	exports.Toc = Toc;
 	exports.UPLOAD_ERROR_FILE_EMPTY = UPLOAD_ERROR_FILE_EMPTY;
 	exports.UPLOAD_ERROR_FILE_SIZE_OVERLOAD = UPLOAD_ERROR_FILE_SIZE_OVERLOAD;
@@ -5554,7 +5686,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.base64UrlSafeEncode = base64UrlSafeEncode;
 	exports.between = between;
 	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
-	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
+	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelectorFn;
 	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.buttonActiveBind = buttonActiveBind;
@@ -5587,6 +5719,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
 	exports.getAvailableElements = getAvailableElements;
+	exports.getContextDocument = getContextDocument;
+	exports.getContextWindow = getContextWindow;
 	exports.getCurrentScript = getCurrentScript;
 	exports.getDomDimension = getDomDimension;
 	exports.getDomOffset = getDomOffset;
@@ -5634,16 +5768,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.rectInLayout = rectInLayout;
 	exports.regQuote = regQuote;
 	exports.repaint = repaint;
+	exports.requestJSON = requestJSON;
 	exports.resetFormChangedState = resetFormChangedState;
 	exports.resolveFileExtension = resolveFileExtension;
 	exports.resolveFileName = resolveFileName;
 	exports.resolveTocListFromDom = resolveTocListFromDom;
 	exports.round = round;
+	exports.setContextWindow = setContextWindow;
 	exports.setHash = setHash;
 	exports.setStyle = setStyle;
 	exports.show = show;
-	exports.showImgListPreview = showImgListPreview;
-	exports.showImgPreview = showImgPreview;
+	exports.showImgListPreview = showImgListPreviewFn;
+	exports.showImgPreview = showImgPreviewFn;
 	exports.showMenu = showMenu;
 	exports.sortByKey = sortByKey;
 	exports.strToPascalCase = strToPascalCase;

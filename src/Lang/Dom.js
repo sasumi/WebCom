@@ -149,12 +149,12 @@ export const keepRectCenter = (width, height, containerDimension = {
 	];
 }
 
-export const keepDomInContainer = (target, container = document.body)=>{
+export const keepDomInContainer = (target, container = document.body) => {
 	let ret = keepRectInContainer({
 		left: target.left,
 		top: target.top,
-		width:target.clientWidth,
-		height:target.clientHeight,
+		width: target.clientWidth,
+		height: target.clientHeight,
 	}, {}, posAbs = true);
 }
 
@@ -213,7 +213,7 @@ export const keepRectInContainer = (objDim, ctnDim = {
  * @param {HTMLElement} dom
  * @return {{width: number, height: number}}
  */
-export const getDomDimension = (dom)=>{
+export const getDomDimension = (dom) => {
 	let org_visibility = dom.style.visibility;
 	let org_display = dom.style.display;
 	let width, height;
@@ -325,9 +325,9 @@ export const loadScript = (src, forceReload = false) => {
  * @param {String} id
  * @return {HTMLStyleElement}
  */
-export const insertStyleSheet = (styleSheetStr, id = '') => {
-	let style = document.createElement('style');
-	document.head.appendChild(style);
+export const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
+	let style = doc.createElement('style');
+	doc.head.appendChild(style);
 	style.innerHTML = styleSheetStr;
 	if(id){
 		style.id = id;
@@ -492,4 +492,42 @@ export const toggleFullScreen = (element) => {
  */
 export const isInFullScreen = () => {
 	return !!document.fullscreenElement;
+}
+
+let CURRENT_WINDOW;
+
+/**
+ * @param win
+ */
+export const setContextWindow = (win) => {
+	CURRENT_WINDOW = win;
+}
+
+/**
+ * 获取当前上下文 文档，缺省为获取top
+ * @return {Document}
+ */
+export const getContextDocument = () => {
+	let win = getContextWindow();
+	return win.document;
+};
+
+/**
+ * 获取上下文窗口
+ * @return {Window}
+ */
+export const getContextWindow = () => {
+	if(CURRENT_WINDOW){
+		return CURRENT_WINDOW;
+	}
+	let win;
+	try{
+		win = window;
+		while(win != win.parent){
+			win = win.parent;
+		}
+	}catch(err){
+		console.warn('context window assign fail:', err);
+	}
+	return win || window;
 }

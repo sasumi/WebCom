@@ -5,23 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="../src/index.js" type="module"></script>
+    <style>
+        iframe {width:300px; height:300px; display:inline-block; border:3px solid gray;}
+    </style>
 </head>
 <body>
-<style>
-    body {background-color:green; color:white;}
-</style>
-Iframe here
-
-<input type="button" value="Call parent dialog" id="btn">
-<script type="module">
-    document.getElementById('btn').addEventListener('click', e=>{
-        top.WEBCOM_GET_LIB_MODULE().then(rsp=>{
-            let Dialog = rsp.Dialog;
-            console.log(rsp);
-            console.log(Dialog);
-            Dialog.confirm('asdfasdf', 'asdfasfasdf');
-        });
-    })
-</script>
+<iframe src="toast.html" frameborder="0" ></iframe>
+<iframe src="dialog.html" frameborder="0" ></iframe>
+<iframe src="imgpreview.html" frameborder="0" ></iframe>
 </body>
 </html>

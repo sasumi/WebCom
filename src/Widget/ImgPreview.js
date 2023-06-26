@@ -1,4 +1,4 @@
-import {createDomByHtml, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
+import {createDomByHtml, getContextWindow, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/String.js";
@@ -11,7 +11,8 @@ import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
 import {bindTargetContextMenu} from "./Menu.js";
 
-const DOM_CLASS = Theme.Namespace + 'com-image-viewer';
+const COM_ID = Theme.Namespace + 'com-image-viewer'
+const DOM_CLASS = COM_ID;
 
 const DEFAULT_VIEW_PADDING = 20;
 const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
@@ -32,7 +33,7 @@ const GRID_IMG_BG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAA
 
 const BASE_INDEX = Theme.FullScreenModeIndex;
 const OP_INDEX = BASE_INDEX + 1;
-const OPTION_DLG_INDEX = BASE_INDEX+2;
+const OPTION_DLG_INDEX = BASE_INDEX + 2;
 
 export const IMG_PREVIEW_MODE_SINGLE = 1;
 export const IMG_PREVIEW_MODE_MULTIPLE = 2;
@@ -45,19 +46,50 @@ let PREVIEW_DOM = null;
 let CURRENT_MODE = 0;
 
 //id, title, payload
-const CMD_CLOSE = ['close', '关闭',()=>{destroy()}];
-const CMD_NAV_TO = ['nav_to', '关闭', (target)=>{navTo(target.getAttribute('data-dir') !== '1');}];
-const CMD_SWITCH_TO = ['switch_to', '关闭',(target)=>{switchTo(target.getAttribute('data-index'));}];
-const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', ()=>{thumbScroll(-1)}];
-const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', ()=>{thumbScroll(1)}];
-const CMD_ZOOM_OUT = ['zoom_out', '放大',()=>{zoom(ZOOM_OUT_RATIO); return false}];
-const CMD_ZOOM_IN = ['zoom_in', '缩小', ()=>{zoom(ZOOM_IN_RATIO); return false}];
-const CMD_ZOOM_ORG = ['zoom_org', '原始比例',()=>{zoom(null); return false}];
-const CMD_ROTATE_LEFT = ['rotate_left', '左旋90°', ()=>{rotate(-90); return false}];
-const CMD_ROTATE_RIGHT = ['rotate_right', '右旋90°',()=>{rotate(90); return false}];
-const CMD_VIEW_ORG = ['view_org', '查看原图', ()=>{viewOriginal()}];
-const CMD_DOWNLOAD = ['download', '下载图片',()=>{downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original)}];
-const CMD_OPTION = ['option', '选项', ()=>{showOptionDialog()}];
+const CMD_CLOSE = ['close', '关闭', () => {
+	destroy()
+}];
+const CMD_NAV_TO = ['nav_to', '关闭', (target) => {
+	navTo(target.getAttribute('data-dir') !== '1');
+}];
+const CMD_SWITCH_TO = ['switch_to', '关闭', (target) => {
+	switchTo(target.getAttribute('data-index'));
+}];
+const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', () => {
+	thumbScroll(-1)
+}];
+const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', () => {
+	thumbScroll(1)
+}];
+const CMD_ZOOM_OUT = ['zoom_out', '放大', () => {
+	zoom(ZOOM_OUT_RATIO);
+	return false
+}];
+const CMD_ZOOM_IN = ['zoom_in', '缩小', () => {
+	zoom(ZOOM_IN_RATIO);
+	return false
+}];
+const CMD_ZOOM_ORG = ['zoom_org', '原始比例', () => {
+	zoom(null);
+	return false
+}];
+const CMD_ROTATE_LEFT = ['rotate_left', '左旋90°', () => {
+	rotate(-90);
+	return false
+}];
+const CMD_ROTATE_RIGHT = ['rotate_right', '右旋90°', () => {
+	rotate(90);
+	return false
+}];
+const CMD_VIEW_ORG = ['view_org', '查看原图', () => {
+	viewOriginal()
+}];
+const CMD_DOWNLOAD = ['download', '下载图片', () => {
+	downloadFile(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original)
+}];
+const CMD_OPTION = ['option', '选项', () => {
+	showOptionDialog()
+}];
 
 //srcset支持格式请使用 srcSetResolve 进行解析使用，规则如下
 // ① src或[src]: 只有一种图源模式；
@@ -73,7 +105,7 @@ const DEFAULT_SETTING = {
 	show_toolbar: true,
 	show_context_menu: true,
 };
-let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace+'com-image-viewer/');
+let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace + 'com-image-viewer/');
 
 /**
  * 解析图片src集合
@@ -200,27 +232,34 @@ const updateNavState = () => {
 	updateThumbNavState();
 }
 
-const updateThumbNavState = ()=>{
-	PREVIEW_DOM.querySelectorAll(`.civ-nav-list .civ-nav-thumb`).forEach(item=>item.classList.remove('active'));
+const updateThumbNavState = () => {
+	PREVIEW_DOM.querySelectorAll(`.civ-nav-list .civ-nav-thumb`).forEach(item => item.classList.remove('active'));
 	PREVIEW_DOM.querySelector(`.civ-nav-list .civ-nav-thumb[data-index="${IMG_CURRENT_INDEX}"]`).classList.add('active');
 }
 
-const listenSelector = (parentNode, selector, event, handler)=>{
-	parentNode.querySelectorAll(selector).forEach(target=>{
+const listenSelector = (parentNode, selector, event, handler) => {
+	parentNode.querySelectorAll(selector).forEach(target => {
 		target.addEventListener(event, handler);
 	});
 }
 
-const activeSelector = (parentNode, selector, handler)=>{
+const activeSelector = (parentNode, selector, handler) => {
 	listenSelector(parentNode, selector, 'click', handler);
-	listenSelector(parentNode, selector, 'keyup', e=>{
+	listenSelector(parentNode, selector, 'keyup', e => {
 		if(e.keyCode === KEYS.Enter){
 			handler(e);
 		}
 	});
 }
 
-const scaleFixCenter = ({contentWidth, contentHeight, containerWidth, containerHeight, spacing = 0, zoomIn = false}) => {
+const scaleFixCenter = ({
+							contentWidth,
+							contentHeight,
+							containerWidth,
+							containerHeight,
+							spacing = 0,
+							zoomIn = false
+						}) => {
 	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 		return {
 			width: contentWidth,
@@ -326,9 +365,9 @@ const constructDom = () => {
 			<span class="civ-nav-list-prev" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
-				${IMG_SRC_LIST.reduce((preStr, item, idx)=>{
-					return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
-				},"")}
+				${IMG_SRC_LIST.reduce((preStr, item, idx) => {
+			return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+		}, "")}
 				</div>
 			</div>
 			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT[0]}"></span>
@@ -337,9 +376,9 @@ const constructDom = () => {
 
 	let option_html = `
 	<span class="civ-view-option">
-		${TOOLBAR_OPTIONS.reduce((lastVal,cmdInfo,idx)=>{
-			return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
-		},"")}
+		${TOOLBAR_OPTIONS.reduce((lastVal, cmdInfo, idx) => {
+		return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
+	}, "")}
 	</span>`;
 
 	PREVIEW_DOM = createDomByHtml(`
@@ -357,11 +396,15 @@ const constructDom = () => {
 		</div>
 	`, document.body);
 
-	LocalSetting.each((k, v)=>{PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
-	LocalSetting.onUpdated((k, v)=>{PREVIEW_DOM && PREVIEW_DOM.setAttribute(k, JSON.stringify(v));});
+	LocalSetting.each((k, v) => {
+		PREVIEW_DOM.setAttribute(k, JSON.stringify(v));
+	});
+	LocalSetting.onUpdated((k, v) => {
+		PREVIEW_DOM && PREVIEW_DOM.setAttribute(k, JSON.stringify(v));
+	});
 
 	//bind close click & space click
-	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target=>{
+	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target => {
 		let cmd = target.getAttribute('data-cmd');
 		if(target.getAttribute(DISABLED_ATTR_KEY)){
 			return false;
@@ -380,7 +423,7 @@ const constructDom = () => {
 	});
 
 	//bind scroll zoom
-	listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e=>{
+	listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e => {
 		switch(LocalSetting.get('mouse_scroll_type')){
 			case IMG_PREVIEW_MS_SCROLL_TYPE_SCALE:
 				zoom(e.wheelDelta > 0 ? ZOOM_OUT_RATIO : ZOOM_IN_RATIO);
@@ -403,7 +446,7 @@ const constructDom = () => {
 	document.addEventListener('keyup', bindKeyUp);
 };
 
-const bindKeyUp = (e)=>{
+const bindKeyUp = (e) => {
 	if(e.keyCode === KEYS.Esc){
 		destroy();
 	}
@@ -460,13 +503,13 @@ const navTo = (toPrev = false) => {
 	updateNavState();
 }
 
-const switchTo = (index)=>{
+const switchTo = (index) => {
 	IMG_CURRENT_INDEX = index;
 	showImgSrc(IMG_CURRENT_INDEX);
 	updateNavState();
 }
 
-const thumbScroll = (toPrev)=>{
+const thumbScroll = (toPrev) => {
 	let $thumb_list = PREVIEW_DOM.querySelector('.civ-nav-list');
 }
 
@@ -509,7 +552,7 @@ const zoom = (ratioOffset) => {
 	img.style.height = dimension2Style(parseInt(img.style.height, 10) * ratioOffset);
 }
 
-const rotate = (degreeOffset)=>{
+const rotate = (degreeOffset) => {
 	let img = PREVIEW_DOM.querySelector('.civ-img img');
 	let rotate = parseInt(img.getAttribute('data-rotate') || 0, 10);
 	let newRotate = rotate + degreeOffset;
@@ -517,11 +560,11 @@ const rotate = (degreeOffset)=>{
 	img.style.transform = `translate(-50%, -50%) rotate(${newRotate}deg)`;
 }
 
-const viewOriginal = ()=>{
+const viewOriginal = () => {
 	window.open(srcSetResolve(IMG_SRC_LIST[IMG_CURRENT_INDEX]).original);
 };
 
-const showOptionDialog = ()=>{
+const showOptionDialog = () => {
 	let html = `
 <ul class="${DOM_CLASS}-option-list">
 	<li>
@@ -546,17 +589,21 @@ const showOptionDialog = ()=>{
 </ul>
 	`
 	let dlg = Dialog.show('设置', html, {
-		showMasker:false,
-		modal:false
+		showMasker: false,
+		modal: false
 	});
-	dlg.dom.style.zIndex = OPTION_DLG_INDEX+"";
-	dlg.onClose.listen(()=>{
-		setTimeout(()=>{if(PREVIEW_DOM){Masker.show();}}, 0);
+	dlg.dom.style.zIndex = OPTION_DLG_INDEX + "";
+	dlg.onClose.listen(() => {
+		setTimeout(() => {
+			if(PREVIEW_DOM){
+				Masker.show();
+			}
+		}, 0);
 	});
 	let lsSetterTip = null;
 	formSync(dlg.dom, (name) => {
 		return new Promise((resolve, reject) => {
-			let tmp = convertObjectToFormData({[name]:LocalSetting.get(name)});
+			let tmp = convertObjectToFormData({[name]: LocalSetting.get(name)});
 			resolve(tmp[name]);
 		});
 	}, (name, value) => {
@@ -616,7 +663,7 @@ const CONTEXT_MENU_OPTIONS = [
  * @param {String} id
  * @return {null|Object}
  */
-const getCmdViaID = (id)=>{
+const getCmdViaID = (id) => {
 	for(let k in ALL_COMMANDS){
 		let [_id] = ALL_COMMANDS[k];
 		if(id === _id){
@@ -639,15 +686,15 @@ const getCmdViaID = (id)=>{
  * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
-	              mode,
-	              srcList,
-	              mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
-	              startIndex = 0,
-	              showContextMenu = null,
-	              showToolbar = null,
-	              showThumbList = null,
-	              preloadSrcList = null,
-              }) => {
+				  mode,
+				  srcList,
+				  mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+				  startIndex = 0,
+				  showContextMenu = null,
+				  showToolbar = null,
+				  showThumbList = null,
+				  preloadSrcList = null,
+			  }) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
@@ -659,9 +706,11 @@ const init = ({
 	showContextMenu !== null && LocalSetting.set('show_context_menu', showContextMenu);
 
 	constructDom();
-	showImgSrc(IMG_CURRENT_INDEX).finally(()=>{
+	showImgSrc(IMG_CURRENT_INDEX).finally(() => {
 		if(preloadSrcList){
-			srcList.forEach(src=>{new Image().src = src});
+			srcList.forEach(src => {
+				new Image().src = src
+			});
 		}
 	});
 	if(mode === IMG_PREVIEW_MODE_MULTIPLE){
@@ -674,8 +723,8 @@ const init = ({
  * @param {String} imgSrc
  * @param {Object} option
  */
-export const showImgPreview = (imgSrc, option = {}) => {
-	init({mode:IMG_PREVIEW_MODE_SINGLE, srcList:[imgSrc], ...option});
+const showImgPreview = (imgSrc, option = {}) => {
+	init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 }
 
 /**
@@ -684,8 +733,8 @@ export const showImgPreview = (imgSrc, option = {}) => {
  * @param {Number} startIndex
  * @param {Object} option
  */
-export const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
-	init({mode:IMG_PREVIEW_MODE_MULTIPLE, srcList:imgSrcList, startIndex, ...option});
+const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
+	init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 }
 
 /**
@@ -695,7 +744,7 @@ export const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
  * @param {String|Function} srcFetcher 获取大图src的选择器，或者函数，如果是函数传入第一个参数为触发节点
  * @param {Object} option
  */
-export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
+const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
 	let nodes = document.querySelectorAll(nodeSelector);
 	let imgSrcList = [];
 	if(!nodes.length){
@@ -703,7 +752,7 @@ export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = '
 		return;
 	}
 	Array.from(nodes).forEach((node, idx) => {
-		switch(typeof(srcFetcher)){
+		switch(typeof (srcFetcher)){
 			case 'function':
 				imgSrcList.push(srcFetcher(node));
 				break;
@@ -711,7 +760,7 @@ export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = '
 				imgSrcList.push(node.getAttribute(srcFetcher));
 				break;
 			default:
-				throw "No support srcFetcher types:"+typeof(srcFetcher);
+				throw "No support srcFetcher types:" + typeof (srcFetcher);
 		}
 		node.addEventListener(triggerEvent, e => {
 			if(nodes.length > 1){
@@ -721,4 +770,20 @@ export const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = '
 			}
 		})
 	});
+}
+
+window[COM_ID] = {
+	showImgPreview,
+	showImgListPreview,
+	bindImgPreviewViaSelector,
+};
+let CONTEXT_WINDOW = getContextWindow();
+let showImgPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || showImgPreview;
+let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || showImgListPreview;
+let bindImgPreviewViaSelectorFn = CONTEXT_WINDOW[COM_ID]['bindImgPreviewViaSelector'] || bindImgPreviewViaSelector;
+
+export {
+	showImgPreviewFn as showImgPreview,
+	showImgListPreviewFn as showImgListPreview,
+	bindImgPreviewViaSelectorFn as bindImgPreviewViaSelector,
 }
