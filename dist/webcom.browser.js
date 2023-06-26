@@ -4034,7 +4034,7 @@ var WebCom = (function (exports) {
 	.${DOM_CLASS} .civ-ctn{height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-error{margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
-	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"WebCom-iconfont" !important; animation:WebCom-spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size);}
+	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"WebCom-iconfont" !important; animation:WebCom-spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size); line-height:var(--loading-size)}
 	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
 	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
 
