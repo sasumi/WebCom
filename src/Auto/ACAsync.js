@@ -1,7 +1,14 @@
 import {Toast} from "../Widget/Toast.js";
 import {formSerializeJSON} from "../Lang/Form.js";
-import {mergerUriParam, requestJSON} from "../Lang/Net.js";
+import {requestJSON} from "../Lang/Net.js";
 
+/**
+ * 异步组件
+ * 参数：
+ * node[data-async-url] | a[href] | form[action] 请求url
+ * node[data-async-method] | form[method] 请求方法，缺省为GET
+ * node[data-async-data] | form{*} 请求数据
+ */
 export class ACAsync {
 	//默认成功回调处理函数
 	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {

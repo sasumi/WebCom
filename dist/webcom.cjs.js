@@ -5400,6 +5400,13 @@ class Uploader {
 	onError = new BizEvent();
 }
 
+/**
+ * 异步组件
+ * 参数：
+ * node[data-async-url] | a[href] | form[action] 请求url
+ * node[data-async-method] | form[method] 请求方法，缺省为GET
+ * node[data-async-data] | form{*} 请求数据
+ */
 class ACAsync {
 	//默认成功回调处理函数
 	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
@@ -5448,6 +5455,12 @@ class ACAsync {
 	}
 }
 
+/**
+ * 确认对话框
+ * 参数：
+ * node[data-confirm-title] 标题，缺省为”确认“
+ * node[data-confirm-message] 内容
+ */
 class ACConfirm {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
@@ -5464,6 +5477,13 @@ class ACCopy {
 	}
 }
 
+/**
+ * 对话框组件
+ * 参数：
+ * node[data-dialog-url] iframe对话框页面地址
+ * node[data-content] 对话框内容
+ * a[title] | node[text] 对话框标题
+ */
 class ACDialog {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {

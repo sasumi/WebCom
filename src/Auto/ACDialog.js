@@ -1,6 +1,13 @@
 import {Dialog} from "../Widget/Dialog.js";
 import {cutString} from "../Lang/String.js";
 
+/**
+ * 对话框组件
+ * 参数：
+ * node[data-dialog-url] iframe对话框页面地址
+ * node[data-content] 对话框内容
+ * a[title] | node[text] 对话框标题
+ */
 export class ACDialog {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
