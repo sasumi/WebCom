@@ -22,6 +22,25 @@ export const loadImgBySrc = (src)=>{
 }
 
 /**
+ * 从 img.srcset 属性中解析出最高分辨率突破
+ * @param {String} srcset_str
+ * @return {string}
+ */
+export const getHighestResFromSrcSet = (srcset_str) => {
+	return srcset_str
+		.split(",")
+		.reduce(
+			(acc, item) => {
+				let [url, width] = item.trim().split(" ");
+				width = parseInt(width);
+				if(width > acc.width) return {width, url};
+				return acc;
+			},
+			{width: 0, url: ""}
+		).url;
+}
+
+/**
  * 通过ImageSrc获取base64（网络请求模式）
  * @param src
  * @returns {Promise<unknown>}
