@@ -110,3 +110,16 @@ export const chunk = (list, size) => {
 	}
 	return res;
 };
+export const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+	let segments = path.split(glue),
+		cursor = srcObj,
+		segment,
+		i;
+
+	for(i = 0; i < segments.length - 1; ++i){
+		segment = segments[i];
+		cursor = cursor[segment] = cursor[segment] || {};
+	}
+
+	return cursor[segments[i]] = value;
+}

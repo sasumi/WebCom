@@ -460,6 +460,7 @@ export class Dialog {
 
 	onClose = new BizEvent(true);
 	onShow = new BizEvent(true);
+	innerEvent = new BizEvent(true);
 
 	config = {
 		id: null, //对话框ID，缺省为自动生成

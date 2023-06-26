@@ -13,7 +13,7 @@ var WebCom = (function (exports) {
 	 * @param col_name
 	 * @returns {Array}
 	 */
-	const arrayColumn = (arr, col_name)=>{
+	const arrayColumn = (arr, col_name) => {
 		let data = [];
 		for(let i in arr){
 			data.push(arr[i][col_name]);
@@ -21,7 +21,7 @@ var WebCom = (function (exports) {
 		return data;
 	};
 
-	const arrayIndex = (arr, val)=>{
+	const arrayIndex = (arr, val) => {
 		for(let i in arr){
 			if(arr[i] === val){
 				return i;
@@ -30,7 +30,7 @@ var WebCom = (function (exports) {
 		return null;
 	};
 
-	const isEquals = (obj1,obj2)=>{
+	const isEquals = (obj1, obj2) => {
 		let keys1 = Object.keys(obj1);
 		let keys2 = Object.keys(obj2);
 		//return true when the two json has same length and all the properties has same value key by key
@@ -42,7 +42,7 @@ var WebCom = (function (exports) {
 	 * @param {Array} arr
 	 * @returns {*}
 	 */
-	const arrayDistinct = (arr)=>{
+	const arrayDistinct = (arr) => {
 		let tmpMap = new Map();
 		return arr.filter(item => {
 			if(!tmpMap.has(item)){
@@ -59,12 +59,12 @@ var WebCom = (function (exports) {
 	 * @param limit limit one child
 	 * @returns {*}
 	 */
-	const arrayGroup = (arr, by_key, limit)=>{
+	const arrayGroup = (arr, by_key, limit) => {
 		if(!arr || !arr.length){
 			return arr;
 		}
 		let tmp_rst = {};
-		arr.forEach(item=>{
+		arr.forEach(item => {
 			let k = item[by_key];
 			if(!tmp_rst[k]){
 				tmp_rst[k] = [];
@@ -81,43 +81,18 @@ var WebCom = (function (exports) {
 		return rst;
 	};
 
-	/**
-	 * 按照对象 KEY 排序
-	 * @param {Object} obj
-	 * @param {String} dir
-	 * @return {{}}
-	 */
-	const sortByKey = (obj, dir = 'asc') => {
-		return Object.keys(obj).sort().reduce(function(result, key){
-			result[key] = obj[key];
-			return result;
-		}, {});
-	};
+	const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+		let segments = path.split(glue),
+			cursor = srcObj,
+			segment,
+			i;
 
-	/**
-	 * 数组分块
-	 * @param {Array} list 数据
-	 * @param {Number} size 每块大小
-	 * @return {Array[]}
-	 */
-	const chunk = (list, size) => {
-		let len = list.length;
-		if (size < 1 || !len) {
-			return [];
+		for(i = 0; i < segments.length - 1; ++i){
+			segment = segments[i];
+			cursor = cursor[segment] = cursor[segment] || {};
 		}
-		if (size > len) {
-			return [list];
-		}
-		let res = [];
-		let integer = Math.floor(len / size);
-		let rest = len % size;
-		for (let i = 1; i <= integer; i++) {
-			res.push(list.splice(0, size));
-		}
-		if (rest) {
-			res.push(list.splice(0, rest));
-		}
-		return res;
+
+		return cursor[segments[i]] = value;
 	};
 
 	/**
@@ -889,7 +864,7 @@ var WebCom = (function (exports) {
 	 */
 	const matchParent = (dom, selector) => {
 		let p = dom.parentNode;
-		while(p && p !== document){
+		while(p){
 			if(p.matches(selector)){
 				return p;
 			}
@@ -1105,19 +1080,13 @@ var WebCom = (function (exports) {
 		return _c[file];
 	};
 
-	/**
-	 * 加载script脚本
-	 * @param {String} src 脚本地址
-	 * @param {Boolean} forceReload 是否强制重新加载，缺省为去重加载
-	 * @return {Promise}
-	 */
-	const loadScript = (src, forceReload = false) => {
-		if(!forceReload && _c[src]){
-			return _c[src];
+	const loadScript = (file, forceReload = false) => {
+		if(!forceReload && _c[file]){
+			return _c[file];
 		}
-		_c[src] = new Promise((resolve, reject) => {
+		_c[file] = new Promise((resolve, reject) => {
 			let script = document.createElement('script');
-			script.src = src;
+			script.src = file;
 			script.onload = () => {
 				resolve();
 			};
@@ -1126,7 +1095,7 @@ var WebCom = (function (exports) {
 			};
 			document.head.append(script);
 		});
-		return _c[src];
+		return _c[file];
 	};
 
 	/**
@@ -1458,9 +1427,9 @@ var WebCom = (function (exports) {
 	window.WEBCOM_GET_LIB_MODULE = getLibModule;
 	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
 
-	const NS$1 = 'WebCom-';
-	const ICON_FONT_CLASS = NS$1 + `icon`;
-	const ICON_FONT = NS$1 + 'iconfont';
+	const NS$2 = 'WebCom-';
+	const ICON_FONT_CLASS = NS$2 + `icon`;
+	const ICON_FONT = NS$2 + 'iconfont';
 	const DEFAULT_ICONFONT_CSS = `
 @font-face {
   font-family: "${ICON_FONT}"; /* Project id 3359671 */
@@ -1481,7 +1450,7 @@ var WebCom = (function (exports) {
 	insertStyleSheet(DEFAULT_ICONFONT_CSS);
 
 	const Theme = {
-		Namespace: NS$1,
+		Namespace: NS$2,
 		IconFont: ICON_FONT,
 		IconFontClass: ICON_FONT_CLASS,
 		TipIndex: 10, //功能提示类(指向具体元素)
@@ -2373,98 +2342,6 @@ var WebCom = (function (exports) {
 		}, hz);
 	}
 
-	/**
-	 * 获取指定月份天数
-	 * @param {Number} year
-	 * @param {Number} month 月份，从1开始
-	 * @returns {number}
-	 */
-	const getMonthLastDay = (year, month) => {
-		const date1 = new Date(year, month, 0);
-		return date1.getDate()
-	};
-
-	/**
-	 * 获取指定上一个月份
-	 * @param {Number} year
-	 * @param {Number} month 当前月份，从1开始
-	 * @returns {Array}
-	 */
-	const getLastMonth = (year, month) => {
-		return month === 1 ? [year - 1, 12] : [year, month - 1];
-	};
-
-	/**
-	 * 获取指定下一个月份
-	 * @param {Number} year
-	 * @param {Number} month 当前月份，从1开始
-	 * @returns {Array}
-	 */
-	const getNextMonth = (year, month) => {
-		return month === 12 ? [year + 1, 1] : [year, month + 1];
-	};
-
-	/**
-	 * 格式化时间长度
-	 * @param {Number} micSec 毫秒
-	 * @param {String} delimiter 单位之间的间隔文本
-	 * @return {string}
-	 */
-	const prettyTime = (micSec, delimiter = '') => {
-		let d = 0, h = 0, m = 0, s = 0;
-		if(micSec > ONE_DAY){
-			d = Math.floor(micSec / ONE_DAY);
-			micSec -= d * ONE_DAY;
-		}
-		if(micSec > ONE_HOUR){
-			h = Math.floor(micSec / ONE_HOUR);
-			micSec -= h * ONE_HOUR;
-		}
-		if(micSec > ONE_MINUTE){
-			m = Math.floor(micSec / ONE_MINUTE);
-			micSec -= m * ONE_MINUTE;
-		}
-		if(micSec > 1000){
-			s = Math.floor(micSec / 1000);
-			micSec -= s * 1000;
-		}
-		let txt = '';
-		txt += d ? `${d}天` : '';
-		txt += (txt || h) ? `${delimiter}${h}小` : '';
-		txt += (txt || m) ? `${delimiter}${m}分` : '';
-		txt += (txt || s) ? `${delimiter}${s}秒` : '';
-		return txt.trim();
-	};
-
-	/**
-	 * 指定偏移月数计算
-	 * @param {Number} monthNum
-	 * @param {Date|Null} start_date
-	 * @return {{month: number, year: number}} 返回年、月（以1开始）
-	 */
-	const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
-		let year = start_date.getFullYear();
-		let month = start_date.getMonth()+1;
-		month = month + monthNum;
-		if(month > 12){
-			let yearNum = parseInt((month - 1) / 12);
-			month = month % 12 === 0 ? 12 : month % 12;
-			year += yearNum;
-		}else if(month <= 0){
-			month = Math.abs(month);
-			let yearNum = parseInt((month + 12) / 12);
-			let n = month % 12;
-			if(n === 0){
-				year -= yearNum;
-				month = 12;
-			}else {
-				year -= yearNum;
-				month = Math.abs(12 - n);
-			}
-		}
-		return {year, month}
-	};
-
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_animate = Theme.Namespace + '-toast-rotate';
 	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
@@ -2615,7 +2492,7 @@ var WebCom = (function (exports) {
 		 * @param {Function} timeoutCallback
 		 * @return {Toast}
 		 */
-		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
+		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback) => {
 			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
 			let toast = new Toast(message, Toast.TYPE_LOADING, time);
 			toast.show(timeoutCallback);
@@ -2651,7 +2528,7 @@ var WebCom = (function (exports) {
 		 */
 		hide(fadeOut = false){
 			//稍微容错下，避免setTimeout后没有父节点
-			if(!this.dom || !document.body.contains(this.dom)){
+			if(!document.body.contains(this.dom)){
 				return;
 			}
 			if(fadeOut){
@@ -2662,7 +2539,6 @@ var WebCom = (function (exports) {
 				return;
 			}
 			this.dom.parentNode.removeChild(this.dom);
-			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
 				hide(wrapper);
@@ -4546,71 +4422,71 @@ var WebCom = (function (exports) {
 
 	let TIP_COLLECTION = {};
 	let GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	let NS = Theme.Namespace + 'tip';
+	let NS$1 = Theme.Namespace + 'tip';
 	let TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 	insertStyleSheet(`
-	.${NS}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
-	.${NS}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
-	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
-	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
-	.${NS}-close:hover {color:black;}
+	.${NS$1}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
+	.${NS$1}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
+	.${NS$1}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
+	.${NS$1}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
+	.${NS$1}-close:hover {color:black;}
 	
 	/** top **/
-	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
+	${NS$1}-container-wrap[data-tip-dir-0], .${NS$1}-container-wrap[data-tip-dir="1"], .${NS$1}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow {left:25%;}
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow {left:50%;}
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow {left:75%;}
 	
 	/** right **/
-	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
+	.${NS$1}-container-wrap[data-tip-dir="8"], .${NS$1}-container-wrap[data-tip-dir="9"], .${NS$1}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-close {top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow {top:75%}
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow {top:50%}
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow {top:25%}
 	
 	/** bottom **/
-	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
+	.${NS$1}-container-wrap[data-tip-dir="5"], .${NS$1}-container-wrap[data-tip-dir="6"], .${NS$1}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-close {top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow {left:30px}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow {left:75%}
 	
 	/** left **/
-	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
+	.${NS$1}-container-wrap[data-tip-dir="2"], .${NS$1}-container-wrap[data-tip-dir="3"], .${NS$1}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-close {right:13px; top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow-pt,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow {top:25%}
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow {top:50%}
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow {top:75%}
 `, Theme.Namespace + 'tip-style');
 
 	/**
@@ -4618,7 +4494,7 @@ var WebCom = (function (exports) {
 	 */
 	let bindEvent = function(){
 		if(this.option.showCloseButton){
-			let btn = this.dom.querySelector(`.${NS}-close`);
+			let btn = this.dom.querySelector(`.${NS$1}-close`);
 			btn.addEventListener('click', () => {
 				this.hide();
 			}, false);
@@ -4740,13 +4616,13 @@ var WebCom = (function (exports) {
 			this.relNode = relNode;
 			this.option = {...this.option, ...opt};
 
-			let close_button_html = this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ``;
+			let close_button_html = this.option.showCloseButton ? `<span class="${NS$1}-close">&#10005;</span>` : ``;
 			this.dom = createDomByHtml(
-				`<div class="${NS}-container-wrap" style="display:none;">
-				<s class="${NS}-arrow ${NS}-arrow-pt"></s>
-				<s class="${NS}-arrow ${NS}-arrow-bg"></s>
+				`<div class="${NS$1}-container-wrap" style="display:none;">
+				<s class="${NS$1}-arrow ${NS$1}-arrow-pt"></s>
+				<s class="${NS$1}-arrow ${NS$1}-arrow-bg"></s>
 				${close_button_html}
-				<div class="${NS}-content">${content}</div>
+				<div class="${NS$1}-content">${content}</div>
 			</div>`, document.body);
 
 			this.dom.style.width = dimension2Style(this.option.width);
@@ -4759,7 +4635,7 @@ var WebCom = (function (exports) {
 		 * @param {String} html
 		 */
 		setContent(html){
-			this.dom.querySelector(`.${NS}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$1}-content`).innerHTML = html;
 			updatePosition.call(this);
 		}
 
@@ -4925,11 +4801,475 @@ var WebCom = (function (exports) {
 	</dl>`, document.body);
 	};
 
+	const NS = Theme.Namespace + '-uploader';
+	insertStyleSheet(`
+	.${NS} {}
+	
+	.${NS}-btn {display:inline-block; use-select:none; cursor:pointer}
+	.${NS}-btn-reset:before {content:"重新上传"}
+	.${NS}-btn-cancel:before {content:"取消"}
+	.${NS}-btn-delete:before {content:"删除"}
+`);
+
+	const UPLOAD_STATE_INIT = 0;
+	const UPLOAD_STATE_PENDING = 1;
+	const UPLOAD_STATE_ERROR = 2;
+	const UPLOAD_STATE_SUCCESS = 3;
+
+	const UPLOAD_ERROR_FILE_SIZE_OVERLOAD = 'file_size_overload';
+	const UPLOAD_ERROR_FILE_EMPTY = 'file_empty';
+
+	const FILE_TYPE_IMAGE = 'image/*';
+	const FILE_TYPE_VIDEO = 'video/*';
+	const FILE_TYPE_AUDIO = 'audio/*';
+	const FILE_TYPE_DOC = '.txt,.md,.doc,.docx';
+	const FILE_TYPE_SHEET = '.xls,.xlsx,.csv';
+
+	/**
+	 * 缺省后端返回格式处理器
+	 * @param rsp
+	 * @return {{thumb, error: *, value}}
+	 * @constructor
+	 */
+	const DEFAULT_RSP_HANDLE = (rsp) => {
+		return {
+			error: rsp.code !== 0 ? rsp.message : '',
+			value: rsp.data,
+			thumb: rsp.data
+		}
+	};
+
+	/**
+	 * @param {Uploader} up
+	 * @param {File} file
+	 */
+	const startUpload = (up, file) => {
+		let xhr = new XMLHttpRequest();
+		up.xhr = xhr;
+		let formData = new FormData();
+		formData.append(up.option.uploadFileFieldName, file);
+		xhr.withCredentials = true;
+		xhr.upload.addEventListener('progress', e => {
+			up.onUploading.fire(e.loaded, e.total);
+		}, false);
+		xhr.addEventListener('load', e => {
+			up.option.uploadResponseHandle(e.returnValue);
+		});
+		xhr.addEventListener('error', e => {
+		});
+		xhr.addEventListener('abort', e => {
+			up.onAbort.fire();
+		});
+		xhr.open('POST', up.option.uploadUrl);
+		xhr.send(formData);
+	};
+
+	/**
+	 * @param {Uploader} up
+	 */
+	const renderDom = (up) => {
+		let acceptStr = up.option.allowFileTypes.join(',');
+		const html =
+			`<div class="${NS}" data-state="${up.state}">
+		<label class="${NS}-file">
+			<input type="file" accept="${acceptStr}" value="${up.option.initValue || ''}" ${up.option.required ? 'required' : ''}>
+		</label>
+		<div class="${NS}-progress">
+			<progress max="100" value="0">0%</progress>
+			<span>0%</span>
+		</div>
+		<div class="${NS}-content"></div>
+		<div class="${NS}-handle">
+			<span role="button" class="${NS}-btn ${NS}-btn-reset"></span>
+			<span role="button" class="${NS}-btn ${NS}-btn-clean"></span>
+			<span role="button" class="${NS}-btn ${NS}-btn-cancel"></span>
+			<span role="button" class="${NS}-btn ${NS}-btn-delete"></span>
+		</div>
+	</div>`;
+		const dom = createDomByHtml(html, up.container);
+		const fileEl = dom.querySelector('input[type=file]');
+
+		dom.querySelector(`.${NS}-btn-reset`).addEventListener('click', e => {
+			resetUpload(up);
+		});
+		dom.querySelector(`.${NS}-btn-clean`).addEventListener('click', e => {
+		});
+
+		dom.querySelector(`.${NS}-btn-delete`).addEventListener('click', e => {
+
+		});
+
+		dom.querySelector(`.${NS}-btn-cancel`).addEventListener('click', e => {
+			up.abort();
+		});
+
+		fileEl.addEventListener('change', e => {
+			let file = fileEl.files[0];
+			if(file){
+				if(!file.size < 1){
+					up.onError.fire('所选的文件内容为空', UPLOAD_ERROR_FILE_EMPTY);
+					resetUpload(up);
+					return;
+				}
+				if(up.option.fileSizeLimit && file.size < up.option.fileSizeLimit){
+					up.onError.fire('所选的文件大小超出限制', UPLOAD_ERROR_FILE_SIZE_OVERLOAD);
+					resetUpload(up);
+					return;
+				}
+				updateState(up, UPLOAD_STATE_PENDING);
+				startUpload(up, file);
+			}
+		});
+	};
+
+	const mergeNoNull = (target, source) => {
+		for(let i in source){
+			if(source[i] !== null){
+				target[i] = source[i];
+			}
+		}
+	};
+
+	const resetUpload = (up) => {
+		const fileEl = up.container.querySelector('input[type=file]');
+		fileEl.value = up.initValue;
+		updateState(up, UPLOAD_STATE_INIT);
+	};
+
+	const updateState = (up, state) => {
+		const dom = up.container.querySelector('.' + NS);
+		dom.setAttribute('data-state', state);
+		switch(state){
+			case UPLOAD_STATE_PENDING:
+				up.onUploading.fire();
+				break;
+			case UPLOAD_STATE_SUCCESS:
+				up.onSuccess.fire();
+				break;
+			case UPLOAD_STATE_ERROR:
+				up.onError.fire();
+				break;
+		}
+	};
+
+	class Uploader {
+		/**
+		 * 状态
+		 * @type {number}
+		 */
+		state = UPLOAD_STATE_INIT;
+		xhr = null;
+
+		/**
+		 * 渲染容器
+		 * @type {HTMLElement}
+		 */
+		container = null;
+
+		static globalUploadUrl = '';
+
+		option = {
+			uploadUrl: '',
+			required: false,
+			initValue: null,
+			initThumb: null,
+			allowFileTypes: [],
+			fileSizeLimit: 0,
+			uploadFileFieldName: 'file',
+			uploadResponseHandle: DEFAULT_RSP_HANDLE
+		};
+
+		constructor(container, option = {
+			uploadUrl: null, //上传URL【必填】
+			required: null,
+			initValue: null,
+			initThumb: null,
+			fileSizeLimit: null,
+			allowFileTypes: null,
+			uploadResponseHandle: null
+		}){
+			this.container = container;
+			mergeNoNull(this.option, option);
+			option.uploadUrl = option.uploadUrl || Uploader.globalUploadUrl;
+			if(!option.uploadUrl){
+				throw "upload url required";
+			}
+			renderDom(this);
+		}
+
+		abort(){
+			if(this.xhr && this.xhr.abort()){
+				resetUpload(this);
+			}
+		}
+
+		getData(){
+
+		}
+
+		getDataAsync(){
+			return new Promise((resolve, reject) => {
+				if(this.state !== UPLOAD_STATE_PENDING){
+					resolve(this.getData());
+				}else {
+					let fn = () => {
+						resolve(this.getData());
+						this.onSuccess.remove(fn);
+					};
+					this.onSuccess.listen(fn);
+				}
+			});
+		}
+
+		onSuccess = new BizEvent();
+		onAbort = new BizEvent();
+		onResponse = new BizEvent();
+		onUploading = new BizEvent();
+		onDelete = new BizEvent();
+		onError = new BizEvent();
+	}
+
+	class ACAsync {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let cgi_url = param.url || node.getAttribute('href');
+				postJSON(cgi_url, null).then(() => {
+					location.reload();
+					resolve();
+				}, err => {
+					Toast.showError(err);
+					reject(err);
+				});
+			})
+		}
+	}
+
+	const postJSON = (url, data) => {
+		return requestJSON(url, data, 'post');
+	};
+
+	const requestJSON = (url, data, method) => {
+		return new Promise((resolve, reject) => {
+			fetch(url, {
+				method: method.toUpperCase(),
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			}).then(rsp => rsp.json()).then(rsp => {
+				if(rsp.code === 0){
+					resolve(rsp.data);
+				}else {
+					reject(rsp.message || '系统错误');
+				}
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	};
+
+	class ACConfirm {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let message = param.message || '确认信息';
+				Dialog.confirm('确认', message).then(resolve, reject);
+			});
+		}
+	}
+
+	class ACCopy {
+		static init(node, param){
+
+		}
+	}
+
+	class ACDialog{
+		static init(node, {title, url}){
+			let iframe_url = url || node.getAttribute('href');
+			return new Promise((resolve, reject) => {
+				Dialog.show(title || '对话框', {src:iframe_url});
+				Dialog.callback = resolve;
+			})
+		}
+	}
+
+	class ACTip {
+		static init(node, {content}){
+			return new Promise((resolve, reject) => {
+				new Tip(content, node);
+				resolve();
+			});
+		}
+	}
+
+	class ACToast {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let message = param.message || '提示信息';
+				let type = param.type || Toast.TYPE_INFO;
+				Toast.showToast(message, type, Toast.DEFAULT_TIME_MAP[type], resolve);
+			});
+		}
+	}
+
+	const COMPONENT_ATTR_KEY = 'data-component'; //data-com="com1,com2"
+	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
+
+	let AC_COMPONENT_MAP = {
+		'async': ACAsync,
+		'popup': ACDialog,
+		'confirm': ACConfirm,
+		'copy': ACCopy,
+		'tip': ACTip,
+		'toast': ACToast,
+	};
+
+	const parseComponents = function(attr){
+		let tmp = attr.split(',');
+		let cs = [];
+		tmp.forEach(v => {
+			v = v.trim();
+			if(v){
+				cs.push(v);
+			}
+		});
+		return cs;
+	};
+
+	/**
+	 * 检测节点是否拥有组件
+	 * @param {HTMLElement} node
+	 * @param component_name
+	 * @returns {*}
+	 */
+	const nodeHasComponent = function(node, component_name){
+		let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+		return cs.includes(component_name);
+	};
+
+	/**
+	 * 从节点中解析出使用 data-key- 为前缀的属性
+	 * @param node
+	 * @param key
+	 * @return {{}}
+	 */
+	const resolveDataParam = (node, key) => {
+		let param = {};
+		Array.from(node.attributes).forEach(attr => {
+			if(attr.name.indexOf('data-'+key + '-') >= 0){
+				let objKeyPath = attr.name.substring(('data-'+key).length+1);
+				objectPushByPath(objKeyPath, attr.value, param);
+			}
+		});
+		return param;
+	};
+
+	const bindNode = function(container = document){
+		container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${COMPONENT_ATTR_KEY}]`).forEach(node => {
+			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+			let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+			let activeStacks = [];
+			cs.forEach(com => {
+				let C = AC_COMPONENT_MAP[com];
+				if(!C){
+					console.warn('component no found', com);
+					return false;
+				}
+				let data = resolveDataParam(node, com);
+				if(C.init){
+					C.init(node, data);
+				}
+				if(C.active){
+					activeStacks.push([C.active, data]);
+				}
+				return true;
+			});
+
+			if(activeStacks.length){
+				bindActiveChain(node, activeStacks);
+			}
+		});
+	};
+
+	const TEXT_TYPES = ['text', 'number', 'password', 'search', 'address', 'date', 'datetime', 'time', 'checkbox', 'radio'];
+
+	/**
+	 * 是否为可输入元素
+	 * @param {HTMLFormElement} node
+	 * @return {boolean}
+	 */
+	const isInputAble = (node) => {
+		if(node.disabled || node.readonly){
+			return false;
+		}
+		return node.tagName === 'TEXTAREA' ||
+			(node.tagName === 'INPUT' && (!node.type || TEXT_TYPES.includes(node.type.toLowerCase())));
+	};
+
+	const bindActiveChain = (node, activeStacks) => {
+		let event = 'click';
+		if(isInputAble(node)){
+			event = 'keyup';
+		}else if(node.tagName === 'FORM'){
+			event = 'submit';
+		}else {
+			event = 'click';
+		}
+		node.addEventListener(event, e => {
+			let [func, args] = activeStacks[0];
+			let pro = func(node, args);
+			for(let i = 1; i < activeStacks.length; i++){
+				pro = pro.then(() => {
+					return activeStacks[i][0](node, activeStacks[i][1]);
+				}, () => {
+				});
+			}
+			e.preventDefault();
+			return false;
+		});
+	};
+
+	const ACComponent = {
+		watch: (container = document.body) => {
+			let m_tm = null;
+			container.addEventListener('DOMSubtreeModified propertychange', function(){
+				clearTimeout(m_tm);
+				m_tm = setTimeout(function(){
+					bindNode();
+				}, 0);
+			});
+			bindNode(container);
+		},
+		/**
+		 * 注册组件
+		 * @param componentName
+		 * @param define
+		 */
+		register: (componentName, define) => {
+			AC_COMPONENT_MAP[componentName] = define;
+		},
+		unRegister: (componentName) => {
+			delete (AC_COMPONENT_MAP[componentName]);
+		}
+	};
+
+	exports.ACAsync = ACAsync;
+	exports.ACComponent = ACComponent;
+	exports.ACConfirm = ACConfirm;
+	exports.ACCopy = ACCopy;
+	exports.ACDialog = ACDialog;
+	exports.ACTip = ACTip;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
 	exports.Dialog = Dialog;
 	exports.DialogManager = DialogManager;
+	exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;
+	exports.FILE_TYPE_DOC = FILE_TYPE_DOC;
+	exports.FILE_TYPE_IMAGE = FILE_TYPE_IMAGE;
+	exports.FILE_TYPE_SHEET = FILE_TYPE_SHEET;
+	exports.FILE_TYPE_VIDEO = FILE_TYPE_VIDEO;
 	exports.HTTP_METHOD = HTTP_METHOD;
 	exports.IMG_PREVIEW_MODE_MULTIPLE = IMG_PREVIEW_MODE_MULTIPLE;
 	exports.IMG_PREVIEW_MODE_SINGLE = IMG_PREVIEW_MODE_SINGLE;
@@ -4960,6 +5300,13 @@ var WebCom = (function (exports) {
 	exports.Tip = Tip;
 	exports.Toast = Toast;
 	exports.Toc = Toc;
+	exports.UPLOAD_ERROR_FILE_EMPTY = UPLOAD_ERROR_FILE_EMPTY;
+	exports.UPLOAD_ERROR_FILE_SIZE_OVERLOAD = UPLOAD_ERROR_FILE_SIZE_OVERLOAD;
+	exports.UPLOAD_STATE_ERROR = UPLOAD_STATE_ERROR;
+	exports.UPLOAD_STATE_INIT = UPLOAD_STATE_INIT;
+	exports.UPLOAD_STATE_PENDING = UPLOAD_STATE_PENDING;
+	exports.UPLOAD_STATE_SUCCESS = UPLOAD_STATE_SUCCESS;
+	exports.Uploader = Uploader;
 	exports.arrayColumn = arrayColumn;
 	exports.arrayDistinct = arrayDistinct;
 	exports.arrayGroup = arrayGroup;
@@ -4972,7 +5319,6 @@ var WebCom = (function (exports) {
 	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.buttonActiveBind = buttonActiveBind;
 	exports.capitalize = capitalize;
-	exports.chunk = chunk;
 	exports.convertBlobToBase64 = convertBlobToBase64;
 	exports.convertFormDataToObject = convertFormDataToObject;
 	exports.convertObjectToFormData = convertObjectToFormData;
@@ -5004,12 +5350,9 @@ var WebCom = (function (exports) {
 	exports.getDomOffset = getDomOffset;
 	exports.getElementValue = getElementValue;
 	exports.getHash = getHash;
-	exports.getLastMonth = getLastMonth;
 	exports.getLibEntryScript = getLibEntryScript;
 	exports.getLibModule = getLibModule;
 	exports.getLibModuleTop = getLibModuleTop;
-	exports.getMonthLastDay = getMonthLastDay;
-	exports.getNextMonth = getNextMonth;
 	exports.getRegion = getRegion;
 	exports.getUTF8StrLen = getUTF8StrLen;
 	exports.getViewHeight = getViewHeight;
@@ -5032,13 +5375,13 @@ var WebCom = (function (exports) {
 	exports.loadScript = loadScript;
 	exports.matchParent = matchParent;
 	exports.mergerUriParam = mergerUriParam;
-	exports.monthsOffsetCalc = monthsOffsetCalc;
+	exports.nodeHasComponent = nodeHasComponent;
+	exports.objectPushByPath = objectPushByPath;
 	exports.onDocReady = onDocReady;
 	exports.onHover = onHover;
 	exports.onReportApi = onReportApi;
 	exports.onStateChange = onStateChange;
 	exports.openLinkWithoutReferer = openLinkWithoutReferer;
-	exports.prettyTime = prettyTime;
 	exports.pushState = pushState;
 	exports.randomString = randomString;
 	exports.rectAssoc = rectAssoc;
@@ -5056,7 +5399,6 @@ var WebCom = (function (exports) {
 	exports.showImgListPreview = showImgListPreview;
 	exports.showImgPreview = showImgPreview;
 	exports.showMenu = showMenu;
-	exports.sortByKey = sortByKey;
 	exports.strToPascalCase = strToPascalCase;
 	exports.stringToEntity = stringToEntity;
 	exports.toggle = toggle;
@@ -5069,6 +5411,8 @@ var WebCom = (function (exports) {
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 	return exports;
 
