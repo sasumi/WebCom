@@ -4,7 +4,7 @@
  * @param col_name
  * @returns {Array}
  */
-export const arrayColumn = (arr, col_name)=>{
+export const arrayColumn = (arr, col_name) => {
 	let data = [];
 	for(let i in arr){
 		data.push(arr[i][col_name]);
@@ -12,7 +12,12 @@ export const arrayColumn = (arr, col_name)=>{
 	return data;
 };
 
-export const arrayIndex = (arr, val)=>{
+/**
+ * @param arr
+ * @param val
+ * @return {string|null}
+ */
+export const arrayIndex = (arr, val) => {
 	for(let i in arr){
 		if(arr[i] === val){
 			return i;
@@ -21,7 +26,12 @@ export const arrayIndex = (arr, val)=>{
 	return null;
 };
 
-export const isEquals = (obj1,obj2)=>{
+/**
+ * @param obj1
+ * @param obj2
+ * @return {false|this is string[]}
+ */
+export const isEquals = (obj1, obj2) => {
 	let keys1 = Object.keys(obj1);
 	let keys2 = Object.keys(obj2);
 	//return true when the two json has same length and all the properties has same value key by key
@@ -33,7 +43,7 @@ export const isEquals = (obj1,obj2)=>{
  * @param {Array} arr
  * @returns {*}
  */
-export const arrayDistinct = (arr)=>{
+export const arrayDistinct = (arr) => {
 	let tmpMap = new Map();
 	return arr.filter(item => {
 		if(!tmpMap.has(item)){
@@ -50,12 +60,12 @@ export const arrayDistinct = (arr)=>{
  * @param limit limit one child
  * @returns {*}
  */
-export const arrayGroup = (arr, by_key, limit)=>{
+export const arrayGroup = (arr, by_key, limit) => {
 	if(!arr || !arr.length){
 		return arr;
 	}
 	let tmp_rst = {};
-	arr.forEach(item=>{
+	arr.forEach(item => {
 		let k = item[by_key];
 		if(!tmp_rst[k]){
 			tmp_rst[k] = [];
@@ -93,23 +103,31 @@ export const sortByKey = (obj, dir = 'asc') => {
  */
 export const chunk = (list, size) => {
 	let len = list.length;
-	if (size < 1 || !len) {
+	if(size < 1 || !len){
 		return [];
 	}
-	if (size > len) {
+	if(size > len){
 		return [list];
 	}
 	let res = [];
 	let integer = Math.floor(len / size);
 	let rest = len % size;
-	for (let i = 1; i <= integer; i++) {
+	for(let i = 1; i <= integer; i++){
 		res.push(list.splice(0, size));
 	}
-	if (rest) {
+	if(rest){
 		res.push(list.splice(0, rest));
 	}
 	return res;
-};
+}
+
+/**
+ * @param path
+ * @param value
+ * @param srcObj
+ * @param glue
+ * @return {*}
+ */
 export const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
 	let segments = path.split(glue),
 		cursor = srcObj,

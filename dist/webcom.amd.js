@@ -1,7 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,7 +13,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -38,6 +37,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return data;
 	};
 
+	/**
+	 * @param arr
+	 * @param val
+	 * @return {string|null}
+	 */
 	const arrayIndex = (arr, val) => {
 		for(let i in arr){
 			if(arr[i] === val){
@@ -47,6 +51,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return null;
 	};
 
+	/**
+	 * @param obj1
+	 * @param obj2
+	 * @return {false|this is string[]}
+	 */
 	const isEquals = (obj1, obj2) => {
 		let keys1 = Object.keys(obj1);
 		let keys2 = Object.keys(obj2);
@@ -98,6 +107,52 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return rst;
 	};
 
+	/**
+	 * 按照对象 KEY 排序
+	 * @param {Object} obj
+	 * @param {String} dir
+	 * @return {{}}
+	 */
+	const sortByKey = (obj, dir = 'asc') => {
+		return Object.keys(obj).sort().reduce(function(result, key){
+			result[key] = obj[key];
+			return result;
+		}, {});
+	};
+
+	/**
+	 * 数组分块
+	 * @param {Array} list 数据
+	 * @param {Number} size 每块大小
+	 * @return {Array[]}
+	 */
+	const chunk = (list, size) => {
+		let len = list.length;
+		if(size < 1 || !len){
+			return [];
+		}
+		if(size > len){
+			return [list];
+		}
+		let res = [];
+		let integer = Math.floor(len / size);
+		let rest = len % size;
+		for(let i = 1; i <= integer; i++){
+			res.push(list.splice(0, size));
+		}
+		if(rest){
+			res.push(list.splice(0, rest));
+		}
+		return res;
+	};
+
+	/**
+	 * @param path
+	 * @param value
+	 * @param srcObj
+	 * @param glue
+	 * @return {*}
+	 */
 	const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
 		let segments = path.split(glue),
 			cursor = srcObj,
@@ -881,7 +936,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const matchParent = (dom, selector) => {
 		let p = dom.parentNode;
-		while(p){
+		while(p && p !== document){
 			if(p.matches(selector)){
 				return p;
 			}
@@ -1097,13 +1152,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return _c[file];
 	};
 
-	const loadScript = (file, forceReload = false) => {
-		if(!forceReload && _c[file]){
-			return _c[file];
+	/**
+	 * 加载script脚本
+	 * @param {String} src 脚本地址
+	 * @param {Boolean} forceReload 是否强制重新加载，缺省为去重加载
+	 * @return {Promise}
+	 */
+	const loadScript = (src, forceReload = false) => {
+		if(!forceReload && _c[src]){
+			return _c[src];
 		}
-		_c[file] = new Promise((resolve, reject) => {
+		_c[src] = new Promise((resolve, reject) => {
 			let script = document.createElement('script');
-			script.src = file;
+			script.src = src;
 			script.onload = () => {
 				resolve();
 			};
@@ -1112,7 +1173,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			};
 			document.head.append(script);
 		});
-		return _c[file];
+		return _c[src];
 	};
 
 	/**
@@ -1337,6 +1398,45 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return null;
 	};
 
+	/**
+	 * 节流
+	 * 规定在一个单位时间内，只能触发一次函数。如果这个函数单位时间内触发多次函数，只有一次生效。
+	 * @param fn
+	 * @param intervalMiSec
+	 * @return {(function(): void)|*}
+	 */
+	const throttle = (fn, intervalMiSec) => {
+		let context, args;
+		let previous = 0;
+		return function(){
+			let now = +new Date();
+			context = this;
+			args = arguments;
+			if(now - previous > intervalMiSec){
+				fn.apply(context, args);
+				previous = now;
+			}
+		}
+	};
+
+	/**
+	 * 在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
+	 * @param fn
+	 * @param intervalMiSec
+	 * @return {(function(): void)|*}
+	 */
+	const debounce = (fn, intervalMiSec) => {
+		let timeout;
+		return function(){
+			let context = this;
+			let args = arguments;
+			clearTimeout(timeout);
+			timeout = setTimeout(function(){
+				fn.apply(context, args);
+			}, intervalMiSec);
+		}
+	};
+
 	const CURRENT_FILE = '/Lang/Util.js';
 	const ENTRY_FILE = '/index.js';
 
@@ -1344,7 +1444,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
 	 * @return {string}
 	 */
-	const getLibEntryScript = ()=>{
+	const getLibEntryScript = () => {
 		let script = getCurrentScript();
 		if(!script){
 			throw "Get script failed";
@@ -1361,14 +1461,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
 	};
 
 	/**
 	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
 	 * @type {(function(): Promise<*>)|undefined}
 	 */
-	const getLibModuleTop =(()=>{
+	const getLibModuleTop = (() => {
 		if(top === window){
 			return getLibModule;
 		}
@@ -1383,7 +1483,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} version
 	 * @return {Number[]}
 	 */
-	const normalizeVersion = (version)=>{
+	const normalizeVersion = (version) => {
 		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
 			pieces = trimmed.split('.'),
 			partsLength,
@@ -1419,7 +1519,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {Number} index
 	 * @return {number|number}
 	 */
-	const versionCompare = (version1, version2, index)=>{
+	const versionCompare = (version1, version2, index) => {
 		let stringLength = index + 1,
 			v1 = normalizeVersion(version1),
 			v2 = normalizeVersion(version2);
@@ -1429,7 +1529,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(v2.length > stringLength){
 			v2.length = stringLength;
 		}
-		let size = Math.min(v1.length, v2.length),i;
+		let size = Math.min(v1.length, v2.length), i;
 		for(i = 0; i < size; i += 1){
 			if(v1[i] !== v2[i]){
 				return v1[i] < v2[i] ? -1 : 1;
@@ -1766,6 +1866,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 		return ret;
+	};
+
+	/**
+	 * 构建 HTML Input:hidden 标签
+	 * @param {Object} maps {key:value}
+	 * @return {string}
+	 */
+	const buildHtmlHidden = (maps)=>{
+		let html = '';
+		for(let key in maps){
+			let val = maps[key] === null ? '' : maps[key];
+			html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
+		}
+		return html;
 	};
 
 	/**
@@ -2359,6 +2473,98 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}, hz);
 	}
 
+	/**
+	 * 获取指定月份天数
+	 * @param {Number} year
+	 * @param {Number} month 月份，从1开始
+	 * @returns {number}
+	 */
+	const getMonthLastDay = (year, month) => {
+		const date1 = new Date(year, month, 0);
+		return date1.getDate()
+	};
+
+	/**
+	 * 获取指定上一个月份
+	 * @param {Number} year
+	 * @param {Number} month 当前月份，从1开始
+	 * @returns {Array}
+	 */
+	const getLastMonth = (year, month) => {
+		return month === 1 ? [year - 1, 12] : [year, month - 1];
+	};
+
+	/**
+	 * 获取指定下一个月份
+	 * @param {Number} year
+	 * @param {Number} month 当前月份，从1开始
+	 * @returns {Array}
+	 */
+	const getNextMonth = (year, month) => {
+		return month === 12 ? [year + 1, 1] : [year, month + 1];
+	};
+
+	/**
+	 * 格式化时间长度
+	 * @param {Number} micSec 毫秒
+	 * @param {String} delimiter 单位之间的间隔文本
+	 * @return {string}
+	 */
+	const prettyTime = (micSec, delimiter = '') => {
+		let d = 0, h = 0, m = 0, s = 0;
+		if(micSec > ONE_DAY){
+			d = Math.floor(micSec / ONE_DAY);
+			micSec -= d * ONE_DAY;
+		}
+		if(micSec > ONE_HOUR){
+			h = Math.floor(micSec / ONE_HOUR);
+			micSec -= h * ONE_HOUR;
+		}
+		if(micSec > ONE_MINUTE){
+			m = Math.floor(micSec / ONE_MINUTE);
+			micSec -= m * ONE_MINUTE;
+		}
+		if(micSec > 1000){
+			s = Math.floor(micSec / 1000);
+			micSec -= s * 1000;
+		}
+		let txt = '';
+		txt += d ? `${d}天` : '';
+		txt += (txt || h) ? `${delimiter}${h}小` : '';
+		txt += (txt || m) ? `${delimiter}${m}分` : '';
+		txt += (txt || s) ? `${delimiter}${s}秒` : '';
+		return txt.trim();
+	};
+
+	/**
+	 * 指定偏移月数计算
+	 * @param {Number} monthNum
+	 * @param {Date|Null} start_date
+	 * @return {{month: number, year: number}} 返回年、月（以1开始）
+	 */
+	const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
+		let year = start_date.getFullYear();
+		let month = start_date.getMonth()+1;
+		month = month + monthNum;
+		if(month > 12){
+			let yearNum = parseInt((month - 1) / 12);
+			month = month % 12 === 0 ? 12 : month % 12;
+			year += yearNum;
+		}else if(month <= 0){
+			month = Math.abs(month);
+			let yearNum = parseInt((month + 12) / 12);
+			let n = month % 12;
+			if(n === 0){
+				year -= yearNum;
+				month = 12;
+			}else {
+				year -= yearNum;
+				month = Math.abs(12 - n);
+			}
+		}
+		return {year, month}
+	};
+
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_animate = Theme.Namespace + '-toast-rotate';
 	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
@@ -2509,7 +2715,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param {Function} timeoutCallback
 		 * @return {Toast}
 		 */
-		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback) => {
+		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
 			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
 			let toast = new Toast(message, Toast.TYPE_LOADING, time);
 			toast.show(timeoutCallback);
@@ -2545,7 +2751,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		hide(fadeOut = false){
 			//稍微容错下，避免setTimeout后没有父节点
-			if(!document.body.contains(this.dom)){
+			if(!this.dom || !document.body.contains(this.dom)){
 				return;
 			}
 			if(fadeOut){
@@ -2556,6 +2762,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				return;
 			}
 			this.dom.parentNode.removeChild(this.dom);
+			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
 				hide(wrapper);
@@ -3048,6 +3255,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		onClose = new BizEvent(true);
 		onShow = new BizEvent(true);
+		innerEvent = new BizEvent(true);
 
 		config = {
 			id: null, //对话框ID，缺省为自动生成
@@ -5049,9 +5257,26 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	class ACAsync {
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
-				let cgi_url = param.url || node.getAttribute('href');
-				postJSON(cgi_url, null).then(() => {
-					location.reload();
+				let url = param.url,
+					data = param.data,
+					method = param.method,
+					onsuccess = param.onsuccess || function(){
+						location.reload();
+					};
+				if(node.tagName === 'FORM'){
+					url = node.action;
+					data = formSerializeJSON(node);
+					method = node.method.toLowerCase() === 'post' ? 'get' : 'post';
+				}else if(node.tagName === 'A'){
+					url = node.href;
+				}
+
+				//优先使用参数传参
+				url = param.url || url;
+				method = param.method || method;
+				data = param.data || data;
+				requestJSON(url, data, method).then(() => {
+					onsuccess();
 					resolve();
 				}, err => {
 					Toast.showError(err);
@@ -5060,10 +5285,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			})
 		}
 	}
-
-	const postJSON = (url, data) => {
-		return requestJSON(url, data, 'post');
-	};
 
 	const requestJSON = (url, data, method) => {
 		return new Promise((resolve, reject) => {
@@ -5089,8 +5310,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	class ACConfirm {
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
-				let message = param.message || '确认信息';
-				Dialog.confirm('确认', message).then(resolve, reject);
+				let title = param.title;
+				let message = param.message;
+				Dialog.confirm(title || '确认', message).then(resolve, reject);
 			});
 		}
 	}
@@ -5101,12 +5323,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	class ACDialog{
-		static init(node, {title, url}){
-			let iframe_url = url || node.getAttribute('href');
+	class ACDialog {
+		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
-				Dialog.show(title || '对话框', {src:iframe_url});
-				Dialog.callback = resolve;
+				let title = param.title;
+				let url = param.url;
+				let content = param.content;
+				if(node.tagName === 'A'){
+					url = node.href || url;
+					title = node.title || title;
+				}
+				if(url){
+					content = {src: url};
+				}
+				Dialog.show(title || '对话框', content, param);
 			})
 		}
 	}
@@ -5130,12 +5360,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const COMPONENT_ATTR_KEY = 'data-component'; //data-com="com1,com2"
+	const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-com="com1,com2"
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
 	let AC_COMPONENT_MAP = {
 		'async': ACAsync,
 		'popup': ACDialog,
+		'dialog': ACDialog,
 		'confirm': ACConfirm,
 		'copy': ACCopy,
 		'tip': ACTip,
@@ -5155,17 +5386,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	/**
-	 * 检测节点是否拥有组件
-	 * @param {HTMLElement} node
-	 * @param component_name
-	 * @returns {*}
-	 */
-	const nodeHasComponent = function(node, component_name){
-		let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
-		return cs.includes(component_name);
-	};
-
-	/**
 	 * 从节点中解析出使用 data-key- 为前缀的属性
 	 * @param node
 	 * @param key
@@ -5174,18 +5394,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const resolveDataParam = (node, key) => {
 		let param = {};
 		Array.from(node.attributes).forEach(attr => {
-			if(attr.name.indexOf('data-'+key + '-') >= 0){
-				let objKeyPath = attr.name.substring(('data-'+key).length+1);
+			if(attr.name.indexOf('data-' + key + '-') >= 0){
+				let objKeyPath = attr.name.substring(('data-' + key).length + 1);
 				objectPushByPath(objKeyPath, attr.value, param);
 			}
 		});
 		return param;
 	};
 
-	const bindNode = function(container = document){
-		container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${COMPONENT_ATTR_KEY}]`).forEach(node => {
+	const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
+		container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`).forEach(node => {
 			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
-			let cs = parseComponents(node.getAttribute(COMPONENT_ATTR_KEY));
+			let cs = parseComponents(node.getAttribute(attr_flag));
 			let activeStacks = [];
 			cs.forEach(com => {
 				let C = AC_COMPONENT_MAP[com];
@@ -5248,16 +5468,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	const ACComponent = {
-		watch: (container = document.body) => {
+		watch: (container = document.body, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 			let m_tm = null;
 			container.addEventListener('DOMSubtreeModified propertychange', function(){
 				clearTimeout(m_tm);
 				m_tm = setTimeout(function(){
-					bindNode();
+					bindNode(container, attr_flag);
 				}, 0);
 			});
-			bindNode(container);
+			bindNode(container, attr_flag);
 		},
+
 		/**
 		 * 注册组件
 		 * @param componentName
@@ -5266,6 +5487,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		register: (componentName, define) => {
 			AC_COMPONENT_MAP[componentName] = define;
 		},
+
 		unRegister: (componentName) => {
 			delete (AC_COMPONENT_MAP[componentName]);
 		}
@@ -5334,8 +5556,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 	exports.bindTargetContextMenu = bindTargetContextMenu;
+	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.buttonActiveBind = buttonActiveBind;
 	exports.capitalize = capitalize;
+	exports.chunk = chunk;
 	exports.convertBlobToBase64 = convertBlobToBase64;
 	exports.convertFormDataToObject = convertFormDataToObject;
 	exports.convertObjectToFormData = convertObjectToFormData;
@@ -5344,6 +5568,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.createDomByHtml = createDomByHtml;
 	exports.cssSelectorEscape = cssSelectorEscape;
 	exports.cutString = cutString;
+	exports.debounce = debounce;
 	exports.decodeHTMLEntities = decodeHTMLEntities;
 	exports.dimension2Style = dimension2Style;
 	exports.domContained = domContained;
@@ -5367,9 +5592,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.getDomOffset = getDomOffset;
 	exports.getElementValue = getElementValue;
 	exports.getHash = getHash;
+	exports.getLastMonth = getLastMonth;
 	exports.getLibEntryScript = getLibEntryScript;
 	exports.getLibModule = getLibModule;
 	exports.getLibModuleTop = getLibModuleTop;
+	exports.getMonthLastDay = getMonthLastDay;
+	exports.getNextMonth = getNextMonth;
 	exports.getRegion = getRegion;
 	exports.getUTF8StrLen = getUTF8StrLen;
 	exports.getViewHeight = getViewHeight;
@@ -5392,13 +5620,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.loadScript = loadScript;
 	exports.matchParent = matchParent;
 	exports.mergerUriParam = mergerUriParam;
-	exports.nodeHasComponent = nodeHasComponent;
+	exports.monthsOffsetCalc = monthsOffsetCalc;
 	exports.objectPushByPath = objectPushByPath;
 	exports.onDocReady = onDocReady;
 	exports.onHover = onHover;
 	exports.onReportApi = onReportApi;
 	exports.onStateChange = onStateChange;
 	exports.openLinkWithoutReferer = openLinkWithoutReferer;
+	exports.prettyTime = prettyTime;
 	exports.pushState = pushState;
 	exports.randomString = randomString;
 	exports.rectAssoc = rectAssoc;
@@ -5416,8 +5645,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.showImgListPreview = showImgListPreview;
 	exports.showImgPreview = showImgPreview;
 	exports.showMenu = showMenu;
+	exports.sortByKey = sortByKey;
 	exports.strToPascalCase = strToPascalCase;
 	exports.stringToEntity = stringToEntity;
+	exports.throttle = throttle;
 	exports.toggle = toggle;
 	exports.toggleFullScreen = toggleFullScreen;
 	exports.trans = trans;
@@ -5428,7 +5659,5 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
