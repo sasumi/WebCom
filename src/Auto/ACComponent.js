@@ -5,6 +5,7 @@ import {ACTip} from "./ACTip.js";
 import {ACCopy} from "./ACCopy.js";
 import {ACToast} from "./ACToast.js";
 import {objectPushByPath} from "../Lang/Array.js";
+import {ACPreview} from "./ACPreview.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-com="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
@@ -13,6 +14,7 @@ let AC_COMPONENT_MAP = {
 	'async': ACAsync,
 	'dialog': ACDialog,
 	'confirm': ACConfirm,
+	'preview': ACPreview,
 	'copy': ACCopy,
 	'tip': ACTip,
 	'toast': ACToast,
@@ -120,12 +122,15 @@ export const ACComponent = {
 	 */
 	watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 		let m_tm = null;
-		container.addEventListener('DOMSubtreeModified propertychange', function(){
+		console.log('watch');
+		let observer = new MutationObserver(mutations => {
+			console.log('sub tree modify');
 			clearTimeout(m_tm);
 			m_tm = setTimeout(function(){
 				bindNode(container, attr_flag);
 			}, 0);
 		});
+		observer.observe(container, {childList: true, subtree: true});
 		bindNode(container, attr_flag);
 	},
 

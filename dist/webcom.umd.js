@@ -3615,6 +3615,25 @@
 		});
 	};
 
+	/**
+	 * 从 img.srcset 属性中解析出最高分辨率突破
+	 * @param {String} srcset_str
+	 * @return {string}
+	 */
+	const getHighestResFromSrcSet = (srcset_str) => {
+		return srcset_str
+			.split(",")
+			.reduce(
+				(acc, item) => {
+					let [url, width] = item.trim().split(" ");
+					width = parseInt(width);
+					if(width > acc.width) return {width, url};
+					return acc;
+				},
+				{width: 0, url: ""}
+			).url;
+	};
+
 	const json_decode = (v) => {
 		return v === null ? null : JSON.parse(v);
 	};
@@ -5512,6 +5531,48 @@
 		}
 	}
 
+	const resolveSrc = (node) => {
+		let src = node.dataset.src;
+		//src获取优先级：param.src > img[data-src] > img[srcset] > img[src]
+		if(node.tagName === 'IMG'){
+			if(!src && node.srcset){
+				src = getHighestResFromSrcSet(node.srcset) || node.src;
+			}
+		}else if(!src && node.tagName === 'A'){
+			src = node.href;
+		}
+		return src;
+	};
+
+	/**
+	 * 图片预览
+	 */
+	class ACPreview {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let src = param.src || resolveSrc(node);
+				let selector = param.selector;
+				if(!src){
+					console.warn('image preview src empty', node);
+					return;
+				}
+				if(selector){
+					let index = 0, imgSrcList = [];
+					document.querySelectorAll(selector).forEach((n, idx) => {
+						if(node === n){
+							index = idx;
+						}
+						imgSrcList.push(resolveSrc(n));
+					});
+					showImgListPreviewFn(imgSrcList, index);
+				}else {
+					showImgPreviewFn(src);
+				}
+				resolve();
+			});
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-com="com1,com2"
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
@@ -5519,6 +5580,7 @@
 		'async': ACAsync,
 		'dialog': ACDialog,
 		'confirm': ACConfirm,
+		'preview': ACPreview,
 		'copy': ACCopy,
 		'tip': ACTip,
 		'toast': ACToast,
@@ -5626,12 +5688,15 @@
 		 */
 		watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 			let m_tm = null;
-			container.addEventListener('DOMSubtreeModified propertychange', function(){
+			console.log('watch');
+			let observer = new MutationObserver(mutations => {
+				console.log('sub tree modify');
 				clearTimeout(m_tm);
 				m_tm = setTimeout(function(){
 					bindNode(container, attr_flag);
 				}, 0);
 			});
+			observer.observe(container, {childList: true, subtree: true});
 			bindNode(container, attr_flag);
 		},
 
