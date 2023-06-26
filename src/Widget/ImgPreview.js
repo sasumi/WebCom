@@ -12,6 +12,11 @@ import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lan
 import {bindTargetContextMenu} from "./Menu.js";
 
 const COM_ID = Theme.Namespace + 'com-image-viewer'
+const CONTEXT_WINDOW = getContextWindow();
+if(!CONTEXT_WINDOW[COM_ID]){
+	CONTEXT_WINDOW[COM_ID] = {};
+}
+
 const DOM_CLASS = COM_ID;
 
 const DEFAULT_VIEW_PADDING = 20;
@@ -253,13 +258,13 @@ const activeSelector = (parentNode, selector, handler) => {
 }
 
 const scaleFixCenter = ({
-							contentWidth,
-							contentHeight,
-							containerWidth,
-							containerHeight,
-							spacing = 0,
-							zoomIn = false
-						}) => {
+	                        contentWidth,
+	                        contentHeight,
+	                        containerWidth,
+	                        containerHeight,
+	                        spacing = 0,
+	                        zoomIn = false
+                        }) => {
 	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 		return {
 			width: contentWidth,
@@ -686,15 +691,15 @@ const getCmdViaID = (id) => {
  * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
-				  mode,
-				  srcList,
-				  mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
-				  startIndex = 0,
-				  showContextMenu = null,
-				  showToolbar = null,
-				  showThumbList = null,
-				  preloadSrcList = null,
-			  }) => {
+	              mode,
+	              srcList,
+	              mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+	              startIndex = 0,
+	              showContextMenu = null,
+	              showToolbar = null,
+	              showThumbList = null,
+	              preloadSrcList = null,
+              }) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
@@ -723,7 +728,7 @@ const init = ({
  * @param {String} imgSrc
  * @param {Object} option
  */
-const showImgPreview = (imgSrc, option = {}) => {
+const showImgPreview = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || function(imgSrc, option = {}){
 	init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 }
 
@@ -733,7 +738,7 @@ const showImgPreview = (imgSrc, option = {}) => {
  * @param {Number} startIndex
  * @param {Object} option
  */
-const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
+const showImgListPreview = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
 	init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 }
 
@@ -777,13 +782,12 @@ window[COM_ID] = {
 	showImgListPreview,
 	bindImgPreviewViaSelector,
 };
-let CONTEXT_WINDOW = getContextWindow();
+
 let showImgPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || showImgPreview;
 let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || showImgListPreview;
-let bindImgPreviewViaSelectorFn = CONTEXT_WINDOW[COM_ID]['bindImgPreviewViaSelector'] || bindImgPreviewViaSelector;
 
 export {
 	showImgPreviewFn as showImgPreview,
 	showImgListPreviewFn as showImgListPreview,
-	bindImgPreviewViaSelectorFn as bindImgPreviewViaSelector,
+	bindImgPreviewViaSelector,
 }

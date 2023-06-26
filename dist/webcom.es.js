@@ -3846,6 +3846,11 @@ document.addEventListener('keyup', e => {
 });
 
 const COM_ID = Theme.Namespace + 'com-image-viewer';
+const CONTEXT_WINDOW = getContextWindow();
+if(!CONTEXT_WINDOW[COM_ID]){
+	CONTEXT_WINDOW[COM_ID] = {};
+}
+
 const DOM_CLASS = COM_ID;
 
 const DEFAULT_VIEW_PADDING = 20;
@@ -4077,13 +4082,13 @@ const listenSelector = (parentNode, selector, event, handler) => {
 };
 
 const scaleFixCenter = ({
-							contentWidth,
-							contentHeight,
-							containerWidth,
-							containerHeight,
-							spacing = 0,
-							zoomIn = false
-						}) => {
+	                        contentWidth,
+	                        contentHeight,
+	                        containerWidth,
+	                        containerHeight,
+	                        spacing = 0,
+	                        zoomIn = false
+                        }) => {
 	if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
 		return {
 			width: contentWidth,
@@ -4508,15 +4513,15 @@ const getCmdViaID = (id) => {
  * @param {Boolean} option.preloadSrcList [多图模式]是否预加载列表
  */
 const init = ({
-				  mode,
-				  srcList,
-				  mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
-				  startIndex = 0,
-				  showContextMenu = null,
-				  showToolbar = null,
-				  showThumbList = null,
-				  preloadSrcList = null,
-			  }) => {
+	              mode,
+	              srcList,
+	              mouse_scroll_type = IMG_PREVIEW_MS_SCROLL_TYPE_NAV,
+	              startIndex = 0,
+	              showContextMenu = null,
+	              showToolbar = null,
+	              showThumbList = null,
+	              preloadSrcList = null,
+              }) => {
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
@@ -4545,7 +4550,7 @@ const init = ({
  * @param {String} imgSrc
  * @param {Object} option
  */
-const showImgPreview = (imgSrc, option = {}) => {
+const showImgPreview = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || function(imgSrc, option = {}){
 	init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 };
 
@@ -4555,7 +4560,7 @@ const showImgPreview = (imgSrc, option = {}) => {
  * @param {Number} startIndex
  * @param {Object} option
  */
-const showImgListPreview = (imgSrcList, startIndex = 0, option = {}) => {
+const showImgListPreview = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
 	init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 };
 
@@ -4599,10 +4604,9 @@ window[COM_ID] = {
 	showImgListPreview,
 	bindImgPreviewViaSelector,
 };
-let CONTEXT_WINDOW = getContextWindow();
+
 let showImgPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || showImgPreview;
 let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || showImgListPreview;
-let bindImgPreviewViaSelectorFn = CONTEXT_WINDOW[COM_ID]['bindImgPreviewViaSelector'] || bindImgPreviewViaSelector;
 
 let last_active_ladder = null;
 let ladder_scrolling = false;
@@ -5606,4 +5610,4 @@ const ACComponent = {
 	}
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, ToastClass as Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelectorFn as bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getContextDocument, getContextWindow, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, ToastClass as Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getContextDocument, getContextWindow, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
