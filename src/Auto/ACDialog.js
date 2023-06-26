@@ -1,11 +1,19 @@
 import {Dialog} from "../Widget/Dialog.js";
 
-export class ACDialog{
-	static init(node, {title, url}){
-		let iframe_url = url || node.getAttribute('href');
+export class ACDialog {
+	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
-			Dialog.show(title || '对话框', {src:iframe_url});
-			Dialog.callback = resolve;
+			let title = param.title;
+			let url = param.url;
+			let content = param.content;
+			if(node.tagName === 'A'){
+				url = node.href || url;
+				title = node.title || title;
+			}
+			if(url){
+				content = {src: url};
+			}
+			Dialog.show(title || '对话框', content, param);
 		})
 	}
 }

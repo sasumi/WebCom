@@ -4,19 +4,26 @@ import {formSerializeJSON} from "../Lang/Form.js";
 export class ACAsync {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
-			let data = null, method = 'get', url = null;
+			let url = param.url,
+				data = param.data,
+				method = param.method,
+				onsuccess = param.onsuccess || function(){
+					location.reload();
+				};
 			if(node.tagName === 'FORM'){
 				url = node.action;
 				data = formSerializeJSON(node);
-				method = node.method.toLowerCase() === 'get' ? 'get' : 'post';
+				method = node.method.toLowerCase() === 'post' ? 'get' : 'post';
 			}else if(node.tagName === 'A'){
 				url = node.href;
 			}
+
+			//优先使用参数传参
 			url = param.url || url;
 			method = param.method || method;
 			data = param.data || data;
 			requestJSON(url, data, method).then(() => {
-				location.reload();
+				onsuccess();
 				resolve();
 			}, err => {
 				Toast.showError(err);
