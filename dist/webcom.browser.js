@@ -2889,7 +2889,7 @@ var WebCom = (function (exports) {
 	const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 	insertStyleSheet(`
-	.${DLG_CLS_PREF} {display:block; border-radius:4px; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:white; color:#333; z-index:${Theme.DialogIndex};position:fixed;}
+	.${DLG_CLS_PREF} {display:block; border-radius:4px; overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:white; color:#333; z-index:${Theme.DialogIndex};position:fixed;}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:#666}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
@@ -3185,7 +3185,6 @@ var WebCom = (function (exports) {
 				try{
 					let html = iframe.contentWindow.document.body.parentNode;
 					let h = html.scrollHeight || html.clientHeight || html.offsetHeight;
-					h = h + 40;
 					adjustHeight(dlg, h, dlg.config.maxHeight);
 				}catch(e){
 					console.error('iframe load error', e);
@@ -5397,9 +5396,7 @@ var WebCom = (function (exports) {
 
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
-				let url = param.url,
-					data = param.data,
-					method = param.method,
+				let url, data, method,
 					onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
 				if(node.tagName === 'FORM'){
 					url = node.action;
@@ -5407,12 +5404,15 @@ var WebCom = (function (exports) {
 					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 				}else if(node.tagName === 'A'){
 					url = node.href;
+					method = 'get';
 				}
 
 				//优先使用参数传参
 				url = param.url || url;
-				method = param.method || method;
+				method = param.method || method || 'get';
 				data = param.data || data;
+
+				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
 				requestJSON(url, data, method).then(rsp => {
 					if(rsp.code === 0){
 						onsuccess(rsp);
@@ -5422,6 +5422,8 @@ var WebCom = (function (exports) {
 					}
 				}, err => {
 					ToastClass.showError(err);
+				}).finally(()=>{
+					loader && loader.hide();
 				});
 			})
 		}
@@ -5446,17 +5448,24 @@ var WebCom = (function (exports) {
 	class ACDialog {
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
-				let title = param.title;
-				let url = param.url;
-				let content = param.content;
+				let title, url, content;
+
 				if(node.tagName === 'A'){
 					url = node.href || url;
 					title = node.title || title;
 				}
+				if(node.innerText){
+					title = cutString(node.innerText, 30);
+				}
+
+				title = param.title || title;
+				url = param.url || url;
+				content = param.content || content;
 				if(url){
 					content = {src: url};
 				}
 				DialogClass.show(title || '对话框', content, param);
+				resolve();
 			})
 		}
 	}
@@ -5485,7 +5494,6 @@ var WebCom = (function (exports) {
 
 	let AC_COMPONENT_MAP = {
 		'async': ACAsync,
-		'popup': ACDialog,
 		'dialog': ACDialog,
 		'confirm': ACConfirm,
 		'copy': ACCopy,
@@ -5588,7 +5596,12 @@ var WebCom = (function (exports) {
 	};
 
 	const ACComponent = {
-		watch: (container = document.body, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
+		/**
+		 * 监听组件
+		 * @param {Node} container
+		 * @param {String} attr_flag 绑定属性格式，缺省为 data-component形式
+		 */
+		watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 			let m_tm = null;
 			container.addEventListener('DOMSubtreeModified propertychange', function(){
 				clearTimeout(m_tm);
@@ -5601,13 +5614,19 @@ var WebCom = (function (exports) {
 
 		/**
 		 * 注册组件
-		 * @param componentName
-		 * @param define
+		 * @param {String}  componentName
+		 * @param {Object} define
+		 * @param {Function} define.init 节点初始化函数
+		 * @param {Function} define.active 节点交互函数（交互行为包括：表单提交、链接点击、按钮点击、输入框回车提交等）
 		 */
 		register: (componentName, define) => {
 			AC_COMPONENT_MAP[componentName] = define;
 		},
 
+		/**
+		 * 取消注册组件
+		 * @param {String} componentName
+		 */
 		unRegister: (componentName) => {
 			delete (AC_COMPONENT_MAP[componentName]);
 		}

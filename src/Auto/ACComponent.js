@@ -11,7 +11,6 @@ const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
 let AC_COMPONENT_MAP = {
 	'async': ACAsync,
-	'popup': ACDialog,
 	'dialog': ACDialog,
 	'confirm': ACConfirm,
 	'copy': ACCopy,
@@ -114,7 +113,12 @@ const bindActiveChain = (node, activeStacks) => {
 }
 
 export const ACComponent = {
-	watch: (container = document.body, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
+	/**
+	 * 监听组件
+	 * @param {Node} container
+	 * @param {String} attr_flag 绑定属性格式，缺省为 data-component形式
+	 */
+	watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 		let m_tm = null;
 		container.addEventListener('DOMSubtreeModified propertychange', function(){
 			clearTimeout(m_tm);
@@ -127,13 +131,19 @@ export const ACComponent = {
 
 	/**
 	 * 注册组件
-	 * @param componentName
-	 * @param define
+	 * @param {String}  componentName
+	 * @param {Object} define
+	 * @param {Function} define.init 节点初始化函数
+	 * @param {Function} define.active 节点交互函数（交互行为包括：表单提交、链接点击、按钮点击、输入框回车提交等）
 	 */
 	register: (componentName, define) => {
 		AC_COMPONENT_MAP[componentName] = define;
 	},
 
+	/**
+	 * 取消注册组件
+	 * @param {String} componentName
+	 */
 	unRegister: (componentName) => {
 		delete (AC_COMPONENT_MAP[componentName]);
 	}
