@@ -1,7 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,7 +13,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -1500,7 +1499,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -4014,8 +4013,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DOM_CLASS} .civ-next{right:10px}
 	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
-	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
-	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;--opt-btn-size: 1.5em;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
+	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;--opt-btn-size:1.5rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
+	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
 	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
 	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
 	
@@ -5904,7 +5903,5 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

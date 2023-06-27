@@ -1,25 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
-	var n = Object.create(null);
-	if (e) {
-		Object.keys(e).forEach(function (k) {
-			if (k !== 'default') {
-				var d = Object.getOwnPropertyDescriptor(e, k);
-				Object.defineProperty(n, k, d.get ? d : {
-					enumerable: true,
-					get: function () { return e[k]; }
-				});
-			}
-		});
-	}
-	n["default"] = e;
-	return Object.freeze(n);
-}
-
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -1502,7 +1482,7 @@ const getLibEntryScript = () => {
  */
 const getLibModule = async () => {
 	let script = getLibEntryScript();
-	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
+	return await import(script);
 };
 
 /**
@@ -4016,8 +3996,8 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-next{right:10px}
 	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
-	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
-	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;--opt-btn-size: 1.5em;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
+	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;--opt-btn-size:1.5rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
+	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
 	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
 	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
 	
