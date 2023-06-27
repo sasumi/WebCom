@@ -3172,6 +3172,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(dlg.config.minContentHeight !== null){
 			style.push('min-height:' + dimension2Style(dlg.config.minContentHeight));
 		}
+		if(dlg.config.maxContentHeight !== null){
+			style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
+		}
+
 		html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
 		if(dlg.config.buttons.length){
 			html += `<div class="${DLG_CLS_OP}">`;
@@ -3185,7 +3189,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		//update content height
 		if(dlg.config.height){
-			adjustHeight(dlg, dlg.config.height, dlg.config.maxHeight);
+			adjustHeight(dlg, dlg.config.height);
 		}
 
 		updatePosition$1(dlg);
@@ -3201,7 +3205,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				try{
 					let html = iframe.contentWindow.document.body.parentNode;
 					let h = html.scrollHeight || html.clientHeight || html.offsetHeight;
-					adjustHeight(dlg, h, dlg.config.maxHeight);
+					adjustHeight(dlg, h);
+					updatePosition$1(dlg);
 				}catch(e){
 					console.error('iframe load error', e);
 				}
@@ -3285,12 +3290,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * 更新
 	 * @param {Dialog} dlg
 	 * @param {Number} h
-	 * @param {Number} max_h
 	 */
-	const adjustHeight = (dlg, h, max_h) => {
+	const adjustHeight = (dlg, h) => {
 		let ctn = dlg.dom.querySelector(`.${DLG_CLS_CTN}`);
 		ctn.style.height = dimension2Style(h);
-		ctn.style.maxHeight = dimension2Style(max_h);
 		if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 			let iframe = dlg.dom.querySelector('iframe');
 			iframe.style.height = dimension2Style(h);
@@ -3340,7 +3343,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			modal: false, //是否为模态窗口
 			width: Dialog.DEFAULT_WIDTH,
 			height: null, //高度，缺省为自动高度
-			maxHeight: `calc(100vh - ${Dialog.CONTENT_MIN_HEIGHT}px)`,
+			maxContentHeight: `calc(100vh - 150px)`, //最大内容区高度，默认为标题和空隙预留50px
 			minContentHeight: Dialog.CONTENT_MIN_HEIGHT,
 			moveAble: true, //是否可移动
 			showMasker: true, //是否显示遮罩，如果是模态对话框，会强制显示遮罩
