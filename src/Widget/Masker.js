@@ -1,24 +1,40 @@
 import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 
-let masker = null;
-let CSS_CLASS = Theme.Namespace+'-masker';
+let default_masker = null;
+let CSS_CLASS = Theme.Namespace + '-masker';
 
-const showMasker = () => {
+const showMasker = (masker) => {
 	if(!masker){
 		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
 	}
 	masker.style.display = '';
+	return masker;
 };
 
-const hideMasker = () => {
+const hideMasker = (masker) => {
 	masker && (masker.style.display = 'none');
 };
 
 const Masker = {
 	zIndex: Theme.MaskIndex,
-	show: showMasker,
-	hide: hideMasker
+	show: () => {
+		default_masker = showMasker(default_masker);
+	},
+	hide: () => {
+		hideMasker(default_masker);
+	},
+	instance: () => {
+		let new_masker;
+		return {
+			show: () => {
+				new_masker = showMasker(new_masker)
+			},
+			hide: () => {
+				hideMasker(new_masker)
+			}
+		}
+	}
 }
 
 insertStyleSheet(`
