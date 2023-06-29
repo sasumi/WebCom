@@ -1,5 +1,25 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopNamespace(e) {
+	if (e && e.__esModule) return e;
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			if (k !== 'default') {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	}
+	n["default"] = e;
+	return Object.freeze(n);
+}
+
 const DOMAIN_DEFAULT = 'default';
 
 const trans = (text, domain = DOMAIN_DEFAULT) => {
@@ -1482,7 +1502,7 @@ const getLibEntryScript = () => {
  */
 const getLibModule = async () => {
 	let script = getLibEntryScript();
-	return await import(script);
+	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
 };
 
 /**
@@ -1570,11 +1590,10 @@ const ICON_FONT_CLASS = NS$2 + `icon`;
 const ICON_FONT = NS$2 + 'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
-  font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff2?t=1680087001855') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff?t=1680087001855') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.ttf?t=1680087001855') format('truetype');
-
+	font-family: '${ICON_FONT}';  /* Project id 3359671 */
+  src: url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff2?t=1688055274391') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff?t=1688055274391') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.ttf?t=1688055274391') format('truetype');
 }
 
 .${ICON_FONT_CLASS} {
@@ -2645,8 +2664,8 @@ insertStyleSheet(`
 	}
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.1em; text-align:left; background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238;position: relative; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";position:absolute;font-family:${Theme.IconFont}; left:0.5em;top:0.45em;font-size:1.2em;width:1em;height:1em;overflow: hidden;line-height: 1;box-sizing: border-box;}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.75em; text-align:left; background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; font-size:1.5em; position:absolute; margin:-0.25em 0 0 -1.25em;}
 	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
 	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
