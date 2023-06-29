@@ -2420,6 +2420,9 @@ const QueryString = {
 		let query = [];
 		for(let param in data){
 			if(data.hasOwnProperty(param)){
+				if(data[param] === null){
+					continue; //null数据不提交
+				}
 				if(typeof(data[param]) === 'object' && data[param].length){
 					data[param].forEach(item=>{
 						query.push(encodeURI(param + '=' + item));

@@ -9,6 +9,10 @@
         #html {max-height:calc(100vh - 120px); max-width:500px; overflow:auto; float:left;}
         #html img {max-width:100%;}
         #text-preview {float:left; margin:0 10px; width:500px; height:calc(100vh - 120px); border:10px solid #ccc; overflow:auto;}
+        body {
+            line-height:2;
+            font-size:24px;
+        }
     </style>
 </head>
 <body>
@@ -35,13 +39,15 @@
         Toast.showLoading('loading');
     });
     document.getElementById('success-btn').addEventListener('click', e=>{
-        Toast.showSuccess('success');
+        Toast.showSuccess('successABcxyzg');
     });
 
     //长一点时间
     for(let i in Toast.DEFAULT_TIME_MAP){
-        Toast.DEFAULT_TIME_MAP[i] = Toast.DEFAULT_TIME_MAP[i]*10;
+        Toast.DEFAULT_TIME_MAP[i] = Toast.DEFAULT_TIME_MAP[i]*10000;
     }
+
+    Toast.showSuccess('successABcxyzg');
 </script>
 </body>
 </html>
