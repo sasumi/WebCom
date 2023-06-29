@@ -5,11 +5,10 @@ const ICON_FONT_CLASS = NS + `icon`;
 const ICON_FONT = NS + 'iconfont';
 const DEFAULT_ICONFONT_CSS = `
 @font-face {
-  font-family: "${ICON_FONT}"; /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff2?t=1680087001855') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.woff?t=1680087001855') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_62pcmuaniih.ttf?t=1680087001855') format('truetype');
-
+	font-family: '${ICON_FONT}';  /* Project id 3359671 */
+  src: url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff2?t=1688055274391') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff?t=1688055274391') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.ttf?t=1688055274391') format('truetype');
 }
 
 .${ICON_FONT_CLASS} {
