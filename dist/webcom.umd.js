@@ -2648,13 +2648,13 @@
 	}
 	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; z-index:${Theme.ToastIndex}}
 	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.75em; text-align:left; background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; font-size:1.5em; position:absolute; margin:-0.25em 0 0 -1.25em;}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.5em; text-align:left; background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; position:absolute; margin-left:-1.5em; transform:scale(1.25)}
 	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
 	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
-	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;}
+	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
 	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin:0.52em 0 0 0.5em;}
 `, COM_ID$2 + '-style');
 
@@ -5911,7 +5911,5 @@
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
