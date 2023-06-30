@@ -22,23 +22,22 @@ export const HTTP_METHOD = {
 
 /**
  * 请求格式
- * @type {{FORM_DATA: string, JSON: string}}
+ * @type {{FORM: string, JSON: string}}
  */
 export const REQUEST_FORMAT = {
 	JSON: 'JSON',
-	FORM_DATA: 'FORM_DATA',
+	FORM: 'FORM', // application/x-www-form-urlencoded
 }
 
 /**
  * 响应格式
- * @type {{FORM: string, XML: string, JSON: string, HTML: string, TEXT: string}}
+ * @type {{XML: string, JSON: string, HTML: string, TEXT: string}}
  */
 export const RESPONSE_FORMAT = {
 	JSON: 'JSON',
 	XML: 'XML',
 	HTML: 'HTML',
 	TEXT: 'TEXT',
-	FORM: 'FORM_DATA',
 }
 
 /**
@@ -69,7 +68,7 @@ const formatReqData = (data, format) => {
 	switch(format){
 		case REQUEST_FORMAT.JSON:
 			return JSON.stringify(data);
-		case REQUEST_FORMAT.FORM_DATA:
+		case REQUEST_FORMAT.FORM:
 			return QueryString.stringify(data);
 		default:
 			throw `Data format illegal(${format})`;
@@ -96,24 +95,49 @@ const parserRspDataAsObj = (rspStr, format) => {
 /**
  * JSON方式请求
  * @param {String} url
- * @param {*} data
+ * @param {Object|String} data 数据，当前仅支持对象或queryString
  * @param {String} method
+ * @param {Object} ext_option
+ * @param {String} ext_option.requestFormat 请求类型（FORM_DATA|JSON） 默认为 REQUEST_FORMAT.JSON 格式
+ * @param {String} ext_option.responseFormat 响应类型（JSON）默认为 RESPONSE_FORMAT.JSON 格式，暂不支持其他类型
  * @return {Promise<unknown>}
  */
-export const requestJSON = (url, data, method) => {
+export const requestJSON = (url, data, method = HTTP_METHOD.GET, ext_option = {}) => {
 	return new Promise((resolve, reject) => {
+		ext_option = Object.assign({
+			requestFormat: REQUEST_FORMAT.JSON,
+			responseFormat: RESPONSE_FORMAT.JSON
+		}, ext_option);
+
 		method = method.toUpperCase();
+		if(HTTP_METHOD[method] === undefined){
+			throw "method no supported:" + method;
+		}
+		if(ext_option.responseFormat !== RESPONSE_FORMAT.JSON){
+			throw "response type no supported: " + opt.responseFormat;
+		}
 		let opt = {
 			method: method,
 			headers: {
+				'Content-Type': 'application/json',
 				'Accept': 'application/json',
-				'Content-Type': 'application/json'
 			}
 		};
-		if(method === 'POST'){
-			opt.body = JSON.stringify(data);
-		}else{
+		if(method === HTTP_METHOD.GET){
 			url = mergerUriParam(url, data);
+		}else{
+			switch(ext_option.requestFormat){
+				case REQUEST_FORMAT.JSON:
+					opt.headers['Content-Type'] = 'application/json';
+					opt.body = typeof (data) === 'string' ? data : JSON.stringify(data);
+					break;
+				case REQUEST_FORMAT.FORM:
+					opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+					opt.body = QueryString.stringify(data);
+					break;
+				default:
+					throw "request format no supported:" + ext_option.requestFormat;
+			}
 		}
 		fetch(url, opt).then(rsp => {
 			return rsp.json();
@@ -125,13 +149,16 @@ export const requestJSON = (url, data, method) => {
 	});
 }
 
+/**
+ * xhr 网络请求
+ */
 export class Net {
 	cgi = null; //请求接口
 	data = null; //请求数据
 	option = {
 		method: HTTP_METHOD.GET, //请求方法
 		timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
-		requestDataFormat: REQUEST_FORMAT.FORM_DATA, //请求数据格式
+		requestDataFormat: REQUEST_FORMAT.FORM, //请求数据格式
 		responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
 		headers: {}, //请求头部信息
 	};
@@ -250,8 +277,8 @@ export const QueryString = {
 		}
 		let retObj = {};
 		let qs = str.split('&');
-		qs.forEach(q=>{
-			let [k,v]=q.split('=');
+		qs.forEach(q => {
+			let [k, v] = q.split('=');
 			if(!k.length){
 				return;
 			}
@@ -261,22 +288,22 @@ export const QueryString = {
 	},
 
 	stringify(data){
-		if(typeof (data) === 'undefined' || typeof (data) !== 'object') return data
+		if(typeof (data) === 'undefined' || typeof (data) !== 'object'){
+			return data
+		}
 		let query = []
 		for(let param in data){
 			if(data.hasOwnProperty(param)){
 				if(data[param] === null){
 					continue; //null数据不提交
 				}
-				if(typeof(data[param]) === 'object' && data[param].length){
-					data[param].forEach(item=>{
+				if(typeof (data[param]) === 'object' && data[param].length){
+					data[param].forEach(item => {
 						query.push(encodeURI(param + '=' + item))
 					});
-				}
-				else if(typeof(data[param]) === 'object'){
+				}else if(typeof (data[param]) === 'object'){
 					//todo 不处理子级object、空数组情况
-				}
-				else {
+				}else{
 					query.push(encodeURI(param + '=' + data[param]))
 				}
 			}

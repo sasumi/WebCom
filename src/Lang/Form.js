@@ -125,38 +125,77 @@ export const formValidate = (dom, name_validate = false) => {
 }
 
 /**
- * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+ * 获取指定DOM节点下表单元素包含的表单数据，并以Body String方式组装。
  * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
- * @param {HTMLElement} dom
- * @param {Boolean} validate 是否校验表单数据合法
- * @returns {Object|null} 如果校验失败，则返回null
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @returns {String} 如果校验失败，则返回null
  */
-export const formSerializeJSON = (dom, validate = true) => {
+export const formSerializeString = (dom, validate= true)=>{
+	let data_list = getFormDataAvailable(dom, validate);
+	let data_string_list = [];
+	data_list.forEach(item => {
+		let [name, value] = item;
+		data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(value)));
+	});
+	return data_string_list.join('&');
+}
+
+/**
+ * 获取表单可用数据，以数组方式返回
+ * 注意：该数组包含 [name, value]，其中 name 可重复。
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @return {*[]}
+ */
+const getFormDataAvailable = (dom, validate = true) => {
 	if(validate && !formValidate(dom)){
-		return null;
+		return [];
 	}
 	let els = getAvailableElements(dom);
-	let data = {};
-	let err = Array.from(els).every(el => {
+	let data_list = [];
+	els.forEach(el=>{
 		let name = el.name;
 		let value = getElementValue(el);
-		if(value === null){
-			return true;
+		if(value !== null){
+			data_list.push([name, value]);
 		}
-		let name_selector = cssSelectorEscape(name);
-		let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]), textarea[name=${name_selector}], select[name=${name_selector}]`).length > 1;
-		if(isArr){
-			if(data[name] === undefined){
-				data[name] = [value];
+	})
+	return data_list;
+}
+
+/**
+ * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+ * 注意：同名表单项以JS数组方式组装，PHP方法名称中中括号将被作为变量名一部分使用
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @returns {Object} JSON数据
+ */
+export const formSerializeJSON = (dom, validate = true) => {
+	let json_obj = {};
+	let data_list = getFormDataAvailable(dom, validate);
+	let name_counts = {};
+	data_list.forEach(item=>{
+		let [name, value] = item;
+		if(name_counts[name] === undefined){
+			name_counts[name] = 1;
+		} else {
+			name_counts[name]++
+		}
+	});
+	data_list.forEach(item => {
+		let [name, value] = item;
+		if(name_counts[name] > 1){
+			if(json_obj[name] === undefined){
+				json_obj[name] = [value];
 			}else{
-				data[name].push(value);
+				json_obj[name].push(value);
 			}
 		}else{
-			data[name] = value;
+			json_obj[name] = value;
 		}
-		return true;
 	});
-	return err === false ? null : data;
+	return json_obj;
 };
 
 /**

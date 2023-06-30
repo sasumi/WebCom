@@ -1717,38 +1717,77 @@ const formValidate = (dom, name_validate = false) => {
 };
 
 /**
- * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+ * 获取指定DOM节点下表单元素包含的表单数据，并以Body String方式组装。
  * 该函数过滤表单元素处于 disabled、缺少name等不合理情况
- * @param {HTMLElement} dom
- * @param {Boolean} validate 是否校验表单数据合法
- * @returns {Object|null} 如果校验失败，则返回null
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @returns {String} 如果校验失败，则返回null
  */
-const formSerializeJSON = (dom, validate = true) => {
+const formSerializeString = (dom, validate= true)=>{
+	let data_list = getFormDataAvailable(dom, validate);
+	let data_string_list = [];
+	data_list.forEach(item => {
+		let [name, value] = item;
+		data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(value)));
+	});
+	return data_string_list.join('&');
+};
+
+/**
+ * 获取表单可用数据，以数组方式返回
+ * 注意：该数组包含 [name, value]，其中 name 可重复。
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @return {*[]}
+ */
+const getFormDataAvailable = (dom, validate = true) => {
 	if(validate && !formValidate(dom)){
-		return null;
+		return [];
 	}
 	let els = getAvailableElements(dom);
-	let data = {};
-	let err = Array.from(els).every(el => {
+	let data_list = [];
+	els.forEach(el=>{
 		let name = el.name;
 		let value = getElementValue(el);
-		if(value === null){
-			return true;
+		if(value !== null){
+			data_list.push([name, value]);
 		}
-		let name_selector = cssSelectorEscape(name);
-		let isArr = dom.querySelectorAll(`input[name=${name_selector}]:not([type=radio]), textarea[name=${name_selector}], select[name=${name_selector}]`).length > 1;
-		if(isArr){
-			if(data[name] === undefined){
-				data[name] = [value];
+	});
+	return data_list;
+};
+
+/**
+ * 获取指定DOM节点下表单元素包含的表单数据，并以JSON方式组装。
+ * 注意：同名表单项以JS数组方式组装，PHP方法名称中中括号将被作为变量名一部分使用
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @returns {Object} JSON数据
+ */
+const formSerializeJSON = (dom, validate = true) => {
+	let json_obj = {};
+	let data_list = getFormDataAvailable(dom, validate);
+	let name_counts = {};
+	data_list.forEach(item=>{
+		let [name, value] = item;
+		if(name_counts[name] === undefined){
+			name_counts[name] = 1;
+		} else {
+			name_counts[name]++;
+		}
+	});
+	data_list.forEach(item => {
+		let [name, value] = item;
+		if(name_counts[name] > 1){
+			if(json_obj[name] === undefined){
+				json_obj[name] = [value];
 			}else {
-				data[name].push(value);
+				json_obj[name].push(value);
 			}
 		}else {
-			data[name] = value;
+			json_obj[name] = value;
 		}
-		return true;
 	});
-	return err === false ? null : data;
+	return json_obj;
 };
 
 /**
@@ -2174,23 +2213,22 @@ const HTTP_METHOD = {
 
 /**
  * 请求格式
- * @type {{FORM_DATA: string, JSON: string}}
+ * @type {{FORM: string, JSON: string}}
  */
 const REQUEST_FORMAT = {
 	JSON: 'JSON',
-	FORM_DATA: 'FORM_DATA',
+	FORM: 'FORM', // application/x-www-form-urlencoded
 };
 
 /**
  * 响应格式
- * @type {{FORM: string, XML: string, JSON: string, HTML: string, TEXT: string}}
+ * @type {{XML: string, JSON: string, HTML: string, TEXT: string}}
  */
 const RESPONSE_FORMAT = {
 	JSON: 'JSON',
 	XML: 'XML',
 	HTML: 'HTML',
 	TEXT: 'TEXT',
-	FORM: 'FORM_DATA',
 };
 
 /**
@@ -2221,7 +2259,7 @@ const formatReqData = (data, format) => {
 	switch(format){
 		case REQUEST_FORMAT.JSON:
 			return JSON.stringify(data);
-		case REQUEST_FORMAT.FORM_DATA:
+		case REQUEST_FORMAT.FORM:
 			return QueryString.stringify(data);
 		default:
 			throw `Data format illegal(${format})`;
@@ -2248,24 +2286,49 @@ const parserRspDataAsObj = (rspStr, format) => {
 /**
  * JSON方式请求
  * @param {String} url
- * @param {*} data
+ * @param {Object|String} data 数据，当前仅支持对象或queryString
  * @param {String} method
+ * @param {Object} ext_option
+ * @param {String} ext_option.requestFormat 请求类型（FORM_DATA|JSON） 默认为 REQUEST_FORMAT.JSON 格式
+ * @param {String} ext_option.responseFormat 响应类型（JSON）默认为 RESPONSE_FORMAT.JSON 格式，暂不支持其他类型
  * @return {Promise<unknown>}
  */
-const requestJSON = (url, data, method) => {
+const requestJSON = (url, data, method = HTTP_METHOD.GET, ext_option = {}) => {
 	return new Promise((resolve, reject) => {
+		ext_option = Object.assign({
+			requestFormat: REQUEST_FORMAT.JSON,
+			responseFormat: RESPONSE_FORMAT.JSON
+		}, ext_option);
+
 		method = method.toUpperCase();
+		if(HTTP_METHOD[method] === undefined){
+			throw "method no supported:" + method;
+		}
+		if(ext_option.responseFormat !== RESPONSE_FORMAT.JSON){
+			throw "response type no supported: " + opt.responseFormat;
+		}
 		let opt = {
 			method: method,
 			headers: {
+				'Content-Type': 'application/json',
 				'Accept': 'application/json',
-				'Content-Type': 'application/json'
 			}
 		};
-		if(method === 'POST'){
-			opt.body = JSON.stringify(data);
-		}else {
+		if(method === HTTP_METHOD.GET){
 			url = mergerUriParam(url, data);
+		}else {
+			switch(ext_option.requestFormat){
+				case REQUEST_FORMAT.JSON:
+					opt.headers['Content-Type'] = 'application/json';
+					opt.body = typeof (data) === 'string' ? data : JSON.stringify(data);
+					break;
+				case REQUEST_FORMAT.FORM:
+					opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+					opt.body = QueryString.stringify(data);
+					break;
+				default:
+					throw "request format no supported:" + ext_option.requestFormat;
+			}
 		}
 		fetch(url, opt).then(rsp => {
 			return rsp.json();
@@ -2277,13 +2340,16 @@ const requestJSON = (url, data, method) => {
 	});
 };
 
+/**
+ * xhr 网络请求
+ */
 class Net {
 	cgi = null; //请求接口
 	data = null; //请求数据
 	option = {
 		method: HTTP_METHOD.GET, //请求方法
 		timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
-		requestDataFormat: REQUEST_FORMAT.FORM_DATA, //请求数据格式
+		requestDataFormat: REQUEST_FORMAT.FORM, //请求数据格式
 		responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
 		headers: {}, //请求头部信息
 	};
@@ -2402,8 +2468,8 @@ const QueryString = {
 		}
 		let retObj = {};
 		let qs = str.split('&');
-		qs.forEach(q=>{
-			let [k,v]=q.split('=');
+		qs.forEach(q => {
+			let [k, v] = q.split('=');
 			if(!k.length){
 				return;
 			}
@@ -2413,20 +2479,20 @@ const QueryString = {
 	},
 
 	stringify(data){
-		if(typeof (data) === 'undefined' || typeof (data) !== 'object') return data
+		if(typeof (data) === 'undefined' || typeof (data) !== 'object'){
+			return data
+		}
 		let query = [];
 		for(let param in data){
 			if(data.hasOwnProperty(param)){
 				if(data[param] === null){
 					continue; //null数据不提交
 				}
-				if(typeof(data[param]) === 'object' && data[param].length){
-					data[param].forEach(item=>{
+				if(typeof (data[param]) === 'object' && data[param].length){
+					data[param].forEach(item => {
 						query.push(encodeURI(param + '=' + item));
 					});
-				}
-				else if(typeof(data[param]) === 'object');
-				else {
+				}else if(typeof (data[param]) === 'object');else {
 					query.push(encodeURI(param + '=' + data[param]));
 				}
 			}
@@ -5421,11 +5487,15 @@ class Uploader {
 /**
  * 异步组件
  * 参数：
+ * ACAsync.FORM_DATA_PACKAGE_TYPE 设置数据打包方式，如后端是PHP，为兼容PHP数组识别语法，请使用：PACKAGE_TYPE_STRING 方式打包
+ * 缺省为 PACKAGE_TYPE_JSON 方式打包
  * node[data-async-url] | a[href] | form[action] 请求url
  * node[data-async-method] | form[method] 请求方法，缺省为GET
  * node[data-async-data] | form{*} 请求数据
  */
 class ACAsync {
+	static REQUEST_FORMAT = REQUEST_FORMAT.JSON;
+
 	//默认成功回调处理函数
 	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
 		let next = () => {
@@ -5444,7 +5514,7 @@ class ACAsync {
 				onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
 			if(node.tagName === 'FORM'){
 				url = node.action;
-				data = formSerializeJSON(node);
+				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 			}else if(node.tagName === 'A'){
 				url = node.href;
@@ -5457,7 +5527,7 @@ class ACAsync {
 			data = param.data || data;
 
 			let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
-			requestJSON(url, data, method).then(rsp => {
+			requestJSON(url, data, method, {requestFormat:ACAsync.REQUEST_FORMAT}).then(rsp => {
 				if(rsp.code === 0){
 					onsuccess(rsp);
 					resolve();
@@ -5735,4 +5805,4 @@ const ACComponent = {
 	}
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, ToastClass as Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getContextDocument, getContextWindow, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, ToastClass as Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getContextDocument, getContextWindow, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
