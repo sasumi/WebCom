@@ -1,6 +1,7 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespaceDefault(e) {
+	function _interopNamespace(e) {
+		if (e && e.__esModule) return e;
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -13,7 +14,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n.default = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -1499,7 +1500,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -2714,8 +2715,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	insertStyleSheet(`
 	@keyframes ${rotate_animate} {
-	    0% {transform: translate3d(-50%, -50%, 0) rotate(0deg);}
-	    100% {transform: translate3d(-50%, -50%, 0) rotate(360deg);}
+	    0% {transform:scale(1.4) rotate(0deg);}
+	    100% {transform:scale(1.4) rotate(360deg);}
 	}
 	@keyframes ${fadeIn_animate} {
 		0% { opacity: 0; }
@@ -2734,7 +2735,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
-	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform: translate3d(-50%, -50%, 0);will-change: transform;margin:0.52em 0 0 0.5em;}
+	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
 `, COM_ID$2 + '-style');
 
 	let toastWrap = null;
@@ -5995,5 +5996,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
