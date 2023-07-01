@@ -1734,11 +1734,33 @@ const formSerializeString = (dom, validate= true)=>{
 };
 
 /**
+ * 序列化PHP表单到JSON
+ * PHP 表单元素名称允许使用中括号来表示多级数组
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @return {Object}
+ */
+const serializePhpFormToJSON = (dom, validate = true)=>{
+	let data_list = getFormDataAvailable(dom, validate);
+	let json_obj = {};
+	data_list.forEach(item => {
+		let [name, value] = item;
+		if(name.indexOf('[') < 0){
+			json_obj[name] = value;
+			return;
+		}
+		let name_path = name.replace(/\[]$/, '.0').replace(/]/g, '').replace(/\[/g, '.');
+		objectPushByPath(name_path, value, json_obj, '.');
+	});
+	return json_obj;
+};
+
+/**
  * 获取表单可用数据，以数组方式返回
  * 注意：该数组包含 [name, value]，其中 name 可重复。
  * @param {HTMLElement} dom 表单节点或普通HTML容器节点
  * @param {Boolean} validate 是否校验表单
- * @return {*[]}
+ * @return {Array[]}
  */
 const getFormDataAvailable = (dom, validate = true) => {
 	if(validate && !formValidate(dom)){
@@ -5805,4 +5827,4 @@ const ACComponent = {
 	}
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, ToastClass as Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getContextDocument, getContextWindow, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACTip, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, Ladder, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Thumb, Tip, ToastClass as Toast, Toc, UPLOAD_ERROR_FILE_EMPTY, UPLOAD_ERROR_FILE_SIZE_OVERLOAD, UPLOAD_STATE_ERROR, UPLOAD_STATE_INIT, UPLOAD_STATE_PENDING, UPLOAD_STATE_SUCCESS, Uploader, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getContextDocument, getContextWindow, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, resolveTocListFromDom, round, serializePhpFormToJSON, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

@@ -2,7 +2,7 @@ import {cssSelectorEscape, escapeAttr} from "./String.js";
 import {isButton} from "./Dom.js";
 import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
-import {isEquals} from "./Array.js";
+import {isEquals, objectPushByPath} from "./Array.js";
 
 /**
  * 检测元素是否可以输入（包含checkbox、radio类）
@@ -142,13 +142,35 @@ export const formSerializeString = (dom, validate= true)=>{
 }
 
 /**
+ * 序列化PHP表单到JSON
+ * PHP 表单元素名称允许使用中括号来表示多级数组
+ * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+ * @param {Boolean} validate 是否校验表单
+ * @return {Object}
+ */
+export const serializePhpFormToJSON = (dom, validate = true)=>{
+	let data_list = getFormDataAvailable(dom, validate);
+	let json_obj = {};
+	data_list.forEach(item => {
+		let [name, value] = item;
+		if(name.indexOf('[') < 0){
+			json_obj[name] = value;
+			return;
+		}
+		let name_path = name.replace(/\[]$/, '.0').replace(/]/g, '').replace(/\[/g, '.');
+		objectPushByPath(name_path, value, json_obj, '.');
+	});
+	return json_obj;
+}
+
+/**
  * 获取表单可用数据，以数组方式返回
  * 注意：该数组包含 [name, value]，其中 name 可重复。
  * @param {HTMLElement} dom 表单节点或普通HTML容器节点
  * @param {Boolean} validate 是否校验表单
- * @return {*[]}
+ * @return {Array[]}
  */
-const getFormDataAvailable = (dom, validate = true) => {
+export const getFormDataAvailable = (dom, validate = true) => {
 	if(validate && !formValidate(dom)){
 		return [];
 	}

@@ -1737,11 +1737,33 @@ var WebCom = (function (exports) {
 	};
 
 	/**
+	 * 序列化PHP表单到JSON
+	 * PHP 表单元素名称允许使用中括号来表示多级数组
+	 * @param {HTMLElement} dom 表单节点或普通HTML容器节点
+	 * @param {Boolean} validate 是否校验表单
+	 * @return {Object}
+	 */
+	const serializePhpFormToJSON = (dom, validate = true)=>{
+		let data_list = getFormDataAvailable(dom, validate);
+		let json_obj = {};
+		data_list.forEach(item => {
+			let [name, value] = item;
+			if(name.indexOf('[') < 0){
+				json_obj[name] = value;
+				return;
+			}
+			let name_path = name.replace(/\[]$/, '.0').replace(/]/g, '').replace(/\[/g, '.');
+			objectPushByPath(name_path, value, json_obj, '.');
+		});
+		return json_obj;
+	};
+
+	/**
 	 * 获取表单可用数据，以数组方式返回
 	 * 注意：该数组包含 [name, value]，其中 name 可重复。
 	 * @param {HTMLElement} dom 表单节点或普通HTML容器节点
 	 * @param {Boolean} validate 是否校验表单
-	 * @return {*[]}
+	 * @return {Array[]}
 	 */
 	const getFormDataAvailable = (dom, validate = true) => {
 		if(validate && !formValidate(dom)){
@@ -5909,6 +5931,7 @@ var WebCom = (function (exports) {
 	exports.getDomDimension = getDomDimension;
 	exports.getDomOffset = getDomOffset;
 	exports.getElementValue = getElementValue;
+	exports.getFormDataAvailable = getFormDataAvailable;
 	exports.getHash = getHash;
 	exports.getLastMonth = getLastMonth;
 	exports.getLibEntryScript = getLibEntryScript;
@@ -5958,6 +5981,7 @@ var WebCom = (function (exports) {
 	exports.resolveFileName = resolveFileName;
 	exports.resolveTocListFromDom = resolveTocListFromDom;
 	exports.round = round;
+	exports.serializePhpFormToJSON = serializePhpFormToJSON;
 	exports.setContextWindow = setContextWindow;
 	exports.setHash = setHash;
 	exports.setStyle = setStyle;
