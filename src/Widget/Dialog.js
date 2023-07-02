@@ -330,16 +330,25 @@ const domConstruct = (dlg) => {
 	//bind iframe content
 	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
-		iframe.addEventListener('load', () => {
-			try{
-				let html = iframe.contentWindow.document.body.parentNode;
-				let h = html.scrollHeight || html.clientHeight || html.offsetHeight;
-				adjustHeight(dlg, h);
-				updatePosition(dlg);
-			}catch(e){
-				console.error('iframe load error', e);
+		let obs;
+		try {
+			let upd = ()=>{
+				let bdy = iframe.contentWindow.document.body;
+				if(bdy){
+					let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
+					adjustHeight(dlg, h);
+					updatePosition(dlg);
+				}
 			}
-		});
+			iframe.addEventListener('load', ()=>{
+				obs = new MutationObserver(upd);
+				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+				upd();
+			});
+		} catch(err){
+			try {obs &&　obs.disconnect();} catch(err){console.error('observer disconnect fail', err)}
+			console.warn('iframe content upd', err);
+		}
 	}
 	dlg.dom.style.display = 'none';
 };

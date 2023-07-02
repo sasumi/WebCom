@@ -124,7 +124,6 @@ export const ACComponent = {
 		let m_tm = null;
 		console.log('watch');
 		let observer = new MutationObserver(mutations => {
-			console.log('sub tree modify');
 			clearTimeout(m_tm);
 			m_tm = setTimeout(function(){
 				bindNode(container, attr_flag);

@@ -3294,16 +3294,27 @@
 		//bind iframe content
 		if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 			let iframe = dlg.dom.querySelector('iframe');
-			iframe.addEventListener('load', () => {
-				try{
-					let html = iframe.contentWindow.document.body.parentNode;
-					let h = html.scrollHeight || html.clientHeight || html.offsetHeight;
-					adjustHeight(dlg, h);
-					updatePosition$1(dlg);
-				}catch(e){
-					console.error('iframe load error', e);
-				}
-			});
+			let obs;
+			try {
+				let upd = ()=>{
+					console.log('upd call');
+					let bdy = iframe.contentWindow.document.body;
+					if(bdy){
+						let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
+						adjustHeight(dlg, h);
+						updatePosition$1(dlg);
+					}
+				};
+				iframe.addEventListener('load', ()=>{
+					console.log('iframe mutation observer start');
+					obs = new MutationObserver(upd);
+					obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+					upd();
+				});
+			} catch(err){
+				try {obs &&　obs.disconnect();} catch(err){console.error('observer disconnect fail', err);}
+				console.warn('iframe content upd', err);
+			}
 		}
 		dlg.dom.style.display = 'none';
 	};
@@ -5803,7 +5814,6 @@
 			let m_tm = null;
 			console.log('watch');
 			let observer = new MutationObserver(mutations => {
-				console.log('sub tree modify');
 				clearTimeout(m_tm);
 				m_tm = setTimeout(function(){
 					bindNode(container, attr_flag);
