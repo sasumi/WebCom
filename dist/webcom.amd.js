@@ -3020,7 +3020,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em 0.5em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
-	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 50px); overflow-y:auto}
+	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 100px); overflow-y:auto}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#ccc;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%;}
@@ -3276,10 +3276,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	`;
 
 		let style = [];
-		if(dlg.config.minContentHeight !== null){
+		if(dlg.config.minContentHeight){
 			style.push('min-height:' + dimension2Style(dlg.config.minContentHeight));
 		}
-		if(dlg.config.maxContentHeight !== null){
+		if(dlg.config.maxContentHeight){
 			style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
 		}
 
@@ -3450,7 +3450,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			modal: false, //是否为模态窗口
 			width: Dialog.DEFAULT_WIDTH,
 			height: null, //高度，缺省为自动高度
-			maxContentHeight: `calc(100vh - 150px)`, //最大内容区高度，默认为标题和空隙预留50px
+			maxContentHeight: null, //最大内容区高度，默认为标题和空隙预留50px
 			minContentHeight: Dialog.CONTENT_MIN_HEIGHT,
 			moveAble: true, //是否可移动
 			showMasker: true, //是否显示遮罩，如果是模态对话框，会强制显示遮罩
