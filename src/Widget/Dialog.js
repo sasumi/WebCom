@@ -148,7 +148,7 @@ const setType = (dlg, type)=>{
 /**
  * 对话框管理器
  */
-export const DialogManager = {
+const DialogManager = {
 	register(dlg){
 		DIALOG_COLLECTION.push(dlg)
 	},
@@ -272,7 +272,7 @@ export const DialogManager = {
 	 */
 	findById(id){
 		return DIALOG_COLLECTION.find(dlg => {
-			return dlg.config.id === id
+			return dlg.id === id
 		});
 	}
 };
@@ -291,7 +291,7 @@ const resolveContentType = (content) => {
 const domConstruct = (dlg) => {
 	let html = `
 		<div class="${DLG_CLS_PREF}" 
-			id="${dlg.config.id}" 
+			id="${dlg.id}" 
 			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
@@ -446,7 +446,7 @@ const adjustHeight = (dlg, h) => {
 const renderContent = (dlg) => {
 	switch(resolveContentType(dlg.config.content)){
 		case DLG_CTN_TYPE_IFRAME:
-			return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="1"></iframe>`;
+			return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="${dlg.id}"></iframe>`;
 
 		case DLG_CTN_TYPE_HTML:
 			return dlg.config.content;
@@ -457,11 +457,16 @@ const renderContent = (dlg) => {
 	}
 };
 
+const CUSTOM_EVENT_BUCKS = {
+	/** id: {event: []} **/
+};
+
 class Dialog {
 	static CONTENT_MIN_HEIGHT = 30; //最小高度
 	static DEFAULT_WIDTH = 500; //默认宽度
 	static DIALOG_INIT_Z_INDEX = Theme.DialogIndex;
 
+	//对话框ID，缺省为自动生成
 	id = null;
 
 	/** @var {HTMLElement} dom **/
@@ -472,10 +477,8 @@ class Dialog {
 
 	onClose = new BizEvent(true);
 	onShow = new BizEvent(true);
-	innerEvent = new BizEvent(true);
 
 	config = {
-		id: null, //对话框ID，缺省为自动生成
 		title: '', //对话框标题
 		content: '',
 		modal: false, //是否为模态窗口
@@ -507,7 +510,7 @@ class Dialog {
 	 */
 	constructor(config = {}){
 		this.config = Object.assign(this.config, config);
-		this.config.id = this.config.id || 'dialog-' + Math.random();
+		this.id = this.id || 'dialog-' + Math.random();
 		if(!this.config.showMasker && this.config.modal){
 			console.warn('已矫正：模态窗口强制显示遮罩');
 		}
@@ -530,11 +533,19 @@ class Dialog {
 	}
 
 	fireCustomEvent(event, ...args){
-
+		if(CUSTOM_EVENT_BUCKS[this.id] && CUSTOM_EVENT_BUCKS[this.id][event]){
+			CUSTOM_EVENT_BUCKS[this.id][event].fire(...args);
+		}
 	}
 
 	listenCustomEvent(event, callback){
-		
+		if(CUSTOM_EVENT_BUCKS[this.id] === undefined){
+			CUSTOM_EVENT_BUCKS[this.id] = {};
+		}
+		if(CUSTOM_EVENT_BUCKS[this.id][event]  === undefined){
+			CUSTOM_EVENT_BUCKS[this.id][event] = new BizEvent();
+		}
+		CUSTOM_EVENT_BUCKS[this.id][event].listen(callback);
 	}
 
 	updatePosition(){
@@ -665,31 +676,43 @@ class Dialog {
 			p.show();
 		});
 	}
-
-	/**
-	 * 获取当前页面（iframe）所在的对话框
-	 * @returns {Dialog|null}
-	 */
-	static getCurrentFrameDialog(){
-		if(!window.parent || !window.frameElement){
-			console.warn('No in iframe');
-			return null;
-		}
-
-		if(!parent.DialogManager){
-			throw "No dialog manager found.";
-		}
-
-		let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
-		if(!id){
-			throw "ID no found in iframe element";
-		}
-		return parent.DialogManager.findById(id);
-	}
 }
 
-window[COM_ID] = Dialog;
-let CONTEXT_WINDOW = getContextWindow();
-let DialogClass = CONTEXT_WINDOW[COM_ID] || Dialog;
+/**
+ * 获取当前页面（iframe）所在的对话框
+ * @returns {Promise}
+ */
+export const getCurrentFrameDialog = ()=>{
+	return new Promise((resolve, reject) => {
+		if(!window.parent || !window.frameElement){
+			reject('no in iframe');
+			return;
+		}
+		if(!parent[COM_ID].DialogManager){
+			reject('No dialog manager found.');
+			return;
+		}
+		let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
+		if(!id){
+			reject("ID no found in iframe element");
+		}
+		let dlg = parent[COM_ID].DialogManager.findById(id);
+		if(dlg){
+			resolve(dlg);
+		} else {
+			reject('no dlg find:'+id);
+		}
+	});
+}
+if(!window[COM_ID]){
+	window[COM_ID] = {};
+}
 
-export {DialogClass as Dialog};
+window[COM_ID].Dialog = Dialog;
+window[COM_ID].DialogManager = DialogManager;
+
+let CONTEXT_WINDOW = getContextWindow();
+let DialogClass = CONTEXT_WINDOW[COM_ID].Dialog || Dialog;
+let DialogManagerClass = CONTEXT_WINDOW[COM_ID].DialogManager || DialogManager;
+
+export {DialogClass as Dialog, DialogManagerClass as DialogManager};

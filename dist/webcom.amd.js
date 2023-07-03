@@ -1,7 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,7 +13,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -1500,7 +1499,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -3250,7 +3249,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		findById(id){
 			return DIALOG_COLLECTION.find(dlg => {
-				return dlg.config.id === id
+				return dlg.id === id
 			});
 		}
 	};
@@ -3269,7 +3268,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const domConstruct = (dlg) => {
 		let html = `
 		<div class="${DLG_CLS_PREF}" 
-			id="${dlg.config.id}" 
+			id="${dlg.id}" 
 			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
@@ -3311,7 +3310,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			let obs;
 			try {
 				let upd = ()=>{
-					console.log('upd call');
 					let bdy = iframe.contentWindow.document.body;
 					if(bdy){
 						let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
@@ -3320,7 +3318,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					}
 				};
 				iframe.addEventListener('load', ()=>{
-					console.log('iframe mutation observer start');
 					obs = new MutationObserver(upd);
 					obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
 					upd();
@@ -3426,7 +3423,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const renderContent = (dlg) => {
 		switch(resolveContentType(dlg.config.content)){
 			case DLG_CTN_TYPE_IFRAME:
-				return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="1"></iframe>`;
+				return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="${dlg.id}"></iframe>`;
 
 			case DLG_CTN_TYPE_HTML:
 				return dlg.config.content;
@@ -3437,11 +3434,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	};
 
+	const CUSTOM_EVENT_BUCKS = {
+		/** id: {event: []} **/
+	};
+
 	class Dialog {
 		static CONTENT_MIN_HEIGHT = 30; //最小高度
 		static DEFAULT_WIDTH = 500; //默认宽度
 		static DIALOG_INIT_Z_INDEX = Theme.DialogIndex;
 
+		//对话框ID，缺省为自动生成
 		id = null;
 
 		/** @var {HTMLElement} dom **/
@@ -3452,10 +3454,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		onClose = new BizEvent(true);
 		onShow = new BizEvent(true);
-		innerEvent = new BizEvent(true);
 
 		config = {
-			id: null, //对话框ID，缺省为自动生成
 			title: '', //对话框标题
 			content: '',
 			modal: false, //是否为模态窗口
@@ -3487,7 +3487,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		constructor(config = {}){
 			this.config = Object.assign(this.config, config);
-			this.config.id = this.config.id || 'dialog-' + Math.random();
+			this.id = this.id || 'dialog-' + Math.random();
 			if(!this.config.showMasker && this.config.modal){
 				console.warn('已矫正：模态窗口强制显示遮罩');
 			}
@@ -3507,6 +3507,22 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		close(){
 			DialogManager.close(this);
+		}
+
+		fireCustomEvent(event, ...args){
+			if(CUSTOM_EVENT_BUCKS[this.id] && CUSTOM_EVENT_BUCKS[this.id][event]){
+				CUSTOM_EVENT_BUCKS[this.id][event].fire(...args);
+			}
+		}
+
+		listenCustomEvent(event, callback){
+			if(CUSTOM_EVENT_BUCKS[this.id] === undefined){
+				CUSTOM_EVENT_BUCKS[this.id] = {};
+			}
+			if(CUSTOM_EVENT_BUCKS[this.id][event]  === undefined){
+				CUSTOM_EVENT_BUCKS[this.id][event] = new BizEvent();
+			}
+			CUSTOM_EVENT_BUCKS[this.id][event].listen(callback);
 		}
 
 		updatePosition(){
@@ -3637,32 +3653,44 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				p.show();
 			});
 		}
-
-		/**
-		 * 获取当前页面（iframe）所在的对话框
-		 * @returns {Dialog|null}
-		 */
-		static getCurrentFrameDialog(){
-			if(!window.parent || !window.frameElement){
-				console.warn('No in iframe');
-				return null;
-			}
-
-			if(!parent.DialogManager){
-				throw "No dialog manager found.";
-			}
-
-			let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
-			if(!id){
-				throw "ID no found in iframe element";
-			}
-			return parent.DialogManager.findById(id);
-		}
 	}
 
-	window[COM_ID$1] = Dialog;
+	/**
+	 * 获取当前页面（iframe）所在的对话框
+	 * @returns {Promise}
+	 */
+	const getCurrentFrameDialog = ()=>{
+		return new Promise((resolve, reject) => {
+			if(!window.parent || !window.frameElement){
+				reject('no in iframe');
+				return;
+			}
+			if(!parent[COM_ID$1].DialogManager){
+				reject('No dialog manager found.');
+				return;
+			}
+			let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
+			if(!id){
+				reject("ID no found in iframe element");
+			}
+			let dlg = parent[COM_ID$1].DialogManager.findById(id);
+			if(dlg){
+				resolve(dlg);
+			} else {
+				reject('no dlg find:'+id);
+			}
+		});
+	};
+	if(!window[COM_ID$1]){
+		window[COM_ID$1] = {};
+	}
+
+	window[COM_ID$1].Dialog = Dialog;
+	window[COM_ID$1].DialogManager = DialogManager;
+
 	let CONTEXT_WINDOW$1 = getContextWindow();
-	let DialogClass = CONTEXT_WINDOW$1[COM_ID$1] || Dialog;
+	let DialogClass = CONTEXT_WINDOW$1[COM_ID$1].Dialog || Dialog;
+	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$1].DialogManager || DialogManager;
 
 	/**
 	 * copy text
@@ -5867,7 +5895,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
 	exports.Dialog = DialogClass;
-	exports.DialogManager = DialogManager;
+	exports.DialogManager = DialogManagerClass;
 	exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;
 	exports.FILE_TYPE_DOC = FILE_TYPE_DOC;
 	exports.FILE_TYPE_IMAGE = FILE_TYPE_IMAGE;
@@ -5954,6 +5982,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.getAvailableElements = getAvailableElements;
 	exports.getContextDocument = getContextDocument;
 	exports.getContextWindow = getContextWindow;
+	exports.getCurrentFrameDialog = getCurrentFrameDialog;
 	exports.getCurrentScript = getCurrentScript;
 	exports.getDomDimension = getDomDimension;
 	exports.getDomOffset = getDomOffset;
@@ -6030,7 +6059,5 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
