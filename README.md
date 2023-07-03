@@ -1,54 +1,46 @@
-# 开始使用
+# WebCom轻代码库
 
 [TOC]
 
-## 简介
+## 一、简介
 
-YWJ前端研发框架是一款基于HTML语义化扩展支持的轻量化组件框架。框架中的组件基于 [SeaJS][1] 模块方式进行建设，采用同步支持HTML自动化调用以及支持SeaJS模块两种调用方式。实现研发人员无需编写过多Javascript代码实现前端组件无缝调用。
+WebCom是基于ES6语法封装的前端通用辅助库。代码库中包含各类语言增强函数、对象，以及一些常见的UI Widget。同时代码库还提供了一套建议的低代码研发模式的前端框架，提供给类似管理台场景使用，减少前端人员投入。
 
-HelloWorld示例：
+## 二、安装使用
 
-``` html
-<html>
-    <head>
-        <title>Hello World</title>
-        <!-- 引入SeaJS库、配置文件 -->
-        <script src="src/seajs/seajs.js"></script>
-        <script src="src/seajs/config.js"></script>
-    </head>
-    <body>
-        <!-- 使用HTML方式调用 -->
-        <div data-component="HelloWorld" data-helloworld-message="你好，世界！"></div>
-        
-        <!-- 使用Javascript方式调用 -->
-        <div id="#msg"></div>
-        <script>
-            seajs.use('ywj/HelloWorld', function(HelloWorld){
-               	var h = new HelloWorld('#msg');
-                h.message = '你好，世界！';
-                h.show();
-            });
-        </script>
-    </body>
-</html>
+1、引入
+html或js直接使用ES6方式引入即可。
+
+<script src="/dist/webcom.es.js" type="module"></script>
+
+```js
+import {formSerializeJSON} from "/dist/webcom.es.js";
+let data = formSerializeJSON(dom);
 ```
 
-框架中大部分组件基于HTML语义化，诸如Async异步提交组件，基于HTML原生Form表单应用。调用方式如下：
+2、Widget使用
 
-``` html
-<form action="/formsubmit.cgi" method="post" data-component="Async">
-    Name: <input type="text" name="name" value="John"/><br/>
-    Password: <input type="password" name="password" value=""/><br/>
-    <input type="submit" value="Login"/>
-</form>
+```js
+import {Dialog} from "/dist/webcom.es.js";
+Dialog.alert('提示', '提示内容');
 ```
 
-这种研发理念，后台研发需要尽量保持“双模式”支持，增强Web功能语义化、强壮性。
+3、自动组件使用
 
-## 相关文档
+```js
+//启动
+import {ACComponent} from "/dist/webcom.es.js";
+ACComponent.watch(document, 'data-component');
+```
 
-- [安装说明](docs/install.md)
-- [组件列表](docs/components.md)
-- [自定义组件](docs/create.md)
+```html
+<!-- HTML 中使用 -->
+<a href="/cgi-bin/deletePost&id=1" data-component="confirm,async" data-confirm-message="确认删除该文章？">删除文章</a>
 
-![1] SeaJS (http://www.seajs.com)
+<a href="/cgi-bin/update&id=1" data-component="dialog">窗口方式编辑文章</a>
+```
+
+## 三、搭建自己的自动组件
+
+自动组件为 class 封装，其中包含 `static init(node, param){}` 方法、`static active(node, param){}` 方法。
+两个方法均返回 `Promise` 对象，其中 resolve 方法表示继续执行其他组件，reject表示终端后续组件执行（多组件情况下）。组件通过 `ACComponent.register('MyComponent', class); ` 方式注册。详细可参考代码库中已经存在的自动组件。
