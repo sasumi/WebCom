@@ -529,6 +529,14 @@ class Dialog {
 		DialogManager.close(this);
 	}
 
+	fireCustomEvent(event, ...args){
+
+	}
+
+	listenCustomEvent(event, callback){
+		
+	}
+
 	updatePosition(){
 		updatePosition(this);
 	}
