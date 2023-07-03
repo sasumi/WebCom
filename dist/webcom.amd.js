@@ -5614,9 +5614,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 						resolve();
 					}else {
 						ToastClass.showError(rsp.message || '系统错误');
+						console.error('Request Error:', url, data, method, rsp);
 					}
 				}, err => {
 					ToastClass.showError(err);
+					console.error('Request Error:', err);
 				}).finally(()=>{
 					loader && loader.hide();
 				});
@@ -5739,7 +5741,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-com="com1,com2"
+	const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
 	let AC_COMPONENT_MAP = {
@@ -5823,6 +5825,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			(node.tagName === 'INPUT' && (!node.type || TEXT_TYPES.includes(node.type.toLowerCase())));
 	};
 
+	/**
+	 * 绑定节点触发事件，不同节点触发行为定义不同
+	 * @param {HTMLElement} node
+	 * @param activeStacks
+	 */
 	const bindActiveChain = (node, activeStacks) => {
 		let event = 'click';
 		if(isInputAble(node)){
@@ -5854,7 +5861,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 			let m_tm = null;
-			console.log('watch');
 			let observer = new MutationObserver(mutations => {
 				clearTimeout(m_tm);
 				m_tm = setTimeout(function(){
