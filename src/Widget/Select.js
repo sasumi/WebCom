@@ -64,22 +64,22 @@ const createPanel = (config) => {
 	let list_html = `<ul>`;
 	config.options.forEach(opt => {
 		if(opt.options && opt.options.length){
-			list_html += `<li data-group-title="${escapeAttr(opt.title)}"><ul>`;
+			list_html += `<li data-group-title="${escapeAttr(opt.title)}" class="sel-group"><ul>`;
 			opt.options.forEach(child => {
 				let check_html = renderItemChecker(config.name, child.value, String(config.value) === child.value, config.multiple, child.disabled);
-				list_html += `<li><label class="sel-item">${check_html} ${escapeHtml(child.title)}</label></li>`
+				list_html += `<li class="sel-item"><label>${check_html} ${escapeHtml(child.title)}</label></li>`
 			})
 			list_html += `</ul></li>`;
 		}else{
 			let check_html = renderItemChecker(config.name, opt.value, String(config.value) === opt.value, config.multiple, opt.disabled);
-			list_html += `<li><label class="sel-item">${check_html} ${escapeHtml(opt.title)}</label></li>`
+			list_html += `<li class="sel-item"><label>${check_html} ${escapeHtml(opt.title)}</label></li>`
 		}
 	})
 	list_html += '</ul>';
 	let html = `
 		<div class="com-sel-panel">
 			<div class="com-sel-search">
-				<input type="search">
+				<input type="search" placeholder="过滤...">
 			</div>
 			<div class="com-sel-list">
 				${list_html}
