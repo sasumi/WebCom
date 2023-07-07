@@ -11,9 +11,22 @@
 <script src="test.js"></script>
 <h2>Menu</h2>
 
+<style>
+	input[type=search] {
+		padding: 0.5em;
+		border: 1px solid #ccc;
+	}
+
+	select {
+		color:#4c87d9;
+		border:1px solid #519aff;
+		padding:0.5em 1em;
+	}
+</style>
+
 <div class="test-case">
 
-	<select name="" id="se">
+	<select name="hel" id="se" multiple>
 		<option value="">please select type</option>
 		<option value="first">first option</option>
 		<optgroup label="group">
@@ -21,20 +34,19 @@
 			<option value="third">third</option>
 		</optgroup>
 		<option value="last">last</option>
+		<option value="disabled" disabled>disabled</option>
 		<option value="last">last</option>
-		<option value="last">last</option>
-		<option value="last">last</option>
-		<option value="last">last</option>
-		<option value="last">last</option>
-		<option value="last">last</option>
-		<option value="last">last</option>
-		<option value="last">last</option>
+		<option value="324234">234234</option>
+		<option value="moreac">moreac</option>
+		<option value="mor234eac">mor234eac</option>
+		<option value="23cas">23cas</option>
+		<option value="moreac1">moreac1</option>
 	</select>
 
 	<div id="select-ctn"></div>
 	<script type="module">
 		import {Select} from "../src/index.js";
-		Select.initFromSelect(document.getElementById('se'));
+		Select.bindSelect(document.getElementById('se'));
 	</script>
 </div>
 </body>

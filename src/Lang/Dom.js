@@ -119,9 +119,8 @@ export const domContained = (contains, child, includeEqual = false) => {
 export const buttonActiveBind = (button, payload, cancelBubble = false) => {
 	button.addEventListener('click', payload, cancelBubble);
 	button.addEventListener('keyup', e => {
-		console.log(e);
 		if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-			payload.call(button);
+			payload.call(button, e);
 		}
 	}, cancelBubble);
 };
