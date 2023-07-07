@@ -96,7 +96,7 @@
 
 /** checked **/
 .com-sel-list input:checked ~ .ti-wrap {
-	background-color: #4a8abf40;
+	background-color: #abc9e140;
 }
 
 .com-sel-list input:checked ~ .ti-wrap .sel-chk {

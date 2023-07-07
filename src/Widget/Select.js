@@ -1,8 +1,8 @@
 import {Theme} from "./Theme.js";
-import {buttonActiveBind, createDomByHtml, hide, insertStyleSheet, show} from "../Lang/Dom.js";
+import {buttonActiveBind, createDomByHtml, domContained, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/String.js";
 import {guid} from "../Lang/Util.js";
-import {BizEvent, triggerDomEvent} from "../Lang/Event.js";
+import {BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
 
 const COM_ID = Theme.Namespace + 'select';
@@ -246,21 +246,30 @@ class Select {
 			triggerDomEvent(srcSelectEl, 'change');
 		});
 
-		let s = () => {
+		let sh = () => {
 			sel.showPanel({top: srcSelectEl.offsetTop + srcSelectEl.offsetHeight, left: srcSelectEl.offsetLeft});
 		}
-
 		['keydown', 'mousedown'].forEach(ev=>{
 			srcSelectEl.addEventListener(ev, e => {
-				s();
+				sh();
 				e.preventDefault();
 				e.stopPropagation();
 				return false;
 			});
 		})
-		srcSelectEl.addEventListener('focus',s);
+		srcSelectEl.addEventListener('focus',sh);
 		srcSelectEl.addEventListener('change', e => {
 			sel.setValue(srcSelectEl.value);
+		});
+		document.addEventListener('click', e=>{
+			if(!domContained(sel.panelEl, e.target, true) && srcSelectEl !== e.target){
+				sel.hidePanel();
+			}
+		});
+		document.addEventListener('keyup', e=>{
+			if(e.keyCode === KEYS.Esc){
+				sel.hidePanel();
+			}
 		});
 	}
 }
