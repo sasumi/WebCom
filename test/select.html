@@ -5,7 +5,6 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
-	<link rel="stylesheet" href="select.css">
 </head>
 <body>
 <script src="test.js"></script>
@@ -13,8 +12,6 @@
 
 <style>
 	input[type=search] {
-		padding: 0.5em;
-		border: 1px solid #ccc;
 	}
 
 	select {
@@ -26,27 +23,37 @@
 
 <div class="test-case">
 
-	<select name="hel" id="se" multiple>
-		<option value="">please select type</option>
-		<option value="first">first option</option>
-		<optgroup label="group">
-			<option value="sec">sec</option>
-			<option value="third">third</option>
-		</optgroup>
-		<option value="last">last</option>
-		<option value="disabled" disabled>disabled</option>
-		<option value="last">last</option>
-		<option value="324234">234234</option>
-		<option value="moreac">moreac</option>
-		<option value="mor234eac">mor234eac</option>
-		<option value="23cas">23cas</option>
-		<option value="moreac1">moreac1</option>
-	</select>
+	<form action="?" method="POST">
+		<select name="hel" id="se">
+			<option value="">empty value 1</option>
+			<option value="">empty value 2</option>
+			<optgroup label="group">
+				<option value="sec">sec</option>
+				<option value="third">third</option>
+			</optgroup>
+			<option value="last">last</option>
+			<option value="disabled" disabled>disabled</option>
+			<option value="last">last</option>
+			<option value="324234">234234</option>
+			<option value="moreac">moreac</option>
+			<option value="mor234eac">mor234eac</option>
+			<option value="23cas">23cas</option>
+			<option value="moreac1">moreac1</option>
+		</select>
+
+		<input type="submit" value="submit">
+	</form>
 
 	<div id="select-ctn"></div>
 	<script type="module">
 		import {Select} from "../src/index.js";
-		Select.bindSelect(document.getElementById('se'));
+		let seEl =  document.getElementById('se');
+		Select.bindSelect(seEl);
+
+		seEl.addEventListener('change', e=>{
+			console.log('seEl change:', seEl.value);
+		})
+
 	</script>
 </div>
 </body>

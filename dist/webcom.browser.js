@@ -1,156 +1,6 @@
 var WebCom = (function (exports) {
 	'use strict';
 
-	const DOMAIN_DEFAULT = 'default';
-
-	const trans = (text, domain = DOMAIN_DEFAULT) => {
-		return text;
-	};
-
-	/**
-	 * array_column
-	 * @param arr
-	 * @param col_name
-	 * @returns {Array}
-	 */
-	const arrayColumn = (arr, col_name) => {
-		let data = [];
-		for(let i in arr){
-			data.push(arr[i][col_name]);
-		}
-		return data;
-	};
-
-	/**
-	 * @param arr
-	 * @param val
-	 * @return {string|null}
-	 */
-	const arrayIndex = (arr, val) => {
-		for(let i in arr){
-			if(arr[i] === val){
-				return i;
-			}
-		}
-		return null;
-	};
-
-	/**
-	 * @param obj1
-	 * @param obj2
-	 * @return {false|this is string[]}
-	 */
-	const isEquals = (obj1, obj2) => {
-		let keys1 = Object.keys(obj1);
-		let keys2 = Object.keys(obj2);
-		//return true when the two json has same length and all the properties has same value key by key
-		return keys1.length === keys2.length && Object.keys(obj1).every(key => obj1[key] === obj2[key]);
-	};
-
-	/**
-	 * 数组去重
-	 * @param {Array} arr
-	 * @returns {*}
-	 */
-	const arrayDistinct = (arr) => {
-		let tmpMap = new Map();
-		return arr.filter(item => {
-			if(!tmpMap.has(item)){
-				tmpMap.set(item, true);
-				return true;
-			}
-		});
-	};
-
-	/**
-	 * array group
-	 * @param arr
-	 * @param by_key
-	 * @param limit limit one child
-	 * @returns {*}
-	 */
-	const arrayGroup = (arr, by_key, limit) => {
-		if(!arr || !arr.length){
-			return arr;
-		}
-		let tmp_rst = {};
-		arr.forEach(item => {
-			let k = item[by_key];
-			if(!tmp_rst[k]){
-				tmp_rst[k] = [];
-			}
-			tmp_rst[k].push(item);
-		});
-		if(!limit){
-			return tmp_rst;
-		}
-		let rst = [];
-		for(let i in tmp_rst){
-			rst[i] = tmp_rst[i][0];
-		}
-		return rst;
-	};
-
-	/**
-	 * 按照对象 KEY 排序
-	 * @param {Object} obj
-	 * @param {String} dir
-	 * @return {{}}
-	 */
-	const sortByKey = (obj, dir = 'asc') => {
-		return Object.keys(obj).sort().reduce(function(result, key){
-			result[key] = obj[key];
-			return result;
-		}, {});
-	};
-
-	/**
-	 * 数组分块
-	 * @param {Array} list 数据
-	 * @param {Number} size 每块大小
-	 * @return {Array[]}
-	 */
-	const chunk = (list, size) => {
-		let len = list.length;
-		if(size < 1 || !len){
-			return [];
-		}
-		if(size > len){
-			return [list];
-		}
-		let res = [];
-		let integer = Math.floor(len / size);
-		let rest = len % size;
-		for(let i = 1; i <= integer; i++){
-			res.push(list.splice(0, size));
-		}
-		if(rest){
-			res.push(list.splice(0, rest));
-		}
-		return res;
-	};
-
-	/**
-	 * @param path
-	 * @param value
-	 * @param srcObj
-	 * @param glue
-	 * @return {*}
-	 */
-	const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
-		let segments = path.split(glue),
-			cursor = srcObj,
-			segment,
-			i;
-
-		for(i = 0; i < segments.length - 1; ++i){
-			segment = segments[i];
-			cursor = cursor[segment] = cursor[segment] || {};
-		}
-
-		return cursor[segments[i]] = value;
-	};
-
 	/**
 	 * 检测指定值是否在指定区间内
 	 * @param {Number} val
@@ -960,9 +810,8 @@ var WebCom = (function (exports) {
 	const buttonActiveBind = (button, payload, cancelBubble = false) => {
 		button.addEventListener('click', payload, cancelBubble);
 		button.addEventListener('keyup', e => {
-			console.log(e);
 			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-				payload.call(button);
+				payload.call(button, e);
 			}
 		}, cancelBubble);
 	};
@@ -1373,6 +1222,250 @@ var WebCom = (function (exports) {
 		return win || window;
 	};
 
+	const NS$1 = 'WebCom-';
+	const ICON_FONT_CLASS = NS$1 + `icon`;
+	const ICON_FONT = NS$1 + 'iconfont';
+	const DEFAULT_ICONFONT_CSS = `
+@font-face {
+	font-family: '${ICON_FONT}';  /* Project id 3359671 */
+  src: url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff2?t=1688055274391') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff?t=1688055274391') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.ttf?t=1688055274391') format('truetype');
+}
+
+.${ICON_FONT_CLASS} {
+	font-family: "${ICON_FONT}" !important;
+	font-style: normal;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+`;
+
+	insertStyleSheet(DEFAULT_ICONFONT_CSS);
+
+	const Theme = {
+		Namespace: NS$1,
+		IconFont: ICON_FONT,
+		IconFontClass: ICON_FONT_CLASS,
+		TipIndex: 10, //功能提示类(指向具体元素)
+		MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
+		DialogIndex: 1000, //对话框等窗口类垂直索引
+		FullScreenModeIndex: 10000, //全屏类（全屏类
+		ContextIndex: 100000, //右键菜单
+		ToastIndex: 1000000, //消息提示（顶部呈现）
+	};
+
+	const COM_ID$3 = Theme.Namespace + 'toast';
+
+	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
+	const rotate_animate = Theme.Namespace + '-toast-rotate';
+	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
+	const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
+	const FADEIN_TIME = 200;
+	const FADEOUT_TIME = 500;
+
+	insertStyleSheet(`
+	@keyframes ${rotate_animate} {
+	    0% {transform:scale(1.4) rotate(0deg);}
+	    100% {transform:scale(1.4) rotate(360deg);}
+	}
+	@keyframes ${fadeIn_animate} {
+		0% { opacity: 0; }
+		100% { opacity: 1; } 
+	}
+	@keyframes ${fadeOut_animate} {
+		0% { opacity:1;}
+		100% { opacity: 0} 
+	}
+	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; z-index:${Theme.ToastIndex}}
+	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.5em; text-align:left; background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; position:absolute; margin-left:-1.5em; transform:scale(1.25)}
+	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
+	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
+	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
+	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
+	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
+	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
+`, COM_ID$3 + '-style');
+
+	let toastWrap = null;
+
+	const getWrapper = () => {
+		if(!toastWrap){
+			toastWrap = document.createElement('div');
+			document.body.appendChild(toastWrap);
+			toastWrap.className = TOAST_CLS_MAIN + '-wrap';
+		}
+		return toastWrap;
+	};
+
+	class Toast{
+		static TYPE_INFO = 'info';
+		static TYPE_SUCCESS = 'success';
+		static TYPE_WARNING = 'warning';
+		static TYPE_ERROR = 'error';
+		static TYPE_LOADING = 'loading';
+
+		/**
+		 * 各种类型提示默认隐藏时间
+		 */
+		static DEFAULT_TIME_MAP = {
+			[Toast.TYPE_INFO]: 1500,
+			[Toast.TYPE_SUCCESS]: 1500,
+			[Toast.TYPE_WARNING]: 2000,
+			[Toast.TYPE_ERROR]: 2500,
+			[Toast.TYPE_LOADING]: 0,
+		};
+
+		message = '';
+		type = Toast.TYPE_INFO;
+		timeout = Toast.DEFAULT_TIME_MAP[this.type];
+
+		dom = null;
+
+		/**
+		 * @param {String} message
+		 * @param {String} type
+		 * @param {Number} timeout 超时时间，0表示不关闭
+		 */
+		constructor(message, type = null, timeout = null){
+			this.message = message;
+			this.type = type || Toast.TYPE_SUCCESS;
+			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;
+		}
+
+		/**
+		 * 显示提示
+		 * @param {String} message
+		 * @param {String} type
+		 * @param {Number} timeout 超时时间，0表示不关闭
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @returns
+		 */
+		static showToast = (message, type = null, timeout = null, timeoutCallback = null) => {
+			let toast = new Toast(message, type, timeout);
+			toast.show(timeoutCallback);
+			return toast;
+		}
+
+		/**
+		 * 显示[提示]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showInfo = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO], timeoutCallback);
+		}
+
+		/**
+		 * 显示[成功]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showSuccess = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS], timeoutCallback);
+		}
+
+		/**
+		 * 显示[告警]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showWarning = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING], timeoutCallback);
+		}
+
+		/**
+		 * 显示[错误]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showError = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR], timeoutCallback);
+		}
+
+		/**
+		 * 显示[加载中]
+		 * @param {String} message
+		 * @param {Function} timeoutCallback 超时关闭回调
+		 * @return {Toast}
+		 */
+		static showLoading = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING], timeoutCallback);
+		}
+
+		/**
+		 * 延期显示 loading（推荐使用）
+		 * 在一些业务后台能够快速响应场景，不显示loading过程能够提升用户体验
+		 * @param {String} message
+		 * @param {Number} delayMicroseconds 延迟显示
+		 * @param {Function} timeoutCallback
+		 * @return {Toast}
+		 */
+		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
+			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
+			let toast = new Toast(message, Toast.TYPE_LOADING, time);
+			toast.show(timeoutCallback);
+			hide(toast.dom);
+			setTimeout(() => {
+				toast.dom && show(toast.dom);
+			}, delayMicroseconds);
+			return toast;
+		}
+
+		/**
+		 * 显示提示
+		 * @param {Function} onTimeoutClose 超时关闭回调
+		 */
+		show(onTimeoutClose = null){
+			let wrapper = getWrapper();
+			show(wrapper);
+			this.dom = document.createElement('span');
+			wrapper.appendChild(this.dom);
+			this.dom.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + this.type;
+			this.dom.innerHTML = `<span class="ctn">${this.message}</span><div></div>`;
+			if(this.timeout){
+				setTimeout(() => {
+					this.hide(true);
+					onTimeoutClose && onTimeoutClose();
+				}, this.timeout);
+			}
+		}
+
+		/**
+		 * 隐藏提示信息
+		 * @param {Boolean} fadeOut 是否使用渐隐式淡出
+		 */
+		hide(fadeOut = false){
+			//稍微容错下，避免setTimeout后没有父节点
+			if(!this.dom || !document.body.contains(this.dom)){
+				return;
+			}
+			if(fadeOut){
+				this.dom.classList.add(TOAST_CLS_MAIN + '-hide');
+				setTimeout(() => {
+					this.hide(false);
+				}, FADEOUT_TIME);
+				return;
+			}
+			this.dom.parentNode.removeChild(this.dom);
+			this.dom = null;
+			let wrapper = getWrapper();
+			if(!wrapper.childNodes.length){
+				hide(wrapper);
+			}
+		}
+	}
+
+	window[COM_ID$3] = Toast;
+	let CONTEXT_WINDOW$2 = getContextWindow();
+	let ToastClass = CONTEXT_WINDOW$2[COM_ID$3] || Toast;
+
 	/**
 	 * 解析文件扩展名
 	 * @param {string} fileName
@@ -1394,6 +1487,327 @@ var WebCom = (function (exports) {
 	const resolveFileName = (fileName)=>{
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
 		return fileName.replace(/\.[^.]*$/g, "");
+	};
+
+	const CODE_TIMEOUT = 508;
+	const CODE_ABORT = 509;
+	const DEFAULT_TIMEOUT = 10000;
+
+	/**
+	 * HTTP请求方法
+	 * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
+	 */
+	const HTTP_METHOD = {
+		GET: 'GET',
+		POST: 'POST',
+		PUT: 'PUT',
+		DELETE: 'DELETE',
+		OPTIONS: 'OPTIONS',
+		HEAD: 'HEAD',
+		CONNECT: 'CONNECT',
+		TRACE: 'TRACE',
+	};
+
+	/**
+	 * 请求格式
+	 * @type {{FORM: string, JSON: string}}
+	 */
+	const REQUEST_FORMAT = {
+		JSON: 'JSON',
+		FORM: 'FORM', // application/x-www-form-urlencoded
+	};
+
+	/**
+	 * 响应格式
+	 * @type {{XML: string, JSON: string, HTML: string, TEXT: string}}
+	 */
+	const RESPONSE_FORMAT = {
+		JSON: 'JSON',
+		XML: 'XML',
+		HTML: 'HTML',
+		TEXT: 'TEXT',
+	};
+
+	/**
+	 * 合并请求参数
+	 * @param {String} uri
+	 * @param {String|Object} data
+	 * @returns {*}
+	 */
+	const mergerUriParam = (uri, data) => {
+		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
+	};
+
+	const setHash = data => {
+		location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
+	};
+
+	const getHash = () => {
+		return location.hash ? location.hash.substring(1) : '';
+	};
+
+	/**
+	 * 格式化请求数据
+	 * @param {Object} data
+	 * @param {String} format
+	 * @returns {String}
+	 */
+	const formatReqData = (data, format) => {
+		switch(format){
+			case REQUEST_FORMAT.JSON:
+				return JSON.stringify(data);
+			case REQUEST_FORMAT.FORM:
+				return QueryString.stringify(data);
+			default:
+				throw `Data format illegal(${format})`;
+		}
+	};
+
+	/**
+	 * 解析响应结果
+	 * @param {String} rspStr
+	 * @param {String} format
+	 * @returns {{}|any}
+	 */
+	const parserRspDataAsObj = (rspStr, format) => {
+		switch(format){
+			case RESPONSE_FORMAT.JSON:
+				return JSON.parse(rspStr);
+			case RESPONSE_FORMAT.FORM:
+				return QueryString.parse(rspStr);
+			default:
+				throw `Response string type no support now(${format})`;
+		}
+	};
+
+	/**
+	 * JSON方式请求
+	 * @param {String} url
+	 * @param {Object|String} data 数据，当前仅支持对象或queryString
+	 * @param {String} method
+	 * @param {Object} ext_option
+	 * @param {String} ext_option.requestFormat 请求类型（FORM_DATA|JSON） 默认为 REQUEST_FORMAT.JSON 格式
+	 * @param {String} ext_option.responseFormat 响应类型（JSON）默认为 RESPONSE_FORMAT.JSON 格式，暂不支持其他类型
+	 * @return {Promise<unknown>}
+	 */
+	const requestJSON = (url, data, method = HTTP_METHOD.GET, ext_option = {}) => {
+		return new Promise((resolve, reject) => {
+			ext_option = Object.assign({
+				requestFormat: REQUEST_FORMAT.JSON,
+				responseFormat: RESPONSE_FORMAT.JSON
+			}, ext_option);
+
+			method = method.toUpperCase();
+			if(HTTP_METHOD[method] === undefined){
+				throw "method no supported:" + method;
+			}
+			if(ext_option.responseFormat !== RESPONSE_FORMAT.JSON){
+				throw "response type no supported: " + opt.responseFormat;
+			}
+			let opt = {
+				method: method,
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				}
+			};
+			if(method === HTTP_METHOD.GET){
+				url = mergerUriParam(url, data);
+			}else {
+				switch(ext_option.requestFormat){
+					case REQUEST_FORMAT.JSON:
+						opt.headers['Content-Type'] = 'application/json';
+						opt.body = typeof (data) === 'string' ? data : JSON.stringify(data);
+						break;
+					case REQUEST_FORMAT.FORM:
+						opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+						opt.body = QueryString.stringify(data);
+						break;
+					default:
+						throw "request format no supported:" + ext_option.requestFormat;
+				}
+			}
+			fetch(url, opt).then(rsp => {
+				return rsp.json();
+			}).then(rsp => {
+				resolve(rsp);
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	};
+
+	/**
+	 * xhr 网络请求
+	 */
+	class Net {
+		cgi = null; //请求接口
+		data = null; //请求数据
+		option = {
+			method: HTTP_METHOD.GET, //请求方法
+			timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
+			requestDataFormat: REQUEST_FORMAT.FORM, //请求数据格式
+			responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
+			headers: {}, //请求头部信息
+		};
+		xhr = null;
+		onError = new BizEvent(); //(error,code)
+		onResponse = new BizEvent(); //(body)
+		onStateChange = new BizEvent(); //(state) http 状态码
+		onProgress = new BizEvent(); //(percent)
+
+		constructor(cgi, data, option = {}){
+			this.cgi = cgi;
+			this.data = data;
+			this.option = {
+				...this.option,
+				...option
+			};
+			this.xhr = new XMLHttpRequest();
+			this.xhr.addEventListener("progress", e => {
+				if(e.lengthComputable){
+					this.onProgress.fire(e.loaded / e.total);
+				}else {
+					this.onProgress.fire(null);
+				}
+			});
+			this.xhr.onreadystatechange = () => {
+				this.onStateChange.fire(this.xhr.status);
+			};
+			this.xhr.addEventListener("load", () => {
+				this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
+			});
+			this.xhr.addEventListener("error", () => {
+				this.onError.fire(this.xhr.statusText, this.xhr.status);
+			});
+			this.xhr.addEventListener("abort", () => {
+				this.onError.fire('Request aborted.', CODE_ABORT);
+			});
+			for(let key in this.option.headers){
+				this.xhr.setRequestHeader(key, this.option.headers[key]);
+			}
+			if(this.option.requestDataFormat === REQUEST_FORMAT.JSON){
+				this.xhr.setRequestHeader('content-type', 'application/json');
+			}
+			if(this.option.timeout){
+				setTimeout(() => {
+					this.onError.fire('Request timeout', CODE_TIMEOUT);
+				}, this.option.timeout);
+			}
+		}
+
+		send(){
+			this.xhr.open(this.option.method, this.cgi, true);
+			if(this.option.method === 'POST'){
+				this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			}
+			this.xhr.send(formatReqData(this.data, this.option.requestDataFormat));
+		}
+
+		abort(){
+			this.xhr.abort();
+		}
+
+		static get(cgi, data, option = {}){
+			option.method = option.method || HTTP_METHOD.GET;
+			return Net.request(cgi, data, option);
+		}
+
+		static getJSON(cgi, data, option = {}){
+			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
+			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+			return Net.get(cgi, data, option);
+		}
+
+		static post(cgi, data, option = {}){
+			option.method = option.method || HTTP_METHOD.POST;
+			return Net.request(cgi, data, option);
+		}
+
+		static postJSON(cgi, data, option = {}){
+			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
+			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+			return Net.post(cgi, data, option);
+		}
+
+		static request(cgi, data, option = {}){
+			return new Promise((resolve, reject) => {
+				let req = new Net(cgi, data, option);
+				req.onResponse = resolve;
+				req.onError = reject;
+				req.send();
+			});
+		}
+	}
+
+	/**
+	 * 文件下载
+	 * 注意：在浏览器中如果非同域，自定义保存名称无效
+	 * @param src 文件地址
+	 * @param save_name 保存名称（包含扩展名，为空表示自动从src中提取）
+	 */
+	const downloadFile = (src, save_name) => {
+		if(!save_name){
+			save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
+		}
+		let link = document.createElement('a');
+		link.href = src;
+		link.download = save_name;
+		document.body.appendChild(link);
+		link.click();
+		link.parentNode.removeChild(link);
+	};
+
+	const QueryString = {
+		parse(str){
+			if(str[0] === '?'){
+				str = str.substring(1);
+			}
+			let retObj = {};
+			let qs = str.split('&');
+			qs.forEach(q => {
+				let [k, v] = q.split('=');
+				if(!k.length){
+					return;
+				}
+				retObj[decodeURIComponent(k)] = decodeURIComponent(v);
+			});
+			return retObj;
+		},
+
+		stringify(data){
+			if(typeof (data) === 'undefined' || typeof (data) !== 'object'){
+				return data
+			}
+			let query = [];
+			for(let param in data){
+				if(data.hasOwnProperty(param)){
+					if(data[param] === null){
+						continue; //null数据不提交
+					}
+					if(typeof (data[param]) === 'object' && data[param].length){
+						data[param].forEach(item => {
+							query.push(encodeURI(param + '=' + item));
+						});
+					}else if(typeof (data[param]) === 'object');else {
+						query.push(encodeURI(param + '=' + data[param]));
+					}
+				}
+			}
+			return query.join('&')
+		}
+	};
+
+	/**
+	 * open link without referer
+	 * @param link
+	 * @returns {boolean}
+	 */
+	const openLinkWithoutReferer = (link) => {
+		let instance = window.open("about:blank");
+		instance.document.write("<meta http-equiv=\"refresh\" content=\"0;url=" + link + "\">");
+		instance.document.close();
+		return false;
 	};
 
 	let _guid = 0;
@@ -1566,37 +1980,148 @@ var WebCom = (function (exports) {
 	window.WEBCOM_GET_LIB_MODULE = getLibModule;
 	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
 
-	const NS$2 = 'WebCom-';
-	const ICON_FONT_CLASS = NS$2 + `icon`;
-	const ICON_FONT = NS$2 + 'iconfont';
-	const DEFAULT_ICONFONT_CSS = `
-@font-face {
-	font-family: '${ICON_FONT}';  /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff2?t=1688055274391') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff?t=1688055274391') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.ttf?t=1688055274391') format('truetype');
-}
+	/**
+	 * array_column
+	 * @param arr
+	 * @param col_name
+	 * @returns {Array}
+	 */
+	const arrayColumn = (arr, col_name) => {
+		let data = [];
+		for(let i in arr){
+			data.push(arr[i][col_name]);
+		}
+		return data;
+	};
 
-.${ICON_FONT_CLASS} {
-	font-family: "${ICON_FONT}" !important;
-	font-style: normal;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-`;
+	/**
+	 * @param arr
+	 * @param val
+	 * @return {string|null}
+	 */
+	const arrayIndex = (arr, val) => {
+		for(let i in arr){
+			if(arr[i] === val){
+				return i;
+			}
+		}
+		return null;
+	};
 
-	insertStyleSheet(DEFAULT_ICONFONT_CSS);
+	/**
+	 * @param obj1
+	 * @param obj2
+	 * @return {false|this is string[]}
+	 */
+	const isEquals = (obj1, obj2) => {
+		let keys1 = Object.keys(obj1);
+		let keys2 = Object.keys(obj2);
+		//return true when the two json has same length and all the properties has same value key by key
+		return keys1.length === keys2.length && Object.keys(obj1).every(key => obj1[key] === obj2[key]);
+	};
 
-	const Theme = {
-		Namespace: NS$2,
-		IconFont: ICON_FONT,
-		IconFontClass: ICON_FONT_CLASS,
-		TipIndex: 10, //功能提示类(指向具体元素)
-		MaskIndex: 100, //遮罩(（全局或指定面板遮罩类）
-		DialogIndex: 1000, //对话框等窗口类垂直索引
-		FullScreenModeIndex: 10000, //全屏类（全屏类
-		ContextIndex: 100000, //右键菜单
-		ToastIndex: 1000000, //消息提示（顶部呈现）
+	/**
+	 * 数组去重
+	 * @param {Array} arr
+	 * @returns {*}
+	 */
+	const arrayDistinct = (arr) => {
+		let tmpMap = new Map();
+		return arr.filter(item => {
+			if(!tmpMap.has(item)){
+				tmpMap.set(item, true);
+				return true;
+			}
+		});
+	};
+
+	/**
+	 * array group
+	 * @param arr
+	 * @param by_key
+	 * @param limit limit one child
+	 * @returns {*}
+	 */
+	const arrayGroup = (arr, by_key, limit) => {
+		if(!arr || !arr.length){
+			return arr;
+		}
+		let tmp_rst = {};
+		arr.forEach(item => {
+			let k = item[by_key];
+			if(!tmp_rst[k]){
+				tmp_rst[k] = [];
+			}
+			tmp_rst[k].push(item);
+		});
+		if(!limit){
+			return tmp_rst;
+		}
+		let rst = [];
+		for(let i in tmp_rst){
+			rst[i] = tmp_rst[i][0];
+		}
+		return rst;
+	};
+
+	/**
+	 * 按照对象 KEY 排序
+	 * @param {Object} obj
+	 * @param {String} dir
+	 * @return {{}}
+	 */
+	const sortByKey = (obj, dir = 'asc') => {
+		return Object.keys(obj).sort().reduce(function(result, key){
+			result[key] = obj[key];
+			return result;
+		}, {});
+	};
+
+	/**
+	 * 数组分块
+	 * @param {Array} list 数据
+	 * @param {Number} size 每块大小
+	 * @return {Array[]}
+	 */
+	const chunk = (list, size) => {
+		let len = list.length;
+		if(size < 1 || !len){
+			return [];
+		}
+		if(size > len){
+			return [list];
+		}
+		let res = [];
+		let integer = Math.floor(len / size);
+		let rest = len % size;
+		for(let i = 1; i <= integer; i++){
+			res.push(list.splice(0, size));
+		}
+		if(rest){
+			res.push(list.splice(0, rest));
+		}
+		return res;
+	};
+
+	/**
+	 * @param path
+	 * @param value
+	 * @param srcObj
+	 * @param glue
+	 * @return {*}
+	 */
+	const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+		let segments = path.split(glue),
+			cursor = srcObj,
+			segment,
+			i;
+
+		for(i = 0; i < segments.length - 1; ++i){
+			segment = segments[i];
+			cursor = cursor[segment] = cursor[segment] || {};
+		}
+
+		return cursor[segments[i]] = value;
 	};
 
 	/**
@@ -1965,960 +2490,65 @@ var WebCom = (function (exports) {
 	};
 
 	/**
-	  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
-	  * to work around bugs in some JS interpreters.
-	  */
-	const safeAdd = (x, y) => {
-		let lsw = (x & 0xffff) + (y & 0xffff);
-		let msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-		return (msw << 16) | (lsw & 0xffff)
-	};
-
-	/**
-	* Bitwise rotate a 32-bit number to the left.
-	*/
-	const bitRotateLeft = (num, cnt) => {
-		return (num << cnt) | (num >>> (32 - cnt))
-	};
-
-	/**
-	* These functions implement the four basic operations the algorithm uses.
-	*/
-	const md5cmn = (q, a, b, x, s, t) => {
-		return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
-	};
-
-	const md5ff = (a, b, c, d, x, s, t) => {
-		return md5cmn((b & c) | (~b & d), a, b, x, s, t)
-	};
-
-	const md5gg = (a, b, c, d, x, s, t) => {
-		return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
-	};
-
-	const md5hh = (a, b, c, d, x, s, t) => {
-		return md5cmn(b ^ c ^ d, a, b, x, s, t)
-	};
-
-	const md5ii = (a, b, c, d, x, s, t) => {
-		return md5cmn(c ^ (b | ~d), a, b, x, s, t)
-	};
-
-	/**
-	* Calculate the MD5 of an array of little-endian words, and a bit length.
-	*/
-	const binlMD5 = (x, len) => {
-		/* append padding */
-		x[len >> 5] |= 0x80 << (len % 32);
-		x[((len + 64) >>> 9 << 4) + 14] = len;
-
-		let i;
-		let olda;
-		let oldb;
-		let oldc;
-		let oldd;
-		let a = 1732584193;
-		let b = -271733879;
-		let c = -1732584194;
-		let d = 271733878;
-
-		for(i = 0; i < x.length; i += 16){
-			olda = a;
-			oldb = b;
-			oldc = c;
-			oldd = d;
-
-			a = md5ff(a, b, c, d, x[i], 7, -680876936);
-			d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
-			c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
-			b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
-			a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
-			d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
-			c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
-			b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
-			a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
-			d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
-			c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
-			b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
-			a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
-			d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
-			c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
-			b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
-
-			a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
-			d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
-			c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
-			b = md5gg(b, c, d, a, x[i], 20, -373897302);
-			a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
-			d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
-			c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
-			b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
-			a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
-			d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
-			c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
-			b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
-			a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
-			d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
-			c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
-			b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
-
-			a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
-			d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
-			c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
-			b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
-			a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
-			d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
-			c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
-			b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
-			a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
-			d = md5hh(d, a, b, c, x[i], 11, -358537222);
-			c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
-			b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
-			a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
-			d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
-			c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
-			b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
-
-			a = md5ii(a, b, c, d, x[i], 6, -198630844);
-			d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
-			c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
-			b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
-			a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
-			d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
-			c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
-			b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
-			a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
-			d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
-			c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
-			b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
-			a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
-			d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
-			c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
-			b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
-
-			a = safeAdd(a, olda);
-			b = safeAdd(b, oldb);
-			c = safeAdd(c, oldc);
-			d = safeAdd(d, oldd);
-		}
-		return [a, b, c, d]
-	};
-
-	/**
-	* Convert an array of little-endian words to a string
-	*/
-	const binl2rstr = (input) => {
-		let i;
-		let output = '';
-		let length32 = input.length * 32;
-		for(i = 0; i < length32; i += 8){
-			output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xff);
-		}
-		return output
-	};
-
-	/**
-	* Convert a raw string to an array of little-endian words
-	* Characters >255 have their high-byte silently ignored.
-	*/
-	const rstr2binl = (input) => {
-		let i;
-		let output = [];
-		output[(input.length >> 2) - 1] = undefined;
-		for(i = 0; i < output.length; i += 1){
-			output[i] = 0;
-		}
-		let length8 = input.length * 8;
-		for(i = 0; i < length8; i += 8){
-			output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << (i % 32);
-		}
-		return output
-	};
-
-	/**
-	* Calculate the MD5 of a raw string
-	*/
-	const rstrMD5 = (s) => {
-		return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
-	};
-
-	/**
-	* Calculate the HMAC-MD5, of a key and some data (raw strings)
-	*/
-	const rstrHMACMD5 = (key, data) => {
-		let i;
-		let bkey = rstr2binl(key);
-		let ipad = [];
-		let opad = [];
-		let hash;
-		ipad[15] = opad[15] = undefined;
-		if(bkey.length > 16){
-			bkey = binlMD5(bkey, key.length * 8);
-		}
-		for(i = 0; i < 16; i += 1){
-			ipad[i] = bkey[i] ^ 0x36363636;
-			opad[i] = bkey[i] ^ 0x5c5c5c5c;
-		}
-		hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
-		return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
-	};
-
-	/**
-	* Convert a raw string to a hex string
-	*/
-	const rstr2hex = (input) => {
-		let hexTab = '0123456789abcdef';
-		let output = '';
-		let x;
-		let i;
-		for(i = 0; i < input.length; i += 1){
-			x = input.charCodeAt(i);
-			output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f);
-		}
-		return output
-	};
-
-	/**
-	* Encode a string as utf-8
-	*/
-	const str2rstrUTF8 = (input) => {
-		return unescape(encodeURIComponent(input))
-	};
-
-	/**
-	* Take string arguments and return either raw or hex encoded strings
-	*/
-	const rawMD5 = (s) => {
-		return rstrMD5(str2rstrUTF8(s))
-	};
-
-	const hexMD5 = (s) => {
-		return rstr2hex(rawMD5(s))
-	};
-
-	const rawHMACMD5 = (k, d) => {
-		return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
-	};
-
-	const hexHMACMD5 = (k, d) => {
-		return rstr2hex(rawHMACMD5(k, d))
-	};
-
-	const MD5 = (string, key, raw) => {
-		if(!key){
-			if(!raw){
-				return hexMD5(string)
-			}
-			return rawMD5(string)
-		}
-		if(!raw){
-			return hexHMACMD5(key, string)
-		}
-		return rawHMACMD5(key, string)
-	};
-
-	const CODE_TIMEOUT = 508;
-	const CODE_ABORT = 509;
-	const DEFAULT_TIMEOUT = 10000;
-
-	/**
-	 * HTTP请求方法
-	 * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
+	 * 异步组件
+	 * 参数：
+	 * ACAsync.FORM_DATA_PACKAGE_TYPE 设置数据打包方式，如后端是PHP，为兼容PHP数组识别语法，请使用：PACKAGE_TYPE_STRING 方式打包
+	 * 缺省为 PACKAGE_TYPE_JSON 方式打包
+	 * node[data-async-url] | a[href] | form[action] 请求url
+	 * node[data-async-method] | form[method] 请求方法，缺省为GET
+	 * node[data-async-data] | form{*} 请求数据
 	 */
-	const HTTP_METHOD = {
-		GET: 'GET',
-		POST: 'POST',
-		PUT: 'PUT',
-		DELETE: 'DELETE',
-		OPTIONS: 'OPTIONS',
-		HEAD: 'HEAD',
-		CONNECT: 'CONNECT',
-		TRACE: 'TRACE',
-	};
+	class ACAsync {
+		static REQUEST_FORMAT = REQUEST_FORMAT.JSON;
 
-	/**
-	 * 请求格式
-	 * @type {{FORM: string, JSON: string}}
-	 */
-	const REQUEST_FORMAT = {
-		JSON: 'JSON',
-		FORM: 'FORM', // application/x-www-form-urlencoded
-	};
-
-	/**
-	 * 响应格式
-	 * @type {{XML: string, JSON: string, HTML: string, TEXT: string}}
-	 */
-	const RESPONSE_FORMAT = {
-		JSON: 'JSON',
-		XML: 'XML',
-		HTML: 'HTML',
-		TEXT: 'TEXT',
-	};
-
-	/**
-	 * 合并请求参数
-	 * @param {String} uri
-	 * @param {String|Object} data
-	 * @returns {*}
-	 */
-	const mergerUriParam = (uri, data) => {
-		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
-	};
-
-	const setHash = data => {
-		location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
-	};
-
-	const getHash = () => {
-		return location.hash ? location.hash.substring(1) : '';
-	};
-
-	/**
-	 * 格式化请求数据
-	 * @param {Object} data
-	 * @param {String} format
-	 * @returns {String}
-	 */
-	const formatReqData = (data, format) => {
-		switch(format){
-			case REQUEST_FORMAT.JSON:
-				return JSON.stringify(data);
-			case REQUEST_FORMAT.FORM:
-				return QueryString.stringify(data);
-			default:
-				throw `Data format illegal(${format})`;
-		}
-	};
-
-	/**
-	 * 解析响应结果
-	 * @param {String} rspStr
-	 * @param {String} format
-	 * @returns {{}|any}
-	 */
-	const parserRspDataAsObj = (rspStr, format) => {
-		switch(format){
-			case RESPONSE_FORMAT.JSON:
-				return JSON.parse(rspStr);
-			case RESPONSE_FORMAT.FORM:
-				return QueryString.parse(rspStr);
-			default:
-				throw `Response string type no support now(${format})`;
-		}
-	};
-
-	/**
-	 * JSON方式请求
-	 * @param {String} url
-	 * @param {Object|String} data 数据，当前仅支持对象或queryString
-	 * @param {String} method
-	 * @param {Object} ext_option
-	 * @param {String} ext_option.requestFormat 请求类型（FORM_DATA|JSON） 默认为 REQUEST_FORMAT.JSON 格式
-	 * @param {String} ext_option.responseFormat 响应类型（JSON）默认为 RESPONSE_FORMAT.JSON 格式，暂不支持其他类型
-	 * @return {Promise<unknown>}
-	 */
-	const requestJSON = (url, data, method = HTTP_METHOD.GET, ext_option = {}) => {
-		return new Promise((resolve, reject) => {
-			ext_option = Object.assign({
-				requestFormat: REQUEST_FORMAT.JSON,
-				responseFormat: RESPONSE_FORMAT.JSON
-			}, ext_option);
-
-			method = method.toUpperCase();
-			if(HTTP_METHOD[method] === undefined){
-				throw "method no supported:" + method;
-			}
-			if(ext_option.responseFormat !== RESPONSE_FORMAT.JSON){
-				throw "response type no supported: " + opt.responseFormat;
-			}
-			let opt = {
-				method: method,
-				headers: {
-					'Content-Type': 'application/json',
-					'Accept': 'application/json',
-				}
-			};
-			if(method === HTTP_METHOD.GET){
-				url = mergerUriParam(url, data);
-			}else {
-				switch(ext_option.requestFormat){
-					case REQUEST_FORMAT.JSON:
-						opt.headers['Content-Type'] = 'application/json';
-						opt.body = typeof (data) === 'string' ? data : JSON.stringify(data);
-						break;
-					case REQUEST_FORMAT.FORM:
-						opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-						opt.body = QueryString.stringify(data);
-						break;
-					default:
-						throw "request format no supported:" + ext_option.requestFormat;
-				}
-			}
-			fetch(url, opt).then(rsp => {
-				return rsp.json();
-			}).then(rsp => {
-				resolve(rsp);
-			}).catch(err => {
-				reject(err);
-			});
-		});
-	};
-
-	/**
-	 * xhr 网络请求
-	 */
-	class Net {
-		cgi = null; //请求接口
-		data = null; //请求数据
-		option = {
-			method: HTTP_METHOD.GET, //请求方法
-			timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
-			requestDataFormat: REQUEST_FORMAT.FORM, //请求数据格式
-			responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
-			headers: {}, //请求头部信息
-		};
-		xhr = null;
-		onError = new BizEvent(); //(error,code)
-		onResponse = new BizEvent(); //(body)
-		onStateChange = new BizEvent(); //(state) http 状态码
-		onProgress = new BizEvent(); //(percent)
-
-		constructor(cgi, data, option = {}){
-			this.cgi = cgi;
-			this.data = data;
-			this.option = {
-				...this.option,
-				...option
-			};
-			this.xhr = new XMLHttpRequest();
-			this.xhr.addEventListener("progress", e => {
-				if(e.lengthComputable){
-					this.onProgress.fire(e.loaded / e.total);
+		//默认成功回调处理函数
+		static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
+			let next = () => {
+				if(rsp.forward_url){
+					parent.location.href = rsp.forward_url;
 				}else {
-					this.onProgress.fire(null);
+					parent.location.reload();
 				}
-			});
-			this.xhr.onreadystatechange = () => {
-				this.onStateChange.fire(this.xhr.status);
 			};
-			this.xhr.addEventListener("load", () => {
-				this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
-			});
-			this.xhr.addEventListener("error", () => {
-				this.onError.fire(this.xhr.statusText, this.xhr.status);
-			});
-			this.xhr.addEventListener("abort", () => {
-				this.onError.fire('Request aborted.', CODE_ABORT);
-			});
-			for(let key in this.option.headers){
-				this.xhr.setRequestHeader(key, this.option.headers[key]);
-			}
-			if(this.option.requestDataFormat === REQUEST_FORMAT.JSON){
-				this.xhr.setRequestHeader('content-type', 'application/json');
-			}
-			if(this.option.timeout){
-				setTimeout(() => {
-					this.onError.fire('Request timeout', CODE_TIMEOUT);
-				}, this.option.timeout);
-			}
-		}
-
-		send(){
-			this.xhr.open(this.option.method, this.cgi, true);
-			if(this.option.method === 'POST'){
-				this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-			}
-			this.xhr.send(formatReqData(this.data, this.option.requestDataFormat));
-		}
-
-		abort(){
-			this.xhr.abort();
-		}
-
-		static get(cgi, data, option = {}){
-			option.method = option.method || HTTP_METHOD.GET;
-			return Net.request(cgi, data, option);
-		}
-
-		static getJSON(cgi, data, option = {}){
-			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
-			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
-			return Net.get(cgi, data, option);
-		}
-
-		static post(cgi, data, option = {}){
-			option.method = option.method || HTTP_METHOD.POST;
-			return Net.request(cgi, data, option);
-		}
-
-		static postJSON(cgi, data, option = {}){
-			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
-			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
-			return Net.post(cgi, data, option);
-		}
-
-		static request(cgi, data, option = {}){
-			return new Promise((resolve, reject) => {
-				let req = new Net(cgi, data, option);
-				req.onResponse = resolve;
-				req.onError = reject;
-				req.send();
-			});
-		}
-	}
-
-	/**
-	 * 文件下载
-	 * 注意：在浏览器中如果非同域，自定义保存名称无效
-	 * @param src 文件地址
-	 * @param save_name 保存名称（包含扩展名，为空表示自动从src中提取）
-	 */
-	const downloadFile = (src, save_name) => {
-		if(!save_name){
-			save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
-		}
-		let link = document.createElement('a');
-		link.href = src;
-		link.download = save_name;
-		document.body.appendChild(link);
-		link.click();
-		link.parentNode.removeChild(link);
-	};
-
-	const QueryString = {
-		parse(str){
-			if(str[0] === '?'){
-				str = str.substring(1);
-			}
-			let retObj = {};
-			let qs = str.split('&');
-			qs.forEach(q => {
-				let [k, v] = q.split('=');
-				if(!k.length){
-					return;
-				}
-				retObj[decodeURIComponent(k)] = decodeURIComponent(v);
-			});
-			return retObj;
-		},
-
-		stringify(data){
-			if(typeof (data) === 'undefined' || typeof (data) !== 'object'){
-				return data
-			}
-			let query = [];
-			for(let param in data){
-				if(data.hasOwnProperty(param)){
-					if(data[param] === null){
-						continue; //null数据不提交
-					}
-					if(typeof (data[param]) === 'object' && data[param].length){
-						data[param].forEach(item => {
-							query.push(encodeURI(param + '=' + item));
-						});
-					}else if(typeof (data[param]) === 'object');else {
-						query.push(encodeURI(param + '=' + data[param]));
-					}
-				}
-			}
-			return query.join('&')
-		}
-	};
-
-	/**
-	 * open link without referer
-	 * @param link
-	 * @returns {boolean}
-	 */
-	const openLinkWithoutReferer = (link) => {
-		let instance = window.open("about:blank");
-		instance.document.write("<meta http-equiv=\"refresh\" content=\"0;url=" + link + "\">");
-		instance.document.close();
-		return false;
-	};
-
-	let hook_flag = false;
-	const RptEv = new BizEvent();
-	const doHook = () => {
-		let observer = new ReportingObserver((reports) => {
-			onReportApi.fire(reports);
-		}, {
-			types: ['deprecation'],
-			buffered: true
-		});
-		observer.observe();
-	};
-
-	const onReportApi = {
-		listen(payload){
-			!hook_flag && doHook();
-			hook_flag = true;
-			RptEv.listen(payload);
-		},
-		remove(payload){
-			return RptEv.remove(payload);
-		},
-		fire(...args){
-			return RptEv.fire(...args);
-		}
-	};
-
-	let payloads = [];
-	let popstate_bind = false;
-
-	/**
-	 * 压栈状态
-	 * @param {Object} param
-	 * @param {String} title
-	 */
-	const pushState = (param, title = '') => {
-		let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
-		window.history.pushState(param, title, url);
-		exePayloads(param);
-	};
-
-	/**
-	 * 监听 window onpopstate 事件
-	 * @param {Function} payload
-	 */
-	const onStateChange = (payload) => {
-		if(!popstate_bind){
-			popstate_bind = true;
-			window.addEventListener('popstate', e=>{
-				let state = e.state ?? {};
-				let hashObj = QueryString.parse(getHash());
-				exePayloads({...state, ...hashObj});
-			});
-		}
-		payloads.push(payload);
-	};
-
-	const exePayloads = (param) => {
-		payloads.forEach(payload => {
-			payload(param);
-		});
-	};
-
-	const ONE_MINUTE = 60000;
-	const ONE_HOUR = 3600000;
-	const ONE_DAY = 86400000;
-	const ONE_WEEK = 604800000;
-	const ONE_MONTH_30 = 2592000000;
-	const ONE_MONTH_31 = 2678400000;
-	const ONE_YEAR_365 = 31536000000;
-
-	function frequencyControl(payload, hz, executeOnFistTime = false){
-		if(payload._frq_tm){
-			clearTimeout(payload._frq_tm);
-		}
-		payload._frq_tm = setTimeout(() => {
-			frequencyControl(payload, hz, executeOnFistTime);
-		}, hz);
-	}
-
-	/**
-	 * 获取指定月份天数
-	 * @param {Number} year
-	 * @param {Number} month 月份，从1开始
-	 * @returns {number}
-	 */
-	const getMonthLastDay = (year, month) => {
-		const date1 = new Date(year, month, 0);
-		return date1.getDate()
-	};
-
-	/**
-	 * 获取指定上一个月份
-	 * @param {Number} year
-	 * @param {Number} month 当前月份，从1开始
-	 * @returns {Array}
-	 */
-	const getLastMonth = (year, month) => {
-		return month === 1 ? [year - 1, 12] : [year, month - 1];
-	};
-
-	/**
-	 * 获取指定下一个月份
-	 * @param {Number} year
-	 * @param {Number} month 当前月份，从1开始
-	 * @returns {Array}
-	 */
-	const getNextMonth = (year, month) => {
-		return month === 12 ? [year + 1, 1] : [year, month + 1];
-	};
-
-	/**
-	 * 格式化时间长度
-	 * @param {Number} micSec 毫秒
-	 * @param {String} delimiter 单位之间的间隔文本
-	 * @return {string}
-	 */
-	const prettyTime = (micSec, delimiter = '') => {
-		let d = 0, h = 0, m = 0, s = 0;
-		if(micSec > ONE_DAY){
-			d = Math.floor(micSec / ONE_DAY);
-			micSec -= d * ONE_DAY;
-		}
-		if(micSec > ONE_HOUR){
-			h = Math.floor(micSec / ONE_HOUR);
-			micSec -= h * ONE_HOUR;
-		}
-		if(micSec > ONE_MINUTE){
-			m = Math.floor(micSec / ONE_MINUTE);
-			micSec -= m * ONE_MINUTE;
-		}
-		if(micSec > 1000){
-			s = Math.floor(micSec / 1000);
-			micSec -= s * 1000;
-		}
-		let txt = '';
-		txt += d ? `${d}天` : '';
-		txt += (txt || h) ? `${delimiter}${h}小` : '';
-		txt += (txt || m) ? `${delimiter}${m}分` : '';
-		txt += (txt || s) ? `${delimiter}${s}秒` : '';
-		return txt.trim();
-	};
-
-	/**
-	 * 指定偏移月数计算
-	 * @param {Number} monthNum
-	 * @param {Date|Null} start_date
-	 * @return {{month: number, year: number}} 返回年、月（以1开始）
-	 */
-	const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
-		let year = start_date.getFullYear();
-		let month = start_date.getMonth()+1;
-		month = month + monthNum;
-		if(month > 12){
-			let yearNum = parseInt((month - 1) / 12);
-			month = month % 12 === 0 ? 12 : month % 12;
-			year += yearNum;
-		}else if(month <= 0){
-			month = Math.abs(month);
-			let yearNum = parseInt((month + 12) / 12);
-			let n = month % 12;
-			if(n === 0){
-				year -= yearNum;
-				month = 12;
-			}else {
-				year -= yearNum;
-				month = Math.abs(12 - n);
-			}
-		}
-		return {year, month}
-	};
-
-	const COM_ID$2 = Theme.Namespace + 'toast';
-
-	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
-	const rotate_animate = Theme.Namespace + '-toast-rotate';
-	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
-	const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
-	const FADEIN_TIME = 200;
-	const FADEOUT_TIME = 500;
-
-	insertStyleSheet(`
-	@keyframes ${rotate_animate} {
-	    0% {transform:scale(1.4) rotate(0deg);}
-	    100% {transform:scale(1.4) rotate(360deg);}
-	}
-	@keyframes ${fadeIn_animate} {
-		0% { opacity: 0; }
-		100% { opacity: 1; } 
-	}
-	@keyframes ${fadeOut_animate} {
-		0% { opacity:1;}
-		100% { opacity: 0} 
-	}
-	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; z-index:${Theme.ToastIndex}}
-	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5em;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:0.4em 1em 0.4em 2.5em; text-align:left; background-color:#fff;color:var(--color);box-shadow:4px 5px 13px 0px #32323238; animation:${fadeIn_animate} ${FADEIN_TIME}ms}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; position:absolute; margin-left:-1.5em; transform:scale(1.25)}
-	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
-	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
-	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
-	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
-	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
-	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
-`, COM_ID$2 + '-style');
-
-	let toastWrap = null;
-
-	const getWrapper = () => {
-		if(!toastWrap){
-			toastWrap = document.createElement('div');
-			document.body.appendChild(toastWrap);
-			toastWrap.className = TOAST_CLS_MAIN + '-wrap';
-		}
-		return toastWrap;
-	};
-
-	class Toast{
-		static TYPE_INFO = 'info';
-		static TYPE_SUCCESS = 'success';
-		static TYPE_WARNING = 'warning';
-		static TYPE_ERROR = 'error';
-		static TYPE_LOADING = 'loading';
-
-		/**
-		 * 各种类型提示默认隐藏时间
-		 */
-		static DEFAULT_TIME_MAP = {
-			[Toast.TYPE_INFO]: 1500,
-			[Toast.TYPE_SUCCESS]: 1500,
-			[Toast.TYPE_WARNING]: 2000,
-			[Toast.TYPE_ERROR]: 2500,
-			[Toast.TYPE_LOADING]: 0,
+			rsp.message ? ToastClass.showSuccess(rsp.message, next) : next();
 		};
 
-		message = '';
-		type = Toast.TYPE_INFO;
-		timeout = Toast.DEFAULT_TIME_MAP[this.type];
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let url, data, method,
+					onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
+				if(node.tagName === 'FORM'){
+					url = node.action;
+					data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
+					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
+				}else if(node.tagName === 'A'){
+					url = node.href;
+					method = 'get';
+				}
 
-		dom = null;
+				//优先使用参数传参
+				url = param.url || url;
+				method = param.method || method || 'get';
+				data = param.data || data;
 
-		/**
-		 * @param {String} message
-		 * @param {String} type
-		 * @param {Number} timeout 超时时间，0表示不关闭
-		 */
-		constructor(message, type = null, timeout = null){
-			this.message = message;
-			this.type = type || Toast.TYPE_SUCCESS;
-			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;
-		}
-
-		/**
-		 * 显示提示
-		 * @param {String} message
-		 * @param {String} type
-		 * @param {Number} timeout 超时时间，0表示不关闭
-		 * @param {Function} timeoutCallback 超时关闭回调
-		 * @returns
-		 */
-		static showToast = (message, type = null, timeout = null, timeoutCallback = null) => {
-			let toast = new Toast(message, type, timeout);
-			toast.show(timeoutCallback);
-			return toast;
-		}
-
-		/**
-		 * 显示[提示]
-		 * @param {String} message
-		 * @param {Function} timeoutCallback 超时关闭回调
-		 * @return {Toast}
-		 */
-		static showInfo = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO], timeoutCallback);
-		}
-
-		/**
-		 * 显示[成功]
-		 * @param {String} message
-		 * @param {Function} timeoutCallback 超时关闭回调
-		 * @return {Toast}
-		 */
-		static showSuccess = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS], timeoutCallback);
-		}
-
-		/**
-		 * 显示[告警]
-		 * @param {String} message
-		 * @param {Function} timeoutCallback 超时关闭回调
-		 * @return {Toast}
-		 */
-		static showWarning = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING], timeoutCallback);
-		}
-
-		/**
-		 * 显示[错误]
-		 * @param {String} message
-		 * @param {Function} timeoutCallback 超时关闭回调
-		 * @return {Toast}
-		 */
-		static showError = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR], timeoutCallback);
-		}
-
-		/**
-		 * 显示[加载中]
-		 * @param {String} message
-		 * @param {Function} timeoutCallback 超时关闭回调
-		 * @return {Toast}
-		 */
-		static showLoading = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING], timeoutCallback);
-		}
-
-		/**
-		 * 延期显示 loading（推荐使用）
-		 * 在一些业务后台能够快速响应场景，不显示loading过程能够提升用户体验
-		 * @param {String} message
-		 * @param {Number} delayMicroseconds 延迟显示
-		 * @param {Function} timeoutCallback
-		 * @return {Toast}
-		 */
-		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
-			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
-			let toast = new Toast(message, Toast.TYPE_LOADING, time);
-			toast.show(timeoutCallback);
-			hide(toast.dom);
-			setTimeout(() => {
-				toast.dom && show(toast.dom);
-			}, delayMicroseconds);
-			return toast;
-		}
-
-		/**
-		 * 显示提示
-		 * @param {Function} onTimeoutClose 超时关闭回调
-		 */
-		show(onTimeoutClose = null){
-			let wrapper = getWrapper();
-			show(wrapper);
-			this.dom = document.createElement('span');
-			wrapper.appendChild(this.dom);
-			this.dom.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + this.type;
-			this.dom.innerHTML = `<span class="ctn">${this.message}</span><div></div>`;
-			if(this.timeout){
-				setTimeout(() => {
-					this.hide(true);
-					onTimeoutClose && onTimeoutClose();
-				}, this.timeout);
-			}
-		}
-
-		/**
-		 * 隐藏提示信息
-		 * @param {Boolean} fadeOut 是否使用渐隐式淡出
-		 */
-		hide(fadeOut = false){
-			//稍微容错下，避免setTimeout后没有父节点
-			if(!this.dom || !document.body.contains(this.dom)){
-				return;
-			}
-			if(fadeOut){
-				this.dom.classList.add(TOAST_CLS_MAIN + '-hide');
-				setTimeout(() => {
-					this.hide(false);
-				}, FADEOUT_TIME);
-				return;
-			}
-			this.dom.parentNode.removeChild(this.dom);
-			this.dom = null;
-			let wrapper = getWrapper();
-			if(!wrapper.childNodes.length){
-				hide(wrapper);
-			}
+				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
+				requestJSON(url, data, method, {requestFormat:ACAsync.REQUEST_FORMAT}).then(rsp => {
+					if(rsp.code === 0){
+						onsuccess(rsp);
+						resolve();
+					}else {
+						ToastClass.showError(rsp.message || '系统错误');
+						console.error('Request Error:', url, data, method, rsp);
+					}
+				}, err => {
+					ToastClass.showError(err);
+					console.error('Request Error:', err);
+				}).finally(()=>{
+					loader && loader.hide();
+				});
+			})
 		}
 	}
-
-	window[COM_ID$2] = Toast;
-	let CONTEXT_WINDOW$2 = getContextWindow();
-	let ToastClass = CONTEXT_WINDOW$2[COM_ID$2] || Toast;
 
 	let default_masker = null;
 	let CSS_CLASS = Theme.Namespace + '-masker';
@@ -2967,8 +2597,8 @@ var WebCom = (function (exports) {
 	z-index:${Masker.zIndex}}
 `, Theme.Namespace + 'masker-style');
 
-	const COM_ID$1 = Theme.Namespace + 'dialog';
-	const DLG_CLS_PREF = COM_ID$1;
+	const COM_ID$2 = Theme.Namespace + 'dialog';
+	const DLG_CLS_PREF = COM_ID$2;
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 	const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 	const DLG_CLS_OP = DLG_CLS_PREF + '-op';
@@ -3016,7 +2646,7 @@ var WebCom = (function (exports) {
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {padding-bottom:0.5em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
-`, COM_ID$1 + '-style');
+`, COM_ID$2 + '-style');
 
 	/**
 	 * 绑定ESC按键事件关闭最上一层可关闭的对话框
@@ -3649,7 +3279,7 @@ var WebCom = (function (exports) {
 				reject('no in iframe');
 				return;
 			}
-			if(!parent[COM_ID$1].DialogManager){
+			if(!parent[COM_ID$2].DialogManager){
 				reject('No dialog manager found.');
 				return;
 			}
@@ -3657,7 +3287,7 @@ var WebCom = (function (exports) {
 			if(!id){
 				reject("ID no found in iframe element");
 			}
-			let dlg = parent[COM_ID$1].DialogManager.findById(id);
+			let dlg = parent[COM_ID$2].DialogManager.findById(id);
 			if(dlg){
 				resolve(dlg);
 			} else {
@@ -3665,80 +3295,418 @@ var WebCom = (function (exports) {
 			}
 		});
 	};
-	if(!window[COM_ID$1]){
-		window[COM_ID$1] = {};
+	if(!window[COM_ID$2]){
+		window[COM_ID$2] = {};
 	}
 
-	window[COM_ID$1].Dialog = Dialog;
-	window[COM_ID$1].DialogManager = DialogManager;
+	window[COM_ID$2].Dialog = Dialog;
+	window[COM_ID$2].DialogManager = DialogManager;
 
 	let CONTEXT_WINDOW$1 = getContextWindow();
-	let DialogClass = CONTEXT_WINDOW$1[COM_ID$1].Dialog || Dialog;
-	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$1].DialogManager || DialogManager;
+	let DialogClass = CONTEXT_WINDOW$1[COM_ID$2].Dialog || Dialog;
+	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$2].DialogManager || DialogManager;
 
 	/**
-	 * copy text
-	 * @param {String} text
-	 * @param {Boolean} silent 是否在不兼容是进行提醒
-	 * @returns {boolean} 是否复制成功
+	 * 对话框组件
+	 * 参数：
+	 * node[data-dialog-url] iframe对话框页面地址
+	 * node[data-content] 对话框内容
+	 * a[title] | node[text] 对话框标题
 	 */
-	const copy = (text, silent = false) => {
-		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
-		txtNode.style.cssText = 'position:absolute; left:-9999px;';
-		let y = window.pageYOffset || document.documentElement.scrollTop;
-		txtNode.addEventListener('focus', function(){
-			window.scrollTo(0, y);
-		});
-		txtNode.value = text;
-		txtNode.select();
-		try{
-			let succeeded = document.execCommand('copy');
-			!silent && ToastClass.showSuccess(trans('复制成功'));
-			return succeeded;
-		}catch(err){
-			console.error(err);
-			DialogClass.prompt('复制失败，请手工复制', {initValue:text});
-		} finally{
-			txtNode.parentNode.removeChild(txtNode);
+	class ACDialog {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let title, url, content;
+
+				if(node.tagName === 'A'){
+					url = node.href || url;
+					title = node.title || title;
+				}
+				if(node.innerText){
+					title = cutString(node.innerText, 30);
+				}
+
+				title = param.title || title;
+				url = param.url || url;
+				content = param.content || content;
+				if(url){
+					content = {src: url};
+				}
+				DialogClass.show(title || '对话框', content, param);
+				resolve();
+			})
 		}
-		return false;
-	};
+	}
 
 	/**
-	 * Copy formatted html content
-	 * @param html
-	 * @param silent
+	 * 确认对话框
+	 * 参数：
+	 * node[data-confirm-title] 标题，缺省为”确认“
+	 * node[data-confirm-message] 内容
 	 */
-	const copyFormatted = (html, silent = false) => {
-		// Create container for the HTML
-		let container = createDomByHtml(`
-		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
-	`, document.body);
-
-		// Detect all style sheets of the page
-		let activeSheets = Array.prototype.slice.call(document.styleSheets)
-			.filter(function(sheet){
-				return !sheet.disabled;
+	class ACConfirm {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let title = param.title;
+				let message = param.message;
+				DialogClass.confirm(title || '确认', message).then(resolve, reject);
 			});
-
-		// Copy to clipboard
-		window.getSelection().removeAllRanges();
-
-		let range = document.createRange();
-		range.selectNode(container);
-		window.getSelection().addRange(range);
-
-		document.execCommand('copy');
-		for(let i = 0; i < activeSheets.length; i++){
-			activeSheets[i].disabled = true;
 		}
-		document.execCommand('copy');
-		for(let i = 0; i < activeSheets.length; i++){
-			activeSheets[i].disabled = false;
+	}
+
+	let TIP_COLLECTION = {};
+	let GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
+	let NS = Theme.Namespace + 'tip';
+	let TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+	insertStyleSheet(`
+	.${NS}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
+	.${NS}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
+	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
+	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
+	.${NS}-close:hover {color:black;}
+	
+	/** top **/
+	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
+	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
+	
+	/** right **/
+	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
+	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
+	
+	/** bottom **/
+	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
+	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
+	
+	/** left **/
+	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
+	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
+`, Theme.Namespace + 'tip-style');
+
+	/**
+	 * 绑定事件
+	 */
+	let bindEvent = function(){
+		if(this.option.showCloseButton){
+			let btn = this.dom.querySelector(`.${NS}-close`);
+			btn.addEventListener('click', () => {
+				this.hide();
+			}, false);
+			document.body.addEventListener('keyup', (e) => {
+				if(e.keyCode === KEYS.Esc){
+					this.hide();
+				}
+			}, false);
 		}
-		document.body.removeChild(container);
-		!silent && ToastClass.showSuccess(trans('复制成功'));
 	};
+
+	/**
+	 * 自动计算方位
+	 * @returns {number}
+	 */
+	let calDir = function(){
+		let body = document.body;
+		let width = this.dom.offsetWidth;
+		let height = this.dom.offsetHeight;
+		let px = this.relNode.offsetLeft;
+		let py = this.relNode.offsetTop;
+		let rh = this.relNode.offsetHeight;
+		let rw = this.relNode.offsetWidth;
+
+		let scroll_left = body.scrollLeft;
+		let scroll_top = body.scrollTop;
+
+		let viewRegion = getRegion();
+
+		for(let i = 0; i < TRY_DIR_MAP.length; i++){
+			let dir_offset = getDirOffset(TRY_DIR_MAP[i], width, height, rh, rw);
+			let rect = {
+				left: px + dir_offset[0],
+				top: py + dir_offset[1],
+				width: width,
+				height: height
+			};
+			let layout_rect = {
+				left: scroll_left,
+				top: scroll_top,
+				width: viewRegion.visibleWidth,
+				height: viewRegion.visibleHeight
+			};
+			if(rectInLayout(rect, layout_rect)){
+				return TRY_DIR_MAP[i];
+			}
+		}
+		return 11;
+	};
+
+	/**
+	 * 方位偏移
+	 * @param {Number} dir
+	 * @param {Number} width
+	 * @param {Number} height
+	 * @param {Number} rh
+	 * @param {Number} rw
+	 * @returns {*}
+	 */
+	let getDirOffset = function(dir, width, height, rh, rw){
+		let offset = {
+			11: [-width * 0.25 + rw / 2, rh],
+			0: [-width * 0.5 + rw / 2, rh],
+			1: [-width * 0.75 + rw / 2, rh],
+			2: [-width, -height * 0.25 + rh / 2],
+			3: [-width, -height * 0.5 + rh / 2],
+			4: [-width, -height * 0.75 + rh / 2],
+			5: [-width * 0.75 + rw / 2, -height],
+			6: [-width * 0.5 + rw / 2, -height],
+			7: [-width * 0.25 + rw / 2, -height],
+			8: [rw, -height * 0.75 + rh / 2],
+			9: [rw, -height * 0.5 + rh / 2],
+			10: [rw, -height * 0.25 + rh / 2]
+		};
+		return offset[dir];
+	};
+
+	/**
+	 * 更新位置信息
+	 */
+	const updatePosition = function(){
+		let direction = this.option.direction;
+		let width = this.dom.offsetWidth;
+		let height = this.dom.offsetHeight;
+		let pos = getDomOffset(this.relNode);
+		let px = pos.left;
+		let py = pos.top;
+		let rh = this.relNode.offsetHeight;
+		let rw = this.relNode.offsetWidth;
+		if(direction === 'auto'){
+			direction = calDir.call(this);
+		}
+		this.dom.setAttribute('data-tip-dir',direction);
+		let offset = getDirOffset(direction, width, height, rh, rw);
+		this.dom.style.left = dimension2Style(px + offset[0]);
+		this.dom.style.top = dimension2Style(py + offset[1]);
+	};
+
+	class Tip {
+		guid = null;
+		relNode = null;
+
+		/** @var {HTMLElement} dom **/
+		dom = null;
+		option = {
+			showCloseButton: false,
+			width: 'auto',
+			direction: 'auto',
+		};
+
+		_hideTm = null;
+
+		onShow = new BizEvent(true);
+		onHide = new BizEvent(true);
+		onDestroy = new BizEvent(true);
+
+		constructor(content, relNode, opt = {}){
+			this.guid = guid();
+			this.relNode = relNode;
+			this.option = {...this.option, ...opt};
+
+			let close_button_html = this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ``;
+			this.dom = createDomByHtml(
+				`<div class="${NS}-container-wrap" style="display:none;">
+				<s class="${NS}-arrow ${NS}-arrow-pt"></s>
+				<s class="${NS}-arrow ${NS}-arrow-bg"></s>
+				${close_button_html}
+				<div class="${NS}-content">${content}</div>
+			</div>`, document.body);
+
+			this.dom.style.width = dimension2Style(this.option.width);
+			bindEvent.call(this);
+			TIP_COLLECTION[this.guid] = this;
+		}
+
+		/**
+		 * 设置提示内容
+		 * @param {String} html
+		 */
+		setContent(html){
+			this.dom.querySelector(`.${NS}-content`).innerHTML = html;
+			updatePosition.call(this);
+		}
+
+		/**
+		 * 去重判断，避免onShow时间多次触发
+		 */
+		show(){
+			show(this.dom);
+			updatePosition.call(this);
+			this.onShow.fire(this);
+		}
+
+		hide(){
+			console.log('hide call');
+			hide(this.dom);
+			this.onHide.fire(this);
+		}
+
+		destroy(){
+			this.dom.parentNode.removeChild(this.dom);
+			this.onDestroy.fire();
+			for(let i in TIP_COLLECTION){
+				if(TIP_COLLECTION[i] === this){
+					delete(TIP_COLLECTION[i]);
+				}
+			}
+		}
+
+		/**
+		 * 快速显示Tip
+		 * @param {String} content
+		 * @param {HTMLElement} relNode
+		 * @param option
+		 * @returns {Tip}
+		 */
+		static show(content, relNode, option = {}){
+			let tip = new Tip(content, relNode, option);
+			tip.show();
+			return tip;
+		}
+
+		/**
+		 * 隐藏所有Tip
+		 */
+		static hideAll(){
+			for(let i in TIP_COLLECTION){
+				TIP_COLLECTION[i].hide();
+			}
+		}
+
+		/**
+		 * 绑定节点
+		 * @param {String} content
+		 * @param {HTMLElement} relNode
+		 * @param {Object} option
+		 * @return {Tip}
+		 */
+		static bindNode(content, relNode, option = {}){
+			let guid = relNode.getAttribute(GUID_BIND_KEY);
+			let tipObj = TIP_COLLECTION[guid];
+			if(!tipObj){
+				tipObj = new Tip(content, relNode, option);
+				relNode.setAttribute(GUID_BIND_KEY, tipObj.guid);
+				relNode.addEventListener('mouseover', ()=>{
+					tipObj.show();
+				});
+				let tm = null;
+				let hide = ()=>{
+					tm && clearTimeout(tm);
+					tm = setTimeout(()=>{
+						tipObj.hide();
+					}, 100);
+				};
+				let show = ()=>{
+					tm && clearTimeout(tm);
+					tipObj.show();
+				};
+				relNode.addEventListener('mouseout', hide);
+				tipObj.dom.addEventListener('mouseout', hide);
+				tipObj.dom.addEventListener('mouseover', show);
+			}
+			return tipObj;
+		}
+
+		/**
+		 * 通过异步获取数据方式绑定显示Tip
+		 * @param {HTMLElement} relNode
+		 * @param {Function} dataFetcher 返回 Promise 对象
+		 * @param {Object} option
+		 */
+		static bindAsync(relNode, dataFetcher, option = {}){
+			let guid = relNode.getAttribute(`data-${GUID_BIND_KEY}`);
+			let obj = TIP_COLLECTION[guid];
+			if(!obj){
+				let loading = false;
+				obj = Tip.bindNode('loading...', relNode, option);
+				obj.onShow.listen(() => {
+					if(loading){
+						return;
+					}
+					loading = true;
+					dataFetcher().then(rspHtml => {
+						loading = false;
+						obj.setContent(rspHtml);
+					}, error => {
+						loading = false;
+						obj.setContent(error);
+					});
+				});
+			}
+		};
+	}
+
+	class ACTip {
+		static init(node, {content}){
+			return new Promise((resolve, reject) => {
+				new Tip(content, node);
+				resolve();
+			});
+		}
+	}
+
+	class ACCopy {
+		static init(node, param){
+
+		}
+	}
+
+	class ACToast {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let message = param.message || '提示信息';
+				let type = param.type || ToastClass.TYPE_INFO;
+				ToastClass.showToast(message, type, ToastClass.DEFAULT_TIME_MAP[type], resolve);
+			});
+		}
+	}
 
 	/**
 	 * 通过 src 加载图片
@@ -3778,6 +3746,139 @@ var WebCom = (function (exports) {
 				},
 				{width: 0, url: ""}
 			).url;
+	};
+
+	/**
+	 * 通过ImageSrc获取base64（网络请求模式）
+	 * @param src
+	 * @returns {Promise<unknown>}
+	 */
+	const getBase64BySrc = (src)=>{
+		return new Promise((resolve, reject) => {
+			let xhr = new XMLHttpRequest();
+			xhr.open('GET', src, true);
+			xhr.responseType = 'blob';
+			xhr.onload = function(){
+				if(this.status === 200){
+					let blob = this.response;
+					convertBlobToBase64(blob).then(base64 => {
+						resolve(base64);
+					}).catch(error => {
+						reject(error);
+					});
+				}
+			};
+			xhr.onerror = function() {
+				reject('Error:'+this.statusText);
+			};
+			xhr.onabort = function(){
+				reject('Request abort');
+			};
+			xhr.send();
+		});
+	};
+
+	/**
+	 * 通过 Image 获取base64数据
+	 * @param img
+	 * @returns {string|string|*|string|null}
+	 */
+	const getBase64ByImg = (img) => {
+		if(!img.src){
+			return null;
+		}
+		if(img.src.indexOf('data:') === 0){
+			return img.src;
+		}
+		let canvas = document.createElement("canvas");
+		canvas.width = img.width;
+		canvas.height = img.height;
+		let ctx = canvas.getContext("2d");
+		ctx.drawImage(img, 0, 0, img.width, img.height);
+		return canvas.toDataURL("image/png")
+	};
+
+	/**
+	 * 通过缩放+定位将图片放置在指定容器中间
+	 * @param {Number} contentWidth
+	 * @param {Number} contentHeight
+	 * @param {Number} containerWidth
+	 * @param {Number} containerHeight
+	 * @param {Number} spacing
+	 * @param {Boolean} zoomIn 是否在图片小于容器时放大，默认不放大
+	 * @returns {{top: number, left: number, width: number, height: number}|{top: number, left: number, width, height}}
+	 */
+	const scaleFixCenter$1 = ({
+	   contentWidth,
+	   contentHeight,
+	   containerWidth,
+	   containerHeight,
+	   spacing = 0,
+	   zoomIn = false}) => {
+		if(contentWidth <= containerWidth && contentHeight <= containerHeight && !zoomIn){
+			return {
+				width: contentWidth,
+				height: contentHeight,
+				left: (containerWidth - contentWidth) / 2,
+				top: (containerHeight - contentHeight) / 2
+			};
+		}
+		let ratioX = containerWidth / contentWidth;
+		let ratioY = containerHeight / contentHeight;
+
+		let ratio = Math.min(ratioX, ratioY);
+		return {
+			width: contentWidth * ratio - spacing * 2,
+			height: contentHeight * ratio - spacing * 2,
+			left: (containerWidth - contentWidth * ratio) / 2 + spacing,
+			top: (containerHeight - contentHeight * ratio) / 2 + spacing,
+		}
+	};
+
+	/**
+	 * 获取图像元素平均色彩
+	 * @param {HTMLImageElement} imgEl
+	 * @return {{r: number, b: number, g: number}}
+	 */
+	const getAverageRGB = (imgEl) => {
+		let blockSize = 5, // only visit every 5 pixels
+			defaultRGB = {r: 0, g: 0, b: 0}, // for non-supporting envs
+			canvas = document.createElement('canvas'),
+			context = canvas.getContext && canvas.getContext('2d'),
+			data, width, height,
+			i = -4,
+			length,
+			rgb = {r: 0, g: 0, b: 0},
+			count = 0;
+
+		if(!context){
+			return defaultRGB;
+		}
+
+		height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
+		width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
+		context.drawImage(imgEl, 0, 0);
+
+		try{
+			data = context.getImageData(0, 0, width, height);
+		}catch(e){
+			/* security error, img on diff domain */
+			return defaultRGB;
+		}
+
+		length = data.data.length;
+		while((i += blockSize * 4) < length){
+			++count;
+			rgb.r += data.data[i];
+			rgb.g += data.data[i + 1];
+			rgb.b += data.data[i + 2];
+		}
+
+		// ~~ used to floor values
+		rgb.r = ~~(rgb.r / count);
+		rgb.g = ~~(rgb.g / count);
+		rgb.b = ~~(rgb.b / count);
+		return rgb;
 	};
 
 	const json_decode = (v) => {
@@ -4015,13 +4116,13 @@ var WebCom = (function (exports) {
 		}
 	});
 
-	const COM_ID = Theme.Namespace + 'com-image-viewer';
+	const COM_ID$1 = Theme.Namespace + 'com-image-viewer';
 	const CONTEXT_WINDOW = getContextWindow();
-	if(!CONTEXT_WINDOW[COM_ID]){
-		CONTEXT_WINDOW[COM_ID] = {};
+	if(!CONTEXT_WINDOW[COM_ID$1]){
+		CONTEXT_WINDOW[COM_ID$1] = {};
 	}
 
-	const DOM_CLASS = COM_ID;
+	const DOM_CLASS = COM_ID$1;
 
 	const DEFAULT_VIEW_PADDING = 20;
 	const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
@@ -4720,7 +4821,7 @@ var WebCom = (function (exports) {
 	 * @param {String} imgSrc
 	 * @param {Object} option
 	 */
-	const showImgPreview = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || function(imgSrc, option = {}){
+	const showImgPreview = CONTEXT_WINDOW[COM_ID$1]['showImgPreview'] || function(imgSrc, option = {}){
 		init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 	};
 
@@ -4730,7 +4831,7 @@ var WebCom = (function (exports) {
 	 * @param {Number} startIndex
 	 * @param {Object} option
 	 */
-	const showImgListPreview = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
+	const showImgListPreview = CONTEXT_WINDOW[COM_ID$1]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
 		init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 	};
 
@@ -4769,919 +4870,14 @@ var WebCom = (function (exports) {
 		});
 	};
 
-	window[COM_ID] = {
+	window[COM_ID$1] = {
 		showImgPreview,
 		showImgListPreview,
 		bindImgPreviewViaSelector,
 	};
 
-	let showImgPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgPreview'] || showImgPreview;
-	let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || showImgListPreview;
-
-	let last_active_ladder = null;
-	let ladder_scrolling = false;
-
-	const Ladder = (ladder, opt)=>{
-		opt = Object.assign({
-			onAfterScrollTo: function($ladder_node, aim){},
-			onBeforeScrollTo: function(aim){},
-			ladderActiveClass: 'ladder-active',
-			dataTag: 'href',
-			animateTime: 400,
-			addHistory: true,
-			bindScroll: true,
-			scrollContainer: 'body',
-			preventDefaultEvent: true
-		}, opt || {});
-
-		let $selector = $(ladder).find('['+opt.dataTag+']');
-
-		/**
-		 * scroll to aim
-		 * @param aim
-		 * @param {HTMLElement} ladder_node
-		 */
-		let scroll_to = function(aim, ladder_node){
-			let $n = (!$(aim).size() && aim === '#top') ? $('body') : $(aim);
-			if(!$n.size() || false === opt.onBeforeScrollTo(aim)){
-				return;
-			}
-			let pos = $n.offset().top;
-			if(opt.ladderActiveClass){
-				if(last_active_ladder){
-					last_active_ladder.removeClass(opt.ladderActiveClass);
-				}
-				ladder_node.addClass(opt.ladderActiveClass);
-				last_active_ladder = ladder_node;
-			}
-			ladder_scrolling = true;
-
-			$(opt.scrollContainer).animate({scrollTop: pos}, opt.animateTime, function(){
-				//fix JQuery animate complete but trigger window scroll event once still(no reason found yet)
-				setTimeout(function(){
-					if(opt.addHistory){
-						if(window.history && window.history.pushState){
-							history.pushState(null, null, aim);
-						} else {
-							location.hash = aim;
-						}
-					}
-					ladder_scrolling = false;
-					opt.onAfterScrollTo(ladder_node, aim);
-				}, 50);
-			});
-		};
-
-		//bind ladder node click
-		$selector.click(function(){
-			let $node = $(this);
-			let aim = $node.attr(opt.dataTag);
-			if(aim !== '#top' && !$(aim).size()){
-				return;
-			}
-
-			if(!/^#\w+$/i.test(aim)){
-				console.error('ladder pattern check fail: '+aim);
-				return;
-			}
-			scroll_to(aim, $node);
-			if(opt.preventDefaultEvent){
-				return false;
-			}
-		});
-
-		//init state from location hash information
-		if(opt.addHistory){
-			$(function(){
-				$selector.each(function(){
-					let aim = $(this).attr(opt.dataTag);
-					let m = location.href.match(new RegExp(aim+'(&|#|$|=)'));
-					if(m){
-						//match anchor link node
-						if($(aim).size() && $(aim)[0].tagName == 'A'){
-							console.debug('ladder hit a:'+aim);
-							return;
-						}
-						scroll_to(aim, $(this));
-						return false;
-					}
-				});
-			});
-		}
-
-		//bind scroll event
-		if(opt.bindScroll){
-			$(opt.scrollContainer === 'body' ? window : opt.scrollContainer).scroll(function(){
-				let t = $(window).scrollTop();
-				if(!ladder_scrolling){
-					let $hit_node = null;
-					let $hit_ladder_node = null;
-					let hit_aim = '';
-					$selector.each(function(){
-						let $ladder_node = $(this);
-						let aim = $ladder_node.attr(opt.dataTag);
-						let $aim = $(aim);
-						if($aim.size()){
-							if(t >= $aim.offset().top){
-								$hit_node = $aim;
-								$hit_ladder_node = $ladder_node;
-								hit_aim = aim;
-							}
-						}
-					});
-
-					if($hit_node){
-						//make class
-						if(opt.ladderActiveClass){
-							if(last_active_ladder){
-								last_active_ladder.removeClass(opt.ladderActiveClass);
-							}
-							$hit_ladder_node.addClass(opt.ladderActiveClass);
-							last_active_ladder = $hit_ladder_node;
-						}
-						//trigger after scroll to
-						opt.onAfterScrollTo($hit_ladder_node, hit_aim);
-					}
-				}
-			}).trigger('scroll');
-		}
-	};
-
-	const Thumb = {
-		globalConfig: {},
-
-		setThumbGlobalConfig({loadingClass, errorClass}){
-			this.globalConfig.loadingClass = loadingClass;
-			this.globalConfig.errorClass = errorClass;
-		},
-
-		bindThumbImgNode(imgNode, param){
-			if(!param.src){
-				console.error('Image src required');
-				return;
-			}
-			let loadingClass = param.loadingClass || this.globalConfig.loadingClass;
-			let errorClass = param.loadingClass || this.globalConfig.errorClass;
-			let pNode = imgNode.parentNode;
-			pNode.classList.add(loadingClass);
-			pNode.classList.remove(errorClass);
-
-			imgNode.addEventListener('error', () => {
-				pNode.classList.add(errorClass);
-				pNode.classList.remove(loadingClass);
-				hide(imgNode);
-			});
-			imgNode.addEventListener('load', ()=>{
-				pNode.classList.remove(loadingClass);
-				pNode.classList.remove(errorClass);
-				show(imgNode);
-			});
-			imgNode.setAttribute('src', param.src);
-		}
-	};
-
-	let TIP_COLLECTION = {};
-	let GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	let NS$1 = Theme.Namespace + 'tip';
-	let TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-	insertStyleSheet(`
-	.${NS$1}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
-	.${NS$1}-content {border:1px solid #cacaca; border-radius:4px; background-color:#fff; padding:10px; box-shadow:0 0 10px rgba(105, 105, 105, 0.4); max-width:500px; word-break:break-all}
-	.${NS$1}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
-	.${NS$1}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; color:gray;}
-	.${NS$1}-close:hover {color:black;}
-	
-	/** top **/
-	${NS$1}-container-wrap[data-tip-dir-0], .${NS$1}-container-wrap[data-tip-dir="1"], .${NS$1}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
-	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
-	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow {left:25%;}
-	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow {left:50%;}
-	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow {left:75%;}
-	
-	/** right **/
-	.${NS$1}-container-wrap[data-tip-dir="8"], .${NS$1}-container-wrap[data-tip-dir="9"], .${NS$1}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-close {top:3px;}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow {top:75%}
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow {top:50%}
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow {top:25%}
-	
-	/** bottom **/
-	.${NS$1}-container-wrap[data-tip-dir="5"], .${NS$1}-container-wrap[data-tip-dir="6"], .${NS$1}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-close {top:3px;}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow {left:30px}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow {left:75%}
-	
-	/** left **/
-	.${NS$1}-container-wrap[data-tip-dir="2"], .${NS$1}-container-wrap[data-tip-dir="3"], .${NS$1}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-close {right:13px; top:3px;}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow-pt,
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow {top:25%}
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow {top:50%}
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow {top:75%}
-`, Theme.Namespace + 'tip-style');
-
-	/**
-	 * 绑定事件
-	 */
-	let bindEvent = function(){
-		if(this.option.showCloseButton){
-			let btn = this.dom.querySelector(`.${NS$1}-close`);
-			btn.addEventListener('click', () => {
-				this.hide();
-			}, false);
-			document.body.addEventListener('keyup', (e) => {
-				if(e.keyCode === KEYS.Esc){
-					this.hide();
-				}
-			}, false);
-		}
-	};
-
-	/**
-	 * 自动计算方位
-	 * @returns {number}
-	 */
-	let calDir = function(){
-		let body = document.body;
-		let width = this.dom.offsetWidth;
-		let height = this.dom.offsetHeight;
-		let px = this.relNode.offsetLeft;
-		let py = this.relNode.offsetTop;
-		let rh = this.relNode.offsetHeight;
-		let rw = this.relNode.offsetWidth;
-
-		let scroll_left = body.scrollLeft;
-		let scroll_top = body.scrollTop;
-
-		let viewRegion = getRegion();
-
-		for(let i = 0; i < TRY_DIR_MAP.length; i++){
-			let dir_offset = getDirOffset(TRY_DIR_MAP[i], width, height, rh, rw);
-			let rect = {
-				left: px + dir_offset[0],
-				top: py + dir_offset[1],
-				width: width,
-				height: height
-			};
-			let layout_rect = {
-				left: scroll_left,
-				top: scroll_top,
-				width: viewRegion.visibleWidth,
-				height: viewRegion.visibleHeight
-			};
-			if(rectInLayout(rect, layout_rect)){
-				return TRY_DIR_MAP[i];
-			}
-		}
-		return 11;
-	};
-
-	/**
-	 * 方位偏移
-	 * @param {Number} dir
-	 * @param {Number} width
-	 * @param {Number} height
-	 * @param {Number} rh
-	 * @param {Number} rw
-	 * @returns {*}
-	 */
-	let getDirOffset = function(dir, width, height, rh, rw){
-		let offset = {
-			11: [-width * 0.25 + rw / 2, rh],
-			0: [-width * 0.5 + rw / 2, rh],
-			1: [-width * 0.75 + rw / 2, rh],
-			2: [-width, -height * 0.25 + rh / 2],
-			3: [-width, -height * 0.5 + rh / 2],
-			4: [-width, -height * 0.75 + rh / 2],
-			5: [-width * 0.75 + rw / 2, -height],
-			6: [-width * 0.5 + rw / 2, -height],
-			7: [-width * 0.25 + rw / 2, -height],
-			8: [rw, -height * 0.75 + rh / 2],
-			9: [rw, -height * 0.5 + rh / 2],
-			10: [rw, -height * 0.25 + rh / 2]
-		};
-		return offset[dir];
-	};
-
-	/**
-	 * 更新位置信息
-	 */
-	const updatePosition = function(){
-		let direction = this.option.direction;
-		let width = this.dom.offsetWidth;
-		let height = this.dom.offsetHeight;
-		let pos = getDomOffset(this.relNode);
-		let px = pos.left;
-		let py = pos.top;
-		let rh = this.relNode.offsetHeight;
-		let rw = this.relNode.offsetWidth;
-		if(direction === 'auto'){
-			direction = calDir.call(this);
-		}
-		this.dom.setAttribute('data-tip-dir',direction);
-		let offset = getDirOffset(direction, width, height, rh, rw);
-		this.dom.style.left = dimension2Style(px + offset[0]);
-		this.dom.style.top = dimension2Style(py + offset[1]);
-	};
-
-	class Tip {
-		guid = null;
-		relNode = null;
-
-		/** @var {HTMLElement} dom **/
-		dom = null;
-		option = {
-			showCloseButton: false,
-			width: 'auto',
-			direction: 'auto',
-		};
-
-		_hideTm = null;
-
-		onShow = new BizEvent(true);
-		onHide = new BizEvent(true);
-		onDestroy = new BizEvent(true);
-
-		constructor(content, relNode, opt = {}){
-			this.guid = guid();
-			this.relNode = relNode;
-			this.option = {...this.option, ...opt};
-
-			let close_button_html = this.option.showCloseButton ? `<span class="${NS$1}-close">&#10005;</span>` : ``;
-			this.dom = createDomByHtml(
-				`<div class="${NS$1}-container-wrap" style="display:none;">
-				<s class="${NS$1}-arrow ${NS$1}-arrow-pt"></s>
-				<s class="${NS$1}-arrow ${NS$1}-arrow-bg"></s>
-				${close_button_html}
-				<div class="${NS$1}-content">${content}</div>
-			</div>`, document.body);
-
-			this.dom.style.width = dimension2Style(this.option.width);
-			bindEvent.call(this);
-			TIP_COLLECTION[this.guid] = this;
-		}
-
-		/**
-		 * 设置提示内容
-		 * @param {String} html
-		 */
-		setContent(html){
-			this.dom.querySelector(`.${NS$1}-content`).innerHTML = html;
-			updatePosition.call(this);
-		}
-
-		/**
-		 * 去重判断，避免onShow时间多次触发
-		 */
-		show(){
-			show(this.dom);
-			updatePosition.call(this);
-			this.onShow.fire(this);
-		}
-
-		hide(){
-			console.log('hide call');
-			hide(this.dom);
-			this.onHide.fire(this);
-		}
-
-		destroy(){
-			this.dom.parentNode.removeChild(this.dom);
-			this.onDestroy.fire();
-			for(let i in TIP_COLLECTION){
-				if(TIP_COLLECTION[i] === this){
-					delete(TIP_COLLECTION[i]);
-				}
-			}
-		}
-
-		/**
-		 * 快速显示Tip
-		 * @param {String} content
-		 * @param {HTMLElement} relNode
-		 * @param option
-		 * @returns {Tip}
-		 */
-		static show(content, relNode, option = {}){
-			let tip = new Tip(content, relNode, option);
-			tip.show();
-			return tip;
-		}
-
-		/**
-		 * 隐藏所有Tip
-		 */
-		static hideAll(){
-			for(let i in TIP_COLLECTION){
-				TIP_COLLECTION[i].hide();
-			}
-		}
-
-		/**
-		 * 绑定节点
-		 * @param {String} content
-		 * @param {HTMLElement} relNode
-		 * @param {Object} option
-		 * @return {Tip}
-		 */
-		static bindNode(content, relNode, option = {}){
-			let guid = relNode.getAttribute(GUID_BIND_KEY);
-			let tipObj = TIP_COLLECTION[guid];
-			if(!tipObj){
-				tipObj = new Tip(content, relNode, option);
-				relNode.setAttribute(GUID_BIND_KEY, tipObj.guid);
-				relNode.addEventListener('mouseover', ()=>{
-					tipObj.show();
-				});
-				let tm = null;
-				let hide = ()=>{
-					tm && clearTimeout(tm);
-					tm = setTimeout(()=>{
-						tipObj.hide();
-					}, 100);
-				};
-				let show = ()=>{
-					tm && clearTimeout(tm);
-					tipObj.show();
-				};
-				relNode.addEventListener('mouseout', hide);
-				tipObj.dom.addEventListener('mouseout', hide);
-				tipObj.dom.addEventListener('mouseover', show);
-			}
-			return tipObj;
-		}
-
-		/**
-		 * 通过异步获取数据方式绑定显示Tip
-		 * @param {HTMLElement} relNode
-		 * @param {Function} dataFetcher 返回 Promise 对象
-		 * @param {Object} option
-		 */
-		static bindAsync(relNode, dataFetcher, option = {}){
-			let guid = relNode.getAttribute(`data-${GUID_BIND_KEY}`);
-			let obj = TIP_COLLECTION[guid];
-			if(!obj){
-				let loading = false;
-				obj = Tip.bindNode('loading...', relNode, option);
-				obj.onShow.listen(() => {
-					if(loading){
-						return;
-					}
-					loading = true;
-					dataFetcher().then(rspHtml => {
-						loading = false;
-						obj.setContent(rspHtml);
-					}, error => {
-						loading = false;
-						obj.setContent(error);
-					});
-				});
-			}
-		};
-	}
-
-	let CLS = Theme.Namespace + 'toc';
-
-	insertStyleSheet(`
-	.${CLS} {position:fixed; padding:10px; box-shadow:1px 1px 10px #ccc;}
-`, Theme.Namespace + 'toc-style');
-
-	const resolveTocListFromDom = (dom = document.body, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
-		let allHeads = dom.querySelectorAll(levelMaps.join(','));
-		let tocList = [];
-		let serials = [];
-
-		levelMaps.forEach(selector => {
-			serials.push(Array.from(dom.querySelectorAll(selector)));
-		});
-
-		let calcLvl = (h) => {
-			for(let i = 0; i < serials.length; i++){
-				if(serials.includes(h)){
-					return i;
-				}
-			}
-		};
-
-		allHeads.forEach(h => {
-			tocList.push({
-				text: h.innerText,
-				refNode: h,
-				level: calcLvl(h)
-			});
-		});
-		return tocList;
-	};
-
-	const Toc = (dom, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
-		let tocList = resolveTocListFromDom(dom, levelMaps);
-		let tocHtml = '';
-		tocList.forEach(item => {
-			let id = Theme.Namespace+'toc' + guid();
-			let helpNode = document.createElement('A');
-			helpNode.id = id;
-			item.refNode.parentNode.insertBefore(item.refNode, helpNode);
-			tocHtml.push(`<a href="#${id}" data-level="${item.level}">${escapeHtml(item.text)}</a>`);
-		});
-		createDomByHtml(`
-	<dl class="${CLS}">
-		<dt>本页目录</dt>
-		<dd>
-			${tocHtml}
-		</dd>
-	</dl>`, document.body);
-	};
-
-	const NS = Theme.Namespace + '-uploader';
-	insertStyleSheet(`
-	.${NS} {}
-	
-	.${NS}-btn {display:inline-block; use-select:none; cursor:pointer}
-	.${NS}-btn-reset:before {content:"重新上传"}
-	.${NS}-btn-cancel:before {content:"取消"}
-	.${NS}-btn-delete:before {content:"删除"}
-`);
-
-	const UPLOAD_STATE_INIT = 0;
-	const UPLOAD_STATE_PENDING = 1;
-	const UPLOAD_STATE_ERROR = 2;
-	const UPLOAD_STATE_SUCCESS = 3;
-
-	const UPLOAD_ERROR_FILE_SIZE_OVERLOAD = 'file_size_overload';
-	const UPLOAD_ERROR_FILE_EMPTY = 'file_empty';
-
-	const FILE_TYPE_IMAGE = 'image/*';
-	const FILE_TYPE_VIDEO = 'video/*';
-	const FILE_TYPE_AUDIO = 'audio/*';
-	const FILE_TYPE_DOC = '.txt,.md,.doc,.docx';
-	const FILE_TYPE_SHEET = '.xls,.xlsx,.csv';
-
-	/**
-	 * 缺省后端返回格式处理器
-	 * @param rsp
-	 * @return {{thumb, error: *, value}}
-	 * @constructor
-	 */
-	const DEFAULT_RSP_HANDLE = (rsp) => {
-		return {
-			error: rsp.code !== 0 ? rsp.message : '',
-			value: rsp.data,
-			thumb: rsp.data
-		}
-	};
-
-	/**
-	 * @param {Uploader} up
-	 * @param {File} file
-	 */
-	const startUpload = (up, file) => {
-		let xhr = new XMLHttpRequest();
-		up.xhr = xhr;
-		let formData = new FormData();
-		formData.append(up.option.uploadFileFieldName, file);
-		xhr.withCredentials = true;
-		xhr.upload.addEventListener('progress', e => {
-			up.onUploading.fire(e.loaded, e.total);
-		}, false);
-		xhr.addEventListener('load', e => {
-			up.option.uploadResponseHandle(e.returnValue);
-		});
-		xhr.addEventListener('error', e => {
-		});
-		xhr.addEventListener('abort', e => {
-			up.onAbort.fire();
-		});
-		xhr.open('POST', up.option.uploadUrl);
-		xhr.send(formData);
-	};
-
-	/**
-	 * @param {Uploader} up
-	 */
-	const renderDom = (up) => {
-		let acceptStr = up.option.allowFileTypes.join(',');
-		const html =
-			`<div class="${NS}" data-state="${up.state}">
-		<label class="${NS}-file">
-			<input type="file" accept="${acceptStr}" value="${up.option.initValue || ''}" ${up.option.required ? 'required' : ''}>
-		</label>
-		<div class="${NS}-progress">
-			<progress max="100" value="0">0%</progress>
-			<span>0%</span>
-		</div>
-		<div class="${NS}-content"></div>
-		<div class="${NS}-handle">
-			<span role="button" class="${NS}-btn ${NS}-btn-reset"></span>
-			<span role="button" class="${NS}-btn ${NS}-btn-clean"></span>
-			<span role="button" class="${NS}-btn ${NS}-btn-cancel"></span>
-			<span role="button" class="${NS}-btn ${NS}-btn-delete"></span>
-		</div>
-	</div>`;
-		const dom = createDomByHtml(html, up.container);
-		const fileEl = dom.querySelector('input[type=file]');
-
-		dom.querySelector(`.${NS}-btn-reset`).addEventListener('click', e => {
-			resetUpload(up);
-		});
-		dom.querySelector(`.${NS}-btn-clean`).addEventListener('click', e => {
-		});
-
-		dom.querySelector(`.${NS}-btn-delete`).addEventListener('click', e => {
-
-		});
-
-		dom.querySelector(`.${NS}-btn-cancel`).addEventListener('click', e => {
-			up.abort();
-		});
-
-		fileEl.addEventListener('change', e => {
-			let file = fileEl.files[0];
-			if(file){
-				if(!file.size < 1){
-					up.onError.fire('所选的文件内容为空', UPLOAD_ERROR_FILE_EMPTY);
-					resetUpload(up);
-					return;
-				}
-				if(up.option.fileSizeLimit && file.size < up.option.fileSizeLimit){
-					up.onError.fire('所选的文件大小超出限制', UPLOAD_ERROR_FILE_SIZE_OVERLOAD);
-					resetUpload(up);
-					return;
-				}
-				updateState(up, UPLOAD_STATE_PENDING);
-				startUpload(up, file);
-			}
-		});
-	};
-
-	const mergeNoNull = (target, source) => {
-		for(let i in source){
-			if(source[i] !== null){
-				target[i] = source[i];
-			}
-		}
-	};
-
-	const resetUpload = (up) => {
-		const fileEl = up.container.querySelector('input[type=file]');
-		fileEl.value = up.initValue;
-		updateState(up, UPLOAD_STATE_INIT);
-	};
-
-	const updateState = (up, state) => {
-		const dom = up.container.querySelector('.' + NS);
-		dom.setAttribute('data-state', state);
-		switch(state){
-			case UPLOAD_STATE_PENDING:
-				up.onUploading.fire();
-				break;
-			case UPLOAD_STATE_SUCCESS:
-				up.onSuccess.fire();
-				break;
-			case UPLOAD_STATE_ERROR:
-				up.onError.fire();
-				break;
-		}
-	};
-
-	class Uploader {
-		/**
-		 * 状态
-		 * @type {number}
-		 */
-		state = UPLOAD_STATE_INIT;
-		xhr = null;
-
-		/**
-		 * 渲染容器
-		 * @type {HTMLElement}
-		 */
-		container = null;
-
-		static globalUploadUrl = '';
-
-		option = {
-			uploadUrl: '',
-			required: false,
-			initValue: null,
-			initThumb: null,
-			allowFileTypes: [],
-			fileSizeLimit: 0,
-			uploadFileFieldName: 'file',
-			uploadResponseHandle: DEFAULT_RSP_HANDLE
-		};
-
-		constructor(container, option = {
-			uploadUrl: null, //上传URL【必填】
-			required: null,
-			initValue: null,
-			initThumb: null,
-			fileSizeLimit: null,
-			allowFileTypes: null,
-			uploadResponseHandle: null
-		}){
-			this.container = container;
-			mergeNoNull(this.option, option);
-			option.uploadUrl = option.uploadUrl || Uploader.globalUploadUrl;
-			if(!option.uploadUrl){
-				throw "upload url required";
-			}
-			renderDom(this);
-		}
-
-		abort(){
-			if(this.xhr && this.xhr.abort()){
-				resetUpload(this);
-			}
-		}
-
-		getData(){
-
-		}
-
-		getDataAsync(){
-			return new Promise((resolve, reject) => {
-				if(this.state !== UPLOAD_STATE_PENDING){
-					resolve(this.getData());
-				}else {
-					let fn = () => {
-						resolve(this.getData());
-						this.onSuccess.remove(fn);
-					};
-					this.onSuccess.listen(fn);
-				}
-			});
-		}
-
-		onSuccess = new BizEvent();
-		onAbort = new BizEvent();
-		onResponse = new BizEvent();
-		onUploading = new BizEvent();
-		onDelete = new BizEvent();
-		onError = new BizEvent();
-	}
-
-	/**
-	 * 异步组件
-	 * 参数：
-	 * ACAsync.FORM_DATA_PACKAGE_TYPE 设置数据打包方式，如后端是PHP，为兼容PHP数组识别语法，请使用：PACKAGE_TYPE_STRING 方式打包
-	 * 缺省为 PACKAGE_TYPE_JSON 方式打包
-	 * node[data-async-url] | a[href] | form[action] 请求url
-	 * node[data-async-method] | form[method] 请求方法，缺省为GET
-	 * node[data-async-data] | form{*} 请求数据
-	 */
-	class ACAsync {
-		static REQUEST_FORMAT = REQUEST_FORMAT.JSON;
-
-		//默认成功回调处理函数
-		static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
-			let next = () => {
-				if(rsp.forward_url){
-					parent.location.href = rsp.forward_url;
-				}else {
-					parent.location.reload();
-				}
-			};
-			rsp.message ? ToastClass.showSuccess(rsp.message, next) : next();
-		};
-
-		static active(node, param = {}){
-			return new Promise((resolve, reject) => {
-				let url, data, method,
-					onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
-				if(node.tagName === 'FORM'){
-					url = node.action;
-					data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
-					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
-				}else if(node.tagName === 'A'){
-					url = node.href;
-					method = 'get';
-				}
-
-				//优先使用参数传参
-				url = param.url || url;
-				method = param.method || method || 'get';
-				data = param.data || data;
-
-				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
-				requestJSON(url, data, method, {requestFormat:ACAsync.REQUEST_FORMAT}).then(rsp => {
-					if(rsp.code === 0){
-						onsuccess(rsp);
-						resolve();
-					}else {
-						ToastClass.showError(rsp.message || '系统错误');
-						console.error('Request Error:', url, data, method, rsp);
-					}
-				}, err => {
-					ToastClass.showError(err);
-					console.error('Request Error:', err);
-				}).finally(()=>{
-					loader && loader.hide();
-				});
-			})
-		}
-	}
-
-	/**
-	 * 确认对话框
-	 * 参数：
-	 * node[data-confirm-title] 标题，缺省为”确认“
-	 * node[data-confirm-message] 内容
-	 */
-	class ACConfirm {
-		static active(node, param = {}){
-			return new Promise((resolve, reject) => {
-				let title = param.title;
-				let message = param.message;
-				DialogClass.confirm(title || '确认', message).then(resolve, reject);
-			});
-		}
-	}
-
-	class ACCopy {
-		static init(node, param){
-
-		}
-	}
-
-	/**
-	 * 对话框组件
-	 * 参数：
-	 * node[data-dialog-url] iframe对话框页面地址
-	 * node[data-content] 对话框内容
-	 * a[title] | node[text] 对话框标题
-	 */
-	class ACDialog {
-		static active(node, param = {}){
-			return new Promise((resolve, reject) => {
-				let title, url, content;
-
-				if(node.tagName === 'A'){
-					url = node.href || url;
-					title = node.title || title;
-				}
-				if(node.innerText){
-					title = cutString(node.innerText, 30);
-				}
-
-				title = param.title || title;
-				url = param.url || url;
-				content = param.content || content;
-				if(url){
-					content = {src: url};
-				}
-				DialogClass.show(title || '对话框', content, param);
-				resolve();
-			})
-		}
-	}
-
-	class ACTip {
-		static init(node, {content}){
-			return new Promise((resolve, reject) => {
-				new Tip(content, node);
-				resolve();
-			});
-		}
-	}
-
-	class ACToast {
-		static active(node, param = {}){
-			return new Promise((resolve, reject) => {
-				let message = param.message || '提示信息';
-				let type = param.type || ToastClass.TYPE_INFO;
-				ToastClass.showToast(message, type, ToastClass.DEFAULT_TIME_MAP[type], resolve);
-			});
-		}
-	}
+	let showImgPreviewFn = CONTEXT_WINDOW[COM_ID$1]['showImgPreview'] || showImgPreview;
+	let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID$1]['showImgListPreview'] || showImgListPreview;
 
 	const resolveSrc = (node) => {
 		let src = node.dataset.src;
@@ -5875,22 +5071,991 @@ var WebCom = (function (exports) {
 		}
 	};
 
+	const DOMAIN_DEFAULT = 'default';
+
+	const trans = (text, domain = DOMAIN_DEFAULT) => {
+		return text;
+	};
+
+	/**
+	  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+	  * to work around bugs in some JS interpreters.
+	  */
+	const safeAdd = (x, y) => {
+		let lsw = (x & 0xffff) + (y & 0xffff);
+		let msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+		return (msw << 16) | (lsw & 0xffff)
+	};
+
+	/**
+	* Bitwise rotate a 32-bit number to the left.
+	*/
+	const bitRotateLeft = (num, cnt) => {
+		return (num << cnt) | (num >>> (32 - cnt))
+	};
+
+	/**
+	* These functions implement the four basic operations the algorithm uses.
+	*/
+	const md5cmn = (q, a, b, x, s, t) => {
+		return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
+	};
+
+	const md5ff = (a, b, c, d, x, s, t) => {
+		return md5cmn((b & c) | (~b & d), a, b, x, s, t)
+	};
+
+	const md5gg = (a, b, c, d, x, s, t) => {
+		return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
+	};
+
+	const md5hh = (a, b, c, d, x, s, t) => {
+		return md5cmn(b ^ c ^ d, a, b, x, s, t)
+	};
+
+	const md5ii = (a, b, c, d, x, s, t) => {
+		return md5cmn(c ^ (b | ~d), a, b, x, s, t)
+	};
+
+	/**
+	* Calculate the MD5 of an array of little-endian words, and a bit length.
+	*/
+	const binlMD5 = (x, len) => {
+		/* append padding */
+		x[len >> 5] |= 0x80 << (len % 32);
+		x[((len + 64) >>> 9 << 4) + 14] = len;
+
+		let i;
+		let olda;
+		let oldb;
+		let oldc;
+		let oldd;
+		let a = 1732584193;
+		let b = -271733879;
+		let c = -1732584194;
+		let d = 271733878;
+
+		for(i = 0; i < x.length; i += 16){
+			olda = a;
+			oldb = b;
+			oldc = c;
+			oldd = d;
+
+			a = md5ff(a, b, c, d, x[i], 7, -680876936);
+			d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
+			c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
+			b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
+			a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
+			d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
+			c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
+			b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
+			a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
+			d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
+			c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
+			b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
+			a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
+			d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
+			c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
+			b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
+
+			a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
+			d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
+			c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
+			b = md5gg(b, c, d, a, x[i], 20, -373897302);
+			a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
+			d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
+			c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
+			b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
+			a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
+			d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
+			c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
+			b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
+			a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
+			d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
+			c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
+			b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
+
+			a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
+			d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
+			c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
+			b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
+			a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
+			d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
+			c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
+			b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
+			a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
+			d = md5hh(d, a, b, c, x[i], 11, -358537222);
+			c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
+			b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
+			a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
+			d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
+			c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
+			b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
+
+			a = md5ii(a, b, c, d, x[i], 6, -198630844);
+			d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
+			c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
+			b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
+			a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
+			d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
+			c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
+			b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
+			a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
+			d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
+			c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
+			b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
+			a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
+			d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
+			c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
+			b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
+
+			a = safeAdd(a, olda);
+			b = safeAdd(b, oldb);
+			c = safeAdd(c, oldc);
+			d = safeAdd(d, oldd);
+		}
+		return [a, b, c, d]
+	};
+
+	/**
+	* Convert an array of little-endian words to a string
+	*/
+	const binl2rstr = (input) => {
+		let i;
+		let output = '';
+		let length32 = input.length * 32;
+		for(i = 0; i < length32; i += 8){
+			output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xff);
+		}
+		return output
+	};
+
+	/**
+	* Convert a raw string to an array of little-endian words
+	* Characters >255 have their high-byte silently ignored.
+	*/
+	const rstr2binl = (input) => {
+		let i;
+		let output = [];
+		output[(input.length >> 2) - 1] = undefined;
+		for(i = 0; i < output.length; i += 1){
+			output[i] = 0;
+		}
+		let length8 = input.length * 8;
+		for(i = 0; i < length8; i += 8){
+			output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << (i % 32);
+		}
+		return output
+	};
+
+	/**
+	* Calculate the MD5 of a raw string
+	*/
+	const rstrMD5 = (s) => {
+		return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
+	};
+
+	/**
+	* Calculate the HMAC-MD5, of a key and some data (raw strings)
+	*/
+	const rstrHMACMD5 = (key, data) => {
+		let i;
+		let bkey = rstr2binl(key);
+		let ipad = [];
+		let opad = [];
+		let hash;
+		ipad[15] = opad[15] = undefined;
+		if(bkey.length > 16){
+			bkey = binlMD5(bkey, key.length * 8);
+		}
+		for(i = 0; i < 16; i += 1){
+			ipad[i] = bkey[i] ^ 0x36363636;
+			opad[i] = bkey[i] ^ 0x5c5c5c5c;
+		}
+		hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
+		return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
+	};
+
+	/**
+	* Convert a raw string to a hex string
+	*/
+	const rstr2hex = (input) => {
+		let hexTab = '0123456789abcdef';
+		let output = '';
+		let x;
+		let i;
+		for(i = 0; i < input.length; i += 1){
+			x = input.charCodeAt(i);
+			output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f);
+		}
+		return output
+	};
+
+	/**
+	* Encode a string as utf-8
+	*/
+	const str2rstrUTF8 = (input) => {
+		return unescape(encodeURIComponent(input))
+	};
+
+	/**
+	* Take string arguments and return either raw or hex encoded strings
+	*/
+	const rawMD5 = (s) => {
+		return rstrMD5(str2rstrUTF8(s))
+	};
+
+	const hexMD5 = (s) => {
+		return rstr2hex(rawMD5(s))
+	};
+
+	const rawHMACMD5 = (k, d) => {
+		return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
+	};
+
+	const hexHMACMD5 = (k, d) => {
+		return rstr2hex(rawHMACMD5(k, d))
+	};
+
+	const MD5 = (string, key, raw) => {
+		if(!key){
+			if(!raw){
+				return hexMD5(string)
+			}
+			return rawMD5(string)
+		}
+		if(!raw){
+			return hexHMACMD5(key, string)
+		}
+		return rawHMACMD5(key, string)
+	};
+
+	let hook_flag = false;
+	const RptEv = new BizEvent();
+	const doHook = () => {
+		let observer = new ReportingObserver((reports) => {
+			onReportApi.fire(reports);
+		}, {
+			types: ['deprecation'],
+			buffered: true
+		});
+		observer.observe();
+	};
+
+	const onReportApi = {
+		listen(payload){
+			!hook_flag && doHook();
+			hook_flag = true;
+			RptEv.listen(payload);
+		},
+		remove(payload){
+			return RptEv.remove(payload);
+		},
+		fire(...args){
+			return RptEv.fire(...args);
+		}
+	};
+
+	let payloads = [];
+	let popstate_bind = false;
+
+	/**
+	 * 压栈状态
+	 * @param {Object} param
+	 * @param {String} title
+	 */
+	const pushState = (param, title = '') => {
+		let url = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(param);
+		window.history.pushState(param, title, url);
+		exePayloads(param);
+	};
+
+	/**
+	 * 监听 window onpopstate 事件
+	 * @param {Function} payload
+	 */
+	const onStateChange = (payload) => {
+		if(!popstate_bind){
+			popstate_bind = true;
+			window.addEventListener('popstate', e=>{
+				let state = e.state ?? {};
+				let hashObj = QueryString.parse(getHash());
+				exePayloads({...state, ...hashObj});
+			});
+		}
+		payloads.push(payload);
+	};
+
+	const exePayloads = (param) => {
+		payloads.forEach(payload => {
+			payload(param);
+		});
+	};
+
+	const ONE_MINUTE = 60000;
+	const ONE_HOUR = 3600000;
+	const ONE_DAY = 86400000;
+	const ONE_WEEK = 604800000;
+	const ONE_MONTH_30 = 2592000000;
+	const ONE_MONTH_31 = 2678400000;
+	const ONE_YEAR_365 = 31536000000;
+
+	function frequencyControl(payload, hz, executeOnFistTime = false){
+		if(payload._frq_tm){
+			clearTimeout(payload._frq_tm);
+		}
+		payload._frq_tm = setTimeout(() => {
+			frequencyControl(payload, hz, executeOnFistTime);
+		}, hz);
+	}
+
+	/**
+	 * 获取指定月份天数
+	 * @param {Number} year
+	 * @param {Number} month 月份，从1开始
+	 * @returns {number}
+	 */
+	const getMonthLastDay = (year, month) => {
+		const date1 = new Date(year, month, 0);
+		return date1.getDate()
+	};
+
+	/**
+	 * 获取指定上一个月份
+	 * @param {Number} year
+	 * @param {Number} month 当前月份，从1开始
+	 * @returns {Array}
+	 */
+	const getLastMonth = (year, month) => {
+		return month === 1 ? [year - 1, 12] : [year, month - 1];
+	};
+
+	/**
+	 * 获取指定下一个月份
+	 * @param {Number} year
+	 * @param {Number} month 当前月份，从1开始
+	 * @returns {Array}
+	 */
+	const getNextMonth = (year, month) => {
+		return month === 12 ? [year + 1, 1] : [year, month + 1];
+	};
+
+	/**
+	 * 格式化时间长度
+	 * @param {Number} micSec 毫秒
+	 * @param {String} delimiter 单位之间的间隔文本
+	 * @return {string}
+	 */
+	const prettyTime = (micSec, delimiter = '') => {
+		let d = 0, h = 0, m = 0, s = 0;
+		if(micSec > ONE_DAY){
+			d = Math.floor(micSec / ONE_DAY);
+			micSec -= d * ONE_DAY;
+		}
+		if(micSec > ONE_HOUR){
+			h = Math.floor(micSec / ONE_HOUR);
+			micSec -= h * ONE_HOUR;
+		}
+		if(micSec > ONE_MINUTE){
+			m = Math.floor(micSec / ONE_MINUTE);
+			micSec -= m * ONE_MINUTE;
+		}
+		if(micSec > 1000){
+			s = Math.floor(micSec / 1000);
+			micSec -= s * 1000;
+		}
+		let txt = '';
+		txt += d ? `${d}天` : '';
+		txt += (txt || h) ? `${delimiter}${h}小` : '';
+		txt += (txt || m) ? `${delimiter}${m}分` : '';
+		txt += (txt || s) ? `${delimiter}${s}秒` : '';
+		return txt.trim();
+	};
+
+	/**
+	 * 指定偏移月数计算
+	 * @param {Number} monthNum
+	 * @param {Date|Null} start_date
+	 * @return {{month: number, year: number}} 返回年、月（以1开始）
+	 */
+	const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
+		let year = start_date.getFullYear();
+		let month = start_date.getMonth()+1;
+		month = month + monthNum;
+		if(month > 12){
+			let yearNum = parseInt((month - 1) / 12);
+			month = month % 12 === 0 ? 12 : month % 12;
+			year += yearNum;
+		}else if(month <= 0){
+			month = Math.abs(month);
+			let yearNum = parseInt((month + 12) / 12);
+			let n = month % 12;
+			if(n === 0){
+				year -= yearNum;
+				month = 12;
+			}else {
+				year -= yearNum;
+				month = Math.abs(12 - n);
+			}
+		}
+		return {year, month}
+	};
+
+	/**
+	 * copy text
+	 * @param {String} text
+	 * @param {Boolean} silent 是否在不兼容是进行提醒
+	 * @returns {boolean} 是否复制成功
+	 */
+	const copy = (text, silent = false) => {
+		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
+		txtNode.style.cssText = 'position:absolute; left:-9999px;';
+		let y = window.pageYOffset || document.documentElement.scrollTop;
+		txtNode.addEventListener('focus', function(){
+			window.scrollTo(0, y);
+		});
+		txtNode.value = text;
+		txtNode.select();
+		try{
+			let succeeded = document.execCommand('copy');
+			!silent && ToastClass.showSuccess(trans('复制成功'));
+			return succeeded;
+		}catch(err){
+			console.error(err);
+			DialogClass.prompt('复制失败，请手工复制', {initValue:text});
+		} finally{
+			txtNode.parentNode.removeChild(txtNode);
+		}
+		return false;
+	};
+
+	/**
+	 * Copy formatted html content
+	 * @param html
+	 * @param silent
+	 */
+	const copyFormatted = (html, silent = false) => {
+		// Create container for the HTML
+		let container = createDomByHtml(`
+		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
+	`, document.body);
+
+		// Detect all style sheets of the page
+		let activeSheets = Array.prototype.slice.call(document.styleSheets)
+			.filter(function(sheet){
+				return !sheet.disabled;
+			});
+
+		// Copy to clipboard
+		window.getSelection().removeAllRanges();
+
+		let range = document.createRange();
+		range.selectNode(container);
+		window.getSelection().addRange(range);
+
+		document.execCommand('copy');
+		for(let i = 0; i < activeSheets.length; i++){
+			activeSheets[i].disabled = true;
+		}
+		document.execCommand('copy');
+		for(let i = 0; i < activeSheets.length; i++){
+			activeSheets[i].disabled = false;
+		}
+		document.body.removeChild(container);
+		!silent && ToastClass.showSuccess(trans('复制成功'));
+	};
+
+	const COM_ID = Theme.Namespace + 'select';
+	const CLASS_PREFIX = COM_ID;
+
+	insertStyleSheet(`
+	.${CLASS_PREFIX}-panel{
+		--sel-panel-max-width:20em;
+		--sel-panel-bd:1px solid #dddddd;
+		--sel-panel-bs:1px 1px 15px #ccccccb3;
+		--sel-panel-br:5px;
+		--sel-panel-bg:#ffffff;
+		--sel-list-max-height:15em;
+		--sel-item-matched-color:orange;
+		--sel-item-matched-font-weight:bold;
+		--sel-item-hover-bg:#eeeeee;
+		--sel-item-selected-bg:#abc9e140;
+		
+		max-width:var(--sel-panel-max-width);
+		background-color:var(--sel-panel-bg);
+		border:var(--sel-panel-bd);
+		padding:3px 0;
+		box-shadow:var(--sel-panel-bs);
+		border-radius:var(--sel-panel-br);
+		position:absolute;
+	}
+	
+	.${CLASS_PREFIX}-panel .${CLASS_PREFIX}-search{
+		padding:0.5em;
+	}
+	
+	.${CLASS_PREFIX}-panel input[type=search]{
+		width:100%;
+		padding:0.5em;
+		border:none;
+		border-bottom:1px solid #dddddd;
+		outline:none;
+		transition:border 0.1s linear;
+	}
+	.${CLASS_PREFIX}-panel input[type=search]:focus{
+		border-color:gray;
+	}
+	
+	.${CLASS_PREFIX}-list{
+		list-style:none;
+		max-height:var(--sel-list-max-height);
+		overflow:hidden;
+	}
+	
+	.${CLASS_PREFIX}-list:hover{
+		overflow:auto;
+	}
+	
+	.${CLASS_PREFIX}-list .sel-item{
+		margin:1px 0;
+	}
+	
+	.${CLASS_PREFIX}-list .sel-chk{
+		opacity:0;
+		width:1em;
+		height:1em;
+		position:absolute;
+		margin:0.05em 0 0 -1.25em;
+	}
+	
+	.${CLASS_PREFIX}-list .sel-chk:before{
+		content:"\\e624";
+		font-family:"WebCom-iconfont", serif;
+	}
+	
+	.${CLASS_PREFIX}-list .matched{
+		color:var(--sel-item-matched-color);
+		font-weight:var(--sel-item-matched-font-weight);
+	}
+	
+	.${CLASS_PREFIX}-list input{
+		display:block;
+		position:absolute;
+		z-index:1;
+		left:-2em;
+		top:0;
+		opacity:0;
+	}
+	
+	.${CLASS_PREFIX}-list .ti-wrap{
+		cursor:pointer;
+		position:relative;
+		display:block;
+		padding:0.5em .5em .5em 2em;
+		user-select:none;
+		transition:all 0.1s linear;
+	}
+	
+	.${CLASS_PREFIX}-list ul .ti-wrap{
+		padding-left:2.25em;
+		display:block;
+	}
+	
+	.${CLASS_PREFIX}-list ul .ti-wrap{
+		padding-left:3.5em;
+	}
+	
+	.${CLASS_PREFIX}-list label{
+		display:block;
+		overflow:hidden;
+		position:relative;
+	}
+	.${CLASS_PREFIX}-list label:hover .ti-wrap{
+		background:var(--sel-item-hover-bg);
+		text-shadow:1px 1px 1px white;
+	}
+	
+	.${CLASS_PREFIX}-list li[data-group-title]:before{
+		content:attr(data-group-title) " -";
+		color:gray;
+		display:block;
+		padding:0.25em .5em .25em 2em;
+	}
+	
+	/** checked **/
+	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap{
+		background-color:var(--sel-item-selected-bg);
+	}
+	
+	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap .sel-chk{
+		opacity:1;
+	}
+	
+	/** disabled **/
+	.${CLASS_PREFIX}-list input:disabled ~ .ti-wrap{
+		opacity:0.5;
+		cursor:default;
+		background-color:transparent
+	}
+	.${CLASS_PREFIX}-list input:disabled ~ .ti-wrap .sel-chk{
+		opacity:.1;
+	}
+`, COM_ID + '-style');
+
+	/**
+	 * @param sel
+	 * @return {{values: String[], options: Option[], selectedIndexes: Number[]}}
+	 */
+	const resolveOptions = (sel) => {
+		let options = [
+			// {title, value, disabled, selected},
+			// {title, options:[{title, value},...], disabled, selected},
+		];
+		let values = [];
+		let selectedIndexes = [];
+		sel.childNodes.forEach(node => {
+			if(node.nodeType !== 1){
+				return;
+			}
+			if(node.tagName === 'OPTION'){
+				options.push(new Option({
+					title: node.innerText,
+					value: node.value,
+					disabled: node.disabled,
+					selected: node.selected,
+					index: node.index,
+				}));
+				if(node.selected){
+					values.push(node.value);
+					selectedIndexes.push(node.index);
+				}
+			}else if(node.tagName === 'OPTGROUP'){
+				let opt_group = new Option({title: node.label});
+				node.childNodes.forEach(child => {
+					if(child.nodeType !== 1){
+						return;
+					}
+					opt_group.options.push(new Option({
+						title: child.innerText,
+						value: child.value,
+						disabled: child.disabled,
+						selected: child.selected,
+						index: child.index,
+					}));
+					if(child.selected){
+						values.push(child.value);
+						selectedIndexes.push(child.index);
+					}
+				});
+				options.push(opt_group);
+			}
+		});
+		return {options, values, selectedIndexes};
+	};
+
+	/**
+	 * 渲染单个 checkbox 或 radio
+	 * @param name
+	 * @param multiple
+	 * @param option
+	 * @return {`
+			<input type="${string}"
+			tabindex="-1"
+			name="${string}"
+			value="${string}"
+			${string}
+			${string}/>
+		`}
+	 */
+	const renderItemChecker = (name, multiple, option) => {
+		return `
+		<input type="${multiple ? 'checkbox' : 'radio'}" 
+		tabindex="-1"
+		name="${name}" 
+		value="${escapeAttr(option.value)}" 
+		${option.selected ? 'checked' : ''} 
+		${option.disabled ? 'disabled' : ''}/>
+	`
+	};
+
+	/**
+	 * 创建面板 DOM
+	 * @param config
+	 * @return {HTMLElement|HTMLElement[]}
+	 */
+	const createPanel = (config) => {
+		let list_html = `<ul class="${CLASS_PREFIX}-list">`;
+		config.options.forEach(option => {
+			if(option.options && option.options.length){
+				list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
+				option.options.forEach(childOption => {
+					list_html += `<li class="sel-item" tabindex="0">
+									<label title="${escapeAttr(childOption.title)}" tabindex="0">
+										${renderItemChecker(config.name, config.multiple, childOption)} 
+										<span class="ti-wrap">
+											<span class="sel-chk"></span> 
+											<span class="ti">${escapeHtml(childOption.title)}</span>
+										</span>
+									</label>
+								</li>`;
+				});
+				list_html += `</ul></li>`;
+			}else {
+				list_html += `<li class="sel-item" tabindex="0">
+							<label title="${escapeAttr(option.title)}">
+								${renderItemChecker(config.name, config.multiple, option)} 
+								<span class="ti-wrap">
+									<span class="sel-chk"></span> 
+									<span class="ti">${escapeHtml(option.title)}</span>
+								</span>
+							</label>
+						</li>`;
+			}
+		});
+		list_html += '</ul>';
+		let html = `
+		<div class="${CLASS_PREFIX}-panel" style="display:none;">
+			<div class="${CLASS_PREFIX}-search">
+				<input type="search" placeholder="过滤..." aria-label="过滤选项">
+			</div>
+			${list_html}
+		</div>
+	`;
+		return createDomByHtml(html, document.body);
+	};
+
+	class Option {
+		constructor(param){
+			for(let i in param){
+				this[i] = param[i];
+			}
+		}
+
+		/** @type {string} */
+		title = '';
+
+		/** @type {string} */
+		value = '';
+
+		/** @type {Boolean} */
+		disabled = false;
+
+		/** @type {Boolean} */
+		selected = false;
+
+		/** @type {Number} */
+		index = 0;
+
+		/** @type {Option[]} */
+		options = [];
+	}
+
+	class Select {
+		config = {
+			name: COM_ID + guid(),
+			required: false,
+			multiple: false,
+			searchable: false, //是否可搜索
+			placeholder: '',
+
+			/** @type {Option[]} options */
+			options: []
+		};
+		panelEl = null;
+		searchEl = null;
+		onChange = new BizEvent();
+
+		constructor(config){
+			this.config = Object.assign(this.config, config);
+			this.panelEl = createPanel(config);
+			this.searchEl = this.panelEl.querySelector('input[type=search]');
+
+			//checkbox change
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach(chk => {
+				chk.addEventListener('change', () => {
+					this.onChange.fire();
+				});
+			});
+
+			//search
+			this.searchEl.addEventListener('input', () => {
+				this.search(this.searchEl.value);
+			});
+
+			//li click, enter
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`).forEach(li => {
+				buttonActiveBind(li, e => {
+					if(e.type !== 'click'){
+						let chk = li.querySelector('input');
+						if(chk.checked){
+							chk.removeAttribute('checked');
+						}else {
+							chk.setAttribute('checked', 'checked');
+						}
+					}
+					!this.config.multiple && this.hidePanel();
+				});
+			});
+		}
+
+		search(kw){
+			this.searchEl.value = kw;
+			let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+			liEls.forEach(li => {
+				hide(li);
+				let title = li.querySelector('label').title;
+				li.querySelector('.ti').innerHTML = highlightText(title, kw);
+				if(!kw || title.indexOf(kw.trim()) >= 0){
+					show(li);
+				}else {
+					console.log(title, kw);
+				}
+			});
+		}
+
+		/**
+		 * 以index方式设置选中项
+		 * @param {Number[]} selectedIndexList
+		 */
+		selectByIndex(selectedIndexList){
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach((chk, idx) => {
+				chk.checked = selectedIndexList.includes(idx);
+			});
+		}
+
+		/**
+		 * 使用传值方式设置选中项目（该方法可能存在多个相同值的情况导致误选）
+		 * @param values
+		 */
+		selectByValues(values){
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach((chk, idx) => {
+				chk.checked = values.includes(chk.value);
+			});
+		}
+
+		/**
+		 * 获取值，这里没有区分多选还是单选，统一返回数组，返回值会去重
+		 * @return {String[]}
+		 */
+		getValues(){
+			let values = [];
+			let tmp = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input:checked`);
+			tmp.forEach(chk => {
+				values.push(chk.value);
+			});
+			values = arrayDistinct(values);
+			return values;
+		}
+
+		/**
+		 * 获取选中项索引值列表
+		 * @return {Number[]}
+		 */
+		getSelectedIndexes(){
+			let selectedIndexes = [];
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach((chk, idx) => {
+				if(chk.checked){
+					selectedIndexes.push(idx);
+				}
+			});
+			return selectedIndexes;
+		}
+
+		hidePanel(){
+			if(this.panelEl){
+				this.panelEl.style.display = 'none';
+				this.search("");
+			}
+		}
+
+		/**
+		 * @param {Object|Null} pos
+		 * @param {Number} pos.top
+		 * @param {Number} pos.left
+		 */
+		showPanel(pos = {top: 0, left: 0}){
+			this.panelEl.style.display = '';
+			if(pos){
+				this.panelEl.style.top = dimension2Style(pos.top);
+				this.panelEl.style.left = dimension2Style(pos.left);
+			}
+			this.searchEl.focus();
+		}
+
+		/**
+		 * @param {HTMLSelectElement} srcSelectEl
+		 */
+		static bindSelect(srcSelectEl){
+			let {options} = resolveOptions(srcSelectEl);
+			let sel = new Select({
+				name: srcSelectEl.name,
+				required: srcSelectEl.required,
+				multiple: srcSelectEl.multiple,
+				placeholder: srcSelectEl.getAttribute('placeholder'),
+				options
+			});
+			sel.onChange.listen(() => {
+				let selectedIndexes = sel.getSelectedIndexes();
+				srcSelectEl.querySelectorAll('option').forEach((opt, idx) => {
+					opt.selected = selectedIndexes.includes(idx);
+				});
+				triggerDomEvent(srcSelectEl, 'change');
+			});
+
+			let sh = () => {
+				sel.showPanel({top: srcSelectEl.offsetTop + srcSelectEl.offsetHeight, left: srcSelectEl.offsetLeft});
+			};
+
+			srcSelectEl.addEventListener('keydown', e => {
+				sh();
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
+			});
+
+			srcSelectEl.addEventListener('mousedown', e => {
+				sel.panelEl.style.display === 'none' ? sh() : sel.hidePanel();
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
+			});
+
+			srcSelectEl.addEventListener('focus', sh);
+			srcSelectEl.addEventListener('change', () => {
+				let selectedIndexes = [];
+				Array.from(srcSelectEl.selectedOptions).forEach(opt => {
+					selectedIndexes.push(opt.index);
+				});
+				sel.selectByIndex(selectedIndexes);
+			});
+
+			document.addEventListener('click', e => {
+				if(!domContained(sel.panelEl, e.target, true) && !domContained(srcSelectEl, e.target, true)){
+					sel.hidePanel();
+				}
+			});
+
+			document.addEventListener('keyup', e => {
+				if(e.keyCode === KEYS.Esc){
+					sel.hidePanel();
+				}
+			});
+		}
+	}
+
 	exports.ACAsync = ACAsync;
 	exports.ACComponent = ACComponent;
 	exports.ACConfirm = ACConfirm;
 	exports.ACCopy = ACCopy;
 	exports.ACDialog = ACDialog;
+	exports.ACPreview = ACPreview;
 	exports.ACTip = ACTip;
+	exports.ACToast = ACToast;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
 	exports.Dialog = DialogClass;
 	exports.DialogManager = DialogManagerClass;
-	exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;
-	exports.FILE_TYPE_DOC = FILE_TYPE_DOC;
-	exports.FILE_TYPE_IMAGE = FILE_TYPE_IMAGE;
-	exports.FILE_TYPE_SHEET = FILE_TYPE_SHEET;
-	exports.FILE_TYPE_VIDEO = FILE_TYPE_VIDEO;
 	exports.HTTP_METHOD = HTTP_METHOD;
 	exports.IMG_PREVIEW_MODE_MULTIPLE = IMG_PREVIEW_MODE_MULTIPLE;
 	exports.IMG_PREVIEW_MODE_SINGLE = IMG_PREVIEW_MODE_SINGLE;
@@ -5898,7 +6063,7 @@ var WebCom = (function (exports) {
 	exports.IMG_PREVIEW_MS_SCROLL_TYPE_NONE = IMG_PREVIEW_MS_SCROLL_TYPE_NONE;
 	exports.IMG_PREVIEW_MS_SCROLL_TYPE_SCALE = IMG_PREVIEW_MS_SCROLL_TYPE_SCALE;
 	exports.KEYS = KEYS;
-	exports.Ladder = Ladder;
+	exports.LocalStorageSetting = LocalStorageSetting;
 	exports.MD5 = MD5;
 	exports.Masker = Masker;
 	exports.Net = Net;
@@ -5913,21 +6078,13 @@ var WebCom = (function (exports) {
 	exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 	exports.REQUEST_FORMAT = REQUEST_FORMAT;
 	exports.RESPONSE_FORMAT = RESPONSE_FORMAT;
+	exports.Select = Select;
 	exports.TRIM_BOTH = TRIM_BOTH;
 	exports.TRIM_LEFT = TRIM_LEFT;
 	exports.TRIM_RIGHT = TRIM_RIGHT;
 	exports.Theme = Theme;
-	exports.Thumb = Thumb;
 	exports.Tip = Tip;
 	exports.Toast = ToastClass;
-	exports.Toc = Toc;
-	exports.UPLOAD_ERROR_FILE_EMPTY = UPLOAD_ERROR_FILE_EMPTY;
-	exports.UPLOAD_ERROR_FILE_SIZE_OVERLOAD = UPLOAD_ERROR_FILE_SIZE_OVERLOAD;
-	exports.UPLOAD_STATE_ERROR = UPLOAD_STATE_ERROR;
-	exports.UPLOAD_STATE_INIT = UPLOAD_STATE_INIT;
-	exports.UPLOAD_STATE_PENDING = UPLOAD_STATE_PENDING;
-	exports.UPLOAD_STATE_SUCCESS = UPLOAD_STATE_SUCCESS;
-	exports.Uploader = Uploader;
 	exports.arrayColumn = arrayColumn;
 	exports.arrayDistinct = arrayDistinct;
 	exports.arrayGroup = arrayGroup;
@@ -5970,6 +6127,9 @@ var WebCom = (function (exports) {
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
 	exports.getAvailableElements = getAvailableElements;
+	exports.getAverageRGB = getAverageRGB;
+	exports.getBase64ByImg = getBase64ByImg;
+	exports.getBase64BySrc = getBase64BySrc;
 	exports.getContextDocument = getContextDocument;
 	exports.getContextWindow = getContextWindow;
 	exports.getCurrentFrameDialog = getCurrentFrameDialog;
@@ -5979,6 +6139,7 @@ var WebCom = (function (exports) {
 	exports.getElementValue = getElementValue;
 	exports.getFormDataAvailable = getFormDataAvailable;
 	exports.getHash = getHash;
+	exports.getHighestResFromSrcSet = getHighestResFromSrcSet;
 	exports.getLastMonth = getLastMonth;
 	exports.getLibEntryScript = getLibEntryScript;
 	exports.getLibModule = getLibModule;
@@ -6004,6 +6165,7 @@ var WebCom = (function (exports) {
 	exports.keepRectCenter = keepRectCenter;
 	exports.keepRectInContainer = keepRectInContainer;
 	exports.loadCss = loadCss;
+	exports.loadImgBySrc = loadImgBySrc;
 	exports.loadScript = loadScript;
 	exports.matchParent = matchParent;
 	exports.mergerUriParam = mergerUriParam;
@@ -6025,8 +6187,8 @@ var WebCom = (function (exports) {
 	exports.resetFormChangedState = resetFormChangedState;
 	exports.resolveFileExtension = resolveFileExtension;
 	exports.resolveFileName = resolveFileName;
-	exports.resolveTocListFromDom = resolveTocListFromDom;
 	exports.round = round;
+	exports.scaleFixCenter = scaleFixCenter$1;
 	exports.serializePhpFormToJSON = serializePhpFormToJSON;
 	exports.setContextWindow = setContextWindow;
 	exports.setHash = setHash;
