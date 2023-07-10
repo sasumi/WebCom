@@ -4960,6 +4960,7 @@
 		border:none;
 		border-bottom:1px solid #dddddd;
 		outline:none;
+		box-shadow:none;
 		transition:border 0.1s linear;
 	}
 	.${CLASS_PREFIX}-panel input[type=search]:focus{
@@ -5247,11 +5248,8 @@
 				buttonActiveBind(li, e => {
 					if(e.type !== 'click'){
 						let chk = li.querySelector('input');
-						if(chk.checked){
-							chk.removeAttribute('checked');
-						}else {
-							chk.setAttribute('checked', 'checked');
-						}
+						chk.checked ? chk.removeAttribute('checked') : chk.setAttribute('checked', 'checked');
+						this.onChange.fire();
 					}
 					!this.config.multiple && this.hidePanel();
 				});
@@ -5265,7 +5263,7 @@
 				hide(li);
 				let title = li.querySelector('label').title;
 				li.querySelector('.ti').innerHTML = highlightText(title, kw);
-				if(!kw || title.indexOf(kw.trim()) >= 0){
+				if(!kw || title.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
 					show(li);
 				}else {
 					console.log(title, kw);
@@ -5363,7 +5361,8 @@
 			});
 
 			let sh = () => {
-				sel.showPanel({top: srcSelectEl.offsetTop + srcSelectEl.offsetHeight, left: srcSelectEl.offsetLeft});
+				let offset = getDomOffset(srcSelectEl);
+				sel.showPanel({top: offset.top + srcSelectEl.offsetHeight, left: offset.left});
 			};
 
 			srcSelectEl.addEventListener('keydown', e => {
