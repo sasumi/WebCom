@@ -6,18 +6,20 @@ import {ACCopy} from "./ACCopy.js";
 import {ACToast} from "./ACToast.js";
 import {objectPushByPath} from "../Lang/Array.js";
 import {ACPreview} from "./ACPreview.js";
+import {ACSelect} from "./ACSelect.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
 let AC_COMPONENT_MAP = {
-	'async': ACAsync,
-	'dialog': ACDialog,
-	'confirm': ACConfirm,
-	'preview': ACPreview,
-	'copy': ACCopy,
-	'tip': ACTip,
-	'toast': ACToast,
+	async: ACAsync,
+	dialog: ACDialog,
+	confirm: ACConfirm,
+	preview: ACPreview,
+	copy: ACCopy,
+	select: ACSelect,
+	tip: ACTip,
+	toast: ACToast,
 };
 
 const parseComponents = function(attr){
