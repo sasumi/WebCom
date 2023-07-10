@@ -4932,7 +4932,7 @@
 		--sel-panel-max-width:20em;
 		--sel-panel-bd:1px solid #dddddd;
 		--sel-panel-bs:1px 1px 15px #ccccccb3;
-		--sel-panel-br:5px;
+		--sel-panel-br:3px;
 		--sel-panel-bg:#ffffff;
 		--sel-list-max-height:15em;
 		--sel-item-matched-color:orange;
@@ -4947,6 +4947,7 @@
 		box-shadow:var(--sel-panel-bs);
 		border-radius:var(--sel-panel-br);
 		position:absolute;
+		z-index:1;
 	}
 	
 	.${CLASS_PREFIX}-panel .${CLASS_PREFIX}-search{
