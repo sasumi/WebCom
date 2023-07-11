@@ -19,10 +19,6 @@ const CLASS_PREFIX = COM_ID;
 insertStyleSheet(`
 	.${CLASS_PREFIX}-panel{
 		--sel-panel-max-width:20em;
-		--sel-panel-bd:1px solid #dddddd;
-		--sel-panel-bs:1px 1px 15px #ccccccb3;
-		--sel-panel-br:3px;
-		--sel-panel-bg:#ffffff;
 		--sel-list-max-height:15em;
 		--sel-item-matched-color:orange;
 		--sel-item-matched-font-weight:bold;
@@ -30,11 +26,11 @@ insertStyleSheet(`
 		--sel-item-selected-bg:#abc9e140;
 		
 		max-width:var(--sel-panel-max-width);
-		background-color:var(--sel-panel-bg);
-		border:var(--sel-panel-bd);
+		background-color:var(${Theme.CssVar.BACKGROUND_COLOR});
+		border:var(${Theme.CssVar.PANEL_BORDER});
 		padding:3px 0;
-		box-shadow:var(--sel-panel-bs);
-		border-radius:var(--sel-panel-br);
+		box-shadow:var(${Theme.CssVar.PANEL_SHADOW});
+		border-radius:var(${Theme.CssVar.PANEL_RADIUS});
 		position:absolute;
 		z-index:1;
 	}

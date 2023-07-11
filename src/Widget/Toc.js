@@ -6,7 +6,7 @@ import {escapeHtml} from "../Lang/String.js";
 let CLS = Theme.Namespace + 'toc';
 
 insertStyleSheet(`
-	.${CLS} {position:fixed; padding:10px; box-shadow:1px 1px 10px #ccc;}
+	.${CLS} {position:fixed; padding:.75em; box-shadow:var(${Theme.CssVar.PANEL_SHADOW});}
 `, Theme.Namespace + 'toc-style');
 
 export const resolveTocListFromDom = (dom = document.body, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {

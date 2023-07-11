@@ -44,7 +44,7 @@ insertStyleSheet(`
 	right:0;
 	bottom:0;
 	background:#33333342;
-	backdrop-filter:blur(5px);
+	backdrop-filter:${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER};
 	z-index:${Masker.zIndex}}
 `, Theme.Namespace + 'masker-style');
 export {Masker};
