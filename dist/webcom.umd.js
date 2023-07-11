@@ -1226,18 +1226,18 @@
 	};
 
 	const NS$1 = 'WebCom-';
-	const VAR_PREFIX = '--'+NS$1;
+	const VAR_PREFIX = '--' + NS$1;
 	const ICON_FONT = NS$1 + 'iconfont';
 
-	const CSS_VAR_COLOR = VAR_PREFIX+'color';
-	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX+'color-lighten';
-	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX+'disable-color';
-	const CSS_VAR_BACKGROUND_COLOR = VAR_PREFIX+'background-color';
-	const CSS_VAR_PANEL_SHADOW = VAR_PREFIX+'panel-shadow';
-	const CSS_VAR_PANEL_BORDER = VAR_PREFIX+'panel-border';
-	const CSS_VAR_PANEL_RADIUS = VAR_PREFIX+'panel-radius';
-	const CSS_VAR_FULL_SCREEN_BACKDROP_FILTER = VAR_PREFIX+'full-screen-backdrop-filter';
-	const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX+'full-screen-background-color';
+	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
+	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
+	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
+	const CSS_VAR_BACKGROUND_COLOR = VAR_PREFIX + 'background-color';
+	const CSS_VAR_PANEL_SHADOW = VAR_PREFIX + 'panel-shadow';
+	const CSS_VAR_PANEL_BORDER = VAR_PREFIX + 'panel-border';
+	const CSS_VAR_PANEL_RADIUS = VAR_PREFIX + 'panel-radius';
+	const CSS_VAR_FULL_SCREEN_BACKDROP_FILTER = VAR_PREFIX + 'full-screen-backdrop-filter';
+	const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX + 'full-screen-background-color';
 
 	const DEFAULT_ICONFONT_CSS = `
 @font-face {
@@ -1254,6 +1254,7 @@
 	${CSS_VAR_PANEL_SHADOW}:1px 1px 5px #bcbcbcb3;
 	${CSS_VAR_PANEL_BORDER}:1px solid #dddddd;
 	${CSS_VAR_PANEL_RADIUS}:3px;
+	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
 }
@@ -1264,15 +1265,15 @@
 	const Theme = {
 		Namespace: NS$1,
 		CssVar: {
-			"COLOR": CSS_VAR_COLOR,
-			"CSS_LIGHTEN": CSS_VAR_COLOR_LIGHTEN,
-			"DISABLE_COLOR": CSS_VAR_DISABLE_COLOR,
-			"BACKGROUND_COLOR": CSS_VAR_BACKGROUND_COLOR,
-			"PANEL_SHADOW": CSS_VAR_PANEL_SHADOW,
-			"PANEL_BORDER": CSS_VAR_PANEL_BORDER,
-			"PANEL_RADIUS": CSS_VAR_PANEL_RADIUS,
-			"FULL_SCREEN_BACKDROP_FILTER": CSS_VAR_FULL_SCREEN_BACKDROP_FILTER,
-			"FULL_SCREEN_BACKGROUND_COLOR": CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR,
+			'COLOR': CSS_VAR_COLOR,
+			'CSS_LIGHTEN': CSS_VAR_COLOR_LIGHTEN,
+			'DISABLE_COLOR': CSS_VAR_DISABLE_COLOR,
+			'BACKGROUND_COLOR': CSS_VAR_BACKGROUND_COLOR,
+			'PANEL_SHADOW': CSS_VAR_PANEL_SHADOW,
+			'PANEL_BORDER': CSS_VAR_PANEL_BORDER,
+			'PANEL_RADIUS': CSS_VAR_PANEL_RADIUS,
+			'FULL_SCREEN_BACKDROP_FILTER': CSS_VAR_FULL_SCREEN_BACKDROP_FILTER,
+			'FULL_SCREEN_BACKGROUND_COLOR': CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR,
 		},
 		IconFont: ICON_FONT,
 		TipIndex: 10, //功能提示类(指向具体元素)
@@ -3389,7 +3390,7 @@
 
 	insertStyleSheet(`
 	.${NS}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
-	.${NS}-content {border:var(${Theme.CssVar.PANEL_BORDER}); border-radius:var(${Theme.CssVar.PANEL_BORDER}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:.5em; box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); max-width:30em; word-break:break-all}
+	.${NS}-content {border:var(${Theme.CssVar.PANEL_BORDER}); border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:.5em .75em; box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); max-width:30em; word-break:break-all}
 	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
 	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
 	.${NS}-close:hover {opacity:1}
@@ -4964,7 +4965,7 @@
 		max-width:var(--sel-panel-max-width);
 		background-color:var(${Theme.CssVar.BACKGROUND_COLOR});
 		border:var(${Theme.CssVar.PANEL_BORDER});
-		padding:3px 0;
+		padding:.2em 0;
 		box-shadow:var(${Theme.CssVar.PANEL_SHADOW});
 		border-radius:var(${Theme.CssVar.PANEL_RADIUS});
 		position:absolute;
@@ -5206,6 +5207,25 @@
 		return createDomByHtml(html, document.body);
 	};
 
+	const tabNav = (liList, dir) => {
+		let currentIndex = -1;
+		liList.forEach((li, idx) => {
+			if(li === document.activeElement){
+				currentIndex = idx;
+			}
+		});
+		if(dir > 0){
+			currentIndex = currentIndex < (liList.length - 1) ? (currentIndex + 1) : 0;
+		}else {
+			currentIndex = currentIndex <= 0 ? (liList.length - 1) : (currentIndex - 1);
+		}
+		liList.forEach((li, idx)=>{
+			if(idx === currentIndex){
+				li.focus();
+			}
+		});
+	};
+
 	class Option {
 		constructor(param){
 			for(let i in param){
@@ -5264,15 +5284,33 @@
 				this.search(this.searchEl.value);
 			});
 
+			//nav
+			this.searchEl.addEventListener('keydown', e=>{
+				if(e.keyCode === KEYS.UpArrow){
+					tabNav(liElList, false);
+				}else if(e.keyCode === KEYS.DownArrow){
+					tabNav(liElList, true);
+				}
+			});
+
 			//li click, enter
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`).forEach(li => {
+			let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+			liElList.forEach(li => {
 				buttonActiveBind(li, e => {
+					console.log(e.type);
 					if(e.type !== 'click'){
 						let chk = li.querySelector('input');
-						chk.checked ? chk.removeAttribute('checked') : chk.setAttribute('checked', 'checked');
+						chk.checked ? chk.removeAttribute('checked') : chk.checked = true;
 						this.onChange.fire();
 					}
 					!this.config.multiple && this.hidePanel();
+				});
+				li.addEventListener('keydown', e => {
+					if(e.keyCode === KEYS.UpArrow){
+						tabNav(liElList, false);
+					}else if(e.keyCode === KEYS.DownArrow){
+						tabNav(liElList, true);
+					}
 				});
 			});
 		}

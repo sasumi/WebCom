@@ -28,7 +28,7 @@ insertStyleSheet(`
 		max-width:var(--sel-panel-max-width);
 		background-color:var(${Theme.CssVar.BACKGROUND_COLOR});
 		border:var(${Theme.CssVar.PANEL_BORDER});
-		padding:3px 0;
+		padding:.2em 0;
 		box-shadow:var(${Theme.CssVar.PANEL_SHADOW});
 		border-radius:var(${Theme.CssVar.PANEL_RADIUS});
 		position:absolute;
@@ -270,6 +270,25 @@ const createPanel = (config) => {
 	return createDomByHtml(html, document.body);
 }
 
+const tabNav = (liList, dir) => {
+	let currentIndex = -1;
+	liList.forEach((li, idx) => {
+		if(li === document.activeElement){
+			currentIndex = idx;
+		}
+	});
+	if(dir > 0){
+		currentIndex = currentIndex < (liList.length - 1) ? (currentIndex + 1) : 0;
+	}else{
+		currentIndex = currentIndex <= 0 ? (liList.length - 1) : (currentIndex - 1);
+	}
+	liList.forEach((li, idx)=>{
+		if(idx === currentIndex){
+			li.focus();
+		}
+	});
+}
+
 class Option {
 	constructor(param){
 		for(let i in param){
@@ -328,15 +347,33 @@ class Select {
 			this.search(this.searchEl.value);
 		});
 
+		//nav
+		this.searchEl.addEventListener('keydown', e=>{
+			if(e.keyCode === KEYS.UpArrow){
+				tabNav(liElList, false);
+			}else if(e.keyCode === KEYS.DownArrow){
+				tabNav(liElList, true);
+			}
+		})
+
 		//li click, enter
-		this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`).forEach(li => {
+		let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+		liElList.forEach(li => {
 			buttonActiveBind(li, e => {
+				console.log(e.type);
 				if(e.type !== 'click'){
 					let chk = li.querySelector('input');
-					chk.checked ? chk.removeAttribute('checked') : chk.setAttribute('checked', 'checked');
+					chk.checked ? chk.removeAttribute('checked') : chk.checked = true;
 					this.onChange.fire();
 				}
 				!this.config.multiple && this.hidePanel();
+			});
+			li.addEventListener('keydown', e => {
+				if(e.keyCode === KEYS.UpArrow){
+					tabNav(liElList, false);
+				}else if(e.keyCode === KEYS.DownArrow){
+					tabNav(liElList, true);
+				}
 			})
 		});
 	}
