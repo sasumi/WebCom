@@ -33,16 +33,22 @@ export const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
 }
 
+/**
+ * 获取节点相对于文档顶部定位
+ * @param target
+ * @return {{top: number, left: number}}
+ */
 export const getDomOffset = (target) => {
-	let top = 0, left = 0
-	while(target.offsetParent){
-		top += target.offsetTop
-		left += target.offsetLeft
-		target = target.offsetParent
-	}
+	let rect = target.getBoundingClientRect();
 	return {
-		top: top,
-		left: left,
+		width: rect.width,
+		height: rect.height,
+		top: rect.top,
+		bottom: rect.bottom,
+		left: rect.left,
+		right: rect.right,
+		x: rect.x,
+		y: rect.y,
 	}
 }
 
@@ -71,9 +77,9 @@ export const isButton = (el) => {
 }
 
 /**
- * closest
+ * 获取最近上级节点
  * @param {HTMLElement} dom
- * @param {String} selector
+ * @param {String} selector 匹配上级节点选择器
  * @return {(() => (HTMLElement | null))|ParentNode|ActiveX.IXMLDOMNode|null}
  */
 export const matchParent = (dom, selector) => {
@@ -148,6 +154,11 @@ export const keepRectCenter = (width, height, containerDimension = {
 	];
 }
 
+/**
+ *
+ * @param target
+ * @param container
+ */
 export const keepDomInContainer = (target, container = document.body) => {
 	let ret = keepRectInContainer({
 		left: target.left,

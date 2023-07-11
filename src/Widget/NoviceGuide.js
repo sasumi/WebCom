@@ -7,8 +7,8 @@ const COM_ID = Theme.Namespace + 'select';
 const CLASS_PREFIX = COM_ID;
 
 insertStyleSheet(`
-	.novice-guide-counter {float:left; color:gray;} 
-	.novice-guide-next-wrap {text-align:right; margin-top:10px;}
+	.${CLASS_PREFIX}-counter {float:left; color:gray;} 
+	.${CLASS_PREFIX}-next-wrap {text-align:right; margin-top:10px;}
 `, COM_ID);
 
 let maskerEl, stopperEl;
@@ -16,7 +16,7 @@ const show_highlight_zone = (highlightNode) => {
 	hide_highlight_zone();
 	if(!maskerEl){
 		maskerEl = createDomByHtml(`
-			<div style="position:absolute; outline:2px solid #ffffff8a; height:40px; width:40px; box-shadow:0px 0px 0px 2000px rgba(0, 0, 0, 0.6); z-index:10000"></div>
+			<div style="position:absolute; outline:2px solid #ffffff8a; height:40px; width:40px; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR}); z-index:10000"></div>
 		`, document.body);
 		stopperEl = createDomByHtml(`
 			<div style="width:100%; height:100%; position:absolute; left:0; top:0; z-index:10000"></div>
@@ -88,23 +88,23 @@ const showNoviceGuide = (steps, config) => {
 			$masker = show_highlight_zone(step.relateNode);
 		}
 
-		let next_html = '<div class="novice-guide-next-wrap">';
+		let next_html = `<div class="${CLASS_PREFIX}-next-wrap">`;
 
 		if((steps.length + 2) <= step_size.length){
-			next_html += '<span class="novice-guide-prev-btn btn btn-weak btn-small">' + config.prev_button_text + '</span> ';
+			next_html += `<span class="${CLASS_PREFIX}-prev-btn btn btn-weak btn-small">${config.prev_button_text}</span> `;
 		}
 		if(steps.length && config.next_button_text){
-			next_html += '<span class="novice-guide-next-btn btn btn-small">' + config.next_button_text + '</span>';
+			next_html += `<span class="${CLASS_PREFIX}-next-btn btn btn-small">${config.next_button_text}</span>`;
 		}
 		if(!steps.length && config.finish_button_text){
-			next_html += '<span class="novice-guide-finish-btn btn btn-small">' + config.finish_button_text + '</span>';
+			next_html += `<span class="${CLASS_PREFIX}-finish-btn btn btn-small">${config.finish_button_text}</span>`;
 		}
 		if(config.show_counter){
-			next_html += '<span class="novice-guide-counter">' + (step_size.length - steps.length) + '/' + step_size.length + '</span>';
+			next_html += `<span class="${CLASS_PREFIX}-counter">${step_size.length - steps.length}/${step_size.length}</span>`;
 		}
-		next_html += '</div>';
+		next_html += `</div>`;
 
-		let tp = new Tip(`<div class="novice-guide-content">${step.content}</div>${next_html}`, showing_cover ? $masker : step.relateNode, {
+		let tp = new Tip(`<div class="${CLASS_PREFIX}-content">${step.content}</div>${next_html}`, showing_cover ? $masker : step.relateNode, {
 			closeBtn: config.top_close,
 			dir: showing_cover ? 6 : 'auto'
 		});
@@ -115,11 +115,11 @@ const showNoviceGuide = (steps, config) => {
 		});
 		tp.onShow.listen(function(){
 			tp.dom.style.zIndex = "10001";
-			tp.dom.querySelector('.novice-guide-next-btn,.novice-guide-finish-btn').addEventListener('click', function(){
+			tp.dom.querySelector(`.${CLASS_PREFIX}-next-btn,.${CLASS_PREFIX}-finish-btn`).addEventListener('click', function(){
 				tp.destroy();
 				show_one();
 			});
-			tp.dom.querySelector('.novice-guide-prev-btn').addEventListener('click', function(){
+			tp.dom.querySelector(`.${CLASS_PREFIX}-prev-btn`).addEventListener('click', function(){
 				tp.destroy();
 				let len = steps.length;
 				steps.unshift(step_size[step_size.length - len - 1]);

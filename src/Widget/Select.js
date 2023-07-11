@@ -1,13 +1,5 @@
 import {Theme} from "./Theme.js";
-import {
-	buttonActiveBind,
-	createDomByHtml,
-	domContained,
-	getDomOffset,
-	hide,
-	insertStyleSheet,
-	show
-} from "../Lang/Dom.js";
+import {buttonActiveBind, createDomByHtml, domContained, getDomOffset, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/String.js";
 import {guid} from "../Lang/Util.js";
 import {BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
@@ -18,14 +10,14 @@ const CLASS_PREFIX = COM_ID;
 
 insertStyleSheet(`
 	.${CLASS_PREFIX}-panel{
-		--sel-panel-max-width:20em;
-		--sel-list-max-height:15em;
-		--sel-item-matched-color:orange;
-		--sel-item-matched-font-weight:bold;
-		--sel-item-hover-bg:#eeeeee;
-		--sel-item-selected-bg:#abc9e140;
+		${Theme.CssVarPrefix}sel-panel-max-width:20em;
+		${Theme.CssVarPrefix}sel-list-max-height:15em;
+		${Theme.CssVarPrefix}sel-item-matched-color:orange;
+		${Theme.CssVarPrefix}sel-item-matched-font-weight:bold;
+		${Theme.CssVarPrefix}sel-item-hover-bg:#eeeeee;
+		${Theme.CssVarPrefix}sel-item-selected-bg:#abc9e140;
 		
-		max-width:var(--sel-panel-max-width);
+		max-width:var(${Theme.CssVarPrefix}sel-panel-max-width);
 		background-color:var(${Theme.CssVar.BACKGROUND_COLOR});
 		border:var(${Theme.CssVar.PANEL_BORDER});
 		padding:.2em 0;
@@ -54,11 +46,7 @@ insertStyleSheet(`
 	
 	.${CLASS_PREFIX}-list{
 		list-style:none;
-		max-height:var(--sel-list-max-height);
-		overflow:hidden;
-	}
-	
-	.${CLASS_PREFIX}-list:hover{
+		max-height:var(${Theme.CssVarPrefix}sel-list-max-height);
 		overflow:auto;
 	}
 	
@@ -80,8 +68,8 @@ insertStyleSheet(`
 	}
 	
 	.${CLASS_PREFIX}-list .matched{
-		color:var(--sel-item-matched-color);
-		font-weight:var(--sel-item-matched-font-weight);
+		color:var(${Theme.CssVarPrefix}sel-item-matched-color);
+		font-weight:var(${Theme.CssVarPrefix}sel-item-matched-font-weight);
 	}
 	
 	.${CLASS_PREFIX}-list input{
@@ -97,7 +85,7 @@ insertStyleSheet(`
 		cursor:pointer;
 		position:relative;
 		display:block;
-		padding:0.5em .5em .5em 2em;
+		padding:.35em .5em .35em 2em;
 		user-select:none;
 		transition:all 0.1s linear;
 	}
@@ -117,7 +105,7 @@ insertStyleSheet(`
 		position:relative;
 	}
 	.${CLASS_PREFIX}-list label:hover .ti-wrap{
-		background:var(--sel-item-hover-bg);
+		background:var(${Theme.CssVarPrefix}sel-item-hover-bg);
 		text-shadow:1px 1px 1px white;
 	}
 	
@@ -130,7 +118,7 @@ insertStyleSheet(`
 	
 	/** checked **/
 	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap{
-		background-color:var(--sel-item-selected-bg);
+		background-color:var(${Theme.CssVarPrefix}sel-item-selected-bg);
 	}
 	
 	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap .sel-chk{
@@ -204,18 +192,10 @@ const resolveOptions = (sel) => {
  * @param name
  * @param multiple
  * @param option
- * @return {`
-		<input type="${string}"
-		tabindex="-1"
-		name="${string}"
-		value="${string}"
-		${string}
-		${string}/>
-	`}
+ * @return {String} input html
  */
 const renderItemChecker = (name, multiple, option) => {
-	return `
-		<input type="${multiple ? 'checkbox' : 'radio'}" 
+	return `<input type="${multiple ? 'checkbox' : 'radio'}" 
 		tabindex="-1"
 		name="${name}" 
 		value="${escapeAttr(option.value)}" 

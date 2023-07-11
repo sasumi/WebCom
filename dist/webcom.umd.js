@@ -728,6 +728,11 @@
 		toShow ? show(dom) : hide(dom);
 	};
 
+	/**
+	 * 获取节点相对于文档顶部定位
+	 * @param target
+	 * @return {{top: number, left: number}}
+	 */
 	const getDomOffset = (target) => {
 		let top = 0, left = 0;
 		while(target.offsetParent){
@@ -766,9 +771,9 @@
 	};
 
 	/**
-	 * closest
+	 * 获取最近上级节点
 	 * @param {HTMLElement} dom
-	 * @param {String} selector
+	 * @param {String} selector 匹配上级节点选择器
 	 * @return {(() => (HTMLElement | null))|ParentNode|ActiveX.IXMLDOMNode|null}
 	 */
 	const matchParent = (dom, selector) => {
@@ -842,6 +847,11 @@
 		];
 	};
 
+	/**
+	 *
+	 * @param target
+	 * @param container
+	 */
 	const keepDomInContainer = (target, container = document.body) => {
 		keepRectInContainer({
 			left: target.left,
@@ -1264,6 +1274,7 @@
 
 	const Theme = {
 		Namespace: NS$1,
+		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
 			'CSS_LIGHTEN': CSS_VAR_COLOR_LIGHTEN,
@@ -2621,8 +2632,8 @@
 	top:0;left:0;
 	right:0;
 	bottom:0;
-	background:#33333342;
-	backdrop-filter:${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER};
+	background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
+	backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
 	z-index:${Masker.zIndex}}
 `, Theme.Namespace + 'masker-style');
 
@@ -2654,7 +2665,7 @@
 	const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 	insertStyleSheet(`
-	.${DLG_CLS_PREF} {display:block; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.DialogIndex};position:fixed;}
+	.${DLG_CLS_PREF} {display:block; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.DialogIndex};position:absolute;}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
@@ -4277,7 +4288,7 @@
 	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
 	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;--opt-btn-size:1.5rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
-	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--opt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
+	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--o pt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
 	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
 	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
 	
@@ -4955,14 +4966,14 @@
 
 	insertStyleSheet(`
 	.${CLASS_PREFIX}-panel{
-		--sel-panel-max-width:20em;
-		--sel-list-max-height:15em;
-		--sel-item-matched-color:orange;
-		--sel-item-matched-font-weight:bold;
-		--sel-item-hover-bg:#eeeeee;
-		--sel-item-selected-bg:#abc9e140;
+		${Theme.CssVarPrefix}sel-panel-max-width:20em;
+		${Theme.CssVarPrefix}sel-list-max-height:15em;
+		${Theme.CssVarPrefix}sel-item-matched-color:orange;
+		${Theme.CssVarPrefix}sel-item-matched-font-weight:bold;
+		${Theme.CssVarPrefix}sel-item-hover-bg:#eeeeee;
+		${Theme.CssVarPrefix}sel-item-selected-bg:#abc9e140;
 		
-		max-width:var(--sel-panel-max-width);
+		max-width:var(${Theme.CssVarPrefix}sel-panel-max-width);
 		background-color:var(${Theme.CssVar.BACKGROUND_COLOR});
 		border:var(${Theme.CssVar.PANEL_BORDER});
 		padding:.2em 0;
@@ -4991,10 +5002,15 @@
 	
 	.${CLASS_PREFIX}-list{
 		list-style:none;
-		max-height:var(--sel-list-max-height);
-		overflow:hidden;
+		max-height:var(${Theme.CssVarPrefix}sel-list-max-height);
+		overflow:auto;
 	}
-	
+	.${CLASS_PREFIX}-list::-webkit-scrollbar-thumb {
+		background-color:green;
+	}
+	.${CLASS_PREFIX}-list:hover::-webkit-scrollbar-thumb {
+		opacity:1;
+	}
 	.${CLASS_PREFIX}-list:hover{
 		overflow:auto;
 	}
@@ -5017,8 +5033,8 @@
 	}
 	
 	.${CLASS_PREFIX}-list .matched{
-		color:var(--sel-item-matched-color);
-		font-weight:var(--sel-item-matched-font-weight);
+		color:var(${Theme.CssVarPrefix}sel-item-matched-color);
+		font-weight:var(${Theme.CssVarPrefix}sel-item-matched-font-weight);
 	}
 	
 	.${CLASS_PREFIX}-list input{
@@ -5034,7 +5050,7 @@
 		cursor:pointer;
 		position:relative;
 		display:block;
-		padding:0.5em .5em .5em 2em;
+		padding:.35em .5em .35em 2em;
 		user-select:none;
 		transition:all 0.1s linear;
 	}
@@ -5054,7 +5070,7 @@
 		position:relative;
 	}
 	.${CLASS_PREFIX}-list label:hover .ti-wrap{
-		background:var(--sel-item-hover-bg);
+		background:var(${Theme.CssVarPrefix}sel-item-hover-bg);
 		text-shadow:1px 1px 1px white;
 	}
 	
@@ -5067,7 +5083,7 @@
 	
 	/** checked **/
 	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap{
-		background-color:var(--sel-item-selected-bg);
+		background-color:var(${Theme.CssVarPrefix}sel-item-selected-bg);
 	}
 	
 	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap .sel-chk{
@@ -5141,18 +5157,10 @@
 	 * @param name
 	 * @param multiple
 	 * @param option
-	 * @return {`
-			<input type="${string}"
-			tabindex="-1"
-			name="${string}"
-			value="${string}"
-			${string}
-			${string}/>
-		`}
+	 * @return {String} input html
 	 */
 	const renderItemChecker = (name, multiple, option) => {
-		return `
-		<input type="${multiple ? 'checkbox' : 'radio'}" 
+		return `<input type="${multiple ? 'checkbox' : 'radio'}" 
 		tabindex="-1"
 		name="${name}" 
 		value="${escapeAttr(option.value)}" 

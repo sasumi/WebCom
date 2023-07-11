@@ -34,7 +34,7 @@ const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
 const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 insertStyleSheet(`
-	.${DLG_CLS_PREF} {display:block; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.DialogIndex};position:fixed;}
+	.${DLG_CLS_PREF} {display:block; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.DialogIndex};position:absolute;}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}

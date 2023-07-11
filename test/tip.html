@@ -9,10 +9,36 @@
 <body>
     <script src="test.js"></script>
 
-    <a href="" id="tip">asdfasdf</a>
+    <p>
+        这里是有一句话，话里面包含了一个 <a href="" id="tip">小小的提示</a> ,提示会根据内容的位置动态计算。
+    </p>
+
+
+    <p style="text-align:right">
+        右边包含了一个 <a href="" id="tip3">小小的提示</a>
+    </p>
+
+    <p style="position:fixed; bottom:0;">
+        这里是页面底部的提示，。。<a href="" id="tip2">提示2</a> 。。。。
+    </p>
+
     <script type="module">
         import {Tip} from "../src/index.js";
-        Tip.bindNode('asfasf', document.getElementById('tip'));
+
+        let ctn = `
+            <strong>提示的标题</strong>
+            <p>
+                提示的内容：包含所有对提示的注解。
+</p>
+        `;
+
+        Tip.bindNode(ctn, document.getElementById('tip'));
+        Tip.bindNode(ctn, document.getElementById('tip2'));
+        Tip.bindNode(ctn, document.getElementById('tip3'));
+
+
+        Tip.show(ctn, document.getElementById('tip'));
+
     </script>
 </body>
 </html>

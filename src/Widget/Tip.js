@@ -10,64 +10,51 @@ let NS = Theme.Namespace + 'tip';
 let TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 insertStyleSheet(`
-	.${NS}-container-wrap {position:absolute; z-index:${Theme.TipIndex};}
-	.${NS}-content {border:var(${Theme.CssVar.PANEL_BORDER}); border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:.5em .75em; box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); max-width:30em; word-break:break-all}
-	.${NS}-arrow {display:block; width:0; height:0; border:7px solid transparent; position:absolute; z-index:1}
+	.${NS}-container-wrap {position:absolute; --tip-arrow-size:10px; z-index:${Theme.TipIndex};}
+	.${NS}-arrow {display:block; border:var(${Theme.CssVar.PANEL_BORDER}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
 	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
 	.${NS}-close:hover {opacity:1}
+	.${NS}-content {border:var(${Theme.CssVar.PANEL_BORDER}); border-radius:var(${Theme.CssVar.PANEL_RADIUS}); color:var(${Theme.CssVar.COLOR}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); padding:.5em .75em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	${NS}-container-wrap[data-tip-dir-0], .${NS}-container-wrap[data-tip-dir="1"], .${NS}-container-wrap[data-tip-dir="11"] {padding-top:7px;}
+	.${NS}-container-wrap[data-tip-dir="11"],
+	.${NS}-container-wrap[data-tip-dir="0"],
+	.${NS}-container-wrap[data-tip-dir="1"] {padding-top:calc(var(--tip-arrow-size) / 2)}
 	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:-5px; margin-left:-7px; border-bottom-color:white}
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow-pt {top:-6px; border-bottom-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {top:0; transform:rotate(135deg)}
 	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow {left:25%;}
 	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow {left:50%;}
 	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow {left:75%;}
 	
 	/** right **/
-	.${NS}-container-wrap[data-tip-dir="8"], .${NS}-container-wrap[data-tip-dir="9"], .${NS}-container-wrap[data-tip-dir="10"] {padding-left:7px;}
 	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close {top:3px;}
 	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; border-right-color:white}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow-pt {left:-7px; border-right-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {left:-6px; margin-top:-7px; transform:rotate(-45deg)}
 	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow {top:75%}
 	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow {top:50%}
 	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow {top:25%}
 	
 	/** bottom **/
-	.${NS}-container-wrap[data-tip-dir="5"], .${NS}-container-wrap[data-tip-dir="6"], .${NS}-container-wrap[data-tip-dir="7"] {padding-bottom:7px;}
 	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close {top:3px;}
 	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; border-top-color:white}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow-pt {bottom:-7px; border-top-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:50%; bottom:-6px; margin-left:-7px; transform:rotate(-45deg)}
 	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow {left:30px}
 	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow {left:75%}
 	
 	/** left **/
-	.${NS}-container-wrap[data-tip-dir="2"], .${NS}-container-wrap[data-tip-dir="3"], .${NS}-container-wrap[data-tip-dir="4"] {padding-right:7px;}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close {right:13px; top:3px;}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; border-left-color:white}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow-pt,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow-pt {right:-7px; border-left-color:#dcdcdc;}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {right:-6px; margin-top:-7px; transform:rotate(-45deg)}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow {top:25%}
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow {top:50%}
 	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow {top:75%}
@@ -98,10 +85,10 @@ let calDir = function(){
 	let body = document.body;
 	let width = this.dom.offsetWidth;
 	let height = this.dom.offsetHeight;
-	let px = this.relNode.offsetLeft;
-	let py = this.relNode.offsetTop;
-	let rh = this.relNode.offsetHeight;
-	let rw = this.relNode.offsetWidth;
+	let px = this.relateNode.offsetLeft;
+	let py = this.relateNode.offsetTop;
+	let rh = this.relateNode.offsetHeight;
+	let rw = this.relateNode.offsetWidth;
 
 	let scroll_left = body.scrollLeft;
 	let scroll_top = body.scrollTop;
@@ -161,57 +148,52 @@ let getDirOffset = function(dir, width, height, rh, rw){
  */
 const updatePosition = function(){
 	let direction = this.option.direction;
-	let width = this.dom.offsetWidth;
-	let height = this.dom.offsetHeight;
-	let pos = getDomOffset(this.relNode);
-	let px = pos.left;
-	let py = pos.top;
-	let rh = this.relNode.offsetHeight;
-	let rw = this.relNode.offsetWidth;
+	let tipWidth = this.dom.offsetWidth;
+	let tipHeight = this.dom.offsetHeight;
+	let relateNodePos = getDomOffset(this.relateNode);
+	let rh = this.relateNode.offsetHeight;
+	let rw = this.relateNode.offsetWidth;
 	if(direction === 'auto'){
 		direction = calDir.call(this);
 	}
+
 	this.dom.setAttribute('data-tip-dir',direction);
-	let offset = getDirOffset(direction, width, height, rh, rw);
-	this.dom.style.left = dimension2Style(px + offset[0]);
-	this.dom.style.top = dimension2Style(py + offset[1]);
+	let offset = getDirOffset(direction, tipWidth, tipHeight, rh, rw);
+	this.dom.style.left = dimension2Style(relateNodePos.left + offset[0]);
+	this.dom.style.top = dimension2Style(relateNodePos.top + offset[1]);
 };
 
 export class Tip {
-	guid = null;
-	relNode = null;
+	id = null;
+	relateNode = null;
 
 	/** @var {HTMLElement} dom **/
 	dom = null;
 	option = {
-		showCloseButton: false,
+		showCloseButton: true,
 		width: 'auto',
 		direction: 'auto',
 	};
-
-	_hideTm = null;
 
 	onShow = new BizEvent(true);
 	onHide = new BizEvent(true);
 	onDestroy = new BizEvent(true);
 
-	constructor(content, relNode, opt = {}){
-		this.guid = guid();
-		this.relNode = relNode;
-		this.option = {...this.option, ...opt};
+	constructor(content, relateNode, opt = {}){
+		this.id = guid();
+		this.relateNode = relateNode;
+		this.option = Object.assign(this.option, opt);
 
-		let close_button_html = this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ``;
 		this.dom = createDomByHtml(
 			`<div class="${NS}-container-wrap" style="display:none;">
-				<s class="${NS}-arrow ${NS}-arrow-pt"></s>
-				<s class="${NS}-arrow ${NS}-arrow-bg"></s>
-				${close_button_html}
+				<s class="${NS}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ''}
 				<div class="${NS}-content">${content}</div>
 			</div>`, document.body);
 
 		this.dom.style.width = dimension2Style(this.option.width);
 		bindEvent.call(this);
-		TIP_COLLECTION[this.guid] = this;
+		TIP_COLLECTION[this.id] = this;
 	}
 
 	/**
@@ -233,7 +215,6 @@ export class Tip {
 	}
 
 	hide(){
-		console.log('hide call');
 		hide(this.dom);
 		this.onHide.fire(this);
 	}
@@ -251,12 +232,12 @@ export class Tip {
 	/**
 	 * 快速显示Tip
 	 * @param {String} content
-	 * @param {HTMLElement} relNode
+	 * @param {HTMLElement} relateNode
 	 * @param option
 	 * @returns {Tip}
 	 */
-	static show(content, relNode, option = {}){
-		let tip = new Tip(content, relNode, option);
+	static show(content, relateNode, option = {}){
+		let tip = new Tip(content, relateNode, option);
 		tip.show();
 		return tip;
 	}
@@ -273,17 +254,17 @@ export class Tip {
 	/**
 	 * 绑定节点
 	 * @param {String} content
-	 * @param {HTMLElement} relNode
+	 * @param {HTMLElement} relateNode
 	 * @param {Object} option
 	 * @return {Tip}
 	 */
-	static bindNode(content, relNode, option = {}){
-		let guid = relNode.getAttribute(GUID_BIND_KEY);
+	static bindNode(content, relateNode, option = {}){
+		let guid = relateNode.getAttribute(GUID_BIND_KEY);
 		let tipObj = TIP_COLLECTION[guid];
 		if(!tipObj){
-			tipObj = new Tip(content, relNode, option);
-			relNode.setAttribute(GUID_BIND_KEY, tipObj.guid);
-			relNode.addEventListener('mouseover', ()=>{
+			tipObj = new Tip(content, relateNode, option);
+			relateNode.setAttribute(GUID_BIND_KEY, tipObj.id);
+			relateNode.addEventListener('mouseover', ()=>{
 				tipObj.show();
 			});
 			let tm = null;
@@ -297,7 +278,7 @@ export class Tip {
 				tm && clearTimeout(tm);
 				tipObj.show();
 			}
-			relNode.addEventListener('mouseout', hide);
+			relateNode.addEventListener('mouseout', hide);
 			tipObj.dom.addEventListener('mouseout', hide);
 			tipObj.dom.addEventListener('mouseover', show);
 		}
@@ -306,16 +287,16 @@ export class Tip {
 
 	/**
 	 * 通过异步获取数据方式绑定显示Tip
-	 * @param {HTMLElement} relNode
+	 * @param {HTMLElement} relateNode
 	 * @param {Function} dataFetcher 返回 Promise 对象
 	 * @param {Object} option
 	 */
-	static bindAsync(relNode, dataFetcher, option = {}){
-		let guid = relNode.getAttribute(`data-${GUID_BIND_KEY}`);
+	static bindAsync(relateNode, dataFetcher, option = {}){
+		let guid = relateNode.getAttribute(`data-${GUID_BIND_KEY}`);
 		let obj = TIP_COLLECTION[guid];
 		if(!obj){
 			let loading = false;
-			obj = Tip.bindNode('loading...', relNode, option);
+			obj = Tip.bindNode('loading...', relateNode, option);
 			obj.onShow.listen(() => {
 				if(loading){
 					return;
