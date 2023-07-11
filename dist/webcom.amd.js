@@ -1,6 +1,7 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	function _interopNamespaceDefault(e) {
+	function _interopNamespace(e) {
+		if (e && e.__esModule) return e;
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -13,7 +14,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 		}
-		n.default = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -1913,7 +1914,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 */
 	const getLibModule = async () => {
 		let script = getLibEntryScript();
-		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(script);
+		return await (function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(script);
 	};
 
 	/**
@@ -5198,6 +5199,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return createDomByHtml(html, document.body);
 	};
 
+	const tabNav = (liList, dir) => {
+		let currentIndex = -1;
+		liList.forEach((li, idx) => {
+			if(li === document.activeElement){
+				currentIndex = idx;
+			}
+		});
+		if(dir > 0){
+			currentIndex = currentIndex < (liList.length - 1) ? (currentIndex + 1) : 0;
+		}else {
+			currentIndex = currentIndex <= 0 ? (liList.length - 1) : (currentIndex - 1);
+		}
+		liList.forEach((li, idx)=>{
+			if(idx === currentIndex){
+				li.focus();
+			}
+		});
+	};
+
 	class Option {
 		constructor(param){
 			for(let i in param){
@@ -5256,15 +5276,35 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				this.search(this.searchEl.value);
 			});
 
+			this.searchEl.addEventListener('keydown', e=>{
+				if(e.keyCode === KEYS.UpArrow){
+					tabNav(liElList, false);
+				}else if(e.keyCode === KEYS.DownArrow){
+					tabNav(liElList, true);
+				}
+			});
+
 			//li click, enter
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`).forEach(li => {
+			let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+			liElList.forEach(li => {
 				buttonActiveBind(li, e => {
+					console.log(e.type);
 					if(e.type !== 'click'){
+						if(top.debug){
+							debugger;
+						}
 						let chk = li.querySelector('input');
 						chk.checked ? chk.removeAttribute('checked') : chk.setAttribute('checked', 'checked');
 						this.onChange.fire();
 					}
 					!this.config.multiple && this.hidePanel();
+				});
+				li.addEventListener('keydown', e => {
+					if(e.keyCode === KEYS.UpArrow){
+						tabNav(liElList, false);
+					}else if(e.keyCode === KEYS.DownArrow){
+						tabNav(liElList, true);
+					}
 				});
 			});
 		}
@@ -6238,5 +6278,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

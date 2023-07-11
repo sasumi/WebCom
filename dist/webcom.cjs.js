@@ -1,5 +1,25 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopNamespace(e) {
+	if (e && e.__esModule) return e;
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			if (k !== 'default') {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	}
+	n["default"] = e;
+	return Object.freeze(n);
+}
+
 /**
  * 检测指定值是否在指定区间内
  * @param {Number} val
@@ -1896,7 +1916,7 @@ const getLibEntryScript = () => {
  */
 const getLibModule = async () => {
 	let script = getLibEntryScript();
-	return await import(script);
+	return await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(script);
 };
 
 /**
@@ -5181,6 +5201,25 @@ const createPanel = (config) => {
 	return createDomByHtml(html, document.body);
 };
 
+const tabNav = (liList, dir) => {
+	let currentIndex = -1;
+	liList.forEach((li, idx) => {
+		if(li === document.activeElement){
+			currentIndex = idx;
+		}
+	});
+	if(dir > 0){
+		currentIndex = currentIndex < (liList.length - 1) ? (currentIndex + 1) : 0;
+	}else {
+		currentIndex = currentIndex <= 0 ? (liList.length - 1) : (currentIndex - 1);
+	}
+	liList.forEach((li, idx)=>{
+		if(idx === currentIndex){
+			li.focus();
+		}
+	});
+};
+
 class Option {
 	constructor(param){
 		for(let i in param){
@@ -5239,15 +5278,35 @@ class Select {
 			this.search(this.searchEl.value);
 		});
 
+		this.searchEl.addEventListener('keydown', e=>{
+			if(e.keyCode === KEYS.UpArrow){
+				tabNav(liElList, false);
+			}else if(e.keyCode === KEYS.DownArrow){
+				tabNav(liElList, true);
+			}
+		});
+
 		//li click, enter
-		this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`).forEach(li => {
+		let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+		liElList.forEach(li => {
 			buttonActiveBind(li, e => {
+				console.log(e.type);
 				if(e.type !== 'click'){
+					if(top.debug){
+						debugger;
+					}
 					let chk = li.querySelector('input');
 					chk.checked ? chk.removeAttribute('checked') : chk.setAttribute('checked', 'checked');
 					this.onChange.fire();
 				}
 				!this.config.multiple && this.hidePanel();
+			});
+			li.addEventListener('keydown', e => {
+				if(e.keyCode === KEYS.UpArrow){
+					tabNav(liElList, false);
+				}else if(e.keyCode === KEYS.DownArrow){
+					tabNav(liElList, true);
+				}
 			});
 		});
 	}
