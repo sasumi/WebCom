@@ -28,5 +28,8 @@
 	"bugs": {
 		"url": "https://github.com/sasumi/WebCom/issues"
 	},
-	"homepage": "https://github.com/sasumi/WebCom#readme"
+	"homepage": "https://github.com/sasumi/WebCom#readme",
+	"dependencies": {
+		"rollup": "^3.26.2"
+	}
 }

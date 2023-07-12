@@ -5,9 +5,6 @@ const NS = 'WebCom';
 
 export default {
 	input: "./src/index.js",
-	plugins:[
-		cleanupPlugin(),
-	],
 	output: [
 		{
 			format: "umd",

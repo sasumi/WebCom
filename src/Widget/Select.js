@@ -21,6 +21,7 @@ insertStyleSheet(`
 		background-color:var(${Theme.CssVar.BACKGROUND_COLOR});
 		border:var(${Theme.CssVar.PANEL_BORDER});
 		padding:.2em 0;
+		box-sizing:border-box;
 		box-shadow:var(${Theme.CssVar.PANEL_SHADOW});
 		border-radius:var(${Theme.CssVar.PANEL_RADIUS});
 		position:absolute;
@@ -358,6 +359,10 @@ class Select {
 		});
 	}
 
+	isShown(){
+		return this.panelEl.style.display !== 'none';
+	}
+
 	search(kw){
 		this.searchEl.value = kw;
 		let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
@@ -461,6 +466,7 @@ class Select {
 			});
 			triggerDomEvent(srcSelectEl, 'change');
 		});
+		sel.panelEl.style.minWidth = dimension2Style(srcSelectEl.offsetWidth);
 
 		let sh = () => {
 			let offset = getDomOffset(srcSelectEl);
@@ -475,7 +481,7 @@ class Select {
 		});
 
 		srcSelectEl.addEventListener('mousedown', e => {
-			sel.panelEl.style.display === 'none' ? sh() : sel.hidePanel();
+			sel.isShown() ? sel.hidePanel() : sh();
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
