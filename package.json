@@ -13,13 +13,14 @@
 	"devDependencies": {
 		"base64-image-loader": "^1.2.0",
 		"css-content-loader": "^1.0.0",
+		"rollup-plugin-cleanup": "^3.2.1",
+		"rollup-plugin-gzip": "^3.1.0",
 		"webpack": "^2.2.0-rc.3",
 		"webpack-cli": "^4.9.2"
 	},
 	"directories": {
 		"test": "test"
 	},
-	"dependencies": {},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/sasumi/WebCom.git"

@@ -1,7 +1,13 @@
+import cleanupPlugin from "rollup-plugin-cleanup";
+import gzipPlugin from "rollup-plugin-gzip";
+
 const NS = 'WebCom';
 
 export default {
 	input: "./src/index.js",
+	plugins:[
+		cleanupPlugin(),
+	],
 	output: [
 		{
 			format: "umd",
