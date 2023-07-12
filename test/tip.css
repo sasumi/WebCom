@@ -1,0 +1,60 @@
+@charset "UTF-8";
+
+.WebCom-tip-container-wrap{position:absolute; --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2);z-index:10;color: var(--WebCom-color);}
+.WebCom-tip-arrow{display:block; border:var(--WebCom-panel-border); background-color:var(--WebCom-background-color); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+.WebCom-tip-close{display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+.WebCom-tip-close:hover{opacity:1}
+.WebCom-tip-content{border:var(--WebCom-panel-border);border-radius:var(--WebCom-panel-radius);background-color:var(--WebCom-background-color);box-shadow:var(--WebCom-panel-shadow);padding:.5em .75em;max-width:30em;word-break:break-all}
+
+/** top **/
+.WebCom-tip-container-wrap[data-tip-dir="11"],
+.WebCom-tip-container-wrap[data-tip-dir="0"],
+.WebCom-tip-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+.WebCom-tip-container-wrap[data-tip-dir="11"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="0"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="1"] .WebCom-tip-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+.WebCom-tip-container-wrap[data-tip-dir="11"] .WebCom-tip-arrow{left:calc(25% - var(--tip-gap));}
+.WebCom-tip-container-wrap[data-tip-dir="0"] .WebCom-tip-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+.WebCom-tip-container-wrap[data-tip-dir="1"] .WebCom-tip-arrow{left:calc(75% - var(--tip-gap));}
+
+/** left **/
+.WebCom-tip-container-wrap[data-tip-dir="8"],
+.WebCom-tip-container-wrap[data-tip-dir="9"],
+.WebCom-tip-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+.WebCom-tip-container-wrap[data-tip-dir="8"] .WebCom-tip-close,
+.WebCom-tip-container-wrap[data-tip-dir="9"] .WebCom-tip-close,
+.WebCom-tip-container-wrap[data-tip-dir="10"] .WebCom-tip-close{top:3px;}
+.WebCom-tip-container-wrap[data-tip-dir="8"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="9"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="10"] .WebCom-tip-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+.WebCom-tip-container-wrap[data-tip-dir="8"] .WebCom-tip-arrow{top:calc(75% - var(--tip-gap));}
+.WebCom-tip-container-wrap[data-tip-dir="9"] .WebCom-tip-arrow{top:calc(50% - var(--tip-gap));}
+.WebCom-tip-container-wrap[data-tip-dir="10"] .WebCom-tip-arrow{top:calc(25% - var(--tip-gap));}
+
+/** bottom **/
+.WebCom-tip-container-wrap[data-tip-dir="5"],
+.WebCom-tip-container-wrap[data-tip-dir="6"],
+.WebCom-tip-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+.WebCom-tip-container-wrap[data-tip-dir="5"] .WebCom-tip-close,
+.WebCom-tip-container-wrap[data-tip-dir="6"] .WebCom-tip-close,
+.WebCom-tip-container-wrap[data-tip-dir="7"] .WebCom-tip-close{top:3px;}
+.WebCom-tip-container-wrap[data-tip-dir="5"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="6"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="7"] .WebCom-tip-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+.WebCom-tip-container-wrap[data-tip-dir="5"] .WebCom-tip-arrow{right: calc(25% - var(--tip-gap));}
+.WebCom-tip-container-wrap[data-tip-dir="6"] .WebCom-tip-arrow{right: calc(50% - var(--tip-gap));}
+.WebCom-tip-container-wrap[data-tip-dir="7"] .WebCom-tip-arrow{right: calc(75% - var(--tip-gap));}
+
+/** right **/
+.WebCom-tip-container-wrap[data-tip-dir="2"],
+.WebCom-tip-container-wrap[data-tip-dir="3"],
+.WebCom-tip-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+.WebCom-tip-container-wrap[data-tip-dir="2"] .WebCom-tip-close,
+.WebCom-tip-container-wrap[data-tip-dir="3"] .WebCom-tip-close,
+.WebCom-tip-container-wrap[data-tip-dir="4"] .WebCom-tip-close{right:13px;top:3px;/* color: var(--WebCom-color); */}
+.WebCom-tip-container-wrap[data-tip-dir="2"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="3"] .WebCom-tip-arrow,
+.WebCom-tip-container-wrap[data-tip-dir="4"] .WebCom-tip-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+.WebCom-tip-container-wrap[data-tip-dir="2"] .WebCom-tip-arrow{top:calc(25% - var(--tip-gap))}
+.WebCom-tip-container-wrap[data-tip-dir="3"] .WebCom-tip-arrow{top:calc(50% - var(--tip-gap));}
+.WebCom-tip-container-wrap[data-tip-dir="4"] .WebCom-tip-arrow{top:calc(75% - var(--tip-gap))}
