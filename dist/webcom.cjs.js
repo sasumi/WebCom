@@ -1260,7 +1260,7 @@ const DEFAULT_ICONFONT_CSS = `
 	${CSS_VAR_DISABLE_COLOR}:#aaa;
 	${CSS_VAR_BACKGROUND_COLOR}:#fff;
 	${CSS_VAR_PANEL_SHADOW}:1px 1px 5px #bcbcbcb3;
-	${CSS_VAR_PANEL_BORDER_COLOR}:#dddddd;
+	${CSS_VAR_PANEL_BORDER_COLOR}:#ccc;
 	${CSS_VAR_PANEL_BORDER}:1px solid var(${CSS_VAR_PANEL_BORDER_COLOR});
 	${CSS_VAR_PANEL_RADIUS}:3px;
 	
@@ -3674,6 +3674,7 @@ class Tip {
 				tm && clearTimeout(tm);
 				tipObj.show();
 			};
+			console.log('option.triggerType', option.triggerType);
 			switch(option.triggerType){
 				case 'hover':
 					relateNode.addEventListener('mouseover', show);
@@ -3683,8 +3684,10 @@ class Tip {
 					break;
 
 				case 'click':
-					let isShow = tipObj.dom.style.display !== 'none';
-					relateNode.addEventListener('click', isShow ? show : hide);
+					relateNode.addEventListener('click', ()=>{
+						let isShow = tipObj.dom.style.display !== 'none';
+						!isShow ? show() : hide();
+					});
 					document.addEventListener('click', e=>{
 						if(!domContained(relateNode, e.target, true) && !domContained(tipObj.dom, e.target, true)){
 							hide();
@@ -3727,10 +3730,25 @@ class Tip {
 	};
 }
 
+/**
+ * 提示信息
+ * 参数：
+ * node[data-tip-content] | node[title] 提示内容，必填
+ * node[data-tip-triggertype] 提示方式，缺省为 hover 触发
+ */
 class ACTip {
-	static init(node, {content}){
+	static init(node, option){
+		let {content, triggertype = 'hover'} = option;
 		return new Promise((resolve, reject) => {
-			new Tip(content, node);
+			if(!content && node.title){
+				content = node.title;
+				node.title = '';
+			}
+			if(!content){
+				reject('content required');
+				return;
+			}
+			Tip.bindNode(content, node, {triggerType:triggertype});
 			resolve();
 		});
 	}

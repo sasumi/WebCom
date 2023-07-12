@@ -293,6 +293,7 @@ export class Tip {
 				tm && clearTimeout(tm);
 				tipObj.show();
 			}
+			console.log('option.triggerType', option.triggerType);
 			switch(option.triggerType){
 				case 'hover':
 					relateNode.addEventListener('mouseover', show);
@@ -302,8 +303,10 @@ export class Tip {
 					break;
 
 				case 'click':
-					let isShow = tipObj.dom.style.display !== 'none';
-					relateNode.addEventListener('click', isShow ? show : hide);
+					relateNode.addEventListener('click', ()=>{
+						let isShow = tipObj.dom.style.display !== 'none';
+						!isShow ? show() : hide();
+					});
 					document.addEventListener('click', e=>{
 						if(!domContained(relateNode, e.target, true) && !domContained(tipObj.dom, e.target, true)){
 							hide();

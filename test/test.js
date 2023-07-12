@@ -1,5 +1,6 @@
 const nav = {
 	'index.html': 'Index',
+	'ac.html': 'AC',
 	'dialog.html': 'Dialog',
 	'imgpreview.html' : 'Image Preview',
 	'toast.html' : 'Toast',
