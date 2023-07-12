@@ -1237,6 +1237,7 @@ var WebCom = (function (exports) {
 	const VAR_PREFIX = '--' + NS$1;
 	const ICON_FONT = NS$1 + 'iconfont';
 
+	//css 样式变量名定义
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1248,7 +1249,7 @@ var WebCom = (function (exports) {
 	const CSS_VAR_FULL_SCREEN_BACKDROP_FILTER = VAR_PREFIX + 'full-screen-backdrop-filter';
 	const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX + 'full-screen-background-color';
 
-	const DEFAULT_ICONFONT_CSS = `
+	insertStyleSheet(`
 @font-face {
 	font-family: '${ICON_FONT}';  /* Project id 3359671 */
   	src: url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff2?t=1688055274391') format('woff2'),
@@ -1260,6 +1261,7 @@ var WebCom = (function (exports) {
 	${CSS_VAR_COLOR_LIGHTEN}:#666;
 	${CSS_VAR_DISABLE_COLOR}:#aaa;
 	${CSS_VAR_BACKGROUND_COLOR}:#fff;
+	
 	${CSS_VAR_PANEL_SHADOW}:1px 1px 5px #bcbcbcb3;
 	${CSS_VAR_PANEL_BORDER_COLOR}:#ccc;
 	${CSS_VAR_PANEL_BORDER}:1px solid var(${CSS_VAR_PANEL_BORDER_COLOR});
@@ -1267,10 +1269,7 @@ var WebCom = (function (exports) {
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}
-`;
-
-	insertStyleSheet(DEFAULT_ICONFONT_CSS);
+}`, NS$1+'style');
 
 	const Theme = {
 		Namespace: NS$1,
