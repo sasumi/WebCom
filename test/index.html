@@ -7,24 +7,13 @@
     <title>Test Index</title>
 </head>
 <body>
-    <script src="test.js"></script>
-    <input type="button" value="loadDialog" id="loadDialogBtn">
-    <script type="module">
-        import {getLibEntryScript, getLibModuleTop} from "../src/index.js";
-
-        getLibModuleTop().then(({getCurrentScript}) => {
-            console.log(getCurrentScript);
-        })
-        console.log(getLibEntryScript());
-        const func = async ()=>{
-            let a = 'Dialog';
-            let {Dialog} = await import(`../src/Widget/${a}.js`);
-            console.log('dialog', Dialog);
-        }
-        document.getElementById('loadDialogBtn').addEventListener('click', e=>{
-            let a = func();
-            console.log('xx', a);
-        })
-    </script>
+    <script src="assets/nav.js"></script>
+    <style type="text/css">
+        body {padding:0;}
+        .nav li a {color:white;display: block;width: 100%;height: 100%;}
+        .nav {display: flex;padding: 0;margin: 0;border: none;height: 100vh;width: 100vw;flex-wrap: wrap;align-content: center;justify-content: center;align-items: center;gap: 1em;}
+        .nav li {flex:1;float:none;max-width: 10em;min-width: 10em;font-size: 1.25em;text-align: center;height: 4em;line-height: 4em;background: #519aff;color: white;}
+        .nav li:after {display:none;}
+    </style>
 </body>
 </html>
