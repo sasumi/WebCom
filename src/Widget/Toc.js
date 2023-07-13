@@ -1,7 +1,7 @@
 import {guid} from "../Lang/Util.js";
 import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
-import {escapeHtml} from "../Lang/String.js";
+import {escapeHtml} from "../Lang/Html.js";
 
 let CLS = Theme.Namespace + 'toc';
 

@@ -11,7 +11,7 @@ import {
 import {guid} from "../Lang/Util.js";
 import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
-import {dimension2Style} from "../Lang/String.js";
+import {dimension2Style} from "../Lang/Html.js";
 
 const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
 const NS = Theme.Namespace + 'tip';

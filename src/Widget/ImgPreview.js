@@ -1,7 +1,6 @@
 import {createDomByHtml, getContextWindow, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
-import {dimension2Style} from "../Lang/String.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
 import {Masker} from "./Masker.js";
 import {downloadFile} from "../Lang/Net.js";
@@ -10,6 +9,7 @@ import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
 import {bindTargetContextMenu} from "./Menu.js";
+import {dimension2Style} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'com-image-viewer'
 const CONTEXT_WINDOW = getContextWindow();

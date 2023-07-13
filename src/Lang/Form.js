@@ -1,8 +1,8 @@
-import {cssSelectorEscape, escapeAttr} from "./String.js";
 import {isButton} from "./Dom.js";
 import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
 import {isEquals, objectPushByPath} from "./Array.js";
+import {escapeAttr} from "./Html.js";
 
 /**
  * 检测元素是否可以输入（包含checkbox、radio类）

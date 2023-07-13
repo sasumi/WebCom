@@ -2,7 +2,7 @@ import {Theme} from "./Theme.js";
 import {createDomByHtml, domContained, getDomDimension, insertStyleSheet, keepRectInContainer} from "../Lang/Dom.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
 import {arrayIndex} from "../Lang/Array.js";
-import {dimension2Style} from "../Lang/String.js";
+import {dimension2Style} from "../Lang/Html.js";
 
 let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
 let CTX_Z_INDEX = Theme.ContextIndex;

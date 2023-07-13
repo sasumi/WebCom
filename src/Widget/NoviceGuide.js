@@ -1,7 +1,7 @@
 import {Theme} from "./Theme.js";
 import {createDomByHtml, getDomOffset, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {Tip} from "./Tip.js";
-import {dimension2Style} from "../Lang/String.js";
+import {dimension2Style} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'novice-guide';
 const CLASS_PREFIX = COM_ID;

@@ -1,4 +1,4 @@
-import {convertBlobToBase64} from "./String.js";
+import {convertBlobToBase64} from "./Base64.js";
 
 /**
  * 通过 src 加载图片

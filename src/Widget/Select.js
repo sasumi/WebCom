@@ -1,9 +1,9 @@
 import {Theme} from "./Theme.js";
 import {buttonActiveBind, createDomByHtml, domContained, getDomOffset, hide, insertStyleSheet, show} from "../Lang/Dom.js";
-import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/String.js";
 import {guid} from "../Lang/Util.js";
 import {BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
+import {dimension2Style, escapeAttr, escapeHtml} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'select';
 const CLASS_PREFIX = COM_ID;

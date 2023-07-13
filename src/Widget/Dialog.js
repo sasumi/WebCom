@@ -1,9 +1,16 @@
-import {dimension2Style, escapeAttr} from "../Lang/String.js";
-import {buttonActiveBind, createDomByHtml, domContained, getContextWindow, insertStyleSheet, keepRectCenter} from "../Lang/Dom.js";
+import {
+	buttonActiveBind,
+	createDomByHtml,
+	domContained,
+	getContextWindow,
+	insertStyleSheet,
+	keepRectCenter
+} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
+import {dimension2Style, escapeAttr} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'dialog';
 const DLG_CLS_PREF = COM_ID;
@@ -141,7 +148,7 @@ const setZIndex = (dlg, zIndex) => {
 	dlg.zIndex = dlg.dom.style.zIndex = String(zIndex);
 }
 
-const setType = (dlg, type)=>{
+const setType = (dlg, type) => {
 	dlg.dom.setAttribute('data-dialog-type', type);
 }
 
@@ -166,12 +173,18 @@ const DialogManager = {
 		let modalDialogs = getModalDialogs(dlg);
 		let noModalDialogs = getNoModalDialogs(dlg);
 		if(dlg.config.modal){
-			noModalDialogs.forEach(d => {setState(d, STATE_DISABLED);});
-			modalDialogs.forEach(d => {setState(d, STATE_DISABLED);});
+			noModalDialogs.forEach(d => {
+				setState(d, STATE_DISABLED);
+			});
+			modalDialogs.forEach(d => {
+				setState(d, STATE_DISABLED);
+			});
 			setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + modalDialogs.length);
 			setState(dlg, STATE_ACTIVE);
 		}else{
-			modalDialogs.forEach((d, idx) => {setZIndex(d, dlg.zIndex + idx + 1);});
+			modalDialogs.forEach((d, idx) => {
+				setZIndex(d, dlg.zIndex + idx + 1);
+			});
 			setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length);
 			setState(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
 		}
@@ -331,8 +344,8 @@ const domConstruct = (dlg) => {
 	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
 		let obs;
-		try {
-			let upd = ()=>{
+		try{
+			let upd = () => {
 				let bdy = iframe.contentWindow.document.body;
 				if(bdy){
 					let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
@@ -340,13 +353,17 @@ const domConstruct = (dlg) => {
 					updatePosition(dlg);
 				}
 			}
-			iframe.addEventListener('load', ()=>{
+			iframe.addEventListener('load', () => {
 				obs = new MutationObserver(upd);
 				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
 				upd();
 			});
-		} catch(err){
-			try {obs &&　obs.disconnect();} catch(err){console.error('observer disconnect fail', err)}
+		}catch(err){
+			try{
+				obs && obs.disconnect();
+			}catch(err){
+				console.error('observer disconnect fail', err)
+			}
 			console.warn('iframe content upd', err);
 		}
 	}
@@ -542,7 +559,7 @@ class Dialog {
 		if(CUSTOM_EVENT_BUCKS[this.id] === undefined){
 			CUSTOM_EVENT_BUCKS[this.id] = {};
 		}
-		if(CUSTOM_EVENT_BUCKS[this.id][event]  === undefined){
+		if(CUSTOM_EVENT_BUCKS[this.id][event] === undefined){
 			CUSTOM_EVENT_BUCKS[this.id][event] = new BizEvent();
 		}
 		CUSTOM_EVENT_BUCKS[this.id][event].listen(callback);
@@ -622,7 +639,12 @@ class Dialog {
 			let p = new Dialog({
 				title,
 				content,
-				buttons: [{title: '确定', default: true, callback: () => {p.close();resolve();}},],
+				buttons: [{
+					title: '确定', default: true, callback: () => {
+						p.close();
+						resolve();
+					}
+				},],
 				showTopCloseButton: false,
 				...opt
 			});
@@ -638,7 +660,7 @@ class Dialog {
 	 * @param {String} option.initValue
 	 * @returns {Promise<unknown>}
 	 */
-	static prompt(title, option = {initValue:""}){
+	static prompt(title, option = {initValue: ""}){
 		return new Promise((resolve, reject) => {
 			let input_id = guid(Theme.Namespace + '-prompt-input');
 			let input = null;
@@ -682,7 +704,7 @@ class Dialog {
  * 获取当前页面（iframe）所在的对话框
  * @returns {Promise}
  */
-export const getCurrentFrameDialog = ()=>{
+export const getCurrentFrameDialog = () => {
 	return new Promise((resolve, reject) => {
 		if(!window.parent || !window.frameElement){
 			reject('no in iframe');
@@ -699,8 +721,8 @@ export const getCurrentFrameDialog = ()=>{
 		let dlg = parent[COM_ID].DialogManager.findById(id);
 		if(dlg){
 			resolve(dlg);
-		} else {
-			reject('no dlg find:'+id);
+		}else{
+			reject('no dlg find:' + id);
 		}
 	});
 }

@@ -1,6 +1,7 @@
 import {between} from "./Math.js";
 import {KEYS} from "./Event.js";
-import {dimension2Style, strToPascalCase} from "./String.js";
+import {strToPascalCase} from "./String.js";
+import {dimension2Style} from "./Html.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;

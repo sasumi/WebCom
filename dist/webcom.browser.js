@@ -222,66 +222,6 @@ var WebCom = (function (exports) {
 	};
 
 	/**
-	 * 转义HTML
-	 * @param {string} str
-	 * @returns {string}
-	 */
-	const escapeHtml = str => {
-		return String(str)
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#039;")
-			.replace(/[\r\n]/g, '<br/>');
-	};
-
-	/**
-	 * 反转义HTML
-	 * @param {String} html
-	 * @returns {string}
-	 */
-	const unescapeHtml = (html)=>{
-		return String(html)
-			.replace(/&quot;/g, '"')
-			.replace(/&#39;/g, "'")
-			.replace(/&lt;/g, '<')
-			.replace(/&gt;/g, '>')
-			.replace(/&amp;/g, '&')
-			.replace(/<br.*>/, "\n");
-	};
-
-	/**
-	 * 转义HTML到属性值
-	 * @param {String} s
-	 * @param preserveCR
-	 * @returns {string}
-	 */
-	const escapeAttr = (s, preserveCR = '') => {
-		preserveCR = preserveCR ? '&#13;' : '\n';
-		return ('' + s) /* Forces the conversion to string. */
-			.replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */
-			.replace(/'/g, '&apos;') /* The 4 other predefined entities, required. */
-			.replace(/"/g, '&quot;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			/*
-			You may add other replacements here for HTML only
-			(but it's not necessary).
-			Or for XML, only if the named entities are defined in its DTD.
-			*/
-			.replace(/\r\n/g, preserveCR) /* Must be before the next replacement. */
-			.replace(/[\r\n]/g, preserveCR);
-	};
-
-	const stringToEntity = (str, radix) => {
-		let arr = str.split('');
-		radix = radix || 0;
-		return arr.map(item =>
-			`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('')
-	};
-
-	/**
 	 * 混合ES6模板字符串
 	 * @example extract("hello ${user_name}", {user_name:"Jack"});
 	 * @param {String} es_template 模板
@@ -314,32 +254,6 @@ var WebCom = (function (exports) {
 			num /= mod;
 		}
 		return str + round(num, precision) + units[i];
-	};
-
-	/**
-	 * HTML实例转字符串
-	 * @param {string} entity
-	 * @returns {string}
-	 */
-	const entityToString = (entity) => {
-		let entities = entity.split(';');
-		entities.pop();
-		return entities.map(item => String.fromCharCode(
-			item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('')
-	};
-
-	let _helper_div;
-	const decodeHTMLEntities = (str) => {
-		if(!_helper_div){
-			_helper_div = document.createElement('div');
-		}
-		// strip script/html tags
-		str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
-		str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
-		_helper_div.innerHTML = str;
-		str = _helper_div.textContent;
-		_helper_div.textContent = '';
-		return str;
 	};
 
 	/**
@@ -376,15 +290,9 @@ var WebCom = (function (exports) {
 	};
 
 	/**
-	 * CSS 选择器转义
-	 * @param {String} str
-	 * @returns {String}
+	 * @param e
+	 * @return {string}
 	 */
-	const cssSelectorEscape = (str)=>{
-		return (window.CSS && CSS.escape) ? CSS.escape(str) : str.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&");
-	};
-
-	const BASE64_KEY_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 	const utf8Decode = (e) => {
 		let t = "";
 		let n = 0;
@@ -428,67 +336,6 @@ var WebCom = (function (exports) {
 		}
 		return t;
 	};
-
-	const base64UrlSafeEncode = (text) => {
-		return utf8Encode(text)
-			.replace('+', '-')
-			.replace('/', '_');
-	};
-
-	const Base64Encode = (text) => {
-		let t = "";
-		let n, r, i, s, o, u, a;
-		let f = 0;
-		text = utf8Encode(text);
-		while(f < text.length){
-			n = text.charCodeAt(f++);
-			r = text.charCodeAt(f++);
-			i = text.charCodeAt(f++);
-			s = n >> 2;
-			o = (n & 3) << 4 | r >> 4;
-			u = (r & 15) << 2 | i >> 6;
-			a = i & 63;
-			if(isNaN(r)){
-				u = a = 64;
-			}else if(isNaN(i)){
-				a = 64;
-			}
-			t = t + BASE64_KEY_STR.charAt(s) + BASE64_KEY_STR.charAt(o) + BASE64_KEY_STR.charAt(u) + BASE64_KEY_STR.charAt(a);
-		}
-		return t
-	};
-
-	/**
-	 * base64 解码
-	 * @param {*} text
-	 * @returns
-	 */
-	const base64Decode = (text) => {
-		let t = "";
-		let n, r, i;
-		let s, o, u, a;
-		let f = 0;
-		text = text.replace(/\+\+[++^A-Za-z0-9+/=]/g, "");
-		while(f < text.length){
-			s = BASE64_KEY_STR.indexOf(text.charAt(f++));
-			o = BASE64_KEY_STR.indexOf(text.charAt(f++));
-			u = BASE64_KEY_STR.indexOf(text.charAt(f++));
-			a = BASE64_KEY_STR.indexOf(text.charAt(f++));
-			n = s << 2 | o >> 4;
-			r = (o & 15) << 4 | u >> 2;
-			i = (u & 3) << 6 | a;
-			t = t + String.fromCharCode(n);
-			if(u !== 64){
-				t = t + String.fromCharCode(r);
-			}
-			if(a !== 64){
-				t = t + String.fromCharCode(i);
-			}
-		}
-		t = utf8Decode(t);
-		return t
-	};
-
 
 	/**
 	 * 获取u8字符串长度(一个中文字按照3个字数计算)
@@ -553,18 +400,6 @@ var WebCom = (function (exports) {
 	};
 
 	/**
-	 * 数值转为CSS可用样式
-	 * @param {Number|String} h
-	 * @returns {string}
-	 */
-	const dimension2Style = h => {
-		if(isNum(h)){
-			return h + 'px';
-		}
-		return h+'';
-	};
-
-	/**
 	 * 检测是否为数值
 	 * @param val
 	 * @return {boolean}
@@ -585,43 +420,6 @@ var WebCom = (function (exports) {
 			return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());
 		}
 	};
-
-	/**
-	 * 高亮文本
-	 * @param {String} text 文本
-	 * @param {String} kw 关键字
-	 * @param {String} replaceTpl 替换模板
-	 * @returns {void|string|*}
-	 */
-	const highlightText = (text, kw, replaceTpl = '<span class="matched">%s</span>') => {
-		if(!kw){
-			return text;
-		}
-		return text.replace(new RegExp(regQuote(kw), 'ig'), match => {
-			return replaceTpl.replace('%s', match);
-		});
-	};
-
-	/**
-	 * 转换blob数据到base64
-	 * @param {Blob} blob
-	 * @returns {Promise<unknown>}
-	 */
-	const convertBlobToBase64 = async (blob)=>{
-		return await blobToBase64(blob);
-	};
-
-	/**
-	 * 转换blob数据到Base64
-	 * @param {Blob} blob
-	 * @returns {Promise<unknown>}
-	 */
-	const blobToBase64 = blob => new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.readAsDataURL(blob);
-		reader.onload = () => resolve(reader.result);
-		reader.onerror = error => reject(error);
-	});
 
 	/**
 	 * 块元素
@@ -692,6 +490,130 @@ var WebCom = (function (exports) {
 		html = html.trim();
 
 		return html;
+	};
+
+	/**
+	 * 数值转为CSS可用样式
+	 * @param {Number|String} h
+	 * @returns {string}
+	 */
+	const dimension2Style = h => {
+		if(isNum(h)){
+			return h + 'px';
+		}
+		return h+'';
+	};
+
+	/**
+	 * CSS 选择器转义
+	 * @param {String} str
+	 * @returns {String}
+	 */
+	const cssSelectorEscape = (str)=>{
+		return (window.CSS && CSS.escape) ? CSS.escape(str) : str.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&");
+	};
+
+	/**
+	 * HTML实例转字符串
+	 * @param {string} entity
+	 * @returns {string}
+	 */
+	const entityToString = (entity) => {
+		let entities = entity.split(';');
+		entities.pop();
+		return entities.map(item => String.fromCharCode(
+			item[2] === 'x' ? parseInt(item.slice(3), 16) : parseInt(item.slice(2)))).join('')
+	};
+
+	let _helper_div;
+	const decodeHTMLEntities = (str) => {
+		if(!_helper_div){
+			_helper_div = document.createElement('div');
+		}
+		// strip script/html tags
+		str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+		str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+		_helper_div.innerHTML = str;
+		str = _helper_div.textContent;
+		_helper_div.textContent = '';
+		return str;
+	};
+
+
+	/**
+	 * 转义HTML
+	 * @param {string} str
+	 * @returns {string}
+	 */
+	const escapeHtml = str => {
+		return String(str)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;")
+			.replace(/[\r\n]/g, '<br/>');
+	};
+
+	/**
+	 * 反转义HTML
+	 * @param {String} html
+	 * @returns {string}
+	 */
+	const unescapeHtml = (html)=>{
+		return String(html)
+			.replace(/&quot;/g, '"')
+			.replace(/&#39;/g, "'")
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/&amp;/g, '&')
+			.replace(/<br.*>/, "\n");
+	};
+
+	/**
+	 * 转义HTML到属性值
+	 * @param {String} s
+	 * @param preserveCR
+	 * @returns {string}
+	 */
+	const escapeAttr = (s, preserveCR = '') => {
+		preserveCR = preserveCR ? '&#13;' : '\n';
+		return ('' + s) /* Forces the conversion to string. */
+			.replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */
+			.replace(/'/g, '&apos;') /* The 4 other predefined entities, required. */
+			.replace(/"/g, '&quot;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			/*
+			You may add other replacements here for HTML only
+			(but it's not necessary).
+			Or for XML, only if the named entities are defined in its DTD.
+			*/
+			.replace(/\r\n/g, preserveCR) /* Must be before the next replacement. */
+			.replace(/[\r\n]/g, preserveCR);
+	};
+
+	const stringToEntity = (str, radix) => {
+		let arr = str.split('');
+		radix = radix || 0;
+		return arr.map(item =>
+			`&#${(radix ? 'x' + item.charCodeAt(0).toString(16) : item.charCodeAt(0))};`).join('')
+	};
+
+	/**
+	 * 高亮文本
+	 * @param {String} text 文本
+	 * @param {String} kw 关键字
+	 * @param {String} replaceTpl 替换模板
+	 * @returns {void|string|*}
+	 */
+	const highlightText$1 = (text, kw, replaceTpl = '<span class="matched">%s</span>') => {
+		if(!kw){
+			return text;
+		}
+		return text.replace(new RegExp(regQuote(kw), 'ig'), match => {
+			return replaceTpl.replace('%s', match);
+		});
 	};
 
 	const getViewWidth = () => {
@@ -2772,7 +2694,7 @@ var WebCom = (function (exports) {
 		dlg.zIndex = dlg.dom.style.zIndex = String(zIndex);
 	};
 
-	const setType = (dlg, type)=>{
+	const setType = (dlg, type) => {
 		dlg.dom.setAttribute('data-dialog-type', type);
 	};
 
@@ -2797,12 +2719,18 @@ var WebCom = (function (exports) {
 			let modalDialogs = getModalDialogs(dlg);
 			let noModalDialogs = getNoModalDialogs(dlg);
 			if(dlg.config.modal){
-				noModalDialogs.forEach(d => {setState(d, STATE_DISABLED);});
-				modalDialogs.forEach(d => {setState(d, STATE_DISABLED);});
+				noModalDialogs.forEach(d => {
+					setState(d, STATE_DISABLED);
+				});
+				modalDialogs.forEach(d => {
+					setState(d, STATE_DISABLED);
+				});
 				setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + modalDialogs.length);
 				setState(dlg, STATE_ACTIVE);
 			}else {
-				modalDialogs.forEach((d, idx) => {setZIndex(d, dlg.zIndex + idx + 1);});
+				modalDialogs.forEach((d, idx) => {
+					setZIndex(d, dlg.zIndex + idx + 1);
+				});
 				setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length);
 				setState(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
 			}
@@ -2962,8 +2890,8 @@ var WebCom = (function (exports) {
 		if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 			let iframe = dlg.dom.querySelector('iframe');
 			let obs;
-			try {
-				let upd = ()=>{
+			try{
+				let upd = () => {
 					let bdy = iframe.contentWindow.document.body;
 					if(bdy){
 						let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
@@ -2971,13 +2899,17 @@ var WebCom = (function (exports) {
 						updatePosition$1(dlg);
 					}
 				};
-				iframe.addEventListener('load', ()=>{
+				iframe.addEventListener('load', () => {
 					obs = new MutationObserver(upd);
 					obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
 					upd();
 				});
-			} catch(err){
-				try {obs &&　obs.disconnect();} catch(err){console.error('observer disconnect fail', err);}
+			}catch(err){
+				try{
+					obs && obs.disconnect();
+				}catch(err){
+					console.error('observer disconnect fail', err);
+				}
 				console.warn('iframe content upd', err);
 			}
 		}
@@ -3173,7 +3105,7 @@ var WebCom = (function (exports) {
 			if(CUSTOM_EVENT_BUCKS[this.id] === undefined){
 				CUSTOM_EVENT_BUCKS[this.id] = {};
 			}
-			if(CUSTOM_EVENT_BUCKS[this.id][event]  === undefined){
+			if(CUSTOM_EVENT_BUCKS[this.id][event] === undefined){
 				CUSTOM_EVENT_BUCKS[this.id][event] = new BizEvent();
 			}
 			CUSTOM_EVENT_BUCKS[this.id][event].listen(callback);
@@ -3253,7 +3185,12 @@ var WebCom = (function (exports) {
 				let p = new Dialog({
 					title,
 					content,
-					buttons: [{title: '确定', default: true, callback: () => {p.close();resolve();}},],
+					buttons: [{
+						title: '确定', default: true, callback: () => {
+							p.close();
+							resolve();
+						}
+					},],
 					showTopCloseButton: false,
 					...opt
 				});
@@ -3269,7 +3206,7 @@ var WebCom = (function (exports) {
 		 * @param {String} option.initValue
 		 * @returns {Promise<unknown>}
 		 */
-		static prompt(title, option = {initValue:""}){
+		static prompt(title, option = {initValue: ""}){
 			return new Promise((resolve, reject) => {
 				let input_id = guid(Theme.Namespace + '-prompt-input');
 				let input = null;
@@ -3313,7 +3250,7 @@ var WebCom = (function (exports) {
 	 * 获取当前页面（iframe）所在的对话框
 	 * @returns {Promise}
 	 */
-	const getCurrentFrameDialog = ()=>{
+	const getCurrentFrameDialog = () => {
 		return new Promise((resolve, reject) => {
 			if(!window.parent || !window.frameElement){
 				reject('no in iframe');
@@ -3330,8 +3267,8 @@ var WebCom = (function (exports) {
 			let dlg = parent[COM_ID$2].DialogManager.findById(id);
 			if(dlg){
 				resolve(dlg);
-			} else {
-				reject('no dlg find:'+id);
+			}else {
+				reject('no dlg find:' + id);
 			}
 		});
 	};
@@ -3769,6 +3706,100 @@ var WebCom = (function (exports) {
 			});
 		}
 	}
+
+	const BASE64_KEY_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+	/**
+	 * base64 解码
+	 * @param {*} text
+	 * @returns
+	 */
+	const base64Decode = (text) => {
+		let t = "";
+		let n, r, i;
+		let s, o, u, a;
+		let f = 0;
+		text = text.replace(/\+\+[++^A-Za-z0-9+/=]/g, "");
+		while(f < text.length){
+			s = BASE64_KEY_STR.indexOf(text.charAt(f++));
+			o = BASE64_KEY_STR.indexOf(text.charAt(f++));
+			u = BASE64_KEY_STR.indexOf(text.charAt(f++));
+			a = BASE64_KEY_STR.indexOf(text.charAt(f++));
+			n = s << 2 | o >> 4;
+			r = (o & 15) << 4 | u >> 2;
+			i = (u & 3) << 6 | a;
+			t = t + String.fromCharCode(n);
+			if(u !== 64){
+				t = t + String.fromCharCode(r);
+			}
+			if(a !== 64){
+				t = t + String.fromCharCode(i);
+			}
+		}
+		t = utf8Decode(t);
+		return t
+	};
+
+	/**
+	 * URL 安全模式进行 base64 编码
+	 * @param {String} text
+	 * @return {string}
+	 */
+	const base64UrlSafeEncode = (text) => {
+		return utf8Encode(text)
+			.replace('+', '-')
+			.replace('/', '_');
+	};
+
+	/**
+	 * text 转 base64
+	 * @param {String} text
+	 * @return {string}
+	 * @constructor
+	 */
+	const Base64Encode = (text) => {
+		let t = "";
+		let n, r, i, s, o, u, a;
+		let f = 0;
+		text = utf8Encode(text);
+		while(f < text.length){
+			n = text.charCodeAt(f++);
+			r = text.charCodeAt(f++);
+			i = text.charCodeAt(f++);
+			s = n >> 2;
+			o = (n & 3) << 4 | r >> 4;
+			u = (r & 15) << 2 | i >> 6;
+			a = i & 63;
+			if(isNaN(r)){
+				u = a = 64;
+			}else if(isNaN(i)){
+				a = 64;
+			}
+			t = t + BASE64_KEY_STR.charAt(s) + BASE64_KEY_STR.charAt(o) + BASE64_KEY_STR.charAt(u) + BASE64_KEY_STR.charAt(a);
+		}
+		return t
+	};
+
+	/**
+	 * 转换blob数据到base64
+	 * @param {Blob} blob
+	 * @returns {Promise<unknown>}
+	 */
+	const convertBlobToBase64 = async (blob) => {
+		return await blobToBase64(blob);
+	};
+
+	/**
+	 * 转换blob数据到Base64
+	 * @param {Blob} blob
+	 * @returns {Promise<unknown>}
+	 */
+	const blobToBase64 = blob => new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.readAsDataURL(blob);
+		reader.onload = () => resolve(reader.result);
+		reader.onerror = error => reject(error);
+	});
 
 	/**
 	 * 通过 src 加载图片
@@ -6321,7 +6352,7 @@ var WebCom = (function (exports) {
 	exports.getViewWidth = getViewWidth;
 	exports.guid = guid;
 	exports.hide = hide;
-	exports.highlightText = highlightText;
+	exports.highlightText = highlightText$1;
 	exports.html2Text = html2Text;
 	exports.inputAble = inputAble;
 	exports.insertStyleSheet = insertStyleSheet;
