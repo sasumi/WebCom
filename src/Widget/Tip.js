@@ -171,7 +171,6 @@ const updatePosition = (tipObj)=>{
 	let rw = tipObj.relateNode.offsetWidth;
 	if(direction === 'auto'){
 		direction = calDir(tipObj);
-		console.log('auto', direction);
 	}
 	tipObj.dom.setAttribute('data-tip-dir',direction);
 	let [offsetLeft, offsetTop] = calcTipPositionByDir(direction, tipWidth, tipHeight, rh, rw);
@@ -293,7 +292,6 @@ export class Tip {
 				tm && clearTimeout(tm);
 				tipObj.show();
 			}
-			console.log('option.triggerType', option.triggerType);
 			switch(option.triggerType){
 				case 'hover':
 					relateNode.addEventListener('mouseover', show);

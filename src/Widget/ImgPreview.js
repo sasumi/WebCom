@@ -445,9 +445,7 @@ const constructDom = () => {
 
 	//bind resize
 	window.addEventListener('resize', onWinResize);
-
 	document.addEventListener('keydown', bindKeyDown);
-	console.log('[IP] start bind key up');
 	document.addEventListener('keyup', bindKeyUp);
 };
 

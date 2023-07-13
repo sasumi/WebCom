@@ -3,7 +3,7 @@ import {buttonActiveBind, createDomByHtml, domContained, getDomOffset, hide, ins
 import {guid} from "../Lang/Util.js";
 import {BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
-import {dimension2Style, escapeAttr, escapeHtml} from "../Lang/Html.js";
+import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'select';
 const CLASS_PREFIX = COM_ID;
@@ -335,7 +335,6 @@ class Select {
 		let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
 		liElList.forEach(li => {
 			buttonActiveBind(li, e => {
-				console.log(e.type);
 				if(e.type !== 'click'){
 					let chk = li.querySelector('input');
 					chk.checked ? chk.removeAttribute('checked') : chk.checked = true;
@@ -371,8 +370,6 @@ class Select {
 				if(!firstMatchedItem){
 					firstMatchedItem = li;
 				}
-			}else{
-				console.log(title, kw);
 			}
 		});
 		if(firstMatchedItem){
