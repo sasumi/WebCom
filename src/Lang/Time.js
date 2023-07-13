@@ -6,13 +6,19 @@ export const ONE_MONTH_30 = 2592000000;
 export const ONE_MONTH_31 = 2678400000;
 export const ONE_YEAR_365 = 31536000000;
 
-export function frequencyControl(payload, hz, executeOnFistTime = false){
+/**
+ * 限制函数执行频率
+ * @param {Function} payload
+ * @param interval
+ * @param executeOnFistTime
+ */
+export function frequencyControl(payload, interval, executeOnFistTime = false){
 	if(payload._frq_tm){
 		clearTimeout(payload._frq_tm);
 	}
 	payload._frq_tm = setTimeout(() => {
-		frequencyControl(payload, hz, executeOnFistTime);
-	}, hz);
+		frequencyControl(payload, interval, executeOnFistTime);
+	}, interval);
 }
 
 /**
@@ -72,7 +78,7 @@ export const prettyTime = (micSec, delimiter = '') => {
 	}
 	let txt = '';
 	txt += d ? `${d}天` : '';
-	txt += (txt || h) ? `${delimiter}${h}小` : '';
+	txt += (txt || h) ? `${delimiter}${h}小时` : '';
 	txt += (txt || m) ? `${delimiter}${m}分` : '';
 	txt += (txt || s) ? `${delimiter}${s}秒` : '';
 	return txt.trim();
@@ -89,12 +95,12 @@ export const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
 	let month = start_date.getMonth()+1;
 	month = month + monthNum;
 	if(month > 12){
-		let yearNum = parseInt((month - 1) / 12);
+		let yearNum = Math.floor((month - 1) / 12);
 		month = month % 12 === 0 ? 12 : month % 12;
 		year += yearNum;
 	}else if(month <= 0){
 		month = Math.abs(month);
-		let yearNum = parseInt((month + 12) / 12);
+		let yearNum = Math.floor((month + 12) / 12);
 		let n = month % 12;
 		if(n === 0){
 			year -= yearNum;

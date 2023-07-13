@@ -85,10 +85,9 @@ export const arrayGroup = (arr, by_key, limit) => {
 /**
  * 按照对象 KEY 排序
  * @param {Object} obj
- * @param {String} dir
  * @return {{}}
  */
-export const sortByKey = (obj, dir = 'asc') => {
+export const sortByKey = (obj) => {
 	return Object.keys(obj).sort().reduce(function(result, key){
 		result[key] = obj[key];
 		return result;
