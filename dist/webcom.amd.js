@@ -1268,9 +1268,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	insertStyleSheet(`
 @font-face {
 	font-family: '${ICON_FONT}';  /* Project id 3359671 */
-  	src: url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff2?t=1688055274391') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.woff?t=1688055274391') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_a8ndu7byul8.ttf?t=1688055274391') format('truetype');
+	src: url('//at.alicdn.com/t/c/font_3359671_nf3191wyc8m.woff2?t=1689178723299') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_nf3191wyc8m.woff?t=1689178723299') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_nf3191wyc8m.ttf?t=1689178723299') format('truetype');
 }
 :root {
 	${CSS_VAR_COLOR}:#333;
@@ -3417,11 +3417,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	let TIP_COLLECTION = {};
 
 	insertStyleSheet(`
-	.${NS}-container-wrap {position:absolute; --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS}-arrow {display:block; border:var(${Theme.CssVar.PANEL_BORDER}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
 	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
 	.${NS}-close:hover {opacity:1}
-	.${NS}-content {border:var(${Theme.CssVar.PANEL_BORDER}); border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); padding:.5em .75em;  max-width:30em; word-break:break-all}
+	.${NS}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
 	.${NS}-container-wrap[data-tip-dir="11"],
@@ -5022,10 +5022,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		z-index:1;
 	}
 	
-	.${CLASS_PREFIX}-panel .${CLASS_PREFIX}-search{
-		padding:0.5em;
-	}
-	
+	.${CLASS_PREFIX}-panel .${CLASS_PREFIX}-search{padding:0.5em;}
 	.${CLASS_PREFIX}-panel input[type=search]{
 		width:100%;
 		padding:0.5em;
@@ -5067,32 +5064,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		font-weight:var(${Theme.CssVarPrefix}sel-item-matched-font-weight);
 	}
 	
-	.${CLASS_PREFIX}-list input{
-		display:block;
-		position:absolute;
-		z-index:1;
-		left:-2em;
-		top:0;
-		opacity:0;
-	}
-	
-	.${CLASS_PREFIX}-list .ti-wrap{
-		cursor:pointer;
-		position:relative;
-		display:block;
-		padding:.35em .5em .35em 2em;
-		user-select:none;
-		transition:all 0.1s linear;
-	}
-	
-	.${CLASS_PREFIX}-list ul .ti-wrap{
-		padding-left:2.25em;
-		display:block;
-	}
-	
-	.${CLASS_PREFIX}-list ul .ti-wrap{
-		padding-left:3.5em;
-	}
+	.${CLASS_PREFIX}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
+	.${CLASS_PREFIX}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
 	
 	.${CLASS_PREFIX}-list label{
 		display:block;
@@ -5135,7 +5109,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param sel
 	 * @return {{values: String[], options: Option[], selectedIndexes: Number[]}}
 	 */
-	const resolveOptions = (sel) => {
+	const resolveSelectOptions = (sel) => {
 		let options = [
 			// {title, value, disabled, selected},
 			// {title, options:[{title, value},...], disabled, selected},
@@ -5180,6 +5154,23 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 		return {options, values, selectedIndexes};
+	};
+
+	/**
+	 * 从 <datalist> 对象中解析 option 列表
+	 * @param {HTMLDataListElement} datalistEl
+	 * @param {Null|String} initValue 初始值，Null 表示没有初始值
+	 * @return {Option[]}
+	 */
+	const resolveListOption = (datalistEl, initValue = null) => {
+		let options = [];
+		Array.from(datalistEl.options).forEach((option, index) => {
+			let title = option.innerText;
+			let value = option.hasAttribute('value') ? option.getAttribute('value') : option.innerText;
+			let selected = initValue !== null && value === initValue;
+			options.push({title, value, disabled: false, selected, index});
+		});
+		return options;
 	};
 
 	/**
@@ -5234,15 +5225,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 		list_html += '</ul>';
-		let html = `
+		return createDomByHtml(`
 		<div class="${CLASS_PREFIX}-panel" style="display:none;">
-			<div class="${CLASS_PREFIX}-search">
+			<div class="${CLASS_PREFIX}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
 				<input type="search" placeholder="过滤..." aria-label="过滤选项">
 			</div>
 			${list_html}
 		</div>
-	`;
-		return createDomByHtml(html, document.body);
+	`, document.body);
 	};
 
 	const tabNav = (liList, dir) => {
@@ -5257,7 +5247,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}else {
 			currentIndex = currentIndex <= 0 ? (liList.length - 1) : (currentIndex - 1);
 		}
-		liList.forEach((li, idx)=>{
+		liList.forEach((li, idx) => {
 			if(idx === currentIndex){
 				li.focus();
 			}
@@ -5292,11 +5282,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	class Select {
 		config = {
-			name: COM_ID + guid(),
+			name: "",
 			required: false,
 			multiple: false,
-			searchable: false, //是否可搜索
 			placeholder: '',
+
+			displaySearchInput: true, //是否显示搜索输入框
+			hideNoMatchItems: true, //隐藏未匹配的搜索结果项目
 
 			/** @type {Option[]} options */
 			options: []
@@ -5307,7 +5299,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		constructor(config){
 			this.config = Object.assign(this.config, config);
-			this.panelEl = createPanel(config);
+			this.config.name = this.config.name || COM_ID + guid();
+			this.panelEl = createPanel(this.config);
 			this.searchEl = this.panelEl.querySelector('input[type=search]');
 
 			//checkbox change
@@ -5323,7 +5316,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			});
 
 			//nav
-			this.searchEl.addEventListener('keydown', e=>{
+			this.searchEl.addEventListener('keydown', e => {
 				if(e.keyCode === KEYS.UpArrow){
 					tabNav(liElList, false);
 				}else if(e.keyCode === KEYS.DownArrow){
@@ -5360,16 +5353,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		search(kw){
 			this.searchEl.value = kw;
 			let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+			let firstMatchedItem = null;
 			liEls.forEach(li => {
-				hide(li);
+				this.config.hideNoMatchItems && hide(li);
 				let title = li.querySelector('label').title;
+				li.blur();
 				li.querySelector('.ti').innerHTML = highlightText(title, kw);
 				if(!kw || title.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
-					show(li);
+					this.config.hideNoMatchItems && show(li);
+					if(!firstMatchedItem){
+						firstMatchedItem = li;
+					}
 				}else {
 					console.log(title, kw);
 				}
 			});
+			if(firstMatchedItem){
+				firstMatchedItem.scrollIntoView({behavior: 'smooth'});
+			}
 		}
 
 		/**
@@ -5442,56 +5443,111 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 
 		/**
-		 * @param {HTMLSelectElement} srcSelectEl
+		 * @param {HTMLSelectElement} selectEl
 		 */
-		static bindSelect(srcSelectEl){
-			let {options} = resolveOptions(srcSelectEl);
+		static bindSelect(selectEl){
+			let {options} = resolveSelectOptions(selectEl);
 			let sel = new Select({
-				name: srcSelectEl.name,
-				required: srcSelectEl.required,
-				multiple: srcSelectEl.multiple,
-				placeholder: srcSelectEl.getAttribute('placeholder'),
+				name: selectEl.name,
+				required: selectEl.required,
+				multiple: selectEl.multiple,
+				placeholder: selectEl.getAttribute('placeholder'),
 				options
 			});
 			sel.onChange.listen(() => {
 				let selectedIndexes = sel.getSelectedIndexes();
-				srcSelectEl.querySelectorAll('option').forEach((opt, idx) => {
+				selectEl.querySelectorAll('option').forEach((opt, idx) => {
 					opt.selected = selectedIndexes.includes(idx);
 				});
-				triggerDomEvent(srcSelectEl, 'change');
+				triggerDomEvent(selectEl, 'change');
 			});
-			sel.panelEl.style.minWidth = dimension2Style(srcSelectEl.offsetWidth);
+			sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 
 			let sh = () => {
-				let offset = getDomOffset(srcSelectEl);
-				sel.showPanel({top: offset.top + srcSelectEl.offsetHeight, left: offset.left});
+				let offset = getDomOffset(selectEl);
+				sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
 			};
 
-			srcSelectEl.addEventListener('keydown', e => {
+			selectEl.addEventListener('keydown', e => {
 				sh();
 				e.preventDefault();
 				e.stopPropagation();
 				return false;
 			});
 
-			srcSelectEl.addEventListener('mousedown', e => {
+			selectEl.addEventListener('mousedown', e => {
 				sel.isShown() ? sel.hidePanel() : sh();
 				e.preventDefault();
 				e.stopPropagation();
 				return false;
 			});
 
-			srcSelectEl.addEventListener('focus', sh);
-			srcSelectEl.addEventListener('change', () => {
+			selectEl.addEventListener('focus', sh);
+			selectEl.addEventListener('change', () => {
 				let selectedIndexes = [];
-				Array.from(srcSelectEl.selectedOptions).forEach(opt => {
+				Array.from(selectEl.selectedOptions).forEach(opt => {
 					selectedIndexes.push(opt.index);
 				});
 				sel.selectByIndex(selectedIndexes);
 			});
 
 			document.addEventListener('click', e => {
-				if(!domContained(sel.panelEl, e.target, true) && !domContained(srcSelectEl, e.target, true)){
+				if(!domContained(sel.panelEl, e.target, true) && !domContained(selectEl, e.target, true)){
+					sel.hidePanel();
+				}
+			});
+
+			document.addEventListener('keyup', e => {
+				if(e.keyCode === KEYS.Esc){
+					sel.hidePanel();
+				}
+			});
+		}
+
+		/**
+		 * 绑定有关联 datalist 的输入框
+		 * @param {HTMLInputElement} inputEl
+		 * @param {Option[]} options 是否指定选项列表，默认从 input[list] 中读取
+		 */
+		static bindTextInput(inputEl, options = null){
+			if(!options){
+				let listTagId = inputEl.getAttribute('list');
+				let datalistEl = document.getElementById(listTagId);
+				if(!datalistEl){
+					throw "no datalist found: " + inputEl.getAttribute('list');
+				}
+				options = resolveListOption(datalistEl, inputEl.value);
+				inputEl.removeAttribute('list');
+				datalistEl.parentNode.removeChild(datalistEl);
+			}
+			let sel = new Select({
+				name: inputEl.name,
+				required: inputEl.required,
+				multiple: false,
+				displaySearchInput: false,
+				hideNoMatchItems: false,
+				placeholder: inputEl.getAttribute('placeholder'),
+				options
+			});
+			sel.onChange.listen(() => {
+				inputEl.value = sel.getValues()[0];
+				triggerDomEvent(inputEl, 'change');
+			});
+			sel.panelEl.style.minWidth = dimension2Style(inputEl.offsetWidth);
+
+			let sh = () => {
+				let offset = getDomOffset(inputEl);
+				sel.showPanel({top: offset.top + inputEl.offsetHeight, left: offset.left});
+			};
+
+			inputEl.addEventListener('focus', sh);
+			inputEl.addEventListener('click', sh);
+			inputEl.addEventListener('input', () => {
+				sel.search(inputEl.value.trim());
+			});
+
+			document.addEventListener('click', e => {
+				if(!domContained(sel.panelEl, e.target, true) && !domContained(inputEl, e.target, true)){
 					sel.hidePanel();
 				}
 			});
@@ -5504,11 +5560,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
+	/**
+	 * 将 select 或者 input[list] 对象绑定使用 Select UI组件
+	 */
 	class ACSelect {
 		static init(node){
 			return new Promise((resolve, reject) => {
-				Select.bindSelect(node);
-				resolve();
+				if(node.tagName === 'SELECT'){
+					Select.bindSelect(node);
+					resolve();
+					return;
+				}
+				if(node.tagName === 'INPUT' && node.list){
+					Select.bindTextInput(node);
+					resolve();
+					return;
+				}
+
+				reject('node type no support');
 			});
 		}
 	}
