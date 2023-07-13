@@ -9,10 +9,10 @@ insertStyleSheet(`
 	.${CLASS_PREFIX}-wrap {position:fixed; padding:1em; right:0; bottom:0;}
 	.${CLASS_PREFIX}-wrap ul {list-style:none; padding:0; margin:0}
 	.${CLASS_PREFIX}-wrap li {padding-left:calc((var(--toc-item-level) - 1) * 10px)}
-	.${CLASS_PREFIX}-title {display:block; margin:0.1em 0 0; cursor:pointer; user-select:none; padding:0.25em 1em 0.25em 2em;}
+	.${CLASS_PREFIX}-title {display:block; margin:0.1em 0 0; cursor:pointer; user-select:none; padding:0.5em 1em 0.5em 2em;}
 	.${CLASS_PREFIX}-title:hover {background-color:#eee; border-radius:var(${Theme.CssVar.PANEL_RADIUS})}
-	.${CLASS_PREFIX}-collapse {position:absolute; vertical-align:middle; width:0; height:0; border:0.5em solid transparent; margin:0.75em 0 0 0.5em; border-top-color:var(${Theme.CssVar.COLOR}); opacity:0; cursor:pointer;}
-	li:hover>.${CLASS_PREFIX}-collapse {opacity:.75}
+	.${CLASS_PREFIX}-collapse {position:absolute; vertical-align:middle; width:0; height:0; border:0.5em solid transparent; border-width:0.5em 0.4em 0.5em 0.4em; margin:1em 0 0 0.5em; border-top-color:var(${Theme.CssVar.COLOR}); opacity:0; cursor:pointer;}
+	li:hover>.${CLASS_PREFIX}-collapse {opacity:.5}
 `, Theme.Namespace + 'toc-style');
 
 export const resolveTocListFromDom = (dom = document.body, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
@@ -76,14 +76,15 @@ const searchNodeById = (id, entries) => {
 class Toc {
 	dom = null;
 	config = {
-		collapseAble:true,
+		collapseAble: true,
 	};
+
 	constructor(entries, config = {}){
 		this.config = Object.assign(this.config, config);
 		this.dom = createDomByHtml(`<div class="${CLASS_PREFIX}-wrap">
 				${renderEntriesListHtml(entries, this.config)}
 			</div>`, document.body);
-		this.dom.querySelectorAll('li>span').forEach(span => {
+		this.dom.querySelectorAll(`li>span.${CLASS_PREFIX}-title`).forEach(span => {
 			let id = span.parentNode.getAttribute('data-id');
 			span.addEventListener('click', e => {
 				let n = searchNodeById(id, entries);
@@ -124,7 +125,9 @@ class Toc {
 			if(!list.length){
 				return list.push({id: guid('toc-'), title, level, relateNode, children: []});
 			}
-			if(list[list.length - 1].level <= level){
+			if(list[list.length - 1].level < level){
+				addResult(title, level, relateNode, list[list.length - 1].children);
+			}else if(list[list.length - 1].level === level){
 				return list.push({id: guid('toc-'), title, level, relateNode, children: []});
 			}else{
 				addResult(title, level, relateNode, list[list.length - 1].children);
