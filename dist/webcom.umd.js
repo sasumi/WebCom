@@ -1479,7 +1479,35 @@
 	 */
 	const REQUEST_FORMAT = {
 		JSON: 'JSON',
-		FORM: 'FORM', // application/x-www-form-urlencoded
+		FORM: 'FORM',
+	};
+
+	/**
+	 * 请求格式对应的 Content-Type
+	 * @type {{}}
+	 */
+	const REQUEST_CONTENT_TYPE_MAP = {
+		[REQUEST_FORMAT.JSON]: 'application/json',
+		[REQUEST_FORMAT.FORM]: 'application/x-www-form-urlencoded',
+	};
+
+	/**
+	 * 请求数据格式处理
+	 * @type {{}}
+	 */
+	const REQUEST_DATA_HANDLE_MAP = {
+		[REQUEST_FORMAT.JSON]: (data, method) => {
+			if(method === HTTP_METHOD.GET){
+				return '';
+			}
+			return JSON.stringify(data);
+		},
+		[REQUEST_FORMAT.FORM]: (data, method) => {
+			if(method === HTTP_METHOD.GET){
+				return '';
+			}
+			return QueryString.stringify(data);
+		}
 	};
 
 	/**
@@ -1491,6 +1519,17 @@
 		XML: 'XML',
 		HTML: 'HTML',
 		TEXT: 'TEXT',
+	};
+
+	/**
+	 * 响应格式对应的 Accept 头
+	 * @type {{}}
+	 */
+	const RESPONSE_ACCEPT_TYPE_MAP = {
+		[RESPONSE_FORMAT.JSON]: 'application/json',
+		[RESPONSE_FORMAT.XML]: 'text/xml',
+		[RESPONSE_FORMAT.HTML]: 'text/html',
+		[RESPONSE_FORMAT.TEXT]: 'text/plain',
 	};
 
 	/**
@@ -1512,98 +1551,23 @@
 	};
 
 	/**
-	 * 格式化请求数据
-	 * @param {Object} data
-	 * @param {String} format
-	 * @returns {String}
-	 */
-	const formatReqData = (data, format) => {
-		switch(format){
-			case REQUEST_FORMAT.JSON:
-				return JSON.stringify(data);
-			case REQUEST_FORMAT.FORM:
-				return QueryString.stringify(data);
-			default:
-				throw `Data format illegal(${format})`;
-		}
-	};
-
-	/**
-	 * 解析响应结果
-	 * @param {String} rspStr
-	 * @param {String} format
-	 * @returns {{}|any}
-	 */
-	const parserRspDataAsObj = (rspStr, format) => {
-		switch(format){
-			case RESPONSE_FORMAT.JSON:
-				return JSON.parse(rspStr);
-			case RESPONSE_FORMAT.FORM:
-				return QueryString.parse(rspStr);
-			default:
-				throw `Response string type no support now(${format})`;
-		}
-	};
-
-	/**
 	 * JSON方式请求
 	 * @param {String} url
 	 * @param {Object|String} data 数据，当前仅支持对象或queryString
 	 * @param {String} method
-	 * @param {Object} ext_option
-	 * @param {String} ext_option.requestFormat 请求类型（FORM_DATA|JSON） 默认为 REQUEST_FORMAT.JSON 格式
-	 * @param {String} ext_option.responseFormat 响应类型（JSON）默认为 RESPONSE_FORMAT.JSON 格式，暂不支持其他类型
+	 * @param {Object} option
+	 * @param {String} option.timeout 请求超时时间（ms）超过指定时间将主动断开链接，0 表示不设置超时时间。
+	 * @param {String} option.timeoutCallback 超时回调
+	 * @param {String} option.requestFormat 请求类型（FORM_DATA|JSON） 默认为 REQUEST_FORMAT.JSON 格式
+	 * @param {String} option.responseFormat 响应类型（JSON）默认为 RESPONSE_FORMAT.JSON 格式，暂不支持其他类型
 	 * @return {Promise<unknown>}
 	 */
-	const requestJSON = (url, data, method = HTTP_METHOD.GET, ext_option = {}) => {
-		return new Promise((resolve, reject) => {
-			ext_option = Object.assign({
-				requestFormat: REQUEST_FORMAT.JSON,
-				responseFormat: RESPONSE_FORMAT.JSON
-			}, ext_option);
-
-			method = method.toUpperCase();
-			if(HTTP_METHOD[method] === undefined){
-				throw "method no supported:" + method;
-			}
-			if(ext_option.responseFormat !== RESPONSE_FORMAT.JSON){
-				throw "response type no supported: " + opt.responseFormat;
-			}
-			let opt = {
-				method: method,
-				headers: {
-					'Content-Type': 'application/json',
-					'Accept': 'application/json',
-				}
-			};
-			if(method === HTTP_METHOD.GET){
-				url = mergerUriParam(url, data);
-			}else {
-				switch(ext_option.requestFormat){
-					case REQUEST_FORMAT.JSON:
-						opt.headers['Content-Type'] = 'application/json';
-						opt.body = typeof (data) === 'string' ? data : JSON.stringify(data);
-						break;
-					case REQUEST_FORMAT.FORM:
-						opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-						opt.body = QueryString.stringify(data);
-						break;
-					default:
-						throw "request format no supported:" + ext_option.requestFormat;
-				}
-			}
-			fetch(url, opt).then(rsp => {
-				return rsp.json();
-			}).then(rsp => {
-				resolve(rsp);
-			}).catch(err => {
-				reject(err);
-			});
-		});
+	const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
+		return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);
 	};
 
 	/**
-	 * xhr 网络请求
+	 * XHR 网络请求
 	 */
 	class Net {
 		cgi = null; //请求接口
@@ -1611,8 +1575,8 @@
 		option = {
 			method: HTTP_METHOD.GET, //请求方法
 			timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
-			requestDataFormat: REQUEST_FORMAT.FORM, //请求数据格式
-			responseDataFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
+			requestFormat: REQUEST_FORMAT.FORM, //请求数据格式
+			responseFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
 			headers: {}, //请求头部信息
 		};
 		xhr = null;
@@ -1621,6 +1585,12 @@
 		onStateChange = new BizEvent(); //(state) http 状态码
 		onProgress = new BizEvent(); //(percent)
 
+		/**
+		 * 构造器
+		 * @param {String} cgi
+		 * @param {String|*} data
+		 * @param {Object} option
+		 */
 		constructor(cgi, data, option = {}){
 			this.cgi = cgi;
 			this.data = data;
@@ -1629,6 +1599,7 @@
 				...option
 			};
 			this.xhr = new XMLHttpRequest();
+			this.xhr.open(this.option.method, this.cgi, true);
 			this.xhr.addEventListener("progress", e => {
 				if(e.lengthComputable){
 					this.onProgress.fire(e.loaded / e.total);
@@ -1640,7 +1611,19 @@
 				this.onStateChange.fire(this.xhr.status);
 			};
 			this.xhr.addEventListener("load", () => {
-				this.onResponse.fire(parserRspDataAsObj(this.xhr.responseText, this.option.responseDataFormat));
+				let ret;
+				switch(option.responseFormat){
+					case RESPONSE_FORMAT.JSON:
+						ret = JSON.parse(this.xhr.responseText);
+						break;
+					case RESPONSE_FORMAT.XML:
+					case RESPONSE_FORMAT.TEXT:
+					case RESPONSE_FORMAT.HTML:
+					default:
+						ret = this.xhr.responseText;
+						break;
+				}
+				this.onResponse.fire(ret);
 			});
 			this.xhr.addEventListener("error", () => {
 				this.onError.fire(this.xhr.statusText, this.xhr.status);
@@ -1648,11 +1631,10 @@
 			this.xhr.addEventListener("abort", () => {
 				this.onError.fire('Request aborted.', CODE_ABORT);
 			});
+			this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
+			this.xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[this.option.responseFormat]);
 			for(let key in this.option.headers){
 				this.xhr.setRequestHeader(key, this.option.headers[key]);
-			}
-			if(this.option.requestDataFormat === REQUEST_FORMAT.JSON){
-				this.xhr.setRequestHeader('content-type', 'application/json');
 			}
 			if(this.option.timeout){
 				setTimeout(() => {
@@ -1661,14 +1643,17 @@
 			}
 		}
 
+		/**
+		 * 发送请求
+		 */
 		send(){
-			this.xhr.open(this.option.method, this.cgi, true);
-			if(this.option.method === 'POST'){
-				this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-			}
-			this.xhr.send(formatReqData(this.data, this.option.requestDataFormat));
+			let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
+			this.xhr.send(data);
 		}
 
+		/**
+		 * 终止请求
+		 */
 		abort(){
 			this.xhr.abort();
 		}
@@ -1679,8 +1664,8 @@
 		}
 
 		static getJSON(cgi, data, option = {}){
-			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
-			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+			option.requestFormat = option.requestFormat || REQUEST_FORMAT.JSON;
+			option.responseFormat = option.responseFormat || RESPONSE_FORMAT.JSON;
 			return Net.get(cgi, data, option);
 		}
 
@@ -1690,8 +1675,8 @@
 		}
 
 		static postJSON(cgi, data, option = {}){
-			option.requestDataFormat = option.requestDataFormat || REQUEST_FORMAT.JSON;
-			option.responseDataFormat = option.responseDataFormat || RESPONSE_FORMAT.JSON;
+			option.requestFormat = option.requestFormat || REQUEST_FORMAT.JSON;
+			option.responseFormat = option.responseFormat || RESPONSE_FORMAT.JSON;
 			return Net.post(cgi, data, option);
 		}
 
