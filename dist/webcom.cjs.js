@@ -1679,8 +1679,12 @@ class Net {
 	static request(cgi, data, option = {}){
 		return new Promise((resolve, reject) => {
 			let req = new Net(cgi, data, option);
-			req.onResponse = resolve;
-			req.onError = reject;
+			req.onResponse.listen(ret=>{
+				resolve(ret);
+			});
+			req.onError.listen(error=>{
+				reject(error);
+			});
 			req.send();
 		});
 	}
