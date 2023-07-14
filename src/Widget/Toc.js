@@ -12,7 +12,7 @@ insertStyleSheet(`
 	.${CLASS_PREFIX}-wrap li {padding-left:calc((var(--toc-item-level) - 1) * 10px)}
 	.${CLASS_PREFIX}-collapse>ul {display:none;}
 	.${CLASS_PREFIX}-title {display:block; margin:0.1em 0 0; cursor:pointer; user-select:none; padding:0.5em 1em 0.5em 2em;}
-	.${CLASS_PREFIX}-title:hover {background-color:#eee; border-radius:var(${Theme.CssVar.PANEL_RADIUS})}
+	.${CLASS_PREFIX}-title:hover {border-radius:var(${Theme.CssVar.PANEL_RADIUS})}
 	.${CLASS_PREFIX}-toggle {position:absolute; vertical-align:middle; width:0; height:0; border:0.4em solid transparent; margin:1em 0 0 0.5em; border-top-color:var(${Theme.CssVar.COLOR}); opacity:0; cursor:pointer;}
 	.${CLASS_PREFIX}-collapse>.${CLASS_PREFIX}-toggle {border-top-color:transparent; border-left-color:var(${Theme.CssVar.COLOR}); margin:.75em 0 0 0.5em;}
 	li:hover>.${CLASS_PREFIX}-toggle {opacity:.4}
