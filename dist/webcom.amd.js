@@ -623,7 +623,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} replaceTpl 替换模板
 	 * @returns {void|string|*}
 	 */
-	const highlightText$1 = (text, kw, replaceTpl = '<span class="matched">%s</span>') => {
+	const highlightText = (text, kw, replaceTpl = '<span class="matched">%s</span>') => {
 		if(!kw){
 			return text;
 		}
@@ -1233,7 +1233,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		ToastIndex: 1000000, //消息提示（顶部呈现）
 	};
 
-	const COM_ID$3 = Theme.Namespace + 'toast';
+	const COM_ID$4 = Theme.Namespace + 'toast';
 
 	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 	const rotate_animate = Theme.Namespace + '-toast-rotate';
@@ -1265,7 +1265,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
 	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
-`, COM_ID$3 + '-style');
+`, COM_ID$4 + '-style');
 
 	let toastWrap = null;
 
@@ -1440,9 +1440,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	window[COM_ID$3] = Toast;
+	window[COM_ID$4] = Toast;
 	let CONTEXT_WINDOW$2 = getContextWindow();
-	let ToastClass = CONTEXT_WINDOW$2[COM_ID$3] || Toast;
+	let ToastClass = CONTEXT_WINDOW$2[COM_ID$4] || Toast;
 
 	/**
 	 * 解析文件扩展名
@@ -2045,10 +2045,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	/**
 	 * 按照对象 KEY 排序
 	 * @param {Object} obj
-	 * @param {String} dir
 	 * @return {{}}
 	 */
-	const sortByKey = (obj, dir = 'asc') => {
+	const sortByKey = (obj) => {
 		return Object.keys(obj).sort().reduce(function(result, key){
 			result[key] = obj[key];
 			return result;
@@ -2575,8 +2574,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	z-index:${Masker.zIndex}}
 `, Theme.Namespace + 'masker-style');
 
-	const COM_ID$2 = Theme.Namespace + 'dialog';
-	const DLG_CLS_PREF = COM_ID$2;
+	const COM_ID$3 = Theme.Namespace + 'dialog';
+	const DLG_CLS_PREF = COM_ID$3;
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 	const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 	const DLG_CLS_OP = DLG_CLS_PREF + '-op';
@@ -2624,7 +2623,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {padding-bottom:0.5em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
-`, COM_ID$2 + '-style');
+`, COM_ID$3 + '-style');
 
 	/**
 	 * 绑定ESC按键事件关闭最上一层可关闭的对话框
@@ -3272,7 +3271,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				reject('no in iframe');
 				return;
 			}
-			if(!parent[COM_ID$2].DialogManager){
+			if(!parent[COM_ID$3].DialogManager){
 				reject('No dialog manager found.');
 				return;
 			}
@@ -3280,7 +3279,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			if(!id){
 				reject("ID no found in iframe element");
 			}
-			let dlg = parent[COM_ID$2].DialogManager.findById(id);
+			let dlg = parent[COM_ID$3].DialogManager.findById(id);
 			if(dlg){
 				resolve(dlg);
 			}else {
@@ -3288,16 +3287,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 	};
-	if(!window[COM_ID$2]){
-		window[COM_ID$2] = {};
+	if(!window[COM_ID$3]){
+		window[COM_ID$3] = {};
 	}
 
-	window[COM_ID$2].Dialog = Dialog;
-	window[COM_ID$2].DialogManager = DialogManager;
+	window[COM_ID$3].Dialog = Dialog;
+	window[COM_ID$3].DialogManager = DialogManager;
 
 	let CONTEXT_WINDOW$1 = getContextWindow();
-	let DialogClass = CONTEXT_WINDOW$1[COM_ID$2].Dialog || Dialog;
-	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$2].DialogManager || DialogManager;
+	let DialogClass = CONTEXT_WINDOW$1[COM_ID$3].Dialog || Dialog;
+	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$3].DialogManager || DialogManager;
 
 	/**
 	 * 对话框组件
@@ -3505,7 +3504,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let rw = tipObj.relateNode.offsetWidth;
 		if(direction === 'auto'){
 			direction = calDir(tipObj);
-			console.log('auto', direction);
 		}
 		tipObj.dom.setAttribute('data-tip-dir',direction);
 		let [offsetLeft, offsetTop] = calcTipPositionByDir(direction, tipWidth, tipHeight, rh, rw);
@@ -3627,7 +3625,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					tm && clearTimeout(tm);
 					tipObj.show();
 				};
-				console.log('option.triggerType', option.triggerType);
 				switch(option.triggerType){
 					case 'hover':
 						relateNode.addEventListener('mouseover', show);
@@ -3707,12 +3704,102 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	class ACCopy {
-		static init(node, param){
+	const DOMAIN_DEFAULT = 'default';
 
+	const trans = (text, domain = DOMAIN_DEFAULT) => {
+		return text;
+	};
+
+	/**
+	 * copy text
+	 * @param {String} text
+	 * @param {Boolean} silent 是否在不兼容是进行提醒
+	 * @returns {boolean} 是否复制成功
+	 */
+	const copy = (text, silent = false) => {
+		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
+		txtNode.style.cssText = 'position:absolute; left:-9999px;';
+		let y = window.pageYOffset || document.documentElement.scrollTop;
+		txtNode.addEventListener('focus', function(){
+			window.scrollTo(0, y);
+		});
+		txtNode.value = text;
+		txtNode.select();
+		try{
+			let succeeded = document.execCommand('copy');
+			!silent && ToastClass.showSuccess(trans('复制成功'));
+			return succeeded;
+		}catch(err){
+			console.error(err);
+			DialogClass.prompt('复制失败，请手工复制', {initValue:text});
+		} finally{
+			txtNode.parentNode.removeChild(txtNode);
+		}
+		return false;
+	};
+
+	/**
+	 * Copy formatted html content
+	 * @param html
+	 * @param silent
+	 */
+	const copyFormatted = (html, silent = false) => {
+		// Create container for the HTML
+		let container = createDomByHtml(`
+		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
+	`, document.body);
+
+		// Detect all style sheets of the page
+		let activeSheets = Array.prototype.slice.call(document.styleSheets)
+			.filter(function(sheet){
+				return !sheet.disabled;
+			});
+
+		// Copy to clipboard
+		window.getSelection().removeAllRanges();
+
+		let range = document.createRange();
+		range.selectNode(container);
+		window.getSelection().addRange(range);
+
+		document.execCommand('copy');
+		for(let i = 0; i < activeSheets.length; i++){
+			activeSheets[i].disabled = true;
+		}
+		document.execCommand('copy');
+		for(let i = 0; i < activeSheets.length; i++){
+			activeSheets[i].disabled = false;
+		}
+		document.body.removeChild(container);
+		!silent && ToastClass.showSuccess(trans('复制成功'));
+	};
+
+	/**
+	 * 复制内容
+	 * 参数：
+	 * *[data-copy-content]
+	 * *[data-copy-type] type 为 html 时表示复制内容为HTML
+	 */
+	class ACCopy {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let content = param.content;
+				let type = param.type || 'html';
+				if(!content){
+					throw "复制内容为空";
+				}
+				type === 'html' ? copyFormatted(content) : copy(content);
+				resolve();
+			});
 		}
 	}
 
+	/**
+	 * 对象触发时显示提示信息
+	 * 参数：
+	 * node[data-toast-message]
+	 * node[data-toast-type] type 为 Toast.type 类型
+	 */
 	class ACToast {
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
@@ -4225,13 +4312,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	});
 
-	const COM_ID$1 = Theme.Namespace + 'com-image-viewer';
+	const COM_ID$2 = Theme.Namespace + 'com-image-viewer';
 	const CONTEXT_WINDOW = getContextWindow();
-	if(!CONTEXT_WINDOW[COM_ID$1]){
-		CONTEXT_WINDOW[COM_ID$1] = {};
+	if(!CONTEXT_WINDOW[COM_ID$2]){
+		CONTEXT_WINDOW[COM_ID$2] = {};
 	}
 
-	const DOM_CLASS = COM_ID$1;
+	const DOM_CLASS = COM_ID$2;
 
 	const DEFAULT_VIEW_PADDING = 20;
 	const MAX_ZOOM_IN_RATIO = 2; //最大显示比率
@@ -4647,9 +4734,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		//bind resize
 		window.addEventListener('resize', onWinResize);
-
 		document.addEventListener('keydown', bindKeyDown);
-		console.log('[IP] start bind key up');
 		document.addEventListener('keyup', bindKeyUp);
 	};
 
@@ -4930,7 +5015,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {String} imgSrc
 	 * @param {Object} option
 	 */
-	const showImgPreview = CONTEXT_WINDOW[COM_ID$1]['showImgPreview'] || function(imgSrc, option = {}){
+	const showImgPreview = CONTEXT_WINDOW[COM_ID$2]['showImgPreview'] || function(imgSrc, option = {}){
 		init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 	};
 
@@ -4940,7 +5025,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @param {Number} startIndex
 	 * @param {Object} option
 	 */
-	const showImgListPreview = CONTEXT_WINDOW[COM_ID$1]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
+	const showImgListPreview = CONTEXT_WINDOW[COM_ID$2]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
 		init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 	};
 
@@ -4979,14 +5064,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
-	window[COM_ID$1] = {
+	window[COM_ID$2] = {
 		showImgPreview,
 		showImgListPreview,
 		bindImgPreviewViaSelector,
 	};
 
-	let showImgPreviewFn = CONTEXT_WINDOW[COM_ID$1]['showImgPreview'] || showImgPreview;
-	let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID$1]['showImgListPreview'] || showImgListPreview;
+	let showImgPreviewFn = CONTEXT_WINDOW[COM_ID$2]['showImgPreview'] || showImgPreview;
+	let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID$2]['showImgListPreview'] || showImgListPreview;
 
 	const resolveSrc = (node) => {
 		let src = node.dataset.src;
@@ -5030,11 +5115,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const COM_ID = Theme.Namespace + 'select';
-	const CLASS_PREFIX = COM_ID;
+	const COM_ID$1 = Theme.Namespace + 'select';
+	const CLASS_PREFIX$1 = COM_ID$1;
 
 	insertStyleSheet(`
-	.${CLASS_PREFIX}-panel{
+	.${CLASS_PREFIX$1}-panel{
 		${Theme.CssVarPrefix}sel-panel-max-width:20em;
 		${Theme.CssVarPrefix}sel-list-max-height:15em;
 		${Theme.CssVarPrefix}sel-item-matched-color:orange;
@@ -5053,8 +5138,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		z-index:1;
 	}
 	
-	.${CLASS_PREFIX}-panel .${CLASS_PREFIX}-search{padding:0.5em;}
-	.${CLASS_PREFIX}-panel input[type=search]{
+	.${CLASS_PREFIX$1}-panel .${CLASS_PREFIX$1}-search{padding:0.5em;}
+	.${CLASS_PREFIX$1}-panel input[type=search]{
 		width:100%;
 		padding:0.5em;
 		border:none;
@@ -5063,21 +5148,21 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		box-shadow:none;
 		transition:border 0.1s linear;
 	}
-	.${CLASS_PREFIX}-panel input[type=search]:focus{
+	.${CLASS_PREFIX$1}-panel input[type=search]:focus{
 		border-color:gray;
 	}
 	
-	.${CLASS_PREFIX}-list{
+	.${CLASS_PREFIX$1}-list{
 		list-style:none;
 		max-height:var(${Theme.CssVarPrefix}sel-list-max-height);
 		overflow:auto;
 	}
 	
-	.${CLASS_PREFIX}-list .sel-item{
+	.${CLASS_PREFIX$1}-list .sel-item{
 		margin:1px 0;
 	}
 	
-	.${CLASS_PREFIX}-list .sel-chk{
+	.${CLASS_PREFIX$1}-list .sel-chk{
 		opacity:0;
 		width:1em;
 		height:1em;
@@ -5085,31 +5170,31 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		margin:0.05em 0 0 -1.25em;
 	}
 	
-	.${CLASS_PREFIX}-list .sel-chk:before{
+	.${CLASS_PREFIX$1}-list .sel-chk:before{
 		content:"\\e624";
 		font-family:"WebCom-iconfont", serif;
 	}
 	
-	.${CLASS_PREFIX}-list .matched{
+	.${CLASS_PREFIX$1}-list .matched{
 		color:var(${Theme.CssVarPrefix}sel-item-matched-color);
 		font-weight:var(${Theme.CssVarPrefix}sel-item-matched-font-weight);
 	}
 	
-	.${CLASS_PREFIX}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
-	.${CLASS_PREFIX}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
-	.${CLASS_PREFIX}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
+	.${CLASS_PREFIX$1}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
+	.${CLASS_PREFIX$1}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX$1}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
 	
-	.${CLASS_PREFIX}-list label{
+	.${CLASS_PREFIX$1}-list label{
 		display:block;
 		overflow:hidden;
 		position:relative;
 	}
-	.${CLASS_PREFIX}-list label:hover .ti-wrap{
+	.${CLASS_PREFIX$1}-list label:hover .ti-wrap{
 		background:var(${Theme.CssVarPrefix}sel-item-hover-bg);
 		text-shadow:1px 1px 1px white;
 	}
 	
-	.${CLASS_PREFIX}-list li[data-group-title]:before{
+	.${CLASS_PREFIX$1}-list li[data-group-title]:before{
 		content:attr(data-group-title) " -";
 		color:gray;
 		display:block;
@@ -5117,24 +5202,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 	
 	/** checked **/
-	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap{
+	.${CLASS_PREFIX$1}-list input:checked ~ .ti-wrap{
 		background-color:var(${Theme.CssVarPrefix}sel-item-selected-bg);
 	}
 	
-	.${CLASS_PREFIX}-list input:checked ~ .ti-wrap .sel-chk{
+	.${CLASS_PREFIX$1}-list input:checked ~ .ti-wrap .sel-chk{
 		opacity:1;
 	}
 	
 	/** disabled **/
-	.${CLASS_PREFIX}-list input:disabled ~ .ti-wrap{
+	.${CLASS_PREFIX$1}-list input:disabled ~ .ti-wrap{
 		opacity:0.5;
 		cursor:default;
 		background-color:transparent
 	}
-	.${CLASS_PREFIX}-list input:disabled ~ .ti-wrap .sel-chk{
+	.${CLASS_PREFIX$1}-list input:disabled ~ .ti-wrap .sel-chk{
 		opacity:.1;
 	}
-`, COM_ID + '-style');
+`, COM_ID$1 + '-style');
 
 	/**
 	 * @param sel
@@ -5227,7 +5312,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @return {HTMLElement|HTMLElement[]}
 	 */
 	const createPanel = (config) => {
-		let list_html = `<ul class="${CLASS_PREFIX}-list">`;
+		let list_html = `<ul class="${CLASS_PREFIX$1}-list">`;
 		config.options.forEach(option => {
 			if(option.options && option.options.length){
 				list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
@@ -5257,8 +5342,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 		list_html += '</ul>';
 		return createDomByHtml(`
-		<div class="${CLASS_PREFIX}-panel" style="display:none;">
-			<div class="${CLASS_PREFIX}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
+		<div class="${CLASS_PREFIX$1}-panel" style="display:none;">
+			<div class="${CLASS_PREFIX$1}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
 				<input type="search" placeholder="过滤..." aria-label="过滤选项">
 			</div>
 			${list_html}
@@ -5330,12 +5415,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		constructor(config){
 			this.config = Object.assign(this.config, config);
-			this.config.name = this.config.name || COM_ID + guid();
+			this.config.name = this.config.name || COM_ID$1 + guid();
 			this.panelEl = createPanel(this.config);
 			this.searchEl = this.panelEl.querySelector('input[type=search]');
 
 			//checkbox change
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach(chk => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach(chk => {
 				chk.addEventListener('change', () => {
 					this.onChange.fire();
 				});
@@ -5356,10 +5441,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			});
 
 			//li click, enter
-			let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+			let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list .sel-item`);
 			liElList.forEach(li => {
 				buttonActiveBind(li, e => {
-					console.log(e.type);
 					if(e.type !== 'click'){
 						let chk = li.querySelector('input');
 						chk.checked ? chk.removeAttribute('checked') : chk.checked = true;
@@ -5383,7 +5467,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 		search(kw){
 			this.searchEl.value = kw;
-			let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
+			let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list .sel-item`);
 			let firstMatchedItem = null;
 			liEls.forEach(li => {
 				this.config.hideNoMatchItems && hide(li);
@@ -5395,8 +5479,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					if(!firstMatchedItem){
 						firstMatchedItem = li;
 					}
-				}else {
-					console.log(title, kw);
 				}
 			});
 			if(firstMatchedItem){
@@ -5409,7 +5491,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param {Number[]} selectedIndexList
 		 */
 		selectByIndex(selectedIndexList){
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach((chk, idx) => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
 				chk.checked = selectedIndexList.includes(idx);
 			});
 		}
@@ -5419,7 +5501,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 * @param values
 		 */
 		selectByValues(values){
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach((chk, idx) => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
 				chk.checked = values.includes(chk.value);
 			});
 		}
@@ -5430,7 +5512,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		getValues(){
 			let values = [];
-			let tmp = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input:checked`);
+			let tmp = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input:checked`);
 			tmp.forEach(chk => {
 				values.push(chk.value);
 			});
@@ -5444,7 +5526,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		 */
 		getSelectedIndexes(){
 			let selectedIndexes = [];
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list input`).forEach((chk, idx) => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
 				if(chk.checked){
 					selectedIndexes.push(idx);
 				}
@@ -5593,6 +5675,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	/**
 	 * 将 select 或者 input[list] 对象绑定使用 Select UI组件
+	 * 参数：
+	 * select
+	 * input[list]
 	 */
 	class ACSelect {
 		static init(node){
@@ -5762,12 +5847,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		unRegister: (componentName) => {
 			delete (AC_COMPONENT_MAP[componentName]);
 		}
-	};
-
-	const DOMAIN_DEFAULT = 'default';
-
-	const trans = (text, domain = DOMAIN_DEFAULT) => {
-		return text;
 	};
 
 	/**
@@ -6093,13 +6172,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const ONE_MONTH_31 = 2678400000;
 	const ONE_YEAR_365 = 31536000000;
 
-	function frequencyControl(payload, hz, executeOnFistTime = false){
+	/**
+	 * 限制函数执行频率
+	 * @param {Function} payload
+	 * @param interval
+	 * @param executeOnFistTime
+	 */
+	function frequencyControl(payload, interval, executeOnFistTime = false){
 		if(payload._frq_tm){
 			clearTimeout(payload._frq_tm);
 		}
 		payload._frq_tm = setTimeout(() => {
-			frequencyControl(payload, hz, executeOnFistTime);
-		}, hz);
+			frequencyControl(payload, interval, executeOnFistTime);
+		}, interval);
 	}
 
 	/**
@@ -6159,7 +6244,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		let txt = '';
 		txt += d ? `${d}天` : '';
-		txt += (txt || h) ? `${delimiter}${h}小` : '';
+		txt += (txt || h) ? `${delimiter}${h}小时` : '';
 		txt += (txt || m) ? `${delimiter}${m}分` : '';
 		txt += (txt || s) ? `${delimiter}${s}秒` : '';
 		return txt.trim();
@@ -6176,12 +6261,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let month = start_date.getMonth()+1;
 		month = month + monthNum;
 		if(month > 12){
-			let yearNum = parseInt((month - 1) / 12);
+			let yearNum = Math.floor((month - 1) / 12);
 			month = month % 12 === 0 ? 12 : month % 12;
 			year += yearNum;
 		}else if(month <= 0){
 			month = Math.abs(month);
-			let yearNum = parseInt((month + 12) / 12);
+			let yearNum = Math.floor((month + 12) / 12);
 			let n = month % 12;
 			if(n === 0){
 				year -= yearNum;
@@ -6194,68 +6279,149 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return {year, month}
 	};
 
-	/**
-	 * copy text
-	 * @param {String} text
-	 * @param {Boolean} silent 是否在不兼容是进行提醒
-	 * @returns {boolean} 是否复制成功
-	 */
-	const copy = (text, silent = false) => {
-		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
-		txtNode.style.cssText = 'position:absolute; left:-9999px;';
-		let y = window.pageYOffset || document.documentElement.scrollTop;
-		txtNode.addEventListener('focus', function(){
-			window.scrollTo(0, y);
-		});
-		txtNode.value = text;
-		txtNode.select();
-		try{
-			let succeeded = document.execCommand('copy');
-			!silent && ToastClass.showSuccess(trans('复制成功'));
-			return succeeded;
-		}catch(err){
-			console.error(err);
-			DialogClass.prompt('复制失败，请手工复制', {initValue:text});
-		} finally{
-			txtNode.parentNode.removeChild(txtNode);
+	const COM_ID = Theme.Namespace + 'novice-guide';
+	const CLASS_PREFIX = COM_ID;
+	const PADDING_SIZE = '5px';
+
+	insertStyleSheet(`
+	.${CLASS_PREFIX}-highlight {
+		position:absolute; 
+		z-index:10000;
+		--novice-guide-highlight-padding:${PADDING_SIZE}; 
+		box-shadow:0 0 10px 2000px #00000057; 
+		border-radius:var(${Theme.CssVar.PANEL_RADIUS}); 
+		padding:var(--novice-guide-highlight-padding); 
+		margin:calc(var(--novice-guide-highlight-padding) * -1) 0 0 calc(var(--novice-guide-highlight-padding) * -1); 
+	}
+	.${CLASS_PREFIX}-btn {user-select:none; cursor:pointer;}
+	.${CLASS_PREFIX}-masker {width:100%; height:100%; position:absolute; left:0; top:0; z-index:10000}
+	.${CLASS_PREFIX}-counter {float:left; color:${Theme.CssVar.COLOR}; opacity:0.7} 
+	.${CLASS_PREFIX}-next-wrap {text-align:right; margin-top:10px;}
+`, COM_ID);
+
+	let highlightHelperEl, //开窗效果
+		maskerEl; //阻隔层，防止点击到下部页面
+	const show_highlight_zone = (highlightNode) => {
+		hide_highlight_zone();
+		if(!highlightHelperEl){
+			highlightHelperEl = createDomByHtml(`<div class="${CLASS_PREFIX}-highlight"></div>`, document.body);
+			maskerEl = createDomByHtml(`<div class="${CLASS_PREFIX}-masker"></div>`, document.body);
 		}
-		return false;
+		show(maskerEl);
+		show(highlightHelperEl);
+		if(highlightNode){
+			let hlnOffset = getDomOffset(highlightNode);
+			highlightHelperEl.style.left = dimension2Style(hlnOffset.left);
+			highlightHelperEl.style.top = dimension2Style(hlnOffset.top);
+			highlightHelperEl.style.width = dimension2Style(highlightNode.offsetWidth);
+			highlightHelperEl.style.height = dimension2Style(highlightNode.offsetHeight);
+			return;
+		}
+		highlightHelperEl.style.left = dimension2Style(document.body.offsetWidth/2);
+		highlightHelperEl.style.top = dimension2Style(300);
+		highlightHelperEl.style.width = dimension2Style(1);
+		highlightHelperEl.style.height = dimension2Style(1);
+		return highlightHelperEl;
+	};
+
+	const hide_highlight_zone = () => {
+		maskerEl && hide(maskerEl);
+		highlightHelperEl && hide(highlightHelperEl);
 	};
 
 	/**
-	 * Copy formatted html content
-	 * @param html
-	 * @param silent
+	 * @param {Object[]} steps 步骤内容
+	 * @param {String} steps.content 步骤内容
+	 * @param {HTMLElement} steps.relateNode 步骤内容
+	 * @param config
 	 */
-	const copyFormatted = (html, silent = false) => {
-		// Create container for the HTML
-		let container = createDomByHtml(`
-		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
-	`, document.body);
+	const showNoviceGuide = (steps, config) => {
+		config = Object.assign({
+			next_button_text: '下一步',
+			prev_button_text: '上一步',
+			finish_button_text: '完成',
+			top_close: false,  //是否显示顶部关闭按钮
+			cover_included: false, //提供的步骤里面是否包含封面步骤
+			show_counter: false, //是否显示计数器
+			on_finish: function(){
+			} //完成显示后的回调(包含顶部关闭操作)
+		}, config);
 
-		// Detect all style sheets of the page
-		let activeSheets = Array.prototype.slice.call(document.styleSheets)
-			.filter(function(sheet){
-				return !sheet.disabled;
+		let step_size = steps.length;
+		let show_one = function(){
+			if(!steps.length){
+				hide_highlight_zone();
+				config.on_finish();
+				return;
+			}
+
+			let step = steps[0];
+			steps.shift();
+
+			let showing_cover = config.cover_included && step_size === (steps.length + 1);
+			let highlightHelperEl;
+
+			//masker
+			if(showing_cover){
+				highlightHelperEl = show_highlight_zone(null, {
+					left: document.body.offsetWidth / 2,
+					top: 300,
+					width: 1,
+					height: 1
+				});
+			}else {
+				highlightHelperEl = show_highlight_zone(step.relateNode);
+			}
+
+			let next_html = `<div class="${CLASS_PREFIX}-next-wrap">`;
+
+			if((steps.length + 2) <= step_size.length){
+				next_html += `<span class="${CLASS_PREFIX}-btn ${CLASS_PREFIX}-prev-btn ">${config.prev_button_text}</span> `;
+			}
+			if(steps.length && config.next_button_text){
+				next_html += `<span class="${CLASS_PREFIX}-btn ${CLASS_PREFIX}-next-btn">${config.next_button_text}</span>`;
+			}
+			if(!steps.length && config.finish_button_text){
+				next_html += `<span class="${CLASS_PREFIX}-btn ${CLASS_PREFIX}-finish-btn">${config.finish_button_text}</span>`;
+			}
+			if(config.show_counter){
+				next_html += `<span class="${CLASS_PREFIX}-counter">${step_size.length - steps.length}/${step_size.length}</span>`;
+			}
+			next_html += `</div>`;
+
+			let tp = new Tip(`<div class="${CLASS_PREFIX}-content">${step.content}</div>${next_html}`, showing_cover ? highlightHelperEl : step.relateNode, {
+				showCloseButton: config.top_close,
+				dir: showing_cover ? 6 : 'auto'
 			});
+			tp.onHide.listen(function(){
+				tp.destroy();
+				hide_highlight_zone();
+				config.on_finish();
+			});
+			tp.onShow.listen(function(){
+				tp.dom.style.zIndex = "10001";
+				tp.dom.querySelector(`.${CLASS_PREFIX}-next-btn,.${CLASS_PREFIX}-finish-btn`).addEventListener('click', function(){
+					tp.destroy();
+					show_one();
+				});
+				let prevBtn = tp.dom.querySelector(`.${CLASS_PREFIX}-prev-btn`);
+				if(prevBtn){
+					prevBtn.addEventListener('click', function(){
+						tp.destroy();
+						let len = steps.length;
+						steps.unshift(step_size[step_size.length - len - 1]);
+						steps.unshift(step_size[step_size.length - len - 2]);
+						show_one();
+					});
+				}
+			});
+			tp.show();
+		};
+		show_one();
+	};
 
-		// Copy to clipboard
-		window.getSelection().removeAllRanges();
+	const showNoviceGuideInDates = ()=>{
 
-		let range = document.createRange();
-		range.selectNode(container);
-		window.getSelection().addRange(range);
-
-		document.execCommand('copy');
-		for(let i = 0; i < activeSheets.length; i++){
-			activeSheets[i].disabled = true;
-		}
-		document.execCommand('copy');
-		for(let i = 0; i < activeSheets.length; i++){
-			activeSheets[i].disabled = false;
-		}
-		document.body.removeChild(container);
-		!silent && ToastClass.showSuccess(trans('复制成功'));
 	};
 
 	exports.ACAsync = ACAsync;
@@ -6368,7 +6534,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.getViewWidth = getViewWidth;
 	exports.guid = guid;
 	exports.hide = hide;
-	exports.highlightText = highlightText$1;
+	exports.highlightText = highlightText;
 	exports.html2Text = html2Text;
 	exports.inputAble = inputAble;
 	exports.insertStyleSheet = insertStyleSheet;
@@ -6413,6 +6579,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.showImgListPreview = showImgListPreviewFn;
 	exports.showImgPreview = showImgPreviewFn;
 	exports.showMenu = showMenu;
+	exports.showNoviceGuide = showNoviceGuide;
+	exports.showNoviceGuideInDates = showNoviceGuideInDates;
 	exports.sortByKey = sortByKey;
 	exports.strToPascalCase = strToPascalCase;
 	exports.stringToEntity = stringToEntity;

@@ -1,18 +1,22 @@
 import {guid} from "../Lang/Util.js";
-import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, insertStyleSheet, matchParent} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 import {escapeHtml} from "../Lang/Html.js";
+import {eventDelegate} from "../Lang/Event.js";
 
 let CLASS_PREFIX = Theme.Namespace + 'toc';
 
 insertStyleSheet(`
-	.${CLASS_PREFIX}-wrap {position:fixed; padding:1em; right:0; bottom:0;}
+	.${CLASS_PREFIX}-wrap {}
 	.${CLASS_PREFIX}-wrap ul {list-style:none; padding:0; margin:0}
 	.${CLASS_PREFIX}-wrap li {padding-left:calc((var(--toc-item-level) - 1) * 10px)}
+	.${CLASS_PREFIX}-collapse>ul {display:none;}
 	.${CLASS_PREFIX}-title {display:block; margin:0.1em 0 0; cursor:pointer; user-select:none; padding:0.5em 1em 0.5em 2em;}
 	.${CLASS_PREFIX}-title:hover {background-color:#eee; border-radius:var(${Theme.CssVar.PANEL_RADIUS})}
-	.${CLASS_PREFIX}-collapse {position:absolute; vertical-align:middle; width:0; height:0; border:0.5em solid transparent; border-width:0.5em 0.4em 0.5em 0.4em; margin:1em 0 0 0.5em; border-top-color:var(${Theme.CssVar.COLOR}); opacity:0; cursor:pointer;}
-	li:hover>.${CLASS_PREFIX}-collapse {opacity:.5}
+	.${CLASS_PREFIX}-toggle {position:absolute; vertical-align:middle; width:0; height:0; border:0.4em solid transparent; margin:1em 0 0 0.5em; border-top-color:var(${Theme.CssVar.COLOR}); opacity:0; cursor:pointer;}
+	.${CLASS_PREFIX}-collapse>.${CLASS_PREFIX}-toggle {border-top-color:transparent; border-left-color:var(${Theme.CssVar.COLOR}); margin:.75em 0 0 0.5em;}
+	li:hover>.${CLASS_PREFIX}-toggle {opacity:.4}
+	.${CLASS_PREFIX}-wrap .${CLASS_PREFIX}-toggle:hover {opacity:0.8}
 `, Theme.Namespace + 'toc-style');
 
 export const resolveTocListFromDom = (dom = document.body, levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) => {
@@ -47,7 +51,7 @@ const renderEntriesListHtml = (entries, config) => {
 	let html = '<ul>';
 	entries.forEach(entry => {
 		html += `<li data-id="${entry.id}" data-level="${entry.level}" style="--toc-item-level:${entry.level}">
-					${config.collapseAble && entry.children.length ? `<span class="${CLASS_PREFIX}-collapse"></span>` : ''}
+					${config.collapseAble && entry.children.length ? `<span class="${CLASS_PREFIX}-toggle"></span>` : ''}
 					<span class="${CLASS_PREFIX}-title">${escapeHtml(entry.title)}</span>`;
 		if(entry.children.length){
 			html += renderEntriesListHtml(entry.children, config);
@@ -76,14 +80,15 @@ const searchNodeById = (id, entries) => {
 class Toc {
 	dom = null;
 	config = {
+		container: null, //default for body
 		collapseAble: true,
 	};
 
 	constructor(entries, config = {}){
-		this.config = Object.assign(this.config, config);
+		this.config = Object.assign(this.config, {container:document.body}, config);
 		this.dom = createDomByHtml(`<div class="${CLASS_PREFIX}-wrap">
 				${renderEntriesListHtml(entries, this.config)}
-			</div>`, document.body);
+			</div>`, this.config.container);
 		this.dom.querySelectorAll(`li>span.${CLASS_PREFIX}-title`).forEach(span => {
 			let id = span.parentNode.getAttribute('data-id');
 			span.addEventListener('click', e => {
@@ -91,6 +96,10 @@ class Toc {
 				n.focus();
 				n.scrollIntoView({behavior: 'smooth'});
 			});
+		});
+		eventDelegate(this.dom, `.${CLASS_PREFIX}-toggle`, 'click', target=>{
+			let li = matchParent(target, 'li');
+			li.classList.toggle(CLASS_PREFIX+'-collapse');
 		});
 	}
 

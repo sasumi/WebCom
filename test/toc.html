@@ -5,41 +5,70 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
+	<style>
+		.page {
+			display:flex;
+			max-width:1200px;
+			margin:1em auto 0 auto;
+		}
+		.page>* {
+			flex:1;
+			padding:1em;
+			box-sizing:border-box;
+		}
+		.page aside {
+			max-width:300px;
+			background-color:#fff;
+			border-right:1px solid #ccc;
+		}
+		.page aside .WebCom-toc-wrap {
+			border:1px solid gray;
+			position:sticky;
+			top:0;
+			left:0;
+		}
+	</style>
 </head>
 <body>
 <script src="assets/nav.js"></script>
-<h1>h1 title</h1>
-<p style="height:200px">
-	asdfasf
-</p>
-<h2>h2 title herer asdf asfd as</h2>
-<p style="height:200px">
-	asdfasf
-</p>
-<h4>h4 asdfa sdfasd fasdf </h4>
-<p style="height:200px">
-	asdfasf
-</p>
-<h3>h3 titleasdf asdf asf </h3>
-<h3>h3 asdfasf asf as f</h3>
-<p style="height:200px">
-	asdfasf
-</p>
-<p style="height:200px">
-	asdfasf
-</p>
-<p style="height:200px">
-	asdfasf
-</p>
-<p style="height:200px">
-	asdfasf
-</p>
+<section class="page">
+	<aside>
+	</aside>
+	<article>
+		<h1>h1 title</h1>
+		<p style="height:200px">
+			asdfasf
+		</p>
+		<h2>h2 title herer asdf asfd as</h2>
+		<p style="height:200px">
+			asdfasf
+		</p>
+		<h4>h4 asdfa sdfasd fasdf </h4>
+		<p style="height:200px">
+			asdfasf
+		</p>
+		<h3>h3 titleasdf asdf asf </h3>
+		<h3>h3 asdfasf asf as f</h3>
+		<p style="height:200px">
+			asdfasf
+		</p>
+		<p style="height:200px">
+			asdfasf
+		</p>
+		<p style="height:200px">
+			asdfasf
+		</p>
+		<p style="height:200px">
+			asdfasf
+		</p>
 
-<h2>h2 asdf as fsf sf</h2>
+		<h2>h2 asdf as fsf sf</h2>
+	</article>
+</section>
 <script type="module">
 	import {Toc} from "../src/Widget/Toc.js";
 
-	Toc.createFromHeading();
+	Toc.createFromHeading(null, {container:document.querySelector('aside')});
 </script>
 </body>
 </html>
