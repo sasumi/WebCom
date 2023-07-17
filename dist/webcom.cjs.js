@@ -5730,7 +5730,9 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 				C.init(node, data);
 			}
 			if(C.active){
-				activeStacks.push([C.active, data]);
+				activeStacks.push(()=>{
+					return C.active(node, resolveDataParam(node, com)); //点击时实时解析参数
+				});
 			}
 			return true;
 		});
@@ -5758,7 +5760,7 @@ const isInputAble = (node) => {
 /**
  * 绑定节点触发事件，不同节点触发行为定义不同
  * @param {HTMLElement} node
- * @param activeStacks
+ * @param {Function[]} activeStacks 链式调用列表
  */
 const bindActiveChain = (node, activeStacks) => {
 	let event = 'click';
@@ -5770,11 +5772,11 @@ const bindActiveChain = (node, activeStacks) => {
 		event = 'click';
 	}
 	node.addEventListener(event, e => {
-		let [func, args] = activeStacks[0];
-		let pro = func(node, args);
+		let func = activeStacks[0];
+		let pro = func();
 		for(let i = 1; i < activeStacks.length; i++){
 			pro = pro.then(() => {
-				return activeStacks[i][0](node, activeStacks[i][1]);
+				return activeStacks[i]();
 			}, () => {
 			});
 		}
