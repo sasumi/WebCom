@@ -62,7 +62,7 @@ insertStyleSheet(`
 	
 	.${CLASS_PREFIX}-list .sel-chk:before{
 		content:"\\e624";
-		font-family:"WebCom-iconfont", serif;
+		font-family:"${Theme.IconFont}", serif;
 	}
 	
 	.${CLASS_PREFIX}-list .matched{

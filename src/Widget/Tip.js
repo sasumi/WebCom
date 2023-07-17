@@ -71,7 +71,7 @@ insertStyleSheet(`
 	.${NS}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close{right:13px;top:3px;/* color: var(--WebCom-color); */}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close{right:13px;top:3px;}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
@@ -321,7 +321,7 @@ export class Tip {
 	/**
 	 * 通过异步获取数据方式绑定显示Tip
 	 * @param {HTMLElement} relateNode
-	 * @param {Function} dataFetcher 返回 Promise 对象
+	 * @param {Function} dataFetcher Promise 对象，resolve返回 html 字符串
 	 * @param {Object} option
 	 */
 	static bindAsync(relateNode, dataFetcher, option = {}){

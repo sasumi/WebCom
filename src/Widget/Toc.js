@@ -51,10 +51,10 @@ const searchNodeById = (id, entries) => {
 }
 
 class Toc {
-	dom = null;
+	dom = null; //toc 面板 DOM
 	config = {
-		container: null, //default for body
-		collapseAble: true,
+		container: null, //toc 挂载的容器
+		collapseAble: true, //是否支持折叠
 	};
 
 	constructor(entries, config = {}){

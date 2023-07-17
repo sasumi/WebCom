@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+<dl>
+	<dt>Theme.CssVar</dt>
+	<dd id="css_var">
+		<script type="module">
+			import {Theme} from "../src/index.js";
+			let html = `
+                <table class="table">
+                    <thead>
+                        <tr><th>key</th> <th>value</th> <th>default</th></tr>
+                    </thead>
+                    <tbody>
+                `;
+			for(let i in Theme.CssVar){
+				html += `<tr><th>Theme.CssVar.${i}</th><td>${Theme.CssVar[i]}</td><td><span class="v" style="--val:var(${Theme.CssVar[i]})"></span></td></tr>`
+			}
+			html += '</tbody></table>';
+			document.getElementById('css_var').innerHTML = html;
+		</script>
+	</dd>
+</dl>
+
+<script>
+	let lis = false;
+	document.body.addEventListener('mousemove', e => {
+		if(lis){
+			return;
+		}
+		lis = true;
+		let vs = document.querySelectorAll('.v');
+		console.log(vs);
+		vs.forEach(el => {
+			console.log(el);
+			el.innerHTML = getComputedStyle(el).getPropertyValue('--val');
+		})
+	})
+</script>
+</body>
+</html>

@@ -3377,7 +3377,7 @@ var WebCom = (function (exports) {
 	.${NS}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close{right:13px;top:3px;/* color: var(--WebCom-color); */}
+	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close{right:13px;top:3px;}
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
 	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
@@ -3627,7 +3627,7 @@ var WebCom = (function (exports) {
 		/**
 		 * 通过异步获取数据方式绑定显示Tip
 		 * @param {HTMLElement} relateNode
-		 * @param {Function} dataFetcher 返回 Promise 对象
+		 * @param {Function} dataFetcher Promise 对象，resolve返回 html 字符串
 		 * @param {Object} option
 		 */
 		static bindAsync(relateNode, dataFetcher, option = {}){
@@ -4400,17 +4400,17 @@ var WebCom = (function (exports) {
 	};
 
 	insertStyleSheet(`
-	 @keyframes WebCom-spin{
+	 @keyframes ${Theme.Namespace}spin{
 		100%{transform:rotate(360deg);}
 	}
 	.${DOM_CLASS}{position:fixed;z-index:${BASE_INDEX};width:100%;height:100%;overflow:hidden;top:0;left:0;}
 	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
-	.${DOM_CLASS} .civ-closer:before{font-family:"WebCom-iconfont", serif; content:"\\e61a"; font-size:20px;}
+	.${DOM_CLASS} .civ-closer:before{font-family:"${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
 	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
 	.${DOM_CLASS} .civ-nav-btn[disabled]{color:gray; cursor:default !important;}
 	.${DOM_CLASS} .civ-nav-btn:not([disabled]):hover{opacity:1;}
-	.${DOM_CLASS} .civ-nav-btn:before{font-family:"WebCom-iconfont"; font-size:20px;}
+	.${DOM_CLASS} .civ-nav-btn:before{font-family:"${Theme.IconFont}"; font-size:20px;}
 	.${DOM_CLASS} .civ-prev{left:10px}
 	.${DOM_CLASS} .civ-prev:before{content:"\\e6103"}
 	.${DOM_CLASS} .civ-next{right:10px}
@@ -4439,7 +4439,7 @@ var WebCom = (function (exports) {
 	.${DOM_CLASS} .civ-nav-list-prev:hover,
 	.${DOM_CLASS} .civ-nav-list-next:hover {opacity:1}
 	.${DOM_CLASS} .civ-nav-list-prev:before,
-	.${DOM_CLASS} .civ-nav-list-next:before{font-family:"WebCom-iconfont";font-size:18px;}
+	.${DOM_CLASS} .civ-nav-list-next:before{font-family:"${Theme.IconFont}";font-size:18px;}
 	.${DOM_CLASS} .civ-nav-list-prev {}
 	.${DOM_CLASS} .civ-nav-list-next {right: -20px;}
 	.${DOM_CLASS} .civ-nav-list-prev:before{content:"\\e6103"}
@@ -4453,7 +4453,7 @@ var WebCom = (function (exports) {
 	.${DOM_CLASS} .civ-ctn{height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-error{margin-top:calc(50% - 60px);}
 	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
-	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"WebCom-iconfont" !important; animation:WebCom-spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size); line-height:var(--loading-size)}
+	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation:${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size); line-height:var(--loading-size)}
 	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
 	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
 
@@ -5145,7 +5145,7 @@ var WebCom = (function (exports) {
 	
 	.${CLASS_PREFIX$1}-list .sel-chk:before{
 		content:"\\e624";
-		font-family:"WebCom-iconfont", serif;
+		font-family:"${Theme.IconFont}", serif;
 	}
 	
 	.${CLASS_PREFIX$1}-list .matched{

@@ -8,6 +8,7 @@ const nav = [
 	'net.html',
 	'novice_guide.html',
 	'select.html',
+	'theme.html',
 	'tip.html',
 	'toast.html',
 	'toc.html'

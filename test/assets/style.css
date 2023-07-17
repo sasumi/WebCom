@@ -1,4 +1,4 @@
-html, body, ul, li, ol, h1, h2, h3, h4, h5, h6{margin:0; padding:0;}
+html, body, ul, li, ol, h1, h2, h3, h4, h5, h6, dd{margin:0; padding:0;}
 body{padding:1em;font-size: 14px;}
 a{text-decoration:none; color:#519aff}
 .nav{overflow:hidden; list-style:none; border-bottom:1px solid #cccccc; padding:0.5em; margin-bottom:0.5em;}
@@ -12,3 +12,13 @@ input[type=button], button{padding: 0.25em 1em;cursor:pointer;}
 /*	--WebCom-color: white;*/
 /*	--WebCom-background-color: black;*/
 /*}*/
+
+.table {
+	border-collapse:collapse;
+	border-spacing:0;
+}
+
+.table thead tr {background-color:#ddd;}
+.table tbody th {background-color: #eeec;}
+.table th {text-align:left; font-weight:normal}
+.table th, .table td {padding:0.25em .5em; border:1px solid gray}
