@@ -40,6 +40,10 @@ ACComponent.watch(document, 'data-component');
 <a href="/cgi-bin/update&id=1" data-component="dialog">窗口方式编辑文章</a>
 ```
 
+## 二、定制 `Widget` 主题
+
+
+
 ## 三、搭建自己的自动组件
 
 自动组件为 class 封装，其中包含 `static init(node, param){}` 方法、`static active(node, param){}` 方法。
