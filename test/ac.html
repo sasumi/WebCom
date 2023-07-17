@@ -8,8 +8,7 @@
 </head>
 <body>
 <script src="assets/nav.js"></script>
-<h1 style="height:30px;">HTML Preview</h1>
-<button data-component="confirm,toast" data-toast-message="开始行动" data-confirm-object-id="33234" data-confirm-message="hello">button</button>
+<button data-component="confirm,toast" data-toast-message="开始行动" data-confirm-object-id="33234" data-confirm-message="hello">confirm &gt; toast</button>
 
 <p>
     这里有一个自动化提示的 <a href="" title="链接的更多描述说明<br/>dadfasd" data-component="tip">链接</a>，鼠标移动上来就可以看到tip
@@ -19,9 +18,14 @@
     这个提示信息需要点击之后才能显示： <span title="链接的更多描述说明<br/>dadfasd" data-tip-triggerType="click" data-component="tip">链接</span>
 </p>
 
+
+<button data-component="hello">Hello</button>
+
 <script type="module">
     import {ACComponent} from "../src/index.js";
-    ACComponent.watch(document.body);
+    import {Hello} from "./assets/Hello.js";
+    ACComponent.register('hello', Hello);
+    ACComponent.watch();
 </script>
 </body>
 </html>
