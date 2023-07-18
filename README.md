@@ -40,11 +40,34 @@ ACComponent.watch(document, 'data-component');
 <a href="/cgi-bin/update&id=1" data-component="dialog">窗口方式编辑文章</a>
 ```
 
-## 二、定制 `Widget` 主题
+## 三、定制 `Widget` 主题
 
+通过重置 css var方式，可以对现有WebCom Widget 组件进行部分样式重定义。重置方法如下：
+```html
+<html>
+    <head>
+        <title> 示例标题 </title>
+        <script type="module">
+            import {Theme} from "./webcom.es.js";
+        	document.write(`
+        		<style>
+        			html {
+        				${Theme.CssVar.COLOR}: #fff;
+        				${Theme.CssVar.BACKGROUND_COLOR}: #333;
+        			}
+	 	       </style>
+        	`)
+        </script>
+    </head>
+    <body>
+        内容
+    </body>
+</html>
+```
 
+更多变量释疑请参考：`webcom/test/theme.html` 帮助文件。
 
-## 三、搭建自己的自动组件
+## 四、搭建自己的自动组件
 
 自动组件为 class 封装，其中包含 `static init(node, param){}` 方法、`static active(node, param){}` 方法。
 两个方法均返回 `Promise` 对象，其中 resolve 方法表示继续执行其他组件，reject表示终端后续组件执行（多组件情况下）。组件通过 `ACComponent.register('MyComponent', class) ` 方式注册。范例代码如下：
