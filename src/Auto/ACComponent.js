@@ -7,6 +7,7 @@ import {ACToast} from "./ACToast.js";
 import {objectPushByPath} from "../Lang/Array.js";
 import {ACPreview} from "./ACPreview.js";
 import {ACSelect} from "./ACSelect.js";
+import {ACHighlight} from "./ACHighlight.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
@@ -20,6 +21,8 @@ let AC_COMPONENT_MAP = {
 	select: ACSelect,
 	tip: ACTip,
 	toast: ACToast,
+	hl: ACHighlight,
+	highlight: ACHighlight,
 };
 
 const parseComponents = function(attr){
@@ -68,7 +71,7 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 				C.init(node, data);
 			}
 			if(C.active){
-				activeStacks.push(()=>{
+				activeStacks.push(() => {
 					return C.active(node, resolveDataParam(node, com)); //点击时实时解析参数
 				});
 			}

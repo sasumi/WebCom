@@ -412,6 +412,39 @@ export const setStyle = (dom, style = {}) => {
 }
 
 /**
+ * 高亮节点关键字
+ * @param {HTMLElement} node
+ * @param {RegExp|String} pattern
+ * @param {String} hlClass
+ * @return {number}
+ */
+export const nodeHighlight = (node, pattern, hlClass) => {
+	let skip = 0;
+	if(node.nodeType === 3){
+		pattern = new RegExp(pattern, 'i');
+		let pos = node.data.search(pattern);
+		if(pos >= 0 && node.data.length > 0){ // .* matching "" causes infinite loop
+			let match = node.data.match(pattern); // get the match(es), but we would only handle the 1st one, hence /g is not recommended
+			let spanNode = document.createElement('span');
+			spanNode.className = hlClass; // set css
+			let middleBit = node.splitText(pos); // split to 2 nodes, node contains the pre-pos text, middleBit has the post-pos
+			let endBit = middleBit.splitText(match[0].length); // similarly split middleBit to 2 nodes
+			let middleClone = middleBit.cloneNode(true);
+			spanNode.appendChild(middleClone);
+			// parentNode ie. node, now has 3 nodes by 2 splitText()s, replace the middle with the highlighted spanNode:
+			middleBit.parentNode.replaceChild(spanNode, middleBit);
+			skip = 1; // skip this middleBit, but still need to check endBit
+		}
+	}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
+		for(let i = 0; i < node.childNodes.length; ++i){
+			i += nodeHighlight(node.childNodes[i], pattern, hlClass);
+		}
+	}
+	return skip;
+}
+
+
+/**
  * 创建HTML节点
  * @param {String} html
  * @param {HTMLElement|null} parentNode 父级节点
