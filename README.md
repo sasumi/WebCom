@@ -70,7 +70,7 @@ ACComponent.watch(document, 'data-component');
 ## 四、搭建自己的自动组件
 
 自动组件为 class 封装，其中包含 `static init(node, param){}` 方法、`static active(node, param){}` 方法。
-两个方法均返回 `Promise` 对象，其中 resolve 方法表示继续执行其他组件，reject表示终端后续组件执行（多组件情况下）。组件通过 `ACComponent.register('MyComponent', class) ` 方式注册。范例代码如下：
+两个方法均返回 `Promise` 对象，其中 resolve 方法表示继续执行其他组件，reject表示中断后续组件执行（多组件情况下）。组件通过 `ACComponent.register('MyComponent', class) ` 方式注册。范例代码如下：
 
 ```js
 // Hello.js
