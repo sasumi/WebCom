@@ -56,27 +56,32 @@ const resolveDataParam = (node, key) => {
 
 const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
 	container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`).forEach(node => {
-		node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
 		let cs = parseComponents(node.getAttribute(attr_flag));
 		let activeStacks = [];
+		let init_count = 0;
 		cs.forEach(com => {
 			let C = AC_COMPONENT_MAP[com];
 			if(!C){
 				console.warn('component no found', com);
 				return false;
 			}
+			init_count++;
 			let data = resolveDataParam(node, com);
 			console.info('com detected:', com);
 			if(C.init){
 				C.init(node, data);
 			}
 			if(C.active){
-				activeStacks.push(() => {
+				activeStacks.push(()=>{
 					return C.active(node, resolveDataParam(node, com)); //点击时实时解析参数
 				});
 			}
 			return true;
-		})
+		});
+		//只有在有成功初始化情况才忽略下次初始化
+		if(init_count !== 0){
+			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+		}
 		if(activeStacks.length){
 			bindActiveChain(node, activeStacks);
 		}
