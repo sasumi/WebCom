@@ -1027,6 +1027,39 @@
 	};
 
 	/**
+	 * 高亮节点关键字
+	 * @param {HTMLElement} node
+	 * @param {RegExp|String} pattern
+	 * @param {String} hlClass
+	 * @return {number}
+	 */
+	const nodeHighlight = (node, pattern, hlClass) => {
+		let skip = 0;
+		if(node.nodeType === 3){
+			pattern = new RegExp(pattern, 'i');
+			let pos = node.data.search(pattern);
+			if(pos >= 0 && node.data.length > 0){ // .* matching "" causes infinite loop
+				let match = node.data.match(pattern); // get the match(es), but we would only handle the 1st one, hence /g is not recommended
+				let spanNode = document.createElement('span');
+				spanNode.className = hlClass; // set css
+				let middleBit = node.splitText(pos); // split to 2 nodes, node contains the pre-pos text, middleBit has the post-pos
+				middleBit.splitText(match[0].length); // similarly split middleBit to 2 nodes
+				let middleClone = middleBit.cloneNode(true);
+				spanNode.appendChild(middleClone);
+				// parentNode ie. node, now has 3 nodes by 2 splitText()s, replace the middle with the highlighted spanNode:
+				middleBit.parentNode.replaceChild(spanNode, middleBit);
+				skip = 1; // skip this middleBit, but still need to check endBit
+			}
+		}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
+			for(let i = 0; i < node.childNodes.length; ++i){
+				i += nodeHighlight(node.childNodes[i], pattern, hlClass);
+			}
+		}
+		return skip;
+	};
+
+
+	/**
 	 * 创建HTML节点
 	 * @param {String} html
 	 * @param {HTMLElement|null} parentNode 父级节点
@@ -1598,6 +1631,10 @@
 				...this.option,
 				...option
 			};
+			//patch GET request parameter
+			if(this.option.method === HTTP_METHOD.GET && this.data){
+				this.cgi = mergerUriParam(this.cgi, this.data);
+			}
 			this.xhr = new XMLHttpRequest();
 			this.xhr.open(this.option.method, this.cgi, true);
 			this.xhr.addEventListener("progress", e => {
@@ -5674,6 +5711,27 @@
 		}
 	}
 
+	/**
+	 * 高亮内容
+	 * 参数：
+	 * *[data-highlight-keyword]
+	 * *[data-hl-kw]
+	 */
+
+	class ACHighlight {
+		static cssClass = 'highlight';
+
+		static init(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let kw = (param.keyword || param.kw || '').trim();
+				if(kw){
+					nodeHighlight(node, kw, ACHighlight.cssClass);
+				}
+				resolve();
+			});
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
@@ -5686,6 +5744,8 @@
 		select: ACSelect,
 		tip: ACTip,
 		toast: ACToast,
+		hl: ACHighlight,
+		highlight: ACHighlight,
 	};
 
 	const parseComponents = function(attr){
@@ -5719,15 +5779,16 @@
 
 	const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
 		container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`).forEach(node => {
-			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
 			let cs = parseComponents(node.getAttribute(attr_flag));
 			let activeStacks = [];
+			let init_count = 0;
 			cs.forEach(com => {
 				let C = AC_COMPONENT_MAP[com];
 				if(!C){
 					console.warn('component no found', com);
 					return false;
 				}
+				init_count++;
 				let data = resolveDataParam(node, com);
 				console.info('com detected:', com);
 				if(C.init){
@@ -5740,6 +5801,10 @@
 				}
 				return true;
 			});
+			//只有在有成功初始化情况才忽略下次初始化
+			if(init_count !== 0){
+				node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+			}
 			if(activeStacks.length){
 				bindActiveChain(node, activeStacks);
 			}
@@ -6530,6 +6595,7 @@
 	exports.matchParent = matchParent;
 	exports.mergerUriParam = mergerUriParam;
 	exports.monthsOffsetCalc = monthsOffsetCalc;
+	exports.nodeHighlight = nodeHighlight;
 	exports.objectPushByPath = objectPushByPath;
 	exports.onDocReady = onDocReady;
 	exports.onHover = onHover;

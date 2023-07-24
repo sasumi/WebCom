@@ -145,6 +145,10 @@ export class Net {
 			...this.option,
 			...option
 		};
+		//patch GET request parameter
+		if(this.option.method === HTTP_METHOD.GET && this.data){
+			this.cgi = mergerUriParam(this.cgi, this.data);
+		}
 		this.xhr = new XMLHttpRequest();
 		this.xhr.open(this.option.method, this.cgi, true);
 		this.xhr.addEventListener("progress", e => {

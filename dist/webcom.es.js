@@ -1021,6 +1021,39 @@ const setStyle = (dom, style = {}) => {
 };
 
 /**
+ * 高亮节点关键字
+ * @param {HTMLElement} node
+ * @param {RegExp|String} pattern
+ * @param {String} hlClass
+ * @return {number}
+ */
+const nodeHighlight = (node, pattern, hlClass) => {
+	let skip = 0;
+	if(node.nodeType === 3){
+		pattern = new RegExp(pattern, 'i');
+		let pos = node.data.search(pattern);
+		if(pos >= 0 && node.data.length > 0){ // .* matching "" causes infinite loop
+			let match = node.data.match(pattern); // get the match(es), but we would only handle the 1st one, hence /g is not recommended
+			let spanNode = document.createElement('span');
+			spanNode.className = hlClass; // set css
+			let middleBit = node.splitText(pos); // split to 2 nodes, node contains the pre-pos text, middleBit has the post-pos
+			middleBit.splitText(match[0].length); // similarly split middleBit to 2 nodes
+			let middleClone = middleBit.cloneNode(true);
+			spanNode.appendChild(middleClone);
+			// parentNode ie. node, now has 3 nodes by 2 splitText()s, replace the middle with the highlighted spanNode:
+			middleBit.parentNode.replaceChild(spanNode, middleBit);
+			skip = 1; // skip this middleBit, but still need to check endBit
+		}
+	}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
+		for(let i = 0; i < node.childNodes.length; ++i){
+			i += nodeHighlight(node.childNodes[i], pattern, hlClass);
+		}
+	}
+	return skip;
+};
+
+
+/**
  * 创建HTML节点
  * @param {String} html
  * @param {HTMLElement|null} parentNode 父级节点
@@ -1592,6 +1625,10 @@ class Net {
 			...this.option,
 			...option
 		};
+		//patch GET request parameter
+		if(this.option.method === HTTP_METHOD.GET && this.data){
+			this.cgi = mergerUriParam(this.cgi, this.data);
+		}
 		this.xhr = new XMLHttpRequest();
 		this.xhr.open(this.option.method, this.cgi, true);
 		this.xhr.addEventListener("progress", e => {
@@ -5668,6 +5705,27 @@ class ACSelect {
 	}
 }
 
+/**
+ * 高亮内容
+ * 参数：
+ * *[data-highlight-keyword]
+ * *[data-hl-kw]
+ */
+
+class ACHighlight {
+	static cssClass = 'highlight';
+
+	static init(node, param = {}){
+		return new Promise((resolve, reject) => {
+			let kw = (param.keyword || param.kw || '').trim();
+			if(kw){
+				nodeHighlight(node, kw, ACHighlight.cssClass);
+			}
+			resolve();
+		});
+	}
+}
+
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
@@ -5680,6 +5738,8 @@ let AC_COMPONENT_MAP = {
 	select: ACSelect,
 	tip: ACTip,
 	toast: ACToast,
+	hl: ACHighlight,
+	highlight: ACHighlight,
 };
 
 const parseComponents = function(attr){
@@ -5713,15 +5773,16 @@ const resolveDataParam = (node, key) => {
 
 const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
 	container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`).forEach(node => {
-		node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
 		let cs = parseComponents(node.getAttribute(attr_flag));
 		let activeStacks = [];
+		let init_count = 0;
 		cs.forEach(com => {
 			let C = AC_COMPONENT_MAP[com];
 			if(!C){
 				console.warn('component no found', com);
 				return false;
 			}
+			init_count++;
 			let data = resolveDataParam(node, com);
 			console.info('com detected:', com);
 			if(C.init){
@@ -5734,6 +5795,10 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 			}
 			return true;
 		});
+		//只有在有成功初始化情况才忽略下次初始化
+		if(init_count !== 0){
+			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+		}
 		if(activeStacks.length){
 			bindActiveChain(node, activeStacks);
 		}
@@ -6396,4 +6461,4 @@ const showNoviceGuideInDates = ()=>{
 
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, showNoviceGuide, showNoviceGuideInDates, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, dimension2Style, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, showNoviceGuide, showNoviceGuideInDates, sortByKey, strToPascalCase, stringToEntity, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
