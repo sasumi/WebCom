@@ -2128,6 +2128,57 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	/**
+	 * 过滤子节点，以目录树方式返回
+	 * @param parent_id
+	 * @param all_list
+	 * @param option
+	 * @param level
+	 * @param group_by_parents
+	 * @return {*[]}
+	 */
+	const arrayFilterTree = (parent_id, all_list, option = {}, level = 0, group_by_parents = []) => {
+		option = Object.assign({
+			return_as_tree: false,             //以目录树返回，还是以平铺数组形式返回
+			level_key: 'tree_level',      //返回数据中是否追加等级信息,如果选项为空, 则不追加等级信息
+			id_key: 'id',              //主键键名
+			parent_id_key: 'parent_id',       //父级键名
+			children_key: 'children'         //返回子集key(如果是平铺方式返回,该选项无效
+		}, option);
+
+		let pn_k = option.parent_id_key;
+		let lv_k = option.level_key;
+		let id_k = option.id_key;
+		let as_tree = option.return_as_tree;
+		let c_k = option.children_key;
+
+		let result = [];
+		group_by_parents = group_by_parents.length ?  group_by_parents : arrayGroup(all_list, pn_k);
+
+		all_list.forEach(item=>{
+			if(item[pn_k] === parent_id){
+				item[lv_k] = level;  //set level
+				if(!option.return_as_tree){
+					result.push(item);
+				}
+				if(item[id_k] !== undefined && group_by_parents[item[id_k]] !== undefined && group_by_parents[item[id_k]]){
+					let subTrees = arrayFilterTree(item[id_k], all_list, option, level + 1, group_by_parents);
+					if(subTrees){
+						if(as_tree){
+							item[c_k] = subTrees;
+						}else {
+							result = result.concat(...subTrees);
+						}
+					}
+				}
+				if(as_tree){
+					result.push(item);
+				}
+			}
+		});
+		return result;
+	};
+
+	/**
 	 * 检测元素是否可以输入（包含checkbox、radio类）
 	 * @param {HTMLElement} el
 	 * @returns {boolean}
@@ -6525,6 +6576,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.Toast = ToastClass;
 	exports.arrayColumn = arrayColumn;
 	exports.arrayDistinct = arrayDistinct;
+	exports.arrayFilterTree = arrayFilterTree;
 	exports.arrayGroup = arrayGroup;
 	exports.arrayIndex = arrayIndex;
 	exports.base64Decode = base64Decode;
