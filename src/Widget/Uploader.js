@@ -175,6 +175,13 @@ export class Uploader {
 	 */
 	container = null;
 
+	onSuccess = new BizEvent();
+	onAbort = new BizEvent();
+	onResponse = new BizEvent();
+	onUploading = new BizEvent();
+	onDelete = new BizEvent();
+	onError = new BizEvent();
+
 	static globalUploadUrl = '';
 
 	option = {
@@ -230,10 +237,4 @@ export class Uploader {
 		});
 	}
 
-	onSuccess = new BizEvent();
-	onAbort = new BizEvent();
-	onResponse = new BizEvent();
-	onUploading = new BizEvent();
-	onDelete = new BizEvent();
-	onError = new BizEvent();
 }
