@@ -2551,7 +2551,16 @@ class ACAsync {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let url, data, method,
-				onsuccess = param.onsuccess || ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
+				onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
+
+			if(param.onsuccess){
+				if(typeof(param.onsuccess) === 'string'){
+					onsuccess = window[param.onsuccess];
+				}
+				else {
+					onsuccess = param.onsuccess;
+				}
+			}
 			if(node.tagName === 'FORM'){
 				url = node.action;
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
