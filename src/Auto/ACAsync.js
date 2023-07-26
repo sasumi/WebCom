@@ -59,12 +59,13 @@ export class ACAsync {
 					onsuccess(rsp);
 					resolve();
 				}else{
-					Toast.showError(rsp.message || '系统错误');
 					console.error('Request Error:', url, data, method, rsp);
+					Toast.showError(rsp.message || '系统错误');
+					reject(`系统错误(${rsp.message})`);
 				}
 			}, err => {
 				Toast.showError(err);
-				console.error('Request Error:', err);
+				reject(err);
 			}).finally(()=>{
 				loader && loader.hide();
 			})
