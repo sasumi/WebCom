@@ -3168,12 +3168,25 @@ class Dialog {
 		DialogManager.close(this);
 	}
 
+	/**
+	 * 触发自定义事件
+	 * @param {String} event
+	 * @param {*} args
+	 * @return {boolean} 是否存在自定义事件
+	 */
 	fireCustomEvent(event, ...args){
 		if(CUSTOM_EVENT_BUCKS[this.id] && CUSTOM_EVENT_BUCKS[this.id][event]){
 			CUSTOM_EVENT_BUCKS[this.id][event].fire(...args);
+			return true;
 		}
+		return false;
 	}
 
+	/**
+	 * 监听自定义事件
+	 * @param {String} event
+	 * @param {Function} callback
+	 */
 	listenCustomEvent(event, callback){
 		if(CUSTOM_EVENT_BUCKS[this.id] === undefined){
 			CUSTOM_EVENT_BUCKS[this.id] = {};
