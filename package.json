@@ -30,6 +30,6 @@
 	},
 	"homepage": "https://github.com/sasumi/WebCom#readme",
 	"dependencies": {
-		"rollup": "^3.26.2"
+		"rollup": "^3.26.3"
 	}
 }
