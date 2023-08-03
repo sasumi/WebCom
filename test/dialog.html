@@ -24,7 +24,7 @@
 			Dialog.alert('这是一个对话框标题', '您购买的商品已经发货，请查阅订单列表获取更多信息。');
 		});
 		document.getElementById('confirm-dialog').addEventListener('click', () => {
-			Dialog.confirm('删除产品', "删除该产品将可能导致用户无法正常购买，确认是否继续操作？");
+			Dialog.confirm('绑定微信', "绑定微信将使您的账号更加安全，是否绑定");
 		});
 		document.getElementById('prompt-dialog').addEventListener('click', () => {
 			Dialog.prompt('请输入您的问题').then(txt=>{
