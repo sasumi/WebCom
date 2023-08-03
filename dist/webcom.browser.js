@@ -2679,8 +2679,9 @@ var WebCom = (function (exports) {
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
-	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em 0.5em; text-align:right;}
-	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-right:0.5em;}
+	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
+	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
+	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 100px); overflow-y:auto}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#ccc;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
@@ -2689,11 +2690,11 @@ var WebCom = (function (exports) {
 	
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_IFRAME}"] iframe {width:100%; border:none; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_ALERT}"] .${DLG_CLS_CTN},
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1em; min-height:40px;}
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} {padding:0.5em 1em;}
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {padding-bottom:0.5em; display:block;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1.5em 1.5em 1em 1.5em; min-height:40px;}
+	.${DLG_CLS_PREF}-confirm-ti {font-size:1.2em; margin-bottom:.75em;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} {padding:2em 2em 1em 2em}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
-	
 `, COM_ID$3 + '-style');
 
 	/**
@@ -3023,12 +3024,14 @@ var WebCom = (function (exports) {
 		if(dlg.config.moveAble){
 			let start_move = false;
 			let last_click_offset = null;
-			dlg.dom.querySelector('.' + DLG_CLS_TI).addEventListener('mousedown', (e) => {
-				if(e.currentTarget && domContained(dlg.dom, e.currentTarget, true)){
-					start_move = true;
-					last_click_offset = {x: e.clientX - dlg.dom.offsetLeft, y: e.clientY - dlg.dom.offsetTop};
-				}
-			});
+			if(dlg.config.title){
+				dlg.dom.querySelector('.' + DLG_CLS_TI).addEventListener('mousedown', (e) => {
+					if(e.currentTarget && domContained(dlg.dom, e.currentTarget, true)){
+						start_move = true;
+						last_click_offset = {x: e.clientX - dlg.dom.offsetLeft, y: e.clientY - dlg.dom.offsetTop};
+					}
+				});
+			}
 			document.body.addEventListener('mouseup', () => {
 				start_move = false;
 				last_click_offset = null;
@@ -3248,8 +3251,8 @@ var WebCom = (function (exports) {
 		static confirm(title, content, opt = {}){
 			return new Promise((resolve, reject) => {
 				let p = new Dialog({
-					title,
-					content,
+					content:`<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
+						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 					buttons: [
 						{
 							title: '确定', default: true, callback: () => {
@@ -3311,7 +3314,7 @@ var WebCom = (function (exports) {
 				let input_id = guid(Theme.Namespace + '-prompt-input');
 				let input = null;
 				let p = new Dialog({
-					title: '请输入',
+					width:400,
 					content: `<label for="${input_id}">${title}</label><input type="text" id="${input_id}" value="${escapeAttr(option.initValue || '')}"/>`,
 					buttons: [
 						{

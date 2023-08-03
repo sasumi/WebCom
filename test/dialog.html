@@ -10,15 +10,10 @@
 <script src="assets/nav.js"></script>
 <h2>Dialog</h2>
 
-<style>
-	.dialog-btn{display:inline-block;padding:0.5em 1.8em;border:none;background-color:#4c87d9;color:#ffffff;}
-	.dialog-btn:hover{background-color:#519aff;}
-</style>
-
 <div class="test-case">
-	<button id="normal-dialog">Normal</button>
-	<button id="confirm-dialog">Confirm</button>
-	<button id="prompt-dialog">prompt</button>
+	<button id="normal-dialog">普通对话框</button>
+	<button id="confirm-dialog">确认对话框</button>
+	<button id="prompt-dialog">提示输入对话框</button>
 	<button id="iframe-dialog">Iframe</button>
 	<button id="modal1-dialog">modal1</button>
 	<button id="modal2-dialog">modal2</button>
@@ -26,13 +21,13 @@
 		import {Dialog} from "../src/index.js";
 
 		document.getElementById('normal-dialog').addEventListener('click', () => {
-			Dialog.alert('dialog title', 'dialog <b>content</b>');
+			Dialog.alert('这是一个对话框标题', '您购买的商品已经发货，请查阅订单列表获取更多信息。');
 		});
 		document.getElementById('confirm-dialog').addEventListener('click', () => {
-			Dialog.confirm('dialog title', {src: 'assets/iframe.html'});
+			Dialog.confirm('删除产品', "删除该产品将可能导致用户无法正常购买，确认是否继续操作？");
 		});
 		document.getElementById('prompt-dialog').addEventListener('click', () => {
-			Dialog.prompt('dialog title').then(txt=>{
+			Dialog.prompt('请输入您的问题').then(txt=>{
 				if(!txt){
 					Dialog.alert('提示', '请输入问题');
 					return false;
