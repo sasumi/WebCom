@@ -15,9 +15,21 @@
 
     <script type="module">
         import {showNoviceGuide} from "../src/Widget/NoviceGuide.js";
-        showNoviceGuide([
-            {content:"<div>性能 asdf asdf as <br/>  asdfasdf asdf a;sd f<br/> 23423</div>", relateNode:document.getElementById('new1')}
-        ]);
+        import {doOnce} from "../src/index.js";
+
+        let isNewBee = ()=>{
+            return new Promise((resolve, reject) => {
+                resolve();
+            });
+        }
+
+        doOnce('new_bee', isNewBee).then(()=>{
+            showNoviceGuide([
+                {content:"<div>性能 asdf asdf as <br/>  asdfasdf asdf a;sd f<br/> 23423</div>", relateNode:document.getElementById('new1')}
+            ]);
+        }, ()=>{
+            console.info('未命中');
+        });
     </script>
 </body>
 </html>

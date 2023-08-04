@@ -1,4 +1,5 @@
 import {randomString} from "./String.js";
+import {getCookie, setCookie} from "./Dom.js";
 
 let _guid = 0;
 export const guid = (prefix = '') => {
@@ -165,6 +166,82 @@ export const versionCompare = (version1, version2, index) => {
 		return 0;
 	}
 	return (v1.length < v2.length) ? -1 : 1;
+}
+
+/**
+ * 客户端一次性动作
+ * @example
+ * doOnce('newbee', ()=>{
+ *     return new Promise((resolve)=>{
+ *          fetch('/cgi-bin/isNewBee', rsp=>{
+ *              if(rsp.is_new_bee){
+ *                  resolve();
+ *              }
+ *          });
+ *     });
+ * }, 'storage').then(()=>{
+ *      alert('新人第一次弹出来');
+ * }, ()={
+ *      console.log('已经不是新人，或者已经弹过对话框了');
+ * });
+ * @param {String} markKey
+ * @param {Function|Null} dataFetcher(): Promise 数据获取器，或者为空（表示第一次触发）
+ * @param storageType
+ * @returns {Promise<unknown>}
+ */
+export const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
+	const MARKUP_STR_VAL = 'TRUE';
+	let getMarkState = (key) => {
+		switch(storageType.toLowerCase()){
+			case 'cookie':
+				return getCookie(key) === MARKUP_STR_VAL;
+			case 'storage':
+				return window.localStorage.getItem(key) === MARKUP_STR_VAL;
+			case 'session':
+				return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
+			default:
+				throw "no support:" + storageType;
+		}
+	}
+	let markUp = (key) => {
+		switch(storageType.toLowerCase()){
+			case 'cookie':
+				return setCookie(key, MARKUP_STR_VAL);
+			case 'storage':
+				return window.localStorage.setItem(key, MARKUP_STR_VAL);
+			case 'session':
+				return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
+			default:
+				throw "no support:" + storageType;
+		}
+	}
+	return new Promise((onHit, noHit) => {
+		if(!getMarkState(markKey)){
+			if(typeof (dataFetcher) === 'function'){
+				dataFetcher().then(() => {
+					markUp(markKey);
+					onHit()
+				}, () => {
+					markUp(markKey);
+					noHit();
+				});
+			}else{
+				markUp(markKey);
+				onHit();
+			}
+		}else{
+			noHit();
+		}
+	});
+}
+
+/**
+ * 检测对象是否为Promise对象
+ * @param {*} obj
+ * @returns {boolean}
+ */
+export const isPromise = (obj)=>{
+	return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
 }
 
 window.WEBCOM_GET_LIB_MODULE = getLibModule;

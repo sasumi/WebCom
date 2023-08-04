@@ -59,7 +59,7 @@ const hide_highlight_zone = () => {
  * @param {HTMLElement} steps.relateNode 步骤内容
  * @param config
  */
-const showNoviceGuide = (steps, config) => {
+const showNoviceGuide = (steps, config = {}) => {
 	config = Object.assign({
 		next_button_text: '下一步',
 		prev_button_text: '上一步',
@@ -143,9 +143,4 @@ const showNoviceGuide = (steps, config) => {
 	};
 	show_one();
 }
-
-export const showNoviceGuideInDates = ()=>{
-
-}
-
 export {showNoviceGuide};

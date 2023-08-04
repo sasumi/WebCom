@@ -1,3 +1,6 @@
+import {getCookie, setCookie} from "./Dom.js";
+import {isPromise} from "./Util.js";
+
 /**
  * 解析文件扩展名
  * @param {string} fileName

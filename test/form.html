@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+	<h2>Form</h2>
+
+<form action="" id="form">
+	<fieldset>
+		<legend>表单区块1</legend>
+		<p><label> 表单名称： <input type="text" name="abc1"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc2"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc3"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc4"></label></p>
+	</fieldset>
+	<fieldset>
+		<legend>表单区块2</legend>
+		<p><label> 表单名称： <input type="text" name="abc1"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc2"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc3"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc4"></label></p>
+	</fieldset>
+	<p>
+		<input type="submit" value="提交表单">
+	</p>
+</form>
+<script type="module">
+	import {bindFormUnSavedUnloadAlert} from "../src/index.js";
+
+	bindFormUnSavedUnloadAlert(window.form);
+</script>
+</body>
+</html>
