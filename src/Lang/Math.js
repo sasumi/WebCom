@@ -1,3 +1,6 @@
+/** 黄金分割比 0.618 **/
+export const GOLDEN_RATIO = (1+Math.sqrt(5))/2 - 1;
+
 /**
  * 检测指定值是否在指定区间内
  * @param {Number} val

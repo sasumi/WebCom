@@ -11,6 +11,7 @@ import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
 import {dimension2Style, escapeAttr} from "../Lang/Html.js";
+import {GOLDEN_RATIO} from "../Lang/Math.js";
 
 const COM_ID = Theme.Namespace + 'dialog';
 const DLG_CLS_PREF = COM_ID;
@@ -424,6 +425,14 @@ const eventBind = (dlg) => {
 	});
 }
 
+export const calcBetterPos = (width, height) => {
+	let vw = window.innerWidth;
+	let vh = window.innerHeight;
+	let new_left = Math.max((vw - width) / 2, 0);
+	let new_top = Math.max((vh - height) * (1 - GOLDEN_RATIO), 0);
+	return [new_top, new_left];
+}
+
 /**
  * 更新对话框位置
  * @param {Dialog} dlg
@@ -432,11 +441,11 @@ const updatePosition = (dlg) => {
 	let _hidden = dlg.state === STATE_HIDDEN;
 	let ml, mt;
 	if(!_hidden){
-		[ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+		[mt, ml]= calcBetterPos(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
 	}else{
 		dlg.dom.style.visibility = 'hidden';
 		dlg.dom.style.display = 'block';
-		[ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+		[mt, ml] = calcBetterPos(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
 		dlg.dom.style.display = 'none';
 		dlg.dom.style.visibility = 'visible';
 	}

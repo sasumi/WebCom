@@ -17,6 +17,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return Object.freeze(n);
 	}
 
+	/** 黄金分割比 0.618 **/
+	const GOLDEN_RATIO = (1+Math.sqrt(5))/2 - 1;
+
 	/**
 	 * 检测指定值是否在指定区间内
 	 * @param {Number} val
@@ -3189,6 +3192,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
+	const calcBetterPos = (width, height) => {
+		let vw = window.innerWidth;
+		let vh = window.innerHeight;
+		let new_left = Math.max((vw - width) / 2, 0);
+		let new_top = Math.max((vh - height) * (1 - GOLDEN_RATIO), 0);
+		return [new_top, new_left];
+	};
+
 	/**
 	 * 更新对话框位置
 	 * @param {Dialog} dlg
@@ -3197,11 +3208,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let _hidden = dlg.state === STATE_HIDDEN;
 		let ml, mt;
 		if(!_hidden){
-			[ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+			[mt, ml]= calcBetterPos(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
 		}else {
 			dlg.dom.style.visibility = 'hidden';
 			dlg.dom.style.display = 'block';
-			[ml, mt] = keepRectCenter(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
+			[mt, ml] = calcBetterPos(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
 			dlg.dom.style.display = 'none';
 			dlg.dom.style.visibility = 'visible';
 		}
@@ -6708,6 +6719,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.BizEvent = BizEvent;
 	exports.Dialog = DialogClass;
 	exports.DialogManager = DialogManagerClass;
+	exports.GOLDEN_RATIO = GOLDEN_RATIO;
 	exports.HTTP_METHOD = HTTP_METHOD;
 	exports.IMG_PREVIEW_MODE_MULTIPLE = IMG_PREVIEW_MODE_MULTIPLE;
 	exports.IMG_PREVIEW_MODE_SINGLE = IMG_PREVIEW_MODE_SINGLE;
@@ -6750,6 +6762,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.buttonActiveBind = buttonActiveBind;
+	exports.calcBetterPos = calcBetterPos;
 	exports.capitalize = capitalize;
 	exports.chunk = chunk;
 	exports.convertBlobToBase64 = convertBlobToBase64;
