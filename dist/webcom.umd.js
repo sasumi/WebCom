@@ -1063,8 +1063,8 @@
 
 	/**
 	 * tab 连接
-	 * @param {Node[]|String[]} tabs
-	 * @param {Node[]|String[]} contents
+	 * @param {Node[]|String} tabs
+	 * @param {Node[]|String} contents
 	 * @param {Object} option
 	 * @param {string} option.contentActiveClass 内容区激活类名
 	 * @param {string} option.tabActiveClass tab区激活类名
