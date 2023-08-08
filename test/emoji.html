@@ -9,12 +9,30 @@
 <body>
 <script src="assets/nav.js"></script>
 
-<button id="e">Emoji</button>
+<div>
+	<textarea name="" id="txt" cols="30" rows="10"></textarea>
+</div>
+<a href="#" id="e">插入表情</a>
 <script type="module">
 	import {bindEmojiTrigger} from "../src/Widget/Emoji.js";
+	let txt = document.getElementById('txt');
 
-	bindEmojiTrigger(document.getElementById('e'), {onSelect: e=>{
-		console.log(e);
+	function insertAtCursor(textarea, str){
+		if(textarea.selectionStart || textarea.selectionStart === 0){
+			let startPos = textarea.selectionStart;
+			let endPos = textarea.selectionEnd;
+			textarea.value = textarea.value.substring(0, startPos)
+				+ str
+				+ textarea.value.substring(endPos, textarea.value.length);
+		}else{
+			textarea.value += str;
+		}
+	}
+
+	bindEmojiTrigger(document.getElementById('e'), {onSelect: code=>{
+		console.log(code);
+			insertAtCursor(txt, code);
+			txt.focus();
 		}})
 </script>
 </body>
