@@ -443,6 +443,27 @@ export const nodeHighlight = (node, pattern, hlClass) => {
 	return skip;
 }
 
+/**
+ * tab
+ * @param tabs
+ * @param contents
+ * @param option
+ */
+export const tabConnect = (tabs, contents, option = {}) => {
+	let {contentToggleClass = 'active', tabToggleClass = 'active', triggerEvent = 'click'} = option;
+	tabs.forEach((tab, idx) => {
+		tab.addEventListener(triggerEvent, e => {
+			contents.forEach(ctn => {
+				ctn.classList.remove(contentToggleClass);
+			});
+			contents[idx].classList.add(contentToggleClass);
+			tabs.forEach(t => {
+				t.classList.remove(tabToggleClass);
+			});
+			tab.classList.add(tabToggleClass);
+		});
+	})
+}
 
 /**
  * 创建HTML节点

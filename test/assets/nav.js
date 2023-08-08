@@ -11,6 +11,7 @@ const nav = [
 	'theme.html',
 	'tip.html',
 	'toast.html',
+	'emoji.html',
 	'form.html',
 	'toc.html'
 ]
