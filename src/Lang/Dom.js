@@ -444,25 +444,34 @@ export const nodeHighlight = (node, pattern, hlClass) => {
 }
 
 /**
- * tab
- * @param tabs
- * @param contents
- * @param option
+ * tab 连接
+ * @param {Node[]|String[]} tabs
+ * @param {Node[]|String[]} contents
+ * @param {Object} option
+ * @param {string} option.contentActiveClass 内容区激活类名
+ * @param {string} option.tabActiveClass tab区激活类名
+ * @param {string} option.triggerEvent tab激活事件类型
  */
 export const tabConnect = (tabs, contents, option = {}) => {
-	let {contentToggleClass = 'active', tabToggleClass = 'active', triggerEvent = 'click'} = option;
+	let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
+	if(typeof(tabs) === 'string'){
+		tabs = document.querySelectorAll(tabs);
+	}
+	if(typeof(contents) === 'string'){
+		contents = document.querySelectorAll(contents);
+	}
 	tabs.forEach((tab, idx) => {
 		tab.addEventListener(triggerEvent, e => {
 			contents.forEach(ctn => {
-				ctn.classList.remove(contentToggleClass);
+				ctn.classList.remove(contentActiveClass);
 			});
-			contents[idx].classList.add(contentToggleClass);
+			contents[idx].classList.add(contentActiveClass);
 			tabs.forEach(t => {
-				t.classList.remove(tabToggleClass);
+				t.classList.remove(tabActiveClass);
 			});
-			tab.classList.add(tabToggleClass);
+			tab.classList.add(tabActiveClass);
 		});
-	})
+	});
 }
 
 /**

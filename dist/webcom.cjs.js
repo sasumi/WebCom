@@ -1057,6 +1057,36 @@ const nodeHighlight = (node, pattern, hlClass) => {
 	return skip;
 };
 
+/**
+ * tab 连接
+ * @param {Node[]|String[]} tabs
+ * @param {Node[]|String[]} contents
+ * @param {Object} option
+ * @param {string} option.contentActiveClass 内容区激活类名
+ * @param {string} option.tabActiveClass tab区激活类名
+ * @param {string} option.triggerEvent tab激活事件类型
+ */
+const tabConnect = (tabs, contents, option = {}) => {
+	let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
+	if(typeof(tabs) === 'string'){
+		tabs = document.querySelectorAll(tabs);
+	}
+	if(typeof(contents) === 'string'){
+		contents = document.querySelectorAll(contents);
+	}
+	tabs.forEach((tab, idx) => {
+		tab.addEventListener(triggerEvent, e => {
+			contents.forEach(ctn => {
+				ctn.classList.remove(contentActiveClass);
+			});
+			contents[idx].classList.add(contentActiveClass);
+			tabs.forEach(t => {
+				t.classList.remove(tabActiveClass);
+			});
+			tab.classList.add(tabActiveClass);
+		});
+	});
+};
 
 /**
  * 创建HTML节点
@@ -6856,6 +6886,7 @@ exports.showNoviceGuide = showNoviceGuide;
 exports.sortByKey = sortByKey;
 exports.strToPascalCase = strToPascalCase;
 exports.stringToEntity = stringToEntity;
+exports.tabConnect = tabConnect;
 exports.throttle = throttle;
 exports.toggle = toggle;
 exports.toggleFullScreen = toggleFullScreen;
