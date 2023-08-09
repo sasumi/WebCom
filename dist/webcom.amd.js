@@ -2284,8 +2284,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	 * @returns {*}
 	 */
 	const objectGetByPath = (obj, path, glue = '.') => {
-		for(let i = 0, path = path.split(glue), len = path.length; i < len; i++){
-			obj = obj[path[i]];
+		let ps = path.split(glue);
+		for(let i = 0, len = ps.length; i < len; i++){
+			obj = obj[ps[i]];
 		}
 		return obj;
 	};
