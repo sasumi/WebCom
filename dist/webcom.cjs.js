@@ -1059,8 +1059,8 @@ const nodeHighlight = (node, pattern, hlClass) => {
 
 /**
  * tab 连接
- * @param {Node[]|String} tabs
- * @param {Node[]|String} contents
+ * @param {Element[]|String} tabs
+ * @param {Element[]|String} contents
  * @param {Object} option
  * @param {string} option.contentActiveClass 内容区激活类名
  * @param {string} option.tabActiveClass tab区激活类名
@@ -2246,7 +2246,7 @@ const chunk = (list, size) => {
  * @param glue
  * @return {*}
  */
-const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+const objectPushByPath = (path, value, srcObj = {}, glue = '.') => {
 	let segments = path.split(glue),
 		cursor = srcObj,
 		segment,
@@ -2258,6 +2258,19 @@ const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
 	}
 
 	return cursor[segments[i]] = value;
+};
+
+/**
+ * @param obj
+ * @param path
+ * @param glue
+ * @returns {*}
+ */
+const objectGetByPath = (obj, path, glue = '.') => {
+	for(let i = 0, path = path.split(glue), len = path.length; i < len; i++){
+		obj = obj[path[i]];
+	}
+	return obj;
 };
 
 /**
@@ -6854,6 +6867,7 @@ exports.matchParent = matchParent;
 exports.mergerUriParam = mergerUriParam;
 exports.monthsOffsetCalc = monthsOffsetCalc;
 exports.nodeHighlight = nodeHighlight;
+exports.objectGetByPath = objectGetByPath;
 exports.objectPushByPath = objectPushByPath;
 exports.onDocReady = onDocReady;
 exports.onHover = onHover;

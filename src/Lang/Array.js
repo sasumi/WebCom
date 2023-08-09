@@ -127,7 +127,7 @@ export const chunk = (list, size) => {
  * @param glue
  * @return {*}
  */
-export const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
+export const objectPushByPath = (path, value, srcObj = {}, glue = '.') => {
 	let segments = path.split(glue),
 		cursor = srcObj,
 		segment,
@@ -139,6 +139,19 @@ export const objectPushByPath = (path, value, srcObj = {}, glue = '-') => {
 	}
 
 	return cursor[segments[i]] = value;
+}
+
+/**
+ * @param obj
+ * @param path
+ * @param glue
+ * @returns {*}
+ */
+export const objectGetByPath = (obj, path, glue = '.') => {
+	for(let i = 0, path = path.split(glue), len = path.length; i < len; i++){
+		obj = obj[path[i]];
+	}
+	return obj;
 }
 
 /**
