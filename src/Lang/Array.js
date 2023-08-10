@@ -150,6 +150,9 @@ export const objectPushByPath = (path, value, srcObj = {}, glue = '.') => {
 export const objectGetByPath = (obj, path, glue = '.') => {
 	let ps = path.split(glue);
 	for(let i = 0, len = ps.length; i < len; i++){
+		if(obj[ps[i]] === undefined){
+			return null;
+		}
 		obj = obj[ps[i]];
 	}
 	return obj;

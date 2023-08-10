@@ -1535,252 +1535,6 @@ var WebCom = (function (exports) {
 	let CONTEXT_WINDOW$2 = getContextWindow();
 	let ToastClass = CONTEXT_WINDOW$2[COM_ID$4] || Toast;
 
-	let _guid = 0;
-	const guid = (prefix = '') => {
-		return 'guid_' + (prefix || randomString(6)) + (++_guid);
-	};
-
-	/**
-	 * 获取当前函数所在script路径
-	 * @return {string|null}
-	 */
-	const getCurrentScript = function(){
-		let error = new Error()
-			, source
-			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
-			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
-		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
-			return source[1];
-		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
-			return source[1];
-		}else if(error['fileName'] !== undefined){
-			return error['fileName'];
-		}
-		return null;
-	};
-
-	/**
-	 * 节流
-	 * 规定在一个单位时间内，只能触发一次函数。如果这个函数单位时间内触发多次函数，只有一次生效。
-	 * @param fn
-	 * @param intervalMiSec
-	 * @return {(function(): void)|*}
-	 */
-	const throttle = (fn, intervalMiSec) => {
-		let context, args;
-		let previous = 0;
-		return function(){
-			let now = +new Date();
-			context = this;
-			args = arguments;
-			if(now - previous > intervalMiSec){
-				fn.apply(context, args);
-				previous = now;
-			}
-		}
-	};
-
-	/**
-	 * 在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
-	 * @param fn
-	 * @param intervalMiSec
-	 * @return {(function(): void)|*}
-	 */
-	const debounce = (fn, intervalMiSec) => {
-		let timeout;
-		return function(){
-			let context = this;
-			let args = arguments;
-			clearTimeout(timeout);
-			timeout = setTimeout(function(){
-				fn.apply(context, args);
-			}, intervalMiSec);
-		}
-	};
-
-	const CURRENT_FILE = '/Lang/Util.js';
-	const ENTRY_FILE = '/index.js';
-
-	/**
-	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
-	 * @return {string}
-	 */
-	const getLibEntryScript = () => {
-		let script = getCurrentScript();
-		if(!script){
-			throw "Get script failed";
-		}
-		if(script.indexOf(CURRENT_FILE) >= 0){
-			return script.replace(CURRENT_FILE, ENTRY_FILE);
-		}
-		return script;
-	};
-
-	/**
-	 * 加载当前库模块
-	 * @return {Promise<*>}
-	 */
-	const getLibModule = async () => {
-		let script = getLibEntryScript();
-		return await import(script);
-	};
-
-	/**
-	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
-	 * @type {(function(): Promise<*>)|undefined}
-	 */
-	const getLibModuleTop = (() => {
-		if(top === window){
-			return getLibModule;
-		}
-		if(top.WEBCOM_GET_LIB_MODULE){
-			return top.WEBCOM_GET_LIB_MODULE;
-		}
-		throw "No WebCom library script loaded detected.";
-	})();
-
-	/**
-	 * 清理版本，去除无用字符
-	 * @param {String} version
-	 * @return {Number[]}
-	 */
-	const normalizeVersion = (version) => {
-		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
-			pieces = trimmed.split('.'),
-			partsLength,
-			parts = [],
-			value,
-			piece,
-			num,
-			i;
-		for(i = 0; i < pieces.length; i += 1){
-			piece = pieces[i].replace(/\D/g, '');
-			num = parseInt(piece, 10);
-			if(isNaN(num)){
-				num = 0;
-			}
-			parts.push(num);
-		}
-		partsLength = parts.length;
-		for(i = partsLength - 1; i >= 0; i -= 1){
-			value = parts[i];
-			if(value === 0){
-				parts.length -= 1;
-			}else {
-				break;
-			}
-		}
-		return parts;
-	};
-
-	/**
-	 * 版本比较
-	 * @param {String} version1
-	 * @param {String} version2
-	 * @param {Number} index
-	 * @return {number|number}
-	 */
-	const versionCompare = (version1, version2, index) => {
-		let stringLength = index + 1,
-			v1 = normalizeVersion(version1),
-			v2 = normalizeVersion(version2);
-		if(v1.length > stringLength){
-			v1.length = stringLength;
-		}
-		if(v2.length > stringLength){
-			v2.length = stringLength;
-		}
-		let size = Math.min(v1.length, v2.length), i;
-		for(i = 0; i < size; i += 1){
-			if(v1[i] !== v2[i]){
-				return v1[i] < v2[i] ? -1 : 1;
-			}
-		}
-		if(v1.length === v2.length){
-			return 0;
-		}
-		return (v1.length < v2.length) ? -1 : 1;
-	};
-
-	/**
-	 * 客户端一次性动作
-	 * @example
-	 * doOnce('newbee', ()=>{
-	 *     return new Promise((resolve)=>{
-	 *          fetch('/cgi-bin/isNewBee', rsp=>{
-	 *              if(rsp.is_new_bee){
-	 *                  resolve();
-	 *              }
-	 *          });
-	 *     });
-	 * }, 'storage').then(()=>{
-	 *      alert('新人第一次弹出来');
-	 * }, ()={
-	 *      console.log('已经不是新人，或者已经弹过对话框了');
-	 * });
-	 * @param {String} markKey
-	 * @param {Function|Null} dataFetcher(): Promise 数据获取器，或者为空（表示第一次触发）
-	 * @param storageType
-	 * @returns {Promise<unknown>}
-	 */
-	const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
-		const MARKUP_STR_VAL = 'TRUE';
-		let getMarkState = (key) => {
-			switch(storageType.toLowerCase()){
-				case 'cookie':
-					return getCookie(key) === MARKUP_STR_VAL;
-				case 'storage':
-					return window.localStorage.getItem(key) === MARKUP_STR_VAL;
-				case 'session':
-					return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
-				default:
-					throw "no support:" + storageType;
-			}
-		};
-		let markUp = (key) => {
-			switch(storageType.toLowerCase()){
-				case 'cookie':
-					return setCookie(key, MARKUP_STR_VAL);
-				case 'storage':
-					return window.localStorage.setItem(key, MARKUP_STR_VAL);
-				case 'session':
-					return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
-				default:
-					throw "no support:" + storageType;
-			}
-		};
-		return new Promise((onHit, noHit) => {
-			if(!getMarkState(markKey)){
-				if(typeof (dataFetcher) === 'function'){
-					dataFetcher().then(() => {
-						markUp(markKey);
-						onHit();
-					}, () => {
-						markUp(markKey);
-						noHit();
-					});
-				}else {
-					markUp(markKey);
-					onHit();
-				}
-			}else {
-				noHit();
-			}
-		});
-	};
-
-	/**
-	 * 检测对象是否为Promise对象
-	 * @param {*} obj
-	 * @returns {boolean}
-	 */
-	const isPromise = (obj)=>{
-		return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
-	};
-
-	window.WEBCOM_GET_LIB_MODULE = getLibModule;
-	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
-
 	/**
 	 * 解析文件扩展名
 	 * @param {string} fileName
@@ -1802,6 +1556,53 @@ var WebCom = (function (exports) {
 	const resolveFileName = (fileName)=>{
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
 		return fileName.replace(/\.[^.]*$/g, "");
+	};
+
+	/**
+	 * 逐行读取文件
+	 * @param {File} file
+	 * @param {Function} linePayload 参数(string) 逐行处理函数，返回 false 表示中断读取
+	 * @param {Function} onFinish 完成回调函数
+	 * @param {Function} onError 错误回调函数
+	 */
+	const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
+		const CHUNK_SIZE = 1024;
+		const reader = new FileReader();
+
+		let offset = 0;
+		let line_buff = '';
+		const seek = () => {
+			if(offset < file.size){
+				let slice = file.slice(offset, offset + CHUNK_SIZE);
+				reader.readAsArrayBuffer(slice);
+				offset += CHUNK_SIZE;
+			} else {
+				onFinish();
+			}
+		};
+		reader.onload = evt => {
+			line_buff += new TextDecoder().decode(new Uint8Array(reader.result));
+			if(line_buff.indexOf("\n") >= 0){
+				let break_down = false;
+				let lines = line_buff.split("\n");
+				line_buff = lines.pop();
+				lines.find(line => {
+					if(linePayload(line) === false){
+						break_down = true;
+						return true;
+					}
+				});
+				if(break_down){
+					return;
+				}
+			}
+			seek();
+		};
+		reader.onerror = (err) => {
+			console.error(err);
+			onError(err);
+		};
+		seek();
 	};
 
 	const CODE_TIMEOUT = 508;
@@ -2118,6 +1919,252 @@ var WebCom = (function (exports) {
 		return false;
 	};
 
+	let _guid = 0;
+	const guid = (prefix = '') => {
+		return 'guid_' + (prefix || randomString(6)) + (++_guid);
+	};
+
+	/**
+	 * 获取当前函数所在script路径
+	 * @return {string|null}
+	 */
+	const getCurrentScript = function(){
+		let error = new Error()
+			, source
+			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+			return source[1];
+		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+			return source[1];
+		}else if(error['fileName'] !== undefined){
+			return error['fileName'];
+		}
+		return null;
+	};
+
+	/**
+	 * 节流
+	 * 规定在一个单位时间内，只能触发一次函数。如果这个函数单位时间内触发多次函数，只有一次生效。
+	 * @param fn
+	 * @param intervalMiSec
+	 * @return {(function(): void)|*}
+	 */
+	const throttle = (fn, intervalMiSec) => {
+		let context, args;
+		let previous = 0;
+		return function(){
+			let now = +new Date();
+			context = this;
+			args = arguments;
+			if(now - previous > intervalMiSec){
+				fn.apply(context, args);
+				previous = now;
+			}
+		}
+	};
+
+	/**
+	 * 在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
+	 * @param fn
+	 * @param intervalMiSec
+	 * @return {(function(): void)|*}
+	 */
+	const debounce = (fn, intervalMiSec) => {
+		let timeout;
+		return function(){
+			let context = this;
+			let args = arguments;
+			clearTimeout(timeout);
+			timeout = setTimeout(function(){
+				fn.apply(context, args);
+			}, intervalMiSec);
+		}
+	};
+
+	const CURRENT_FILE = '/Lang/Util.js';
+	const ENTRY_FILE = '/index.js';
+
+	/**
+	 * 获取当前库脚本调用地址（这里默认当前库只有两种调用形式：独立模块调用以及合并模块调用）
+	 * @return {string}
+	 */
+	const getLibEntryScript = () => {
+		let script = getCurrentScript();
+		if(!script){
+			throw "Get script failed";
+		}
+		if(script.indexOf(CURRENT_FILE) >= 0){
+			return script.replace(CURRENT_FILE, ENTRY_FILE);
+		}
+		return script;
+	};
+
+	/**
+	 * 加载当前库模块
+	 * @return {Promise<*>}
+	 */
+	const getLibModule = async () => {
+		let script = getLibEntryScript();
+		return await import(script);
+	};
+
+	/**
+	 * 获取顶部窗口模块（如果没有顶部窗口，则获取当前窗口模块）
+	 * @type {(function(): Promise<*>)|undefined}
+	 */
+	const getLibModuleTop = (() => {
+		if(top === window){
+			return getLibModule;
+		}
+		if(top.WEBCOM_GET_LIB_MODULE){
+			return top.WEBCOM_GET_LIB_MODULE;
+		}
+		throw "No WebCom library script loaded detected.";
+	})();
+
+	/**
+	 * 清理版本，去除无用字符
+	 * @param {String} version
+	 * @return {Number[]}
+	 */
+	const normalizeVersion = (version) => {
+		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+			pieces = trimmed.split('.'),
+			partsLength,
+			parts = [],
+			value,
+			piece,
+			num,
+			i;
+		for(i = 0; i < pieces.length; i += 1){
+			piece = pieces[i].replace(/\D/g, '');
+			num = parseInt(piece, 10);
+			if(isNaN(num)){
+				num = 0;
+			}
+			parts.push(num);
+		}
+		partsLength = parts.length;
+		for(i = partsLength - 1; i >= 0; i -= 1){
+			value = parts[i];
+			if(value === 0){
+				parts.length -= 1;
+			}else {
+				break;
+			}
+		}
+		return parts;
+	};
+
+	/**
+	 * 版本比较
+	 * @param {String} version1
+	 * @param {String} version2
+	 * @param {Number} index
+	 * @return {number|number}
+	 */
+	const versionCompare = (version1, version2, index) => {
+		let stringLength = index + 1,
+			v1 = normalizeVersion(version1),
+			v2 = normalizeVersion(version2);
+		if(v1.length > stringLength){
+			v1.length = stringLength;
+		}
+		if(v2.length > stringLength){
+			v2.length = stringLength;
+		}
+		let size = Math.min(v1.length, v2.length), i;
+		for(i = 0; i < size; i += 1){
+			if(v1[i] !== v2[i]){
+				return v1[i] < v2[i] ? -1 : 1;
+			}
+		}
+		if(v1.length === v2.length){
+			return 0;
+		}
+		return (v1.length < v2.length) ? -1 : 1;
+	};
+
+	/**
+	 * 客户端一次性动作
+	 * @example
+	 * doOnce('newbee', ()=>{
+	 *     return new Promise((resolve)=>{
+	 *          fetch('/cgi-bin/isNewBee', rsp=>{
+	 *              if(rsp.is_new_bee){
+	 *                  resolve();
+	 *              }
+	 *          });
+	 *     });
+	 * }, 'storage').then(()=>{
+	 *      alert('新人第一次弹出来');
+	 * }, ()={
+	 *      console.log('已经不是新人，或者已经弹过对话框了');
+	 * });
+	 * @param {String} markKey
+	 * @param {Function|Null} dataFetcher(): Promise 数据获取器，或者为空（表示第一次触发）
+	 * @param storageType
+	 * @returns {Promise<unknown>}
+	 */
+	const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
+		const MARKUP_STR_VAL = 'TRUE';
+		let getMarkState = (key) => {
+			switch(storageType.toLowerCase()){
+				case 'cookie':
+					return getCookie(key) === MARKUP_STR_VAL;
+				case 'storage':
+					return window.localStorage.getItem(key) === MARKUP_STR_VAL;
+				case 'session':
+					return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
+				default:
+					throw "no support:" + storageType;
+			}
+		};
+		let markUp = (key) => {
+			switch(storageType.toLowerCase()){
+				case 'cookie':
+					return setCookie(key, MARKUP_STR_VAL);
+				case 'storage':
+					return window.localStorage.setItem(key, MARKUP_STR_VAL);
+				case 'session':
+					return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
+				default:
+					throw "no support:" + storageType;
+			}
+		};
+		return new Promise((onHit, noHit) => {
+			if(!getMarkState(markKey)){
+				if(typeof (dataFetcher) === 'function'){
+					dataFetcher().then(() => {
+						markUp(markKey);
+						onHit();
+					}, () => {
+						markUp(markKey);
+						noHit();
+					});
+				}else {
+					markUp(markKey);
+					onHit();
+				}
+			}else {
+				noHit();
+			}
+		});
+	};
+
+	/**
+	 * 检测对象是否为Promise对象
+	 * @param {*} obj
+	 * @returns {boolean}
+	 */
+	const isPromise = (obj)=>{
+		return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
+	};
+
+	window.WEBCOM_GET_LIB_MODULE = getLibModule;
+	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
 	/**
 	 * array_column
 	 * @param arr
@@ -2270,6 +2317,9 @@ var WebCom = (function (exports) {
 	const objectGetByPath = (obj, path, glue = '.') => {
 		let ps = path.split(glue);
 		for(let i = 0, len = ps.length; i < len; i++){
+			if(obj[ps[i]] === undefined){
+				return null;
+			}
 			obj = obj[ps[i]];
 		}
 		return obj;
@@ -6879,6 +6929,7 @@ var WebCom = (function (exports) {
 	exports.prettyTime = prettyTime;
 	exports.pushState = pushState;
 	exports.randomString = randomString;
+	exports.readFileInLine = readFileInLine;
 	exports.rectAssoc = rectAssoc;
 	exports.rectInLayout = rectInLayout;
 	exports.regQuote = regQuote;
