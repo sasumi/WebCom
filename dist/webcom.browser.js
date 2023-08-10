@@ -238,6 +238,43 @@ var WebCom = (function (exports) {
 	};
 
 	/**
+	 * 反转义字符串
+	 * @param str
+	 * @returns {string}
+	 * @description:
+	 *       discuss at: https://locutus.io/php/stripslashes/
+	 *      original by: Kevin van Zonneveld (https://kvz.io)
+	 *      improved by: Ates Goral (https://magnetiq.com)
+	 *      improved by: marrtins
+	 *      improved by: rezna
+	 *         fixed by: Mick@el
+	 *      bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
+	 *      bugfixed by: Brett Zamir (https://brett-zamir.me)
+	 *         input by: Rick Waldron
+	 *         input by: Brant Messenger (https://www.brantmessenger.com/)
+	 * reimplemented by: Brett Zamir (https://brett-zamir.me)
+	 *        example 1: stripslashes('Kevin\'s code')
+	 *        returns 1: "Kevin's code"
+	 *        example 2: stripslashes('Kevin\\\'s code')
+	 *        returns 2: "Kevin\'s code"
+	 */
+	const stripSlashes = (str) => {
+		return (str + '')
+			.replace(/\\(.?)/g, function(s, n1){
+				switch(n1){
+					case '\\':
+						return '\\'
+					case '0':
+						return '\u0000'
+					case '':
+						return ''
+					default:
+						return n1
+				}
+			})
+	};
+
+	/**
 	 * 格式化数字
 	 * @param {Number} num
 	 * @param {Number} precision
@@ -6953,6 +6990,7 @@ var WebCom = (function (exports) {
 	exports.sortByKey = sortByKey;
 	exports.strToPascalCase = strToPascalCase;
 	exports.stringToEntity = stringToEntity;
+	exports.stripSlashes = stripSlashes;
 	exports.tabConnect = tabConnect;
 	exports.throttle = throttle;
 	exports.toggle = toggle;

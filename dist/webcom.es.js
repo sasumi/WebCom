@@ -235,6 +235,43 @@ const extract = (es_template, params)=>{
 };
 
 /**
+ * 反转义字符串
+ * @param str
+ * @returns {string}
+ * @description:
+ *       discuss at: https://locutus.io/php/stripslashes/
+ *      original by: Kevin van Zonneveld (https://kvz.io)
+ *      improved by: Ates Goral (https://magnetiq.com)
+ *      improved by: marrtins
+ *      improved by: rezna
+ *         fixed by: Mick@el
+ *      bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
+ *      bugfixed by: Brett Zamir (https://brett-zamir.me)
+ *         input by: Rick Waldron
+ *         input by: Brant Messenger (https://www.brantmessenger.com/)
+ * reimplemented by: Brett Zamir (https://brett-zamir.me)
+ *        example 1: stripslashes('Kevin\'s code')
+ *        returns 1: "Kevin's code"
+ *        example 2: stripslashes('Kevin\\\'s code')
+ *        returns 2: "Kevin\'s code"
+ */
+const stripSlashes = (str) => {
+	return (str + '')
+		.replace(/\\(.?)/g, function(s, n1){
+			switch(n1){
+				case '\\':
+					return '\\'
+				case '0':
+					return '\u0000'
+				case '':
+					return ''
+				default:
+					return n1
+			}
+		})
+};
+
+/**
  * 格式化数字
  * @param {Number} num
  * @param {Number} precision
@@ -6780,4 +6817,4 @@ const showNoviceGuide = (steps, config = {}) => {
 	show_one();
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, isPromise, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, isPromise, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
