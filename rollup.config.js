@@ -30,5 +30,8 @@ export default {
 			name: NS,
 			file: "./dist/webcom.browser.js"
 		}
+	],
+	plugins: [
+		cleanupPlugin({comments: "none", sourcemap:true, extensions: ["js", "ts"]})
 	]
 }
