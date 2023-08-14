@@ -34,6 +34,7 @@ const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 insertStyleSheet(`
 	.${DLG_CLS_PREF} {display:block; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.DialogIndex};position:absolute;}
+	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
@@ -300,6 +301,7 @@ const domConstruct = (dlg) => {
 		<div class="${DLG_CLS_PREF}" 
 			id="${dlg.id}" 
 			data-dialog-type="${TYPE_NORMAL}"
+			${dlg.config.transparent ? 'data-transparent':''}
 			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
@@ -500,6 +502,7 @@ class Dialog {
 		title: '', //对话框标题，为 null 或者空字符串时不显示标题行
 		content: '',
 		modal: false, //是否为模态窗口
+		transparent:false, //是否透明
 		width: Dialog.DEFAULT_WIDTH,
 		height: null, //高度，缺省为自动高度
 		maxContentHeight: null, //最大内容区高度，默认为标题和空隙预留50px
@@ -516,6 +519,7 @@ class Dialog {
 	 * @param {String} config.title 对话框标题
 	 * @param {String} config.content 对话框内容，允许提交 {src:"http://"} 格式，渲染为iframe
 	 * @param {Boolean} config.modal 是否为模态对话框
+	 * @param {Boolean} config.transparent 是否透明
 	 * @param {Number} config.width 宽度
 	 * @param {Number} config.height 高度
 	 * @param {Number} config.maxHeight 最大高度
@@ -590,6 +594,7 @@ class Dialog {
 	 * @param {Object} config
 	 * @param {String|Null} config.id
 	 * @param {Boolean} config.modal
+	 * @param {Boolean} config.transparent
 	 * @param {Number} config.width
 	 * @param {Number} config.height
 	 * @param {Number} config.maxHeight
