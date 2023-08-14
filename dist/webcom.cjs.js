@@ -1918,8 +1918,7 @@ const STATE_ACTIVE = 'active';
 const STATE_DISABLED = 'disabled';
 const STATE_HIDDEN = 'hidden';
 const DIALOG_TYPE_ATTR_KEY = 'data-dialog-type';
-const TYPE_IFRAME = 'iframe';
-const TYPE_ALERT = 'alert';
+const TYPE_NORMAL = 'normal';
 const TYPE_PROMPT = 'prompt';
 const TYPE_CONFIRM = 'confirm';
 const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
@@ -1940,13 +1939,14 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
 	
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_IFRAME}"] iframe {width:100%; border:none; display:block;}
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_ALERT}"] .${DLG_CLS_CTN},
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1.5em 1.5em 1em 1.5em; min-height:40px;}
-	.${DLG_CLS_PREF}-confirm-ti {font-size:1.2em; margin-bottom:.75em;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_PREF}-confirm-ti {font-size:1.2em; margin-bottom:.75em;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} {padding:2em 2em 1em 2em}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
+	
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; display:block; min-height:30px;}
 `, COM_ID$3 + '-style');
 document.addEventListener('keyup', e => {
 	if(e.keyCode === KEYS.Esc){
@@ -2088,6 +2088,7 @@ const domConstruct = (dlg) => {
 	let html = `
 		<div class="${DLG_CLS_PREF}" 
 			id="${dlg.id}" 
+			data-dialog-type="${TYPE_NORMAL}"
 			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
@@ -2113,9 +2114,6 @@ const domConstruct = (dlg) => {
 		adjustHeight(dlg, dlg.config.height);
 	}
 	updatePosition$1(dlg);
-	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-		setType(dlg, TYPE_IFRAME);
-	}
 	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
 		let obs;
@@ -2312,7 +2310,7 @@ class Dialog {
 						}
 					}
 				],
-				width:380,
+				width:420,
 				showTopCloseButton: false,
 				...opt
 			});
@@ -2323,20 +2321,24 @@ class Dialog {
 	static alert(title, content, opt = {}){
 		return new Promise(resolve => {
 			let p = new Dialog({
-				title,
-				content,
+				content:`<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
+						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 				buttons: [{
 					title: '确定', default: true, callback: () => {
 						p.close();
 						resolve();
 					}
 				},],
+				width:420,
 				showTopCloseButton: false,
 				...opt
 			});
-			setType(p, TYPE_ALERT);
+			setType(p, TYPE_CONFIRM);
 			p.show();
 		});
+	}
+	static iframe(title = null, iframeSrc, opt = {}){
+		return Dialog.show(title, {src: iframeSrc}, opt);
 	}
 	static prompt(title, option = {initValue: ""}){
 		return new Promise((resolve, reject) => {

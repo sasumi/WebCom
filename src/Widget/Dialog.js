@@ -1,11 +1,4 @@
-import {
-	buttonActiveBind,
-	createDomByHtml,
-	domContained,
-	getContextWindow,
-	insertStyleSheet,
-	keepRectCenter
-} from "../Lang/Dom.js";
+import {buttonActiveBind, createDomByHtml, domContained, getContextWindow, insertStyleSheet,} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
@@ -29,10 +22,8 @@ const STATE_HIDDEN = 'hidden'; //隐藏状态。通过主动调用hide方法使�
 
 const DIALOG_TYPE_ATTR_KEY = 'data-dialog-type';
 const TYPE_NORMAL = 'normal';
-const TYPE_IFRAME = 'iframe';
-const TYPE_ALERT = 'alert';
 const TYPE_PROMPT = 'prompt';
-const TYPE_CONFIRM = 'confirm';
+const TYPE_CONFIRM = 'confirm'; //提示对话框（包含【告警】【确认】）
 
 /**
  * Content Type
@@ -57,13 +48,14 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
 	
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_IFRAME}"] iframe {width:100%; border:none; display:block;}
-	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_ALERT}"] .${DLG_CLS_CTN},
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1.5em 1.5em 1em 1.5em; min-height:40px;}
-	.${DLG_CLS_PREF}-confirm-ti {font-size:1.2em; margin-bottom:.75em;}
+	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_PREF}-confirm-ti {font-size:1.2em; margin-bottom:.75em;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} {padding:2em 2em 1em 2em}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
+	
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; display:block; min-height:30px;}
 `, COM_ID + '-style');
 
 /**
@@ -307,6 +299,7 @@ const domConstruct = (dlg) => {
 	let html = `
 		<div class="${DLG_CLS_PREF}" 
 			id="${dlg.id}" 
+			data-dialog-type="${TYPE_NORMAL}"
 			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
@@ -337,10 +330,6 @@ const domConstruct = (dlg) => {
 	}
 
 	updatePosition(dlg);
-
-	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-		setType(dlg, TYPE_IFRAME);
-	}
 
 	//bind iframe content
 	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
@@ -508,7 +497,7 @@ class Dialog {
 	onShow = new BizEvent(true);
 
 	config = {
-		title: '', //对话框标题
+		title: '', //对话框标题，为 null 或者空字符串时不显示标题行
 		content: '',
 		modal: false, //是否为模态窗口
 		width: Dialog.DEFAULT_WIDTH,
@@ -597,7 +586,7 @@ class Dialog {
 	/**
 	 * 显示对话框
 	 * @param {String} title
-	 * @param {String} content
+	 * @param {Object|String} content
 	 * @param {Object} config
 	 * @param {String|Null} config.id
 	 * @param {Boolean} config.modal
@@ -644,7 +633,7 @@ class Dialog {
 						}
 					}
 				],
-				width:380,
+				width:420,
 				showTopCloseButton: false,
 				...opt
 			});
@@ -663,20 +652,32 @@ class Dialog {
 	static alert(title, content, opt = {}){
 		return new Promise(resolve => {
 			let p = new Dialog({
-				title,
-				content,
+				content:`<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
+						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 				buttons: [{
 					title: '确定', default: true, callback: () => {
 						p.close();
 						resolve();
 					}
 				},],
+				width:420,
 				showTopCloseButton: false,
 				...opt
 			});
-			setType(p, TYPE_ALERT);
+			setType(p, TYPE_CONFIRM);
 			p.show();
 		});
+	}
+
+	/**
+	 * 显示 iframe 类型对话框
+	 * @param title
+	 * @param iframeSrc
+	 * @param opt
+	 * @returns {Dialog}
+	 */
+	static iframe(title = null, iframeSrc, opt = {}){
+		return Dialog.show(title, {src: iframeSrc}, opt);
 	}
 
 	/**
@@ -752,6 +753,7 @@ export const getCurrentFrameDialog = () => {
 		}
 	});
 }
+
 if(!window[COM_ID]){
 	window[COM_ID] = {};
 }
