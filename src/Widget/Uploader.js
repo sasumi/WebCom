@@ -1,6 +1,7 @@
 import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 import {BizEvent} from "../Lang/Event.js";
+import {Toast} from "./Toast.js";
 
 const NS = Theme.Namespace + '-uploader';
 insertStyleSheet(`
@@ -12,10 +13,10 @@ insertStyleSheet(`
 	.${NS}-btn-delete:before {content:"删除"}
 `);
 
-export const UPLOAD_STATE_INIT = 0;
-export const UPLOAD_STATE_PENDING = 1;
-export const UPLOAD_STATE_ERROR = 2;
-export const UPLOAD_STATE_SUCCESS = 3;
+export const UPLOAD_STATE_INIT = 'init';
+export const UPLOAD_STATE_PENDING = 'pending';
+export const UPLOAD_STATE_ERROR = 'error';
+export const UPLOAD_STATE_SUCCESS = 'success';
 
 export const UPLOAD_ERROR_FILE_SIZE_OVERLOAD = 'file_size_overload';
 export const UPLOAD_ERROR_FILE_EMPTY = 'file_empty';
@@ -31,11 +32,12 @@ const UPLOAD_FILE_SIZE_MAX_DEFAULT = 10 * 1024 * 1024; //10MB
 
 /**
  * 缺省后端返回格式处理器
- * @param rsp
+ * @param {String} rspText
  * @return {{thumb, error: *, value}}
  * @constructor
  */
-const DEFAULT_RSP_HANDLE = (rsp) => {
+const DEFAULT_RSP_HANDLE = (rspText) => {
+	let rsp = JSON.parse(rspText);
 	return {
 		error: rsp.code !== 0 ? rsp.message : '',
 		value: rsp.data,
@@ -46,23 +48,33 @@ const DEFAULT_RSP_HANDLE = (rsp) => {
 /**
  * @param {Uploader} up
  * @param {File} file
+ * @param {Object} callbacks
+ * @param {Function} callbacks.onSuccess
+ * @param {Function} callbacks.onProgress
+ * @param {Function} callbacks.onError
+ * @param {Function} callbacks.onAbort
  */
-const startUpload = (up, file) => {
+const startUpload = (up, file, callbacks) => {
+	let {onSuccess, onProgress, onError, onAbort} = callbacks;
 	let xhr = new XMLHttpRequest();
 	up.xhr = xhr;
 	let formData = new FormData();
+	let total = file.size;
 	formData.append(up.option.uploadFileFieldName, file);
 	xhr.withCredentials = true;
 	xhr.upload.addEventListener('progress', e => {
-		up.onUploading.fire(e.loaded, e.total);
+		onProgress(e.loaded, total);
 	}, false);
 	xhr.addEventListener('load', e => {
-		let v = up.option.uploadResponseHandle(e.returnValue);
+		onProgress(total, total);
+		let v = up.option.uploadResponseHandle(xhr.responseText);
+		onSuccess(v);
 	});
 	xhr.addEventListener('error', e => {
+		onError(e);
 	});
 	xhr.addEventListener('abort', e => {
-		up.onAbort.fire()
+		onAbort();
 	});
 	xhr.open('POST', up.option.uploadUrl);
 	xhr.send(formData);
@@ -72,59 +84,7 @@ const startUpload = (up, file) => {
  * @param {Uploader} up
  */
 const renderDom = (up) => {
-	let acceptStr = up.option.allowFileTypes.join(',');
-	const html =
-		`<div class="${NS}" data-state="${up.state}">
-		<label class="${NS}-file">
-			<input type="file" accept="${acceptStr}" value="${up.option.initValue || ''}" ${up.option.required ? 'required' : ''}>
-		</label>
-		<div class="${NS}-progress">
-			<progress max="100" value="0">0%</progress>
-			<span>0%</span>
-		</div>
-		<div class="${NS}-content"></div>
-		<div class="${NS}-handle">
-			<span role="button" class="${NS}-btn ${NS}-btn-reset"></span>
-			<span role="button" class="${NS}-btn ${NS}-btn-clean"></span>
-			<span role="button" class="${NS}-btn ${NS}-btn-cancel"></span>
-			<span role="button" class="${NS}-btn ${NS}-btn-delete"></span>
-		</div>
-	</div>`;
-	const dom = createDomByHtml(html, up.container);
-	const fileEl = dom.querySelector('input[type=file]');
 
-	dom.querySelector(`.${NS}-btn-reset`).addEventListener('click', e => {
-		resetUpload(up);
-	});
-	dom.querySelector(`.${NS}-btn-clean`).addEventListener('click', e => {
-		cleanUpload(up);
-	});
-
-	dom.querySelector(`.${NS}-btn-delete`).addEventListener('click', e => {
-
-	});
-
-	dom.querySelector(`.${NS}-btn-cancel`).addEventListener('click', e => {
-		up.abort();
-	});
-
-	fileEl.addEventListener('change', e => {
-		let file = fileEl.files[0];
-		if(file){
-			if(!file.size < 1){
-				up.onError.fire('所选的文件内容为空', UPLOAD_ERROR_FILE_EMPTY);
-				resetUpload(up);
-				return;
-			}
-			if(up.option.fileSizeLimit && file.size < up.option.fileSizeLimit){
-				up.onError.fire('所选的文件大小超出限制', UPLOAD_ERROR_FILE_SIZE_OVERLOAD);
-				resetUpload(up);
-				return;
-			}
-			updateState(up, UPLOAD_STATE_PENDING);
-			startUpload(up, file);
-		}
-	});
 }
 
 const mergeNoNull = (target, source) => {
@@ -139,9 +99,13 @@ const cleanUpload = (up) => {
 
 }
 
+const cancelUpload = up => {
+
+}
+
 const resetUpload = (up) => {
 	const fileEl = up.container.querySelector('input[type=file]');
-	fileEl.value = up.initValue;
+	fileEl.value = up.initValue || '';
 	updateState(up, UPLOAD_STATE_INIT);
 }
 
@@ -162,10 +126,6 @@ const updateState = (up, state) => {
 }
 
 export class Uploader {
-	/**
-	 * 状态
-	 * @type {number}
-	 */
 	state = UPLOAD_STATE_INIT;
 	xhr = null;
 
@@ -195,6 +155,10 @@ export class Uploader {
 		uploadResponseHandle: DEFAULT_RSP_HANDLE
 	};
 
+	static bindFileInput(fileEl, option){
+
+	}
+
 	constructor(container, option = {
 		uploadUrl: null, //上传URL【必填】
 		required: null,
@@ -210,7 +174,85 @@ export class Uploader {
 		if(!option.uploadUrl){
 			throw "upload url required";
 		}
-		renderDom(this);
+		//default error handle
+		this.onError.listen(err=>{
+			Toast.showError(err);
+		});
+		let acceptStr = this.option.allowFileTypes.join(',');
+		const html =
+			`<div class="${NS}" data-state="${this.state}">
+			<label class="${NS}-file">
+				<input type="file" accept="${acceptStr}" value="${this.option.initValue || ''}" ${this.option.required ? 'required' : ''}>
+			</label>
+			<div class="${NS}-progress">
+				<progress max="100" value="0">0%</progress>
+				<span>0%</span>
+			</div>
+			<div class="${NS}-content"></div>
+			<div class="${NS}-error"></div>
+			<div class="${NS}-handle">
+				<span role="button" class="${NS}-btn ${NS}-btn-reset"></span>
+				<span role="button" class="${NS}-btn ${NS}-btn-cancel"></span>
+				<span role="button" class="${NS}-btn ${NS}-btn-delete"></span>
+			</div>
+		</div>`;
+		const dom = createDomByHtml(html, this.container);
+		const fileEl = dom.querySelector('input[type=file]');
+		const progressEl = dom.querySelector('progress');
+		const progressPnt = dom.querySelector(`.${NS}-progress span`);
+		const contentCtn = dom.querySelector(`.${NS}-content`);
+		const errorCtn = dom.querySelector(`.${NS}-error`);
+		const resetBtn = dom.querySelector(`.${NS}-btn-reset`);
+		const cancelBtn = dom.querySelector(`.${NS}-btn-cancel`);
+		const deleteBtn = dom.querySelector(`.${NS}-btn-delete`);
+
+		resetBtn.addEventListener('click', e => {
+			resetUpload(this);
+		});
+
+		deleteBtn.addEventListener('click', e => {
+			cleanUpload(this);
+		});
+
+		cancelBtn.addEventListener('click', e => {
+			cancelUpload(this);
+		});
+
+		fileEl.addEventListener('change', e => {
+			let file = fileEl.files[0];
+			if(file){
+				if(file.size < 1){
+					this.onError.fire('所选的文件内容为空', UPLOAD_ERROR_FILE_EMPTY);
+					resetUpload(this);
+					return;
+				}
+				if(this.option.fileSizeLimit && file.size < this.option.fileSizeLimit){
+					this.onError.fire('所选的文件大小超出限制', UPLOAD_ERROR_FILE_SIZE_OVERLOAD);
+					resetUpload(this);
+					return;
+				}
+				updateState(this, UPLOAD_STATE_PENDING);
+				startUpload(this, file, {
+					onSuccess: result=>{
+						updateState(this, UPLOAD_STATE_SUCCESS);
+						contentCtn.innerHTML = `<img src="${result.thumb}">`;
+					},
+					onProgress: (percent, total) => {
+						updateState(this, UPLOAD_STATE_PENDING);
+						progressEl.value = percent;
+						progressEl.max = total;
+						progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
+					},
+					onError: (err) => {
+						updateState(this, UPLOAD_STATE_ERROR);
+						errorCtn.innerHTML = err;
+					},
+					onAbort: ()=>{
+						updateState(this, UPLOAD_STATE_INIT);
+					},
+				});
+			}
+		});
 	}
 
 	abort(){
@@ -236,5 +278,4 @@ export class Uploader {
 			}
 		});
 	}
-
 }

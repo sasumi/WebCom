@@ -10,14 +10,34 @@ export class BizEvent {
 		this.breakOnFalseReturn = breakOnFalseReturn;
 	}
 
+	/**
+	 * 监听事件
+	 * @param {Function} payload
+	 */
 	listen(payload){
 		this.events.push(payload);
 	}
 
+	/**
+	 * 移除监听
+	 * @param {Function} payload
+	 */
 	remove(payload){
 		this.events = this.events.filter(ev => ev !== payload);
 	}
 
+	/**
+	 * 清除所有监听
+	 */
+	clean(){
+		this.events = [];
+	}
+
+	/**
+	 * 触发时间
+	 * @param {*} args 触发传参
+	 * @returns {boolean}
+	 */
 	fire(...args){
 		let breakFlag = false;
 		this.events.forEach(event => {

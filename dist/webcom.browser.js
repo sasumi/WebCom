@@ -22,6 +22,9 @@ var WebCom = (function (exports) {
 		remove(payload){
 			this.events = this.events.filter(ev => ev !== payload);
 		}
+		clean(){
+			this.events = [];
+		}
 		fire(...args){
 			let breakFlag = false;
 			this.events.forEach(event => {
