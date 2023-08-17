@@ -3,20 +3,15 @@ import {Theme} from "./Theme.js";
 import {BizEvent} from "../Lang/Event.js";
 import {Toast} from "./Toast.js";
 
-const NS = Theme.Namespace + '-uploader';
+const NS = Theme.Namespace + 'uploader';
 insertStyleSheet(`
 	.${NS} {}
-	
-	.${NS}-btn {display:inline-block; use-select:none; cursor:pointer}
-	.${NS}-btn-reset:before {content:"重新上传"}
-	.${NS}-btn-cancel:before {content:"取消"}
-	.${NS}-btn-delete:before {content:"删除"}
 `);
 
-export const UPLOAD_STATE_INIT = 'init';
+export const UPLOAD_STATE_EMPTY = 'empty';
 export const UPLOAD_STATE_PENDING = 'pending';
 export const UPLOAD_STATE_ERROR = 'error';
-export const UPLOAD_STATE_SUCCESS = 'success';
+export const UPLOAD_STATE_NORMAL = 'normal';
 
 export const UPLOAD_ERROR_FILE_SIZE_OVERLOAD = 'file_size_overload';
 export const UPLOAD_ERROR_FILE_EMPTY = 'file_empty';
@@ -106,7 +101,7 @@ const cancelUpload = up => {
 const resetUpload = (up) => {
 	const fileEl = up.container.querySelector('input[type=file]');
 	fileEl.value = up.initValue || '';
-	updateState(up, UPLOAD_STATE_INIT);
+	updateState(up, UPLOAD_STATE_EMPTY);
 }
 
 const updateState = (up, state) => {
@@ -116,7 +111,7 @@ const updateState = (up, state) => {
 		case UPLOAD_STATE_PENDING:
 			up.onUploading.fire();
 			break;
-		case UPLOAD_STATE_SUCCESS:
+		case UPLOAD_STATE_NORMAL:
 			up.onSuccess.fire();
 			break;
 		case UPLOAD_STATE_ERROR:
@@ -126,7 +121,7 @@ const updateState = (up, state) => {
 }
 
 export class Uploader {
-	state = UPLOAD_STATE_INIT;
+	state = UPLOAD_STATE_EMPTY;
 	xhr = null;
 
 	/**
@@ -191,9 +186,9 @@ export class Uploader {
 			<div class="${NS}-content"></div>
 			<div class="${NS}-error"></div>
 			<div class="${NS}-handle">
-				<span role="button" class="${NS}-btn ${NS}-btn-reset"></span>
-				<span role="button" class="${NS}-btn ${NS}-btn-cancel"></span>
-				<span role="button" class="${NS}-btn ${NS}-btn-delete"></span>
+				<span role="button" class="${NS}-btn ${NS}-btn-reset" title="重置"></span>
+				<span role="button" class="${NS}-btn ${NS}-btn-cancel" title="取消上传"></span>
+				<span role="button" class="${NS}-btn ${NS}-btn-delete" title="删除"></span>
 			</div>
 		</div>`;
 		const dom = createDomByHtml(html, this.container);
@@ -234,7 +229,7 @@ export class Uploader {
 				updateState(this, UPLOAD_STATE_PENDING);
 				startUpload(this, file, {
 					onSuccess: result=>{
-						updateState(this, UPLOAD_STATE_SUCCESS);
+						updateState(this, UPLOAD_STATE_NORMAL);
 						contentCtn.innerHTML = `<img src="${result.thumb}">`;
 					},
 					onProgress: (percent, total) => {
@@ -248,7 +243,7 @@ export class Uploader {
 						errorCtn.innerHTML = err;
 					},
 					onAbort: ()=>{
-						updateState(this, UPLOAD_STATE_INIT);
+						updateState(this, UPLOAD_STATE_EMPTY);
 					},
 				});
 			}

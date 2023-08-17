@@ -808,9 +808,9 @@ const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX + 'full-screen-backgroun
 insertStyleSheet(`
 @font-face {
 	font-family: '${ICON_FONT}';  /* Project id 3359671 */
-	src: url('//at.alicdn.com/t/c/font_3359671_nf3191wyc8m.woff2?t=1689178723299') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_nf3191wyc8m.woff?t=1689178723299') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_nf3191wyc8m.ttf?t=1689178723299') format('truetype');
+	src: url('//at.alicdn.com/t/c/font_3359671_had9uz7ihif.woff2?t=1692238550574') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_had9uz7ihif.woff?t=1692238550574') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_had9uz7ihif.ttf?t=1692238550574') format('truetype');
 }
 :root {
 	${CSS_VAR_COLOR}:#333;

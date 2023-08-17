@@ -1,0 +1,87 @@
+@charset "UTF-8";
+.WebCom-uploader{
+	display:inline-block;
+	position:relative;
+	background-color:#cccccc;
+	width:80px;
+	height:80px;
+	border-radius:5px;
+	overflow:hidden;
+}
+.WebCom-uploader-file{
+	width:100%;
+	height:100%;
+	position:absolute;
+	cursor:pointer;
+	display:flex;
+	align-items: center;
+}
+.WebCom-uploader-file:hover {
+	color:#4c87d9;
+}
+.WebCom-uploader-file:before {
+	flex:1;
+	font-family:WebCom-iconfont, serif;
+	content:"\e9de";
+	font-size:30px;
+	text-align:center;
+}
+
+.WebCom-uploader-file input[type=file]{
+	position:absolute;
+	width:1px;
+	height:1px;
+	left:0;
+	top:0;
+	opacity:0;
+}
+
+.WebCom-uploader[data-state="empty"] :is(
+	.WebCom-uploader-handle,
+	.WebCom-uploader-progress,
+	.WebCom-uploader-error),
+.WebCom-uploader[data-state="pending"] :is(
+	.WebCom-uploader-error,
+	.WebCom-uploader-btn-reset,
+	.WebCom-uploader-btn-delete
+	),
+.WebCom-uploader[data-state="error"] :is(
+	.WebCom-uploader-progress,
+	.WebCom-uploader-btn-reset,
+	.WebCom-uploader-btn-delete
+	),
+.WebCom-uploader[data-state="normal"] :is(
+	.WebCom-uploader-error,
+	.WebCom-uploader-progress,
+	.WebCom-uploader-btn-cancel
+	){
+	display:none;
+}
+
+.WebCom-uploader[data-state="normal"] .WebCom-uploader-file:before {
+	display:none;
+}
+
+/** for img */
+.WebCom-uploader-handle {
+	width:100%;
+	position:absolute;
+	bottom:0;
+	background-color:#ffffffcf;
+}
+.WebCom-uploader-content {
+	width:100%;
+	height:100%;
+}
+.WebCom-uploader-content img{
+	display:inline-block;
+	width:100%;
+	height:100%;
+	object-fit:contain;
+}
+
+.WebCom-uploader-btn {display:inline-block; user-select:none; cursor:pointer}
+.WebCom-uploader-btn:before {content:""; font-family:WebCom-iconfont, serif}
+.WebCom-uploader-btn-reset:before {content:"\e788"}
+.WebCom-uploader-btn-cancel:before {content:"\e61a"}
+.WebCom-uploader-btn-delete:before {content:"\e61a"}
