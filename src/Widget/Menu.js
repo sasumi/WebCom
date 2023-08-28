@@ -1,12 +1,13 @@
 import {Theme} from "./Theme.js";
-import {createDomByHtml, domContained, getDomDimension, insertStyleSheet, keepRectInContainer} from "../Lang/Dom.js";
+import {
+	createDomByHtml, getDomDimension, getDomOffset, getViewWidth, hide, insertStyleSheet, keepRectInContainer, show
+} from "../Lang/Dom.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
-import {arrayIndex} from "../Lang/Array.js";
 import {dimension2Style} from "../Lang/Html.js";
+import {guid} from "../Lang/Util.js";
 
 let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
 let CTX_Z_INDEX = Theme.ContextIndex;
-let LAST_MENU_EL = null;
 
 insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
@@ -27,101 +28,161 @@ insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
 `);
 
-const buildItem = (item) => {
+const buildMenuItem = (item) => {
 	if(item === '-'){
 		return '<li class="sep"></li>';
 	}
-	return `<li role="menuitem" class="${Array.isArray(item[1]) ? 'has-child':''}" ${item[2] ? 'disabled="disabled"' : ''}>${item[0]}` +
-		(Array.isArray(item[1]) ? '<ul>' + item[1].reduce((retVal, subItem, idx) => {
-			return retVal + buildItem(subItem);
-		}, '') + '</ul>' : '')
-		+ `</li>`;
+	return `<li role="menuitem" class="${Array.isArray(item[1]) ? 'has-child' : ''}" ${item[2] ? 'disabled="disabled"' : 'tabindex="0"'}>${item[0]}` + (Array.isArray(item[1]) ? '<ul>' + item[1].reduce((retVal, subItem, idx) => {
+		return retVal + buildMenuItem(subItem);
+	}, '') + '</ul>' : '') + `</li>`;
 }
 
 /**
- * 显示菜单
+ * 创建菜单
  * @param {Array} commands [{title, payload, disabled=false}, {title, [submenus], disabled], '-',...]
- * @param {HTMLElement} container
+ * @param {Function|Null} onExecute 菜单执行回调函数
+ * @return {HTMLElement}
  */
-export const showMenu = (commands, container = null) => {
-	hideLastMenu();
+export const createMenu = (commands, onExecute = null) => {
 	let menu = createDomByHtml(`
 		<ul class="${CTX_CLASS_PREFIX}">
 			${commands.reduce((lastVal, item, idx) => {
-				return lastVal + buildItem(item);
-			}, '')}
-		</ul>`, container || document.body);
-	eventDelegate(menu, '[role=menuitem]', 'click', target => {
-		let idx = arrayIndex(menu.querySelectorAll('li'), target);
+		return lastVal + buildMenuItem(item);
+	}, '')}
+		</ul>`, document.body);
+	//菜单命令绑定
+	eventDelegate(menu, '[role=menuitem]', 'click', (target, event) => {
+		let idx = Array.from(menu.childNodes).filter(node => {
+			return node.tagName === 'LI';
+		}).indexOf(target);
 		let [title, cmd, disabled] = commands[idx];
+		event.preventDefault();
 		if(disabled){
-			return;
+			return false;
 		}
-		if(!cmd || cmd() !== false){ //cmd 可以通过返回false阻止菜单关闭
-			hideLastMenu();
+		if(cmd){
+			cmd();
+			onExecute && onExecute();
 		}
+		return false;
 	});
-
+	//阻止菜单上右键交互
 	menu.addEventListener('contextmenu', e => {
 		e.preventDefault();
 		e.stopPropagation();
 		return false;
 	});
-
-	//简单避开全局 click 隐藏当前菜单
-	setTimeout(() => {
-		LAST_MENU_EL = menu;
-	}, 0);
-	menu.style.display = 'block';
 	return menu;
 }
 
-/**
- * 隐藏最后一个菜单
- */
-const hideLastMenu = () => {
-	if(LAST_MENU_EL){
-		LAST_MENU_EL.parentNode.removeChild(LAST_MENU_EL);
-		LAST_MENU_EL = null;
-	}
-}
+let DROPDOWN_MENU_COLL = {};
+let DROPDOWN_MENU_SHOWING = false;
 
 /**
- * 绑定对象显示定制右键菜单
- * @param {HTMLElement} target
- * @param {Array} commands
+ * 绑定全局隐藏下拉菜单逻辑
  */
-export const bindTargetContextMenu = (target, commands) => {
-	target.addEventListener('contextmenu', e => {
-		let context_menu_el = showMenu(commands, document.body);
-		let menu_dim = getDomDimension(context_menu_el);
-		let dim = keepRectInContainer({
-			left: e.clientX,
-			top: e.clientY,
-			width: menu_dim.width,
-			height: menu_dim.height
-		});
-		context_menu_el.addEventListener('contextmenu', e => {
+document.addEventListener('click', e => {
+	if(DROPDOWN_MENU_SHOWING){
+		return;
+	}
+	Object.values(DROPDOWN_MENU_COLL).map(hide);
+});
+document.addEventListener('keyup', e => {
+	if(!DROPDOWN_MENU_SHOWING && e.keyCode === KEYS.Esc){
+		let ms = Object.values(DROPDOWN_MENU_COLL);
+		ms.map(hide);
+		if(ms.length){
+			e.stopImmediatePropagation();
 			e.preventDefault();
 			return false;
-		})
-		context_menu_el.style.left = dimension2Style(dim.left);
-		context_menu_el.style.top = dimension2Style(dim.top);
+		}
+	}
+});
+
+/**
+ * @param {HTMLElement} target
+ * @param {Array} commands
+ * @param {Object} option 触发事件类型，如 click, contextmenu等。如果是contextmenu，菜单位置按照鼠标点击位置计算
+ */
+export const bindTargetDropdownMenu = (target, commands, option = null) => {
+	let triggerType = option?.triggerType || 'click';
+	target.addEventListener(triggerType, e => {
+		DROPDOWN_MENU_SHOWING = true;
+		let bind_key = 'dropdown-menu-id';
+		let dd_id = target.getAttribute(bind_key);
+		let menuEl;
+		if(!dd_id){
+			target.setAttribute(bind_key, guid('dd-menu-'));
+			menuEl = createMenu(commands);
+			DROPDOWN_MENU_COLL[dd_id] = menuEl;
+		}else{
+			menuEl = DROPDOWN_MENU_COLL[dd_id];
+		}
+		let pos;
+		if(triggerType === 'contextmenu'){
+			pos = calcMenuByPosition(menuEl, {left: e.clientX, top: e.clientY});
+		}else{
+			pos = calcMenuByNode(menuEl, target);
+		}
+		menuEl.style.left = dimension2Style(pos.left);
+		menuEl.style.top = dimension2Style(pos.top);
+
+		show(menuEl);
 		e.preventDefault();
+		setTimeout(() => {
+			DROPDOWN_MENU_SHOWING = false
+		}, 0);
 		return false;
 	})
 }
 
-document.addEventListener('click', e => {
-	if(LAST_MENU_EL && !domContained(LAST_MENU_EL, e.target, true)){
-		hideLastMenu();
+/**
+ * 菜单关联一个坐标方式摆放
+ * @param {HTMLElement} menuEl
+ * @param {Object} point
+ * @returns {{top: number, left: number}}
+ **/
+const calcMenuByPosition = (menuEl, point) => {
+	let menu_dim = getDomDimension(menuEl);
+	let con_dim = {width: window.innerWidth, height: window.innerHeight};
+}
+
+/**
+ * 菜单关联一个节点方式摆放，按照1、2、3、4种情况依次优先考虑
+ * 摆放方式 1：
+ * [-按钮-]
+ * [ -- 菜单 -- ]
+ * 摆放方式 2：
+ *       [-按钮-]
+ * [ -- 菜单 -- ]
+ * 摆放方式 3：
+ * [ -- 菜单 -- ]
+ * [-按钮-]
+ * 摆放方式 4：
+ * [ -- 菜单 -- ]
+ *       [-按钮-]
+ * @param {HTMLElement} menuEl
+ * @param {HTMLElement} relateNode
+ * @returns {{top: number, left: number}}
+ */
+const calcMenuByNode = (menuEl, relateNode) => {
+	let top, left;
+	let menu_dim = getDomDimension(menuEl);
+	let relate_node_offset = relateNode.getBoundingClientRect();
+	let con_dim = {width: window.innerWidth, height: window.innerHeight};
+
+	//上面放得下，且下面放不下情况，才放上面
+	if((con_dim.height - relate_node_offset.top) > menu_dim.height && (con_dim.height - relate_node_offset.top - relate_node_offset.height) < menu_dim.height){
+		top = relate_node_offset.top - menu_dim.height;
+	}else{
+		top = relate_node_offset.top + relate_node_offset.height;
 	}
-});
-document.addEventListener('keyup', e => {
-	if(LAST_MENU_EL && e.keyCode === KEYS.Esc){
-		e.stopImmediatePropagation();
-		e.preventDefault();
-		hideLastMenu();
-		return false;
+
+	//左边放得下，且右边放不下情况，才放左边
+	if((relate_node_offset.left + relate_node_offset.width) > menu_dim.width && (con_dim.width - relate_node_offset.left) < menu_dim.width){
+		left = relate_node_offset.left + relate_node_offset.width - menu_dim.width;
+	}else{
+		left = relate_node_offset.left;
 	}
-});
+	return {top, left};
+}

@@ -445,9 +445,9 @@ export const nodeHighlight = (node, pattern, hlClass) => {
 
 /**
  * tab 连接
- * @param {Element[]|String} tabs
- * @param {Element[]|String} contents
- * @param {Object} option
+ * @param {Element[]|String} tabs tab节点列表
+ * @param {Element[]|String} contents 内容节点列表
+ * @param {Object} option 选项
  * @param {string} option.contentActiveClass 内容区激活类名
  * @param {string} option.tabActiveClass tab区激活类名
  * @param {string} option.triggerEvent tab激活事件类型

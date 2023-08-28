@@ -3,7 +3,7 @@ import {BizEvent} from "./Event.js";
 
 const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
-const DEFAULT_TIMEOUT = 10000;
+const DEFAULT_TIMEOUT = 0;
 
 /**
  * HTTP请求方法
@@ -189,6 +189,7 @@ export class Net {
 		}
 		if(this.option.timeout){
 			setTimeout(() => {
+				this.xhr.abort();
 				this.onError.fire('Request timeout', CODE_TIMEOUT);
 			}, this.option.timeout);
 		}

@@ -14,9 +14,9 @@
 	<button id="btn">show menu here</button>
 	<div id="menuctn"></div>
 	<script type="module">
-		import {showMenu} from "../src/index.js";
+		import {createMenu} from "../src/index.js";
 		window.btn.onclick = ()=>{
-			showMenu([
+			createMenu([
 				['hello', ()=>{alert('hello')}],
 				'-',
 				['submenu', [
@@ -41,8 +41,8 @@
 	</div>
 
 	<script type="module">
-		import {bindTargetContextMenu} from "../src/index.js";
-		bindTargetContextMenu(window.contextctn, [
+		import {bindTargetDropdownMenu} from "../src/index.js";
+		bindTargetDropdownMenu(window.contextctn, [
 			['剪切'],
 			['复制'],
 			['粘贴'],
@@ -57,8 +57,8 @@
 
 	<div id="dd">
 		<script type="module">
-			import {showMenu} from "../src/index.js";
-			showMenu([
+			import {createMenu} from "../src/index.js";
+			createMenu([
 				['剪切'],
 				['复制'],
 				['粘贴'],

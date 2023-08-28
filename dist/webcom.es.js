@@ -59,7 +59,7 @@ const eventDelegate = (container, selector, eventName, payload)=>{
 		let target = ev.target;
 		while(target){
 			if(target.matches(selector)){
-				payload.call(target, target);
+				payload.call(target, target, ev);
 				return;
 			}
 			if(target === container){
@@ -1031,7 +1031,7 @@ const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
 
 const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
-const DEFAULT_TIMEOUT = 10000;
+const DEFAULT_TIMEOUT = 0;
 const HTTP_METHOD = {
 	GET: 'GET',
 	POST: 'POST',
@@ -1153,6 +1153,7 @@ class Net {
 		}
 		if(this.option.timeout){
 			setTimeout(() => {
+				this.xhr.abort();
 				this.onError.fire('Request timeout', CODE_TIMEOUT);
 			}, this.option.timeout);
 		}
@@ -3055,7 +3056,6 @@ class LocalStorageSetting {
 
 let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
 let CTX_Z_INDEX = Theme.ContextIndex;
-let LAST_MENU_EL = null;
 insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
 	.${CTX_CLASS_PREFIX},
@@ -3074,84 +3074,112 @@ insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
 	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
 `);
-const buildItem = (item) => {
+const buildMenuItem = (item) => {
 	if(item === '-'){
 		return '<li class="sep"></li>';
 	}
-	return `<li role="menuitem" class="${Array.isArray(item[1]) ? 'has-child':''}" ${item[2] ? 'disabled="disabled"' : ''}>${item[0]}` +
-		(Array.isArray(item[1]) ? '<ul>' + item[1].reduce((retVal, subItem, idx) => {
-			return retVal + buildItem(subItem);
-		}, '') + '</ul>' : '')
-		+ `</li>`;
+	return `<li role="menuitem" class="${Array.isArray(item[1]) ? 'has-child' : ''}" ${item[2] ? 'disabled="disabled"' : 'tabindex="0"'}>${item[0]}` + (Array.isArray(item[1]) ? '<ul>' + item[1].reduce((retVal, subItem, idx) => {
+		return retVal + buildMenuItem(subItem);
+	}, '') + '</ul>' : '') + `</li>`;
 };
-const showMenu = (commands, container = null) => {
-	hideLastMenu();
+const createMenu = (commands, onExecute = null) => {
 	let menu = createDomByHtml(`
 		<ul class="${CTX_CLASS_PREFIX}">
 			${commands.reduce((lastVal, item, idx) => {
-				return lastVal + buildItem(item);
-			}, '')}
-		</ul>`, container || document.body);
-	eventDelegate(menu, '[role=menuitem]', 'click', target => {
-		let idx = arrayIndex(menu.querySelectorAll('li'), target);
+		return lastVal + buildMenuItem(item);
+	}, '')}
+		</ul>`, document.body);
+	eventDelegate(menu, '[role=menuitem]', 'click', (target, event) => {
+		let idx = Array.from(menu.childNodes).filter(node => {
+			return node.tagName === 'LI';
+		}).indexOf(target);
 		let [title, cmd, disabled] = commands[idx];
+		event.preventDefault();
 		if(disabled){
-			return;
+			return false;
 		}
-		if(!cmd || cmd() !== false){
-			hideLastMenu();
+		if(cmd){
+			cmd();
+			onExecute && onExecute();
 		}
+		return false;
 	});
 	menu.addEventListener('contextmenu', e => {
 		e.preventDefault();
 		e.stopPropagation();
 		return false;
 	});
-	setTimeout(() => {
-		LAST_MENU_EL = menu;
-	}, 0);
-	menu.style.display = 'block';
 	return menu;
 };
-const hideLastMenu = () => {
-	if(LAST_MENU_EL){
-		LAST_MENU_EL.parentNode.removeChild(LAST_MENU_EL);
-		LAST_MENU_EL = null;
+let DROPDOWN_MENU_COLL = {};
+let DROPDOWN_MENU_SHOWING = false;
+document.addEventListener('click', e => {
+	if(DROPDOWN_MENU_SHOWING){
+		return;
 	}
-};
-const bindTargetContextMenu = (target, commands) => {
-	target.addEventListener('contextmenu', e => {
-		let context_menu_el = showMenu(commands, document.body);
-		let menu_dim = getDomDimension(context_menu_el);
-		let dim = keepRectInContainer({
-			left: e.clientX,
-			top: e.clientY,
-			width: menu_dim.width,
-			height: menu_dim.height
-		});
-		context_menu_el.addEventListener('contextmenu', e => {
+	Object.values(DROPDOWN_MENU_COLL).map(hide);
+});
+document.addEventListener('keyup', e => {
+	if(!DROPDOWN_MENU_SHOWING && e.keyCode === KEYS.Esc){
+		let ms = Object.values(DROPDOWN_MENU_COLL);
+		ms.map(hide);
+		if(ms.length){
+			e.stopImmediatePropagation();
 			e.preventDefault();
 			return false;
-		});
-		context_menu_el.style.left = dimension2Style(dim.left);
-		context_menu_el.style.top = dimension2Style(dim.top);
+		}
+	}
+});
+const bindTargetDropdownMenu = (target, commands, option = null) => {
+	let triggerType = option?.triggerType || 'click';
+	target.addEventListener(triggerType, e => {
+		DROPDOWN_MENU_SHOWING = true;
+		let bind_key = 'dropdown-menu-id';
+		let dd_id = target.getAttribute(bind_key);
+		let menuEl;
+		if(!dd_id){
+			target.setAttribute(bind_key, guid('dd-menu-'));
+			menuEl = createMenu(commands);
+			DROPDOWN_MENU_COLL[dd_id] = menuEl;
+		}else {
+			menuEl = DROPDOWN_MENU_COLL[dd_id];
+		}
+		let pos;
+		if(triggerType === 'contextmenu'){
+			pos = calcMenuByPosition(menuEl, {left: e.clientX, top: e.clientY});
+		}else {
+			pos = calcMenuByNode(menuEl, target);
+		}
+		menuEl.style.left = dimension2Style(pos.left);
+		menuEl.style.top = dimension2Style(pos.top);
+		show(menuEl);
 		e.preventDefault();
+		setTimeout(() => {
+			DROPDOWN_MENU_SHOWING = false;
+		}, 0);
 		return false;
 	});
 };
-document.addEventListener('click', e => {
-	if(LAST_MENU_EL && !domContained(LAST_MENU_EL, e.target, true)){
-		hideLastMenu();
+const calcMenuByPosition = (menuEl, point) => {
+	getDomDimension(menuEl);
+};
+const calcMenuByNode = (menuEl, relateNode) => {
+	let top, left;
+	let menu_dim = getDomDimension(menuEl);
+	let relate_node_offset = relateNode.getBoundingClientRect();
+	let con_dim = {width: window.innerWidth, height: window.innerHeight};
+	if((con_dim.height - relate_node_offset.top) > menu_dim.height && (con_dim.height - relate_node_offset.top - relate_node_offset.height) < menu_dim.height){
+		top = relate_node_offset.top - menu_dim.height;
+	}else {
+		top = relate_node_offset.top + relate_node_offset.height;
 	}
-});
-document.addEventListener('keyup', e => {
-	if(LAST_MENU_EL && e.keyCode === KEYS.Esc){
-		e.stopImmediatePropagation();
-		e.preventDefault();
-		hideLastMenu();
-		return false;
+	if((relate_node_offset.left + relate_node_offset.width) > menu_dim.width && (con_dim.width - relate_node_offset.left) < menu_dim.width){
+		left = relate_node_offset.left + relate_node_offset.width - menu_dim.width;
+	}else {
+		left = relate_node_offset.left;
 	}
-});
+	return {top, left};
+};
 
 const COM_ID$2 = Theme.Namespace + 'com-image-viewer';
 const CONTEXT_WINDOW = getContextWindow();
@@ -3396,7 +3424,7 @@ const bindImgMove = (img) => {
 				context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
 			}
 		});
-		bindTargetContextMenu(img, context_commands);
+		bindTargetDropdownMenu(img, context_commands);
 	}
 	['mouseup', 'mouseout'].forEach(ev => {
 		img.addEventListener(ev, e => {
@@ -4866,4 +4894,4 @@ const showNoviceGuide = (steps, config = {}) => {
 	show_one();
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, isPromise, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showMenu, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, isPromise, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
