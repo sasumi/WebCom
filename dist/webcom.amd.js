@@ -557,7 +557,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let org_display = dom.style.display;
 		let width, height;
 		dom.style.visibility = 'hidden';
-		dom.style.display = '';
+		dom.style.display = 'block';
 		width = dom.clientWidth;
 		height = dom.clientHeight;
 		dom.style.visibility = org_visibility;
@@ -3149,7 +3149,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 	});
-	const bindTargetDropdownMenu = (target, commands, option = null) => {
+	const bindTargetContextMenu = (target, commands, option = {}) => {
+		option.triggerType = 'contextmenu';
+		return bindTargetMenu(target, commands, option);
+	};
+	const bindTargetDropdownMenu = (target, commands, option = {}) => {
+		option.triggerType = 'click';
+		return bindTargetMenu(target, commands, option);
+	};
+	const bindTargetMenu = (target, commands, option = null) => {
 		let triggerType = option?.triggerType || 'click';
 		target.addEventListener(triggerType, e => {
 			DROPDOWN_MENU_SHOWING = true;
@@ -3157,7 +3165,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			let dd_id = target.getAttribute(bind_key);
 			let menuEl;
 			if(!dd_id){
-				target.setAttribute(bind_key, guid('dd-menu-'));
+				dd_id = guid('dd-menu-');
+				target.setAttribute(bind_key, dd_id);
 				menuEl = createMenu(commands);
 				DROPDOWN_MENU_COLL[dd_id] = menuEl;
 			}else {
@@ -3171,7 +3180,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 			menuEl.style.left = dimension2Style(pos.left);
 			menuEl.style.top = dimension2Style(pos.top);
-			show(menuEl);
+			menuEl.style.display = 'block';
 			e.preventDefault();
 			setTimeout(() => {
 				DROPDOWN_MENU_SHOWING = false;
@@ -3180,7 +3189,35 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 	const calcMenuByPosition = (menuEl, point) => {
-		getDomDimension(menuEl);
+		let menu_dim = getDomDimension(menuEl);
+		let con_dim = {width: window.innerWidth, height: window.innerHeight};
+		let top, left = point.left;
+		let right_available = menu_dim.width + point.left <= con_dim.width;
+		let bottom_available = menu_dim.height + point.top <= con_dim.height;
+		let top_available = point.top - menu_dim.height > 0;
+		if(right_available && bottom_available){
+			left = point.left;
+			top = point.top;
+		}
+		else if(right_available && !bottom_available){
+			left = point.left;
+			top = Math.max(con_dim.height - menu_dim.height, 0);
+		}
+		else if(!right_available && bottom_available){
+			left = Math.max(con_dim.width - menu_dim.width, 0);
+			top = point.top;
+		}
+		else if(!right_available && !bottom_available){
+			if(top_available){
+				left = Math.max(con_dim.width - menu_dim.width, 0);
+				top = point.top - menu_dim.height;
+			}
+			else {
+				left = Math.max(con_dim.width - menu_dim.width, 0);
+				top = point.top;
+			}
+		}
+		return {top, left};
 	};
 	const calcMenuByNode = (menuEl, relateNode) => {
 		let top, left;
@@ -3443,7 +3480,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
 				}
 			});
-			bindTargetDropdownMenu(img, context_commands);
+			bindTargetContextMenu(img, context_commands);
 		}
 		['mouseup', 'mouseout'].forEach(ev => {
 			img.addEventListener(ev, e => {
@@ -4967,6 +5004,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.between = between;
 	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
+	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.bindTargetDropdownMenu = bindTargetDropdownMenu;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.buttonActiveBind = buttonActiveBind;
