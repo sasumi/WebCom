@@ -99,15 +99,26 @@ document.addEventListener('keyup', e => {
 	}
 });
 
+export const bindTargetContextMenu = (target, commands, option = {}) => {
+	option.triggerType = 'contextmenu';
+	return bindTargetMenu(target, commands, option);
+}
+
+export const bindTargetDropdownMenu = (target, commands, option = {}) => {
+	option.triggerType = 'click';
+	return bindTargetMenu(target, commands, option);
+}
+
 /**
  * @param {HTMLElement} target
  * @param {Array} commands
  * @param {Object} option 触发事件类型，如 click, contextmenu等。如果是contextmenu，菜单位置按照鼠标点击位置计算
  */
-export const bindTargetDropdownMenu = (target, commands, option = null) => {
+const bindTargetMenu = (target, commands, option = null) => {
 	let triggerType = option?.triggerType || 'click';
 	target.addEventListener(triggerType, e => {
 		DROPDOWN_MENU_SHOWING = true;
+		debugger;
 		let bind_key = 'dropdown-menu-id';
 		let dd_id = target.getAttribute(bind_key);
 		let menuEl;
@@ -126,8 +137,7 @@ export const bindTargetDropdownMenu = (target, commands, option = null) => {
 		}
 		menuEl.style.left = dimension2Style(pos.left);
 		menuEl.style.top = dimension2Style(pos.top);
-
-		show(menuEl);
+		menuEl.style.display = 'block';
 		e.preventDefault();
 		setTimeout(() => {
 			DROPDOWN_MENU_SHOWING = false
@@ -143,8 +153,14 @@ export const bindTargetDropdownMenu = (target, commands, option = null) => {
  * @returns {{top: number, left: number}}
  **/
 const calcMenuByPosition = (menuEl, point) => {
+	debugger;
 	let menu_dim = getDomDimension(menuEl);
 	let con_dim = {width: window.innerWidth, height: window.innerHeight};
+	let top, left;
+	top = point.top;
+	left = point.left;
+
+	return {top, left};
 }
 
 /**

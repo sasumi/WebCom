@@ -14,26 +14,27 @@
 	<button id="btn">show menu here</button>
 	<div id="menuctn"></div>
 	<script type="module">
-		import {createMenu} from "../src/index.js";
-		window.btn.onclick = ()=>{
-			createMenu([
-				['hello', ()=>{alert('hello')}],
-				'-',
-				['submenu', [
+		import {bindTargetDropdownMenu} from "../src/index.js";
+
+		bindTargetDropdownMenu(window.btn, [
+			['hello', () => {
+				alert('hello')
+			}],
+			'-',
+			['submenu', [
+				['sub1', alert],
+				['subt2', [
 					['sub1', alert],
-					['subt2',[
-							['sub1', alert],
-							['subt2',alert],
-							'-',
-							['sub3']
-						], true
-					],
+					['subt2', alert],
 					'-',
 					['sub3']
-				]],
-				['last', alert]
-			], window.menuctn)
-		}
+				], true
+				],
+				'-',
+				['sub3']
+			]],
+			['last', alert]
+		]);
 	</script>
 
 	<div id="contextctn" style="margin:1em;height:200px; background-color:green;">
@@ -41,8 +42,9 @@
 	</div>
 
 	<script type="module">
-		import {bindTargetDropdownMenu} from "../src/index.js";
-		bindTargetDropdownMenu(window.contextctn, [
+		import {bindTargetContextMenu} from "../src/index.js";
+
+		bindTargetContextMenu(window.contextctn, [
 			['剪切'],
 			['复制'],
 			['粘贴'],
@@ -58,6 +60,7 @@
 	<div id="dd">
 		<script type="module">
 			import {createMenu} from "../src/index.js";
+
 			createMenu([
 				['剪切'],
 				['复制'],

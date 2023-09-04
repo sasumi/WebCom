@@ -8,7 +8,7 @@ import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
-import {bindTargetDropdownMenu} from "./Menu.js";
+import {bindTargetContextMenu} from "./Menu.js";
 import {dimension2Style} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'com-image-viewer'
@@ -308,7 +308,7 @@ const bindImgMove = (img) => {
 				context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
 			}
 		});
-		bindTargetDropdownMenu(img, context_commands);
+		bindTargetContextMenu(img, context_commands);
 	}
 
 	['mouseup', 'mouseout'].forEach(ev => {
