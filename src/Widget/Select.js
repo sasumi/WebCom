@@ -1,5 +1,13 @@
 import {Theme} from "./Theme.js";
-import {buttonActiveBind, createDomByHtml, domContained, getDomOffset, hide, insertStyleSheet, show} from "../Lang/Dom.js";
+import {
+	buttonActiveBind,
+	createDomByHtml,
+	domContained,
+	getDomOffset,
+	hide,
+	insertStyleSheet,
+	show
+} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
 import {BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";

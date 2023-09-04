@@ -1,7 +1,5 @@
 import {Theme} from "./Theme.js";
-import {
-	createDomByHtml, getDomDimension, getDomOffset, getViewWidth, hide, insertStyleSheet, keepRectInContainer, show
-} from "../Lang/Dom.js";
+import {createDomByHtml, getDomDimension, hide, insertStyleSheet} from "../Lang/Dom.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
 import {dimension2Style} from "../Lang/Html.js";
 import {guid} from "../Lang/Util.js";

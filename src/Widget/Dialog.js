@@ -1,4 +1,4 @@
-import {buttonActiveBind, createDomByHtml, domContained, getContextWindow, insertStyleSheet,} from "../Lang/Dom.js";
+import {buttonActiveBind, createDomByHtml, domContained, getContextWindow, insertStyleSheet} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
