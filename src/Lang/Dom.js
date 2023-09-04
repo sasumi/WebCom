@@ -230,7 +230,7 @@ export const getDomDimension = (dom) => {
 	let width, height;
 
 	dom.style.visibility = 'hidden';
-	dom.style.display = '';
+	dom.style.display = 'block';
 	width = dom.clientWidth;
 	height = dom.clientHeight;
 	dom.style.visibility = org_visibility;

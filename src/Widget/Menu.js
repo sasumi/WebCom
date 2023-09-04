@@ -118,12 +118,12 @@ const bindTargetMenu = (target, commands, option = null) => {
 	let triggerType = option?.triggerType || 'click';
 	target.addEventListener(triggerType, e => {
 		DROPDOWN_MENU_SHOWING = true;
-		debugger;
 		let bind_key = 'dropdown-menu-id';
 		let dd_id = target.getAttribute(bind_key);
 		let menuEl;
 		if(!dd_id){
-			target.setAttribute(bind_key, guid('dd-menu-'));
+			dd_id = guid('dd-menu-');
+			target.setAttribute(bind_key, dd_id);
 			menuEl = createMenu(commands);
 			DROPDOWN_MENU_COLL[dd_id] = menuEl;
 		}else{
@@ -147,19 +147,43 @@ const bindTargetMenu = (target, commands, option = null) => {
 }
 
 /**
- * 菜单关联一个坐标方式摆放
+ * 菜单关联一个坐标方式摆放，菜单摆放方式主要是光标下方或上方。
  * @param {HTMLElement} menuEl
  * @param {Object} point
  * @returns {{top: number, left: number}}
  **/
 const calcMenuByPosition = (menuEl, point) => {
-	debugger;
 	let menu_dim = getDomDimension(menuEl);
 	let con_dim = {width: window.innerWidth, height: window.innerHeight};
-	let top, left;
-	top = point.top;
-	left = point.left;
+	let top, left = point.left;
 
+	let right_available = menu_dim.width + point.left <= con_dim.width;
+	let bottom_available = menu_dim.height + point.top <= con_dim.height;
+	let top_available = point.top - menu_dim.height > 0;
+
+	if(right_available && bottom_available){
+		left = point.left;
+		top = point.top;
+	}
+	else if(right_available && !bottom_available){
+		left = point.left;
+		top = Math.max(con_dim.height - menu_dim.height, 0);
+	}
+	else if(!right_available && bottom_available){
+		left = Math.max(con_dim.width - menu_dim.width, 0);
+		top = point.top;
+	}
+	else if(!right_available && !bottom_available){
+		//上方摆得下
+		if(top_available){
+			left = Math.max(con_dim.width - menu_dim.width, 0);
+			top = point.top - menu_dim.height;
+		}
+		else {
+			left = Math.max(con_dim.width - menu_dim.width, 0);
+			top = point.top;
+		}
+	}
 	return {top, left};
 }
 
