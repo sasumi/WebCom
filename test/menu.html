@@ -45,10 +45,13 @@
 		import {bindTargetContextMenu} from "../src/index.js";
 
 		bindTargetContextMenu(window.contextctn, [
-			['剪切'],
-			['复制'],
-			['粘贴'],
-			['选择性粘贴', [
+			['查看'],
+			['排序方式', [
+				['名称'],
+				['大小']
+			]],
+			['刷新'],
+			['粘贴', [
 				['粘贴为纯文本'],
 				['粘贴为富文本']
 			]],
@@ -60,12 +63,14 @@
 	<div id="dd">
 		<script type="module">
 			import {createMenu} from "../src/index.js";
-
 			createMenu([
-				['剪切'],
-				['复制'],
-				['粘贴'],
-				['选择性粘贴', [
+				['查看'],
+				['排序方式', [
+					['名称'],
+					['大小']
+				]],
+				['刷新'],
+				['粘贴', [
 					['粘贴为纯文本'],
 					['粘贴为富文本']
 				]],

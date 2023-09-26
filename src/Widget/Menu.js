@@ -17,23 +17,14 @@ insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} li[role=menuitem]>* {flex:1; line-height:1}
 	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]) {cursor:pointer; opacity:1;}
 	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]):hover {background-color: #eeeeee9c;text-shadow: 1px 1px 1px white;opacity: 1;}
-	.${CTX_CLASS_PREFIX} .has-child:after {content:"\\e73b"; font-family:${Theme.IconFont}; zoom:0.7; position:absolute; right:0.5em; color:var(${Theme.CssVar.DISABLE_COLOR});}
-	.${CTX_CLASS_PREFIX} .has-child:not([disabled]):hover:after {color:var(${Theme.CssVar.COLOR})}
+	.${CTX_CLASS_PREFIX} li[data-has-child]:after {content:"\\e73b"; font-family:${Theme.IconFont}; zoom:0.7; position:absolute; right:0.5em; color:var(${Theme.CssVar.DISABLE_COLOR});}
+	.${CTX_CLASS_PREFIX} li[data-has-child]:not([disabled]):hover:after {color:var(${Theme.CssVar.COLOR})}
 	.${CTX_CLASS_PREFIX} .sep {margin:0.25em 0.5em;border-bottom:1px solid #eee;}
 	.${CTX_CLASS_PREFIX} .caption {padding-left: 1em;opacity: 0.7;user-select: none;display:flex;align-items: center;}
 	.${CTX_CLASS_PREFIX} .caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
 	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
 	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
 `);
-
-const buildMenuItem = (item) => {
-	if(item === '-'){
-		return '<li class="sep"></li>';
-	}
-	return `<li role="menuitem" class="${Array.isArray(item[1]) ? 'has-child' : ''}" ${item[2] ? 'disabled="disabled"' : 'tabindex="0"'}>${item[0]}` + (Array.isArray(item[1]) ? '<ul>' + item[1].reduce((retVal, subItem, idx) => {
-		return retVal + buildMenuItem(subItem);
-	}, '') + '</ul>' : '') + `</li>`;
-}
 
 /**
  * 创建菜单
@@ -42,33 +33,64 @@ const buildMenuItem = (item) => {
  * @return {HTMLElement}
  */
 export const createMenu = (commands, onExecute = null) => {
-	let menu = createDomByHtml(`
-		<ul class="${CTX_CLASS_PREFIX}">
-			${commands.reduce((lastVal, item, idx) => {
-		return lastVal + buildMenuItem(item);
-	}, '')}
-		</ul>`, document.body);
-	//菜单命令绑定
-	eventDelegate(menu, '[role=menuitem]', 'click', (target, event) => {
-		let idx = Array.from(menu.childNodes).filter(node => {
-			return node.tagName === 'LI';
-		}).indexOf(target);
-		let [title, cmd, disabled] = commands[idx];
-		event.preventDefault();
-		if(disabled){
-			return false;
+	let html = `<ul class="${CTX_CLASS_PREFIX}">`;
+	let payload_map = {};
+
+	let buildMenuItemHtml = (item) => {
+		let html = '';
+		if(item === '-'){
+			html += '<li class="sep"></li>';
+			return html;
 		}
-		if(cmd){
-			cmd();
-			onExecute && onExecute();
+		let [title, cmdOrChildren, disabled] = item;
+		let has_child = Array.isArray(cmdOrChildren);
+		let mnu_item_id = guid();
+		let sub_menu_html = '';
+		if(has_child){
+			sub_menu_html = '<ul>';
+			cmdOrChildren.forEach(subItem => {
+				sub_menu_html += buildMenuItemHtml(subItem);
+			});
+			sub_menu_html += '</ul>';
+		}else{
+			payload_map[mnu_item_id] = cmdOrChildren;
 		}
-		return false;
+		html += `<li role="menuitem" data-id="${mnu_item_id}" ${has_child ? ' data-has-child ' : ''} ${disabled ? 'disabled="disabled"' : 'tabindex="0"'}>${title}${sub_menu_html}</li>`;
+		return html;
+	};
+
+	for(let i = 0; i < commands.length; i++){
+		let item = commands[i];
+		html += buildMenuItemHtml(item);
+	}
+	html += '</ul>';
+	let menu = createDomByHtml(html, document.body);
+	let items = menu.querySelectorAll('[role=menuitem]:not([disabled])');
+	items.forEach(function(item){
+		let id = item.getAttribute('data-id');
+		let payload = payload_map[id];
+		if(payload){
+			item.addEventListener('click', () => {
+				payload();
+				onExecute && onExecute(item);
+			});
+		}
 	});
+	let sub_menus = menu.querySelectorAll('ul');
+	sub_menus.forEach(function(sub_menu){
+		let parent_item = sub_menu.parentNode;
+		parent_item.addEventListener('mouseover', e => {
+			let pos = alignSubMenuByNode(sub_menu, parent_item);
+			sub_menu.style.left = dimension2Style(pos.left);
+			sub_menu.style.top = dimension2Style(pos.top);
+		});
+	})
+
 	//阻止菜单上右键交互
 	menu.addEventListener('contextmenu', e => {
-		e.preventDefault();
-		e.stopPropagation();
-		return false;
+		// e.preventDefault();
+		// e.stopPropagation();
+		// return false;
 	});
 	return menu;
 }
@@ -85,6 +107,7 @@ document.addEventListener('click', e => {
 	}
 	Object.values(DROPDOWN_MENU_COLL).map(hide);
 });
+
 document.addEventListener('keyup', e => {
 	if(!DROPDOWN_MENU_SHOWING && e.keyCode === KEYS.Esc){
 		let ms = Object.values(DROPDOWN_MENU_COLL);
@@ -131,7 +154,7 @@ const bindTargetMenu = (target, commands, option = null) => {
 		if(triggerType === 'contextmenu'){
 			pos = calcMenuByPosition(menuEl, {left: e.clientX, top: e.clientY});
 		}else{
-			pos = calcMenuByNode(menuEl, target);
+			pos = alignMenuByNode(menuEl, target);
 		}
 		menuEl.style.left = dimension2Style(pos.left);
 		menuEl.style.top = dimension2Style(pos.top);
@@ -162,22 +185,18 @@ const calcMenuByPosition = (menuEl, point) => {
 	if(right_available && bottom_available){
 		left = point.left;
 		top = point.top;
-	}
-	else if(right_available && !bottom_available){
+	}else if(right_available && !bottom_available){
 		left = point.left;
 		top = Math.max(con_dim.height - menu_dim.height, 0);
-	}
-	else if(!right_available && bottom_available){
+	}else if(!right_available && bottom_available){
 		left = Math.max(con_dim.width - menu_dim.width, 0);
 		top = point.top;
-	}
-	else if(!right_available && !bottom_available){
+	}else if(!right_available && !bottom_available){
 		//上方摆得下
 		if(top_available){
 			left = Math.max(con_dim.width - menu_dim.width, 0);
 			top = point.top - menu_dim.height;
-		}
-		else {
+		}else{
 			left = Math.max(con_dim.width - menu_dim.width, 0);
 			top = point.top;
 		}
@@ -203,7 +222,7 @@ const calcMenuByPosition = (menuEl, point) => {
  * @param {HTMLElement} relateNode
  * @returns {{top: number, left: number}}
  */
-const calcMenuByNode = (menuEl, relateNode) => {
+const alignMenuByNode = (menuEl, relateNode) => {
 	let top, left;
 	let menu_dim = getDomDimension(menuEl);
 	let relate_node_offset = relateNode.getBoundingClientRect();
@@ -221,6 +240,57 @@ const calcMenuByNode = (menuEl, relateNode) => {
 		left = relate_node_offset.left + relate_node_offset.width - menu_dim.width;
 	}else{
 		left = relate_node_offset.left;
+	}
+	return {top, left};
+}
+
+/**
+ *
+ * 子菜单摆放方式计算（子菜单特点：只摆在菜单项两侧）
+ * 摆放方式 1：
+ * [-按钮-][ -- 菜单 -- ]
+ *        [ -- 菜单 -- ]
+ *
+ * 摆放方式 2：
+ *        [ -- 菜单 -- ]
+ * [-按钮-][ -- 菜单 -- ]
+ *        [ -- 菜单 -- ]
+ *
+ * 摆放方式 3：
+ * [ -- 菜单 -- ][-按钮-]
+ * [ -- 菜单 -- ]
+ * [ -- 菜单 -- ]
+ * 摆放方式 4：
+ * [ -- 菜单 -- ]
+ * [ -- 菜单 -- ][-按钮-]
+ * [ -- 菜单 -- ]
+ * @param subMenuEl
+ * @param triggerMenuItem
+ * @returns {{top: number, left: number}}
+ */
+const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
+	let menu_dim = getDomDimension(subMenuEl);
+	let relate_node_offset = triggerMenuItem.getBoundingClientRect();
+	let con_dim = {width: window.innerWidth, height: window.innerHeight};
+
+	//由于上级菜单采用absolute布局，子菜单仅需根据上级菜单做相对定位
+	let top = 0,
+		left = relate_node_offset.height;
+
+	//下面放不下，且上面还有空间，否则还是放下面
+	if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
+		top = con_dim.height - (relate_node_offset.top + menu_dim.height);
+	} else {
+		top = 0;
+	}
+
+	//右边放不下，且左边有空间
+
+	//左边放得下，且右边放不下情况，才放左边
+	if(relate_node_offset.left > menu_dim.width && (relate_node_offset.left + relate_node_offset.width + menu_dim.width > con_dim.width)){
+		left = relate_node_offset.left - menu_dim.width;
+	}else{
+		left = relate_node_offset.left + relate_node_offset.width;
 	}
 	return {top, left};
 }
