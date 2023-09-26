@@ -106,28 +106,28 @@ export const regQuote = (str)=>{
 };
 
 /**
- * @param e
+ * @param {String} srcStr
  * @return {string}
  */
-export const utf8Decode = (e) => {
+export const utf8Decode = (srcStr) => {
 	let t = "";
 	let n = 0;
 	let r = 0,
 		c1 = 0,
 		c2 = 0,
 		c3 = 0;
-	while(n < e.length){
-		r = e.charCodeAt(n);
+	while(n < srcStr.length){
+		r = srcStr.charCodeAt(n);
 		if(r < 128){
 			t += String.fromCharCode(r);
 			n++
 		}else if(r > 191 && r < 224){
-			c2 = e.charCodeAt(n + 1);
+			c2 = srcStr.charCodeAt(n + 1);
 			t += String.fromCharCode((r & 31) << 6 | c2 & 63);
 			n += 2
 		}else{
-			c2 = e.charCodeAt(n + 1);
-			c3 = e.charCodeAt(n + 2);
+			c2 = srcStr.charCodeAt(n + 1);
+			c3 = srcStr.charCodeAt(n + 2);
 			t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
 			n += 3
 		}
@@ -148,11 +148,15 @@ export const isValidUrl = urlString => {
 	}
 }
 
-export const utf8Encode = (e) => {
-	e = e.replace(/\r\n/g, "n");
+/**
+ * @param {String} srcStr
+ * @returns {string}
+ */
+export const utf8Encode = (srcStr) => {
+	srcStr = srcStr.replace(/\r\n/g, "n");
 	let t = "";
-	for(let n = 0; n < e.length; n++){
-		let r = e.charCodeAt(n);
+	for(let n = 0; n < srcStr.length; n++){
+		let r = srcStr.charCodeAt(n);
 		if(r < 128){
 			t += String.fromCharCode(r)
 		}else if(r > 127 && r < 2048){
@@ -219,14 +223,15 @@ export const strToPascalCase = (str, capitalize_first = false)=>{
 }
 
 /**
- * @param s
+ * 字符串转换层大写
+ * @param {String} str
  * @return {string}
  */
-export const capitalize = (s) => {
-	if(typeof s !== 'string'){
+export const capitalize = (str) => {
+	if(typeof str !== 'string'){
 		return ''
 	}
-	return s.charAt(0).toUpperCase() + s.slice(1);
+	return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 /**
@@ -241,6 +246,14 @@ export const isNum = (val)=>{
 export const TRIM_BOTH = 0;
 export const TRIM_LEFT = 1;
 export const TRIM_RIGHT = 2;
+
+/**
+ * 去除字符串首尾指定字符或空白
+ * @param {String} str 源字符串
+ * @param {String} chars 指定字符，默认为空白
+ * @param {Number} dir 方向
+ * @returns {*|boolean}
+ */
 export const trim = (str, chars = '', dir = TRIM_BOTH)=>{
 	if(chars.length){
 		let regLeft = new RegExp('^['+regQuote(chars)+']+'),

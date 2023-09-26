@@ -274,8 +274,8 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 	let con_dim = {width: window.innerWidth, height: window.innerHeight};
 
 	//由于上级菜单采用absolute布局，子菜单仅需根据上级菜单做相对定位
-	let top = 0,
-		left = relate_node_offset.height;
+	let top;
+	let left;
 
 	//下面放不下，且上面还有空间，否则还是放下面
 	if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
