@@ -135,6 +135,19 @@ export const utf8Decode = (e) => {
 	return t
 };
 
+/**
+ * 检测字符串是否为合法URL
+ * @param {String} urlString
+ * @returns {boolean}
+ */
+export const isValidUrl = urlString => {
+	try{
+		return Boolean(new URL(urlString));
+	}catch(e){
+		return false;
+	}
+}
+
 export const utf8Encode = (e) => {
 	e = e.replace(/\r\n/g, "n");
 	let t = "";
