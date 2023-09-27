@@ -213,24 +213,24 @@ const cutString = (str, len, eclipse_text)=>{
 const regQuote = (str)=>{
 	return (str + '').replace(/([\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:])/g, "\\$1");
 };
-const utf8Decode = (e) => {
+const utf8Decode = (srcStr) => {
 	let t = "";
 	let n = 0;
 	let r = 0,
 		c2 = 0,
 		c3 = 0;
-	while(n < e.length){
-		r = e.charCodeAt(n);
+	while(n < srcStr.length){
+		r = srcStr.charCodeAt(n);
 		if(r < 128){
 			t += String.fromCharCode(r);
 			n++;
 		}else if(r > 191 && r < 224){
-			c2 = e.charCodeAt(n + 1);
+			c2 = srcStr.charCodeAt(n + 1);
 			t += String.fromCharCode((r & 31) << 6 | c2 & 63);
 			n += 2;
 		}else {
-			c2 = e.charCodeAt(n + 1);
-			c3 = e.charCodeAt(n + 2);
+			c2 = srcStr.charCodeAt(n + 1);
+			c3 = srcStr.charCodeAt(n + 2);
 			t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
 			n += 3;
 		}
@@ -244,11 +244,11 @@ const isValidUrl = urlString => {
 		return false;
 	}
 };
-const utf8Encode = (e) => {
-	e = e.replace(/\r\n/g, "n");
+const utf8Encode = (srcStr) => {
+	srcStr = srcStr.replace(/\r\n/g, "n");
 	let t = "";
-	for(let n = 0; n < e.length; n++){
-		let r = e.charCodeAt(n);
+	for(let n = 0; n < srcStr.length; n++){
+		let r = srcStr.charCodeAt(n);
 		if(r < 128){
 			t += String.fromCharCode(r);
 		}else if(r > 127 && r < 2048){
@@ -292,11 +292,11 @@ const strToPascalCase = (str, capitalize_first = false)=>{
 	});
 	return words.join('');
 };
-const capitalize = (s) => {
-	if(typeof s !== 'string'){
+const capitalize = (str) => {
+	if(typeof str !== 'string'){
 		return ''
 	}
-	return s.charAt(0).toUpperCase() + s.slice(1);
+	return str.charAt(0).toUpperCase() + str.slice(1);
 };
 const isNum = (val)=>{
 	return !isNaN(val);
@@ -3244,17 +3244,17 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 	let menu_dim = getDomDimension(subMenuEl);
 	let relate_node_offset = triggerMenuItem.getBoundingClientRect();
 	let con_dim = {width: window.innerWidth, height: window.innerHeight};
-	let top = 0,
-		left = relate_node_offset.height;
+	let top;
+	let left;
 	if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
 		top = con_dim.height - (relate_node_offset.top + menu_dim.height);
 	} else {
 		top = 0;
 	}
 	if(relate_node_offset.left > menu_dim.width && (relate_node_offset.left + relate_node_offset.width + menu_dim.width > con_dim.width)){
-		left = relate_node_offset.left - menu_dim.width;
+		left = 0 - menu_dim.width;
 	}else {
-		left = relate_node_offset.left + relate_node_offset.width;
+		left = relate_node_offset.width;
 	}
 	return {top, left};
 };
@@ -3886,8 +3886,9 @@ const resolveSrc = (node) => {
 	let src = node.dataset.src;
 	if(node.tagName === 'IMG'){
 		if(!src && node.srcset){
-			src = getHighestResFromSrcSet(node.srcset) || node.src;
+			src = getHighestResFromSrcSet(node.srcset);
 		}
+		src = src || node.src;
 	}else if(!src && node.tagName === 'A'){
 		src = node.href;
 	}

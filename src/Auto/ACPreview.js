@@ -12,8 +12,9 @@ const resolveSrc = (node) => {
 	//src获取优先级：param.src > img[data-src] > img[srcset] > img[src]
 	if(node.tagName === 'IMG'){
 		if(!src && node.srcset){
-			src = getHighestResFromSrcSet(node.srcset) || node.src;
+			src = getHighestResFromSrcSet(node.srcset);
 		}
+		src = src || node.src;
 	}else if(!src && node.tagName === 'A'){
 		src = node.href;
 	}

@@ -65,6 +65,8 @@ export const createMenu = (commands, onExecute = null) => {
 	}
 	html += '</ul>';
 	let menu = createDomByHtml(html, document.body);
+
+	//绑定menu命令
 	let items = menu.querySelectorAll('[role=menuitem]:not([disabled])');
 	items.forEach(function(item){
 		let id = item.getAttribute('data-id');
@@ -76,6 +78,8 @@ export const createMenu = (commands, onExecute = null) => {
 			});
 		}
 	});
+
+	//处理子菜单弹出事件
 	let sub_menus = menu.querySelectorAll('ul');
 	sub_menus.forEach(function(sub_menu){
 		let parent_item = sub_menu.parentNode;
@@ -247,6 +251,7 @@ const alignMenuByNode = (menuEl, relateNode) => {
 /**
  *
  * 子菜单摆放方式计算（子菜单特点：只摆在菜单项两侧）
+ * 子菜单父级为 relative，子菜单为 absolute
  * 摆放方式 1：
  * [-按钮-][ -- 菜单 -- ]
  *        [ -- 菜单 -- ]
@@ -288,9 +293,9 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 
 	//左边放得下，且右边放不下情况，才放左边
 	if(relate_node_offset.left > menu_dim.width && (relate_node_offset.left + relate_node_offset.width + menu_dim.width > con_dim.width)){
-		left = relate_node_offset.left - menu_dim.width;
+		left = 0 - menu_dim.width;
 	}else{
-		left = relate_node_offset.left + relate_node_offset.width;
+		left = relate_node_offset.width;
 	}
 	return {top, left};
 }

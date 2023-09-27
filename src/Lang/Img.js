@@ -22,7 +22,7 @@ export const loadImgBySrc = (src)=>{
 }
 
 /**
- * 从 img.srcset 属性中解析出最高分辨率突破
+ * 从 img.srcset 属性中解析出最高分辨率图片
  * @param {String} srcset_str
  * @return {string}
  */
