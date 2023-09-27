@@ -3165,6 +3165,19 @@ const bindTargetDropdownMenu = (target, commands, option = {}) => {
 	option.triggerType = 'click';
 	return bindTargetMenu(target, commands, option);
 };
+const showContextMenu = (commands,position)=>{
+	DROPDOWN_MENU_SHOWING = true;
+	let dd_id = guid('dd-menu-');
+	let menuEl = createMenu(commands);
+	DROPDOWN_MENU_COLL[dd_id] = menuEl;
+	let pos = calcMenuByPosition(menuEl, {left: position.left, top: position.top});
+	menuEl.style.left = dimension2Style(pos.left);
+	menuEl.style.top = dimension2Style(pos.top);
+	menuEl.style.display = 'block';
+	setTimeout(() => {
+		DROPDOWN_MENU_SHOWING = false;
+	}, 0);
+};
 const bindTargetMenu = (target, commands, option = null) => {
 	let triggerType = option?.triggerType || 'click';
 	target.addEventListener(triggerType, e => {
@@ -5139,6 +5152,7 @@ exports.setCookie = setCookie;
 exports.setHash = setHash;
 exports.setStyle = setStyle;
 exports.show = show;
+exports.showContextMenu = showContextMenu;
 exports.showImgListPreview = showImgListPreviewFn;
 exports.showImgPreview = showImgPreviewFn;
 exports.showNoviceGuide = showNoviceGuide;

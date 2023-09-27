@@ -135,6 +135,25 @@ export const bindTargetDropdownMenu = (target, commands, option = {}) => {
 }
 
 /**
+ * 在指定位置显示右键菜单
+ * @param {Array} commands
+ * @param {Object} position
+ */
+export const showContextMenu = (commands,position)=>{
+	DROPDOWN_MENU_SHOWING = true;
+	let dd_id = guid('dd-menu-');
+	let menuEl = createMenu(commands);
+	DROPDOWN_MENU_COLL[dd_id] = menuEl;
+	let pos = calcMenuByPosition(menuEl, {left: position.left, top: position.top});
+	menuEl.style.left = dimension2Style(pos.left);
+	menuEl.style.top = dimension2Style(pos.top);
+	menuEl.style.display = 'block';
+	setTimeout(() => {
+		DROPDOWN_MENU_SHOWING = false
+	}, 0);
+}
+
+/**
  * @param {HTMLElement} target
  * @param {Array} commands
  * @param {Object} option 触发事件类型，如 click, contextmenu等。如果是contextmenu，菜单位置按照鼠标点击位置计算
