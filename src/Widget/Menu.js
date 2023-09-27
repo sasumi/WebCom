@@ -1,6 +1,6 @@
 import {Theme} from "./Theme.js";
-import {createDomByHtml, getDomDimension, hide, insertStyleSheet} from "../Lang/Dom.js";
-import {eventDelegate, KEYS} from "../Lang/Event.js";
+import {createDomByHtml, getDomDimension, insertStyleSheet} from "../Lang/Dom.js";
+import {KEYS} from "../Lang/Event.js";
 import {dimension2Style} from "../Lang/Html.js";
 import {guid} from "../Lang/Util.js";
 
@@ -99,28 +99,20 @@ export const createMenu = (commands, onExecute = null) => {
 	return menu;
 }
 
-let DROPDOWN_MENU_COLL = {};
-let DROPDOWN_MENU_SHOWING = false;
+let LAST_MENU;
 
-/**
- * 绑定全局隐藏下拉菜单逻辑
- */
+const hideLastMenu = ()=>{
+	LAST_MENU && LAST_MENU.parentNode.removeChild(LAST_MENU);
+	LAST_MENU = null;
+}
+
 document.addEventListener('click', e => {
-	if(DROPDOWN_MENU_SHOWING){
-		return;
-	}
-	Object.values(DROPDOWN_MENU_COLL).map(hide);
+	hideLastMenu();
 });
 
 document.addEventListener('keyup', e => {
-	if(!DROPDOWN_MENU_SHOWING && e.keyCode === KEYS.Esc){
-		let ms = Object.values(DROPDOWN_MENU_COLL);
-		ms.map(hide);
-		if(ms.length){
-			e.stopImmediatePropagation();
-			e.preventDefault();
-			return false;
-		}
+	if(e.keyCode === KEYS.Esc){
+		hideLastMenu();
 	}
 });
 
@@ -140,17 +132,13 @@ export const bindTargetDropdownMenu = (target, commands, option = {}) => {
  * @param {Object} position
  */
 export const showContextMenu = (commands,position)=>{
-	DROPDOWN_MENU_SHOWING = true;
-	let dd_id = guid('dd-menu-');
+	hideLastMenu();
 	let menuEl = createMenu(commands);
-	DROPDOWN_MENU_COLL[dd_id] = menuEl;
+	LAST_MENU = menuEl;
 	let pos = calcMenuByPosition(menuEl, {left: position.left, top: position.top});
 	menuEl.style.left = dimension2Style(pos.left);
 	menuEl.style.top = dimension2Style(pos.top);
 	menuEl.style.display = 'block';
-	setTimeout(() => {
-		DROPDOWN_MENU_SHOWING = false
-	}, 0);
 }
 
 /**
@@ -161,18 +149,9 @@ export const showContextMenu = (commands,position)=>{
 const bindTargetMenu = (target, commands, option = null) => {
 	let triggerType = option?.triggerType || 'click';
 	target.addEventListener(triggerType, e => {
-		DROPDOWN_MENU_SHOWING = true;
-		let bind_key = 'dropdown-menu-id';
-		let dd_id = target.getAttribute(bind_key);
-		let menuEl;
-		if(!dd_id){
-			dd_id = guid('dd-menu-');
-			target.setAttribute(bind_key, dd_id);
-			menuEl = createMenu(commands);
-			DROPDOWN_MENU_COLL[dd_id] = menuEl;
-		}else{
-			menuEl = DROPDOWN_MENU_COLL[dd_id];
-		}
+		hideLastMenu();
+		let menuEl = createMenu(commands);
+		LAST_MENU = menuEl;
 		let pos;
 		if(triggerType === 'contextmenu'){
 			pos = calcMenuByPosition(menuEl, {left: e.clientX, top: e.clientY});
@@ -183,9 +162,7 @@ const bindTargetMenu = (target, commands, option = null) => {
 		menuEl.style.top = dimension2Style(pos.top);
 		menuEl.style.display = 'block';
 		e.preventDefault();
-		setTimeout(() => {
-			DROPDOWN_MENU_SHOWING = false
-		}, 0);
+		e.stopPropagation();
 		return false;
 	})
 }
