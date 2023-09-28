@@ -3160,14 +3160,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		LAST_MENU && LAST_MENU.parentNode.removeChild(LAST_MENU);
 		LAST_MENU = null;
 	};
-	document.addEventListener('click', e => {
-		hideLastMenu();
-	});
-	document.addEventListener('keyup', e => {
-		if(e.keyCode === KEYS.Esc){
-			hideLastMenu();
-		}
-	});
 	const bindTargetContextMenu = (target, commands, option = {}) => {
 		option.triggerType = 'contextmenu';
 		return bindTargetMenu(target, commands, option);
@@ -3267,6 +3259,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		return {top, left};
 	};
+	document.addEventListener('click', e => {
+		hideLastMenu();
+	});
+	document.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Esc){
+			hideLastMenu();
+		}
+	});
 
 	const COM_ID$2 = Theme.Namespace + 'com-image-viewer';
 	const CONTEXT_WINDOW = getContextWindow();

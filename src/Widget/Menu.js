@@ -106,16 +106,6 @@ const hideLastMenu = ()=>{
 	LAST_MENU = null;
 }
 
-document.addEventListener('click', e => {
-	hideLastMenu();
-});
-
-document.addEventListener('keyup', e => {
-	if(e.keyCode === KEYS.Esc){
-		hideLastMenu();
-	}
-});
-
 export const bindTargetContextMenu = (target, commands, option = {}) => {
 	option.triggerType = 'contextmenu';
 	return bindTargetMenu(target, commands, option);
@@ -295,3 +285,13 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 	}
 	return {top, left};
 }
+
+document.addEventListener('click', e => {
+	hideLastMenu();
+});
+
+document.addEventListener('keyup', e => {
+	if(e.keyCode === KEYS.Esc){
+		hideLastMenu();
+	}
+});
