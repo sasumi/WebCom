@@ -236,6 +236,67 @@ export const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => 
 }
 
 /**
+ * 并发控制器
+ * @example 使用方法：
+ * let pp = new ParallelPromise(10); //设置控制器最大并发数量为10
+ * let task = (param)=>{  //并发处理任务函数必须返回 promise
+ *     return new Promise(resolve=>{
+ *         console.log('param:', param);
+ *         setTimeout(()=>{
+ *             resolve(1);
+ *         }, 1000);
+ *     });
+ * }
+ * pp.addPromiseFn(task, {id:'1'}).then(rsp=>{
+ *     //task resolve 回调
+ * });
+ * pp.addPromiseFn(task, {id:'2'}).then(rsp=>{
+ *     //task resolve 回调
+ * });
+ */
+export class ParallelPromise {
+	parallel_limit = 0; //最大并发数量
+	current_running_count = 0; //当前运行中数量
+	task_stack = [
+		//{promiseFn, args, resolve, reject}
+	]; //剩余任务堆栈
+
+	constructor(parallelLimit){
+		if(parallelLimit < 1){
+			throw "最大并发数量必须大于0";
+		}
+		this.parallel_limit = parallelLimit;
+	}
+
+	loop(){
+		for(let i = 0; i < (this.parallel_limit - this.current_running_count); i++){
+			if(!this.task_stack.length){
+				return;
+			}
+			this.current_running_count++;
+			let {promiseFn, args, resolve, reject} = this.task_stack.shift();
+			promiseFn(...args).then(resolve, reject).finally(() => {
+				this.current_running_count--;
+				this.loop();
+			});
+		}
+	}
+
+	addPromiseFn(promiseFn, ...args){
+		console.log('并发任务添加：', args);
+		return new Promise((resolve, reject) => {
+			this.task_stack.push({
+				promiseFn: promiseFn,
+				args: args,
+				resolve,
+				reject
+			});
+			this.loop();
+		});
+	}
+}
+
+/**
  * 检测对象是否为Promise对象
  * @param {*} obj
  * @returns {boolean}

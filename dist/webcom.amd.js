@@ -1439,6 +1439,43 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 	};
+	class ParallelPromise {
+		parallel_limit = 0;
+		current_running_count = 0;
+		task_stack = [
+		];
+		constructor(parallelLimit){
+			if(parallelLimit < 1){
+				throw "最大并发数量必须大于0";
+			}
+			this.parallel_limit = parallelLimit;
+		}
+		loop(){
+			for(let i = 0; i < (this.parallel_limit - this.current_running_count); i++){
+				if(!this.task_stack.length){
+					return;
+				}
+				this.current_running_count++;
+				let {promiseFn, args, resolve, reject} = this.task_stack.shift();
+				promiseFn(...args).then(resolve, reject).finally(() => {
+					this.current_running_count--;
+					this.loop();
+				});
+			}
+		}
+		addPromiseFn(promiseFn, ...args){
+			console.log('并发任务添加：', args);
+			return new Promise((resolve, reject) => {
+				this.task_stack.push({
+					promiseFn: promiseFn,
+					args: args,
+					resolve,
+					reject
+				});
+				this.loop();
+			});
+		}
+	}
 	const isPromise = (obj)=>{
 		return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
 	};
@@ -5015,6 +5052,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.ONE_MONTH_31 = ONE_MONTH_31;
 	exports.ONE_WEEK = ONE_WEEK;
 	exports.ONE_YEAR_365 = ONE_YEAR_365;
+	exports.ParallelPromise = ParallelPromise;
 	exports.QueryString = QueryString;
 	exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 	exports.REQUEST_FORMAT = REQUEST_FORMAT;

@@ -1420,6 +1420,43 @@ const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
 		}
 	});
 };
+class ParallelPromise {
+	parallel_limit = 0;
+	current_running_count = 0;
+	task_stack = [
+	];
+	constructor(parallelLimit){
+		if(parallelLimit < 1){
+			throw "最大并发数量必须大于0";
+		}
+		this.parallel_limit = parallelLimit;
+	}
+	loop(){
+		for(let i = 0; i < (this.parallel_limit - this.current_running_count); i++){
+			if(!this.task_stack.length){
+				return;
+			}
+			this.current_running_count++;
+			let {promiseFn, args, resolve, reject} = this.task_stack.shift();
+			promiseFn(...args).then(resolve, reject).finally(() => {
+				this.current_running_count--;
+				this.loop();
+			});
+		}
+	}
+	addPromiseFn(promiseFn, ...args){
+		console.log('并发任务添加：', args);
+		return new Promise((resolve, reject) => {
+			this.task_stack.push({
+				promiseFn: promiseFn,
+				args: args,
+				resolve,
+				reject
+			});
+			this.loop();
+		});
+	}
+}
 const isPromise = (obj)=>{
 	return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
 };
@@ -4963,4 +5000,4 @@ const showNoviceGuide = (steps, config = {}) => {
 	show_one();
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isNum, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
