@@ -305,5 +305,21 @@ export const isPromise = (obj)=>{
 	return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
 }
 
+export const PROMISE_STATE_PENDING = 'pending';
+export const PROMISE_STATE_FULFILLED = 'fulfilled';
+export const PROMISE_STATE_REJECTED = 'rejected';
+
+/**
+ * 获取 promise 对象状态
+ * @param promise
+ * @return {Promise<string>}
+ */
+export const getPromiseState = (promise)=>{
+	const t = {};
+	return Promise.race([promise, t])
+		.then(v => (v === t) ? PROMISE_STATE_PENDING : PROMISE_STATE_FULFILLED)
+		.catch(() => PROMISE_STATE_REJECTED);
+}
+
 window.WEBCOM_GET_LIB_MODULE = getLibModule;
 window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;

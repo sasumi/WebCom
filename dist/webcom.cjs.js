@@ -1462,6 +1462,15 @@ class ParallelPromise {
 const isPromise = (obj)=>{
 	return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
 };
+const PROMISE_STATE_PENDING = 'pending';
+const PROMISE_STATE_FULFILLED = 'fulfilled';
+const PROMISE_STATE_REJECTED = 'rejected';
+const getPromiseState = (promise)=>{
+	const t = {};
+	return Promise.race([promise, t])
+		.then(v => (v === t) ? PROMISE_STATE_PENDING : PROMISE_STATE_FULFILLED)
+		.catch(() => PROMISE_STATE_REJECTED);
+};
 window.WEBCOM_GET_LIB_MODULE = getLibModule;
 window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
 
@@ -5035,6 +5044,9 @@ exports.ONE_MONTH_30 = ONE_MONTH_30;
 exports.ONE_MONTH_31 = ONE_MONTH_31;
 exports.ONE_WEEK = ONE_WEEK;
 exports.ONE_YEAR_365 = ONE_YEAR_365;
+exports.PROMISE_STATE_FULFILLED = PROMISE_STATE_FULFILLED;
+exports.PROMISE_STATE_PENDING = PROMISE_STATE_PENDING;
+exports.PROMISE_STATE_REJECTED = PROMISE_STATE_REJECTED;
 exports.ParallelPromise = ParallelPromise;
 exports.QueryString = QueryString;
 exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
@@ -5115,6 +5127,7 @@ exports.getLibModule = getLibModule;
 exports.getLibModuleTop = getLibModuleTop;
 exports.getMonthLastDay = getMonthLastDay;
 exports.getNextMonth = getNextMonth;
+exports.getPromiseState = getPromiseState;
 exports.getRegion = getRegion;
 exports.getUTF8StrLen = getUTF8StrLen;
 exports.getViewHeight = getViewHeight;
