@@ -261,6 +261,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			return false;
 		}
 	};
+	const isJSON = (json)=>{
+		let is_json = false;
+		try {
+			JSON.parse(json);
+			is_json = true;
+		} catch (error) {
+		}
+		return is_json;
+	};
 	const utf8Encode = (srcStr) => {
 		srcStr = srcStr.replace(/\r\n/g, "n");
 		let t = "";
@@ -5181,6 +5190,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.isElement = isElement;
 	exports.isEquals = isEquals;
 	exports.isInFullScreen = isInFullScreen;
+	exports.isJSON = isJSON;
 	exports.isNum = isNum;
 	exports.isObject = isObject;
 	exports.isPromise = isPromise;
