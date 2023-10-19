@@ -1896,6 +1896,12 @@ const buildHtmlHidden = (maps)=>{
 	return html;
 };
 
+const resolveFormAction = (form, event = null) => {
+	if(event && event.submitter && event.submitter.formAction){
+		return event.submitter.formAction;
+	}
+	return form.action;
+};
 class ACAsync {
 	static REQUEST_FORMAT = REQUEST_FORMAT.JSON;
 	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
@@ -1908,20 +1914,19 @@ class ACAsync {
 		};
 		rsp.message ? ToastClass.showSuccess(rsp.message, next) : next();
 	};
-	static active(node, param = {}){
+	static active(node, param = {}, event = null){
 		return new Promise((resolve, reject) => {
 			let url, data, method,
 				onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
 			if(param.onsuccess){
-				if(typeof(param.onsuccess) === 'string'){
+				if(typeof (param.onsuccess) === 'string'){
 					onsuccess = window[param.onsuccess];
-				}
-				else {
+				}else {
 					onsuccess = param.onsuccess;
 				}
 			}
 			if(node.tagName === 'FORM'){
-				url = node.action;
+				url = resolveFormAction(node, event);
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 			}else if(node.tagName === 'A'){
@@ -1932,7 +1937,7 @@ class ACAsync {
 			method = param.method || method || 'get';
 			data = param.data || data;
 			let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
-			requestJSON(url, data, method, {requestFormat:ACAsync.REQUEST_FORMAT}).then(rsp => {
+			requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
 				if(rsp.code === 0){
 					onsuccess(rsp);
 					resolve();
@@ -1944,7 +1949,7 @@ class ACAsync {
 			}, err => {
 				ToastClass.showError(err);
 				reject(err);
-			}).finally(()=>{
+			}).finally(() => {
 				loader && loader.hide();
 			});
 		})
@@ -4375,23 +4380,23 @@ class Select {
 			triggerDomEvent(selectEl, 'change');
 		});
 		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
-		let sh = () => {
+		let showSelect = () => {
 			let offset = getDomOffset(selectEl);
 			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
 		};
 		selectEl.addEventListener('keydown', e => {
-			sh();
+			showSelect();
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
 		});
 		selectEl.addEventListener('mousedown', e => {
-			sel.isShown() ? sel.hidePanel() : sh();
+			sel.isShown() ? sel.hidePanel() : showSelect();
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
 		});
-		selectEl.addEventListener('focus', sh);
+		selectEl.addEventListener('focus', showSelect);
 		selectEl.addEventListener('change', () => {
 			let selectedIndexes = [];
 			Array.from(selectEl.selectedOptions).forEach(opt => {
@@ -4541,8 +4546,8 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 				C.init(node, data);
 			}
 			if(C.active){
-				activeStacks.push(()=>{
-					return C.active(node, resolveDataParam(node, com));
+				activeStacks.push((event)=>{
+					return C.active(node, resolveDataParam(node, com), event);
 				});
 			}
 			return true;
@@ -4564,24 +4569,24 @@ const isInputAble = (node) => {
 		(node.tagName === 'INPUT' && (!node.type || TEXT_TYPES.includes(node.type.toLowerCase())));
 };
 const bindActiveChain = (node, activeStacks) => {
-	let event = 'click';
+	let eventName;
 	if(isInputAble(node)){
-		event = 'keyup';
+		eventName = 'keyup';
 	}else if(node.tagName === 'FORM'){
-		event = 'submit';
+		eventName = 'submit';
 	}else {
-		event = 'click';
+		eventName = 'click';
 	}
-	node.addEventListener(event, e => {
+	node.addEventListener(eventName, event => {
 		let func = activeStacks[0];
-		let pro = func();
+		let pro = func(event);
 		for(let i = 1; i < activeStacks.length; i++){
 			pro = pro.then(() => {
-				return activeStacks[i]();
+				return activeStacks[i](event);
 			}, () => {
 			});
 		}
-		e.preventDefault();
+		event.preventDefault();
 		return false;
 	});
 };

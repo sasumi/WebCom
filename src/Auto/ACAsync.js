@@ -3,6 +3,19 @@ import {REQUEST_FORMAT, requestJSON} from "../Lang/Net.js";
 import {formSerializeJSON, formSerializeString} from "../Lang/Form.js";
 
 /**
+ * 修正从 input[type=submit][formaction] 按钮提交的表单动作
+ * @param {HTMLFormElement} form
+ * @param {SubmitEvent|Null} event
+ * @returns {string}
+ */
+const resolveFormAction = (form, event = null) => {
+	if(event && event.submitter && event.submitter.formAction){
+		return event.submitter.formAction;
+	}
+	return form.action;
+}
+
+/**
  * 异步组件
  * 参数：
  * ACAsync.FORM_DATA_PACKAGE_TYPE 设置数据打包方式，如后端是PHP，为兼容PHP数组识别语法，请使用：PACKAGE_TYPE_STRING 方式打包
@@ -26,21 +39,20 @@ export class ACAsync {
 		rsp.message ? Toast.showSuccess(rsp.message, next) : next();
 	};
 
-	static active(node, param = {}){
+	static active(node, param = {}, event = null){
 		return new Promise((resolve, reject) => {
 			let url, data, method,
 				onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
 
 			if(param.onsuccess){
-				if(typeof(param.onsuccess) === 'string'){
+				if(typeof (param.onsuccess) === 'string'){
 					onsuccess = window[param.onsuccess];
-				}
-				else {
+				}else{
 					onsuccess = param.onsuccess;
 				}
 			}
 			if(node.tagName === 'FORM'){
-				url = node.action;
+				url = resolveFormAction(node, event);
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 			}else if(node.tagName === 'A'){
@@ -54,7 +66,7 @@ export class ACAsync {
 			data = param.data || data;
 
 			let loader = Toast.showLoadingLater('正在请求中，请稍候···');
-			requestJSON(url, data, method, {requestFormat:ACAsync.REQUEST_FORMAT}).then(rsp => {
+			requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
 				if(rsp.code === 0){
 					onsuccess(rsp);
 					resolve();
@@ -66,7 +78,7 @@ export class ACAsync {
 			}, err => {
 				Toast.showError(err);
 				reject(err);
-			}).finally(()=>{
+			}).finally(() => {
 				loader && loader.hide();
 			})
 		})

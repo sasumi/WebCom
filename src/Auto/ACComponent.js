@@ -72,8 +72,8 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 				C.init(node, data);
 			}
 			if(C.active){
-				activeStacks.push(()=>{
-					return C.active(node, resolveDataParam(node, com)); //点击时实时解析参数
+				activeStacks.push((event)=>{
+					return C.active(node, resolveDataParam(node, com), event); //点击时实时解析参数
 				});
 			}
 			return true;
@@ -109,24 +109,24 @@ const isInputAble = (node) => {
  * @param {Function[]} activeStacks 链式调用列表
  */
 const bindActiveChain = (node, activeStacks) => {
-	let event = 'click';
+	let eventName;
 	if(isInputAble(node)){
-		event = 'keyup';
+		eventName = 'keyup';
 	}else if(node.tagName === 'FORM'){
-		event = 'submit';
+		eventName = 'submit';
 	}else{
-		event = 'click';
+		eventName = 'click';
 	}
-	node.addEventListener(event, e => {
+	node.addEventListener(eventName, event => {
 		let func = activeStacks[0];
-		let pro = func();
+		let pro = func(event);
 		for(let i = 1; i < activeStacks.length; i++){
 			pro = pro.then(() => {
-				return activeStacks[i]();
+				return activeStacks[i](event);
 			}, () => {
 			});
 		}
-		e.preventDefault();
+		event.preventDefault();
 		return false;
 	});
 }

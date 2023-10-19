@@ -455,6 +455,7 @@ class Select {
 	}
 
 	/**
+	 * 绑定 select 元素使其触发行为变成Select组件
 	 * @param {HTMLSelectElement} selectEl
 	 */
 	static bindSelect(selectEl){
@@ -475,26 +476,26 @@ class Select {
 		});
 		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 
-		let sh = () => {
+		let showSelect = () => {
 			let offset = getDomOffset(selectEl);
 			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
 		}
 
 		selectEl.addEventListener('keydown', e => {
-			sh();
+			showSelect();
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
 		});
 
 		selectEl.addEventListener('mousedown', e => {
-			sel.isShown() ? sel.hidePanel() : sh();
+			sel.isShown() ? sel.hidePanel() : showSelect();
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
 		});
 
-		selectEl.addEventListener('focus', sh);
+		selectEl.addEventListener('focus', showSelect);
 		selectEl.addEventListener('change', () => {
 			let selectedIndexes = [];
 			Array.from(selectEl.selectedOptions).forEach(opt => {
