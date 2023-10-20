@@ -1,9 +1,19 @@
+const resolveFN = (f) => {
+	let name = f.replace(/.+\/([^\/]+)$/, '$1').replace(/\.html$/i, '');
+	let ns= name.split('_');
+	let name_str = '';
+	ns.forEach(n=>{
+		name_str += n[0].toUpperCase() + n.slice(1) + ' ';
+	});
+	return name_str;
+}
+
 const nav = [
-	'ac.html',
+	'auto_component.html',
 	'dialog.html',
 	'fullscreen.html',
 	'html_cut.html',
-	'imgpreview.html',
+	'img_preview.html',
 	'menu.html',
 	'net.html',
 	'novice_guide.html',
@@ -17,9 +27,11 @@ const nav = [
 ]
 let html = `
 <link rel="stylesheet" href="assets/style.css">
+<h2 class="title">${resolveFN(location.href)}</h2>
 <ul class="nav">`;
-nav.forEach(file=>{
-	html += `<li><a href="${file}">${file.replace(/\.html$/i, '')}</a></li>`;
+
+nav.forEach(file => {
+	html += `<li><a href="${file}">${resolveFN(file)}</a></li>`;
 })
 html += `</ul>`;
 document.write(html);
