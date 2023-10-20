@@ -8,7 +8,7 @@ import {formSerializeJSON, formSerializeString} from "../Lang/Form.js";
  * @param {SubmitEvent|Null} event
  * @returns {string}
  */
-const resolveFormAction = (form, event = null) => {
+const fixFormAction = (form, event = null) => {
 	if(event && event.submitter && event.submitter.formAction){
 		return event.submitter.formAction;
 	}
@@ -52,7 +52,7 @@ export class ACAsync {
 				}
 			}
 			if(node.tagName === 'FORM'){
-				url = resolveFormAction(node, event);
+				url = fixFormAction(node, event);
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 			}else if(node.tagName === 'A'){
