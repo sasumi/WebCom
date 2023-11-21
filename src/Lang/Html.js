@@ -118,7 +118,6 @@ export const decodeHTMLEntities = (str) => {
 	return str;
 }
 
-
 /**
  * 转义HTML
  * @param {string} str
@@ -131,6 +130,7 @@ export const escapeHtml = str => {
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;")
+		.replace(/\s/g, "&nbsp;")
 		.replace(/[\r\n]/g, '<br/>');
 }
 
@@ -145,6 +145,7 @@ export const unescapeHtml = (html)=>{
 		.replace(/&#39;/g, "'")
 		.replace(/&lt;/g, '<')
 		.replace(/&gt;/g, '>')
+		.replace(/&nbsp;/g, ' ')
 		.replace(/&amp;/g, '&')
 		.replace(/<br.*>/, "\n");
 };

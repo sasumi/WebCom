@@ -399,6 +399,7 @@ var WebCom = (function (exports) {
 			.replace(/>/g, "&gt;")
 			.replace(/"/g, "&quot;")
 			.replace(/'/g, "&#039;")
+			.replace(/\s/g, "&nbsp;")
 			.replace(/[\r\n]/g, '<br/>');
 	};
 	const unescapeHtml = (html)=>{
@@ -407,6 +408,7 @@ var WebCom = (function (exports) {
 			.replace(/&#39;/g, "'")
 			.replace(/&lt;/g, '<')
 			.replace(/&gt;/g, '>')
+			.replace(/&nbsp;/g, ' ')
 			.replace(/&amp;/g, '&')
 			.replace(/<br.*>/, "\n");
 	};
@@ -840,7 +842,7 @@ var WebCom = (function (exports) {
 	${CSS_VAR_PANEL_SHADOW}:1px 1px 5px #bcbcbcb3;
 	${CSS_VAR_PANEL_BORDER_COLOR}:#ccc;
 	${CSS_VAR_PANEL_BORDER}:1px solid var(${CSS_VAR_PANEL_BORDER_COLOR});
-	${CSS_VAR_PANEL_RADIUS}:3px;
+	${CSS_VAR_PANEL_RADIUS}:4px;
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
@@ -1897,7 +1899,7 @@ var WebCom = (function (exports) {
 		return html;
 	};
 
-	const resolveFormAction = (form, event = null) => {
+	const fixFormAction = (form, event = null) => {
 		if(event && event.submitter && event.submitter.formAction){
 			return event.submitter.formAction;
 		}
@@ -1927,7 +1929,7 @@ var WebCom = (function (exports) {
 					}
 				}
 				if(node.tagName === 'FORM'){
-					url = resolveFormAction(node, event);
+					url = fixFormAction(node, event);
 					data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 				}else if(node.tagName === 'A'){

@@ -142,9 +142,9 @@ export const objectPushByPath = (path, value, srcObj = {}, glue = '.') => {
 }
 
 /**
- * @param obj
- * @param path
- * @param glue
+ * @param {Object} obj
+ * @param {String} path
+ * @param {String} glue
  * @returns {*}
  */
 export const objectGetByPath = (obj, path, glue = '.') => {
