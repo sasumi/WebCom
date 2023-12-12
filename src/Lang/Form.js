@@ -36,7 +36,7 @@ export const getElementValue = (el) => {
 	}
 	if(el.tagName === 'SELECT' && el.multiple){
 		let vs = [];
-		el.querySelectorAll('option[selected]').forEach(item => {
+		el.querySelectorAll('option:checked').forEach(item => {
 			vs.push(item.value);
 		});
 		return vs;
@@ -131,12 +131,18 @@ export const formValidate = (dom, name_validate = false) => {
  * @param {Boolean} validate 是否校验表单
  * @returns {String} 如果校验失败，则返回null
  */
-export const formSerializeString = (dom, validate= true)=>{
+export const formSerializeString = (dom, validate = true) => {
 	let data_list = getFormDataAvailable(dom, validate);
 	let data_string_list = [];
 	data_list.forEach(item => {
 		let [name, value] = item;
-		data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(value)));
+		if(Array.isArray(value)){
+			value.forEach(val => {
+				data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(val)));
+			});
+		}else{
+			data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(value)));
+		}
 	});
 	return data_string_list.join('&');
 }
