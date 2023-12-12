@@ -35,6 +35,12 @@ input[type=button], button{
 	line-height:var(--element-height);
 }
 
+.WebCom-dialog-cancel-btn[type=button] {
+	color: #666;
+	background-color:#eee;
+}
+
+
 /*html body{*/
 /*	--WebCom-color: white;*/
 /*	--WebCom-background-color: black;*/

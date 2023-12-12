@@ -2008,6 +2008,7 @@ const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
 const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
 const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
+const DLG_CLS_CANCEL_BTN = DLG_CLS_PREF + '-cancel-btn';
 const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
 const STATE_ACTIVE = 'active';
 const STATE_DISABLED = 'disabled';
@@ -2201,7 +2202,7 @@ const domConstruct = (dlg) => {
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
-			html += `<input type="button" class="${DLG_CLS_BTN}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
 		});
 		html += '</div>';
 	}
@@ -2392,7 +2393,7 @@ class Dialog {
 	static confirm(title, content, opt = {}){
 		return new Promise((resolve, reject) => {
 			let p = new Dialog({
-				content:`<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
+				content: `<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
 						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 				buttons: [
 					{
@@ -2402,13 +2403,13 @@ class Dialog {
 						}
 					},
 					{
-						title: '取消', callback: () => {
+						title: '取消', className: DLG_CLS_CANCEL_BTN, callback: () => {
 							p.close();
 							reject && reject();
 						}
 					}
 				],
-				width:420,
+				width: 420,
 				showTopCloseButton: false,
 				...opt
 			});
@@ -2454,7 +2455,7 @@ class Dialog {
 							p.close();
 						}
 					},
-					{title: '取消'}
+					{title: '取消',className: DLG_CLS_CANCEL_BTN}
 				],
 				showTopCloseButton: true,
 				...option

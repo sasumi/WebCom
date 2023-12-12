@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Index</title>
+</head>
+<body>
+<style>
+    .text:after {
+        content:" |";
+        animation:blink infinite 300ms;
+    }
+    
+    @keyframes blink{
+        from {
+            opacity:0;
+        }
+        to {
+            opacity:1;
+        }
+    }
+</style>
+    <script src="assets/nav.js"></script>
+    <div class="text-c">
+        <span class="text">hello <br> world </span>
+    </div>
+<script>
+
+    const DEFAULT_RANDOM_STRING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890';
+    const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
+        let codes = '';
+        for(let i = 0; i < length; i++){
+            let rnd =Math.round(Math.random()*(sourceStr.length - 1));
+            codes += sourceStr.substring(rnd, rnd + 1);
+        }
+        return codes;
+    };
+
+    let txt = document.querySelector('.text');
+    setInterval(()=>{
+        txt.innerHTML += randomString() + (Math.random()*10 < 3 ? "<br/>" : '');
+    }, 2000);
+</script>
+</body>
+</html>
