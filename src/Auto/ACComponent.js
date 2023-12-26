@@ -12,7 +12,11 @@ import {ACHighlight} from "./ACHighlight.js";
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 
-let AC_COMPONENT_MAP = {
+/**
+ * 组件映射配置
+ * @type {Object}
+ */
+let AC_COMPONENT_NAME_MAPPING = {
 	async: ACAsync,
 	dialog: ACDialog,
 	confirm: ACConfirm,
@@ -25,6 +29,11 @@ let AC_COMPONENT_MAP = {
 	highlight: ACHighlight,
 };
 
+/**
+ * 从属性中解析出组件列表
+ * @param {String} attr
+ * @return {String[]}
+ */
 const parseComponents = function(attr){
 	let tmp = attr.split(',');
 	let cs = [];
@@ -54,26 +63,31 @@ const resolveDataParam = (node, key) => {
 	return param;
 }
 
+/**
+ * 绑定节点
+ * @param {Node} container
+ * @param attr_flag
+ */
 const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
 	container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`).forEach(node => {
 		let cs = parseComponents(node.getAttribute(attr_flag));
 		let activeStacks = [];
 		let init_count = 0;
-		cs.forEach(com => {
-			let C = AC_COMPONENT_MAP[com];
+		cs.forEach(componentAlias => {
+			let C = AC_COMPONENT_NAME_MAPPING[componentAlias];
 			if(!C){
-				console.warn('component no found', com);
+				console.warn('component no found', componentAlias);
 				return false;
 			}
 			init_count++;
-			let data = resolveDataParam(node, com);
-			console.info('com detected:', com);
+			let data = resolveDataParam(node, componentAlias);
+			console.info('com detected:', componentAlias);
 			if(C.init){
 				C.init(node, data);
 			}
 			if(C.active){
-				activeStacks.push((event)=>{
-					return C.active(node, resolveDataParam(node, com), event); //点击时实时解析参数
+				activeStacks.push((event) => {
+					return C.active(node, resolveDataParam(node, componentAlias), event); //点击时实时解析参数
 				});
 			}
 			return true;
@@ -88,6 +102,10 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 	});
 };
 
+/**
+ * 可以转换成文本类型的输入类型
+ * @type {string[]}
+ */
 const TEXT_TYPES = ['text', 'number', 'password', 'search', 'address', 'date', 'datetime', 'time', 'checkbox', 'radio'];
 
 /**
@@ -151,13 +169,13 @@ export const ACComponent = {
 
 	/**
 	 * 注册组件
-	 * @param {String}  componentName
+	 * @param {String} ComponentName
 	 * @param {Object} define
 	 * @param {Function} define.init 节点初始化函数
 	 * @param {Function} define.active 节点交互函数（交互行为包括：表单提交、链接点击、按钮点击、输入框回车提交等）
 	 */
-	register: (componentName, define) => {
-		AC_COMPONENT_MAP[componentName] = define;
+	register: (ComponentName, define) => {
+		AC_COMPONENT_NAME_MAPPING[ComponentName] = define;
 	},
 
 	/**
@@ -165,6 +183,6 @@ export const ACComponent = {
 	 * @param {String} componentName
 	 */
 	unRegister: (componentName) => {
-		delete (AC_COMPONENT_MAP[componentName]);
+		delete (AC_COMPONENT_NAME_MAPPING[componentName]);
 	}
-};
+}

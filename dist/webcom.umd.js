@@ -4508,7 +4508,7 @@
 
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
-	let AC_COMPONENT_MAP = {
+	let AC_COMPONENT_NAME_MAPPING = {
 		async: ACAsync,
 		dialog: ACDialog,
 		confirm: ACConfirm,
@@ -4546,21 +4546,21 @@
 			let cs = parseComponents(node.getAttribute(attr_flag));
 			let activeStacks = [];
 			let init_count = 0;
-			cs.forEach(com => {
-				let C = AC_COMPONENT_MAP[com];
+			cs.forEach(componentAlias => {
+				let C = AC_COMPONENT_NAME_MAPPING[componentAlias];
 				if(!C){
-					console.warn('component no found', com);
+					console.warn('component no found', componentAlias);
 					return false;
 				}
 				init_count++;
-				let data = resolveDataParam(node, com);
-				console.info('com detected:', com);
+				let data = resolveDataParam(node, componentAlias);
+				console.info('com detected:', componentAlias);
 				if(C.init){
 					C.init(node, data);
 				}
 				if(C.active){
-					activeStacks.push((event)=>{
-						return C.active(node, resolveDataParam(node, com), event);
+					activeStacks.push((event) => {
+						return C.active(node, resolveDataParam(node, componentAlias), event);
 					});
 				}
 				return true;
@@ -4615,11 +4615,11 @@
 			observer.observe(container, {childList: true, subtree: true});
 			bindNode(container, attr_flag);
 		},
-		register: (componentName, define) => {
-			AC_COMPONENT_MAP[componentName] = define;
+		register: (ComponentName, define) => {
+			AC_COMPONENT_NAME_MAPPING[ComponentName] = define;
 		},
 		unRegister: (componentName) => {
-			delete (AC_COMPONENT_MAP[componentName]);
+			delete (AC_COMPONENT_NAME_MAPPING[componentName]);
 		}
 	};
 
