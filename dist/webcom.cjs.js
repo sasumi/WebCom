@@ -4527,11 +4527,11 @@ const parseComponents = function(attr){
 	});
 	return cs;
 };
-const resolveDataParam = (node, key) => {
+const resolveDataParam = (node, ComAlias) => {
 	let param = {};
 	Array.from(node.attributes).forEach(attr => {
-		if(attr.name.indexOf('data-' + key + '-') >= 0){
-			let objKeyPath = attr.name.substring(('data-' + key).length + 1);
+		if(attr.name.indexOf('data-' + ComAlias.toLowerCase() + '-') >= 0){
+			let objKeyPath = attr.name.substring(('data-' + ComAlias.toLowerCase()).length + 1);
 			objectPushByPath(objKeyPath, attr.value, param);
 		}
 	});
