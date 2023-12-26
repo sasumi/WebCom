@@ -48,15 +48,15 @@ const parseComponents = function(attr){
 
 /**
  * 从节点中解析出使用 data-key- 为前缀的属性
- * @param node
- * @param key
- * @return {{}}
+ * @param {Node} node
+ * @param {String} ComAlias
+ * @return {{}} 需要传递给组件方法的参数值（注意，由于属性名称仅支持小写（HTML中大写会转换成小写），返回参数值对象中不会出现大写情况。
  */
-const resolveDataParam = (node, key) => {
+const resolveDataParam = (node, ComAlias) => {
 	let param = {};
 	Array.from(node.attributes).forEach(attr => {
-		if(attr.name.indexOf('data-' + key + '-') >= 0){
-			let objKeyPath = attr.name.substring(('data-' + key).length + 1);
+		if(attr.name.indexOf('data-' + ComAlias.toLowerCase() + '-') >= 0){
+			let objKeyPath = attr.name.substring(('data-' + ComAlias.toLowerCase()).length + 1);
 			objectPushByPath(objKeyPath, attr.value, param);
 		}
 	})
