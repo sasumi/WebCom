@@ -133,6 +133,20 @@ export const buttonActiveBind = (button, payload, cancelBubble = false) => {
 };
 
 /**
+ * 监听节点树变更
+ * @param {Node} dom
+ * @param {Function} callback
+ */
+export const onDomTreeChange = (dom, callback) => {
+	let tm = null;
+	let obs = new MutationObserver(() => {
+		tm && clearTimeout(tm);
+		tm = setTimeout(callback, 10);
+	});
+	obs.observe(dom, {attributes: true, subtree: true, childList: true});
+}
+
+/**
  * 获取中间对齐布局
  * @param width
  * @param height

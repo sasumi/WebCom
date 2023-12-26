@@ -510,6 +510,14 @@ const buttonActiveBind = (button, payload, cancelBubble = false) => {
 		}
 	}, cancelBubble);
 };
+const onDomTreeChange = (dom, callback) => {
+	let tm = null;
+	let obs = new MutationObserver(() => {
+		tm && clearTimeout(tm);
+		tm = setTimeout(callback, 10);
+	});
+	obs.observe(dom, {attributes: true, subtree: true, childList: true});
+};
 const keepRectCenter = (width, height, containerDimension = {
 	left: 0,
 	top: 0,
@@ -5206,6 +5214,7 @@ exports.nodeHighlight = nodeHighlight;
 exports.objectGetByPath = objectGetByPath;
 exports.objectPushByPath = objectPushByPath;
 exports.onDocReady = onDocReady;
+exports.onDomTreeChange = onDomTreeChange;
 exports.onHover = onHover;
 exports.onReportApi = onReportApi;
 exports.onStateChange = onStateChange;
