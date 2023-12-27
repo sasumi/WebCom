@@ -301,16 +301,18 @@
 		}
 		return codes;
 	};
-	const randomWords = (count = 1) => {
+	const randomWords = (count = 1, letterMax = 8) => {
 		let words = [];
 		const possible = 'bcdfghjklmnpqrstvwxyz';
 		const possibleVowels = 'aeiou';
 		while(count-- > 0){
-			words.push(
-				possible[Math.floor(Math.random() * possible.length)] +
-				possibleVowels[Math.floor(Math.random() * possibleVowels.length)] +
-				possible[Math.floor(Math.random() * possible.length)]
-			);
+			let word = '';
+			for(let i = 0; i < letterMax; i = i + 3){
+				word += possible[Math.floor(Math.random() * possible.length)];
+				word += possibleVowels[Math.floor(Math.random() * possibleVowels.length)];
+				word += possible[Math.floor(Math.random() * possible.length)];
+			}
+			words.push(word);
 		}
 		return words;
 	};

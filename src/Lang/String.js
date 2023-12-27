@@ -226,19 +226,22 @@ export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING) => {
 /**
  * 产生随机单词
  * @param {Number} count 单词数量
+ * @param {Number} letterMax 每个单词最大字符数量
  * @return {String[]} 单词列表
  */
-export const randomWords = (count = 1) => {
+export const randomWords = (count = 1, letterMax = 8) => {
 	let words = [];
 	const possible = 'bcdfghjklmnpqrstvwxyz';
 	const possibleVowels = 'aeiou';
 
 	while(count-- > 0){
-		words.push(
-			possible[Math.floor(Math.random() * possible.length)] +
-			possibleVowels[Math.floor(Math.random() * possibleVowels.length)] +
-			possible[Math.floor(Math.random() * possible.length)]
-		)
+		let word = '';
+		for(let i = 0; i < letterMax; i = i + 3){
+			word += possible[Math.floor(Math.random() * possible.length)]
+			word += possibleVowels[Math.floor(Math.random() * possibleVowels.length)]
+			word += possible[Math.floor(Math.random() * possible.length)]
+		}
+		words.push(word);
 	}
 	return words;
 }
