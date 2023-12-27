@@ -70,11 +70,11 @@ export const fillForm = (formOrContainer) => {
 		if(element.type === 'hidden'){
 			return;
 		}
-		let required = this.required ? true : randomInt(0, 1) > 0;
-		let maxlength = parseInt(this.getAttribute('maxlength') || 0) || DEFAULT_MAXLENGTH;
-		let name = this.name;
+		let required = element.required ? true : randomInt(0, 1) > 0;
+		let maxlength = parseInt(element.getAttribute('maxlength') || 0) || DEFAULT_MAXLENGTH;
+		let name = element.name;
 
-		switch(this.type){
+		switch(element.type){
 			case 'text':
 			case 'password':
 			case 'search':
@@ -83,7 +83,7 @@ export const fillForm = (formOrContainer) => {
 				break;
 
 			case 'checkbox':
-				this.checked = Math.random() > 0.5;
+				element.checked = Math.random() > 0.5;
 				break;
 
 			case 'radio':
@@ -99,15 +99,15 @@ export const fillForm = (formOrContainer) => {
 				return;
 
 			case 'number':
-				let min = this.min ? parseFloat(this.min) : 0;
-				let max = this.max ? parseFloat(this.max) : DEFAULT_MAX;
-				required && (this.value = randomInt(min, max));
+				let min = element.min ? parseFloat(element.min) : 0;
+				let max = element.max ? parseFloat(element.max) : DEFAULT_MAX;
+				required && (element.value = randomInt(min, max));
 				break;
 
 			default:
-				if(this.tagName === 'SELECT'){
+				if(element.tagName === 'SELECT'){
 					required && (element.selectedIndex = randomInt(0, element.querySelectorAll('option').length - 1));
-				}else if(this.tagName === 'TEXTAREA'){
+				}else if(element.tagName === 'TEXTAREA'){
 					required && (element.value = randomSentence(maxlength, true));
 				}else{
 					return;

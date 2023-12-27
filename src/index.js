@@ -31,6 +31,7 @@ export * from "./Lang/Time.js";
 export * from "./Lang/Util.js";
 
 //Widget
+export * from "./Widget/Autofill.js";
 export * from "./Widget/Copy.js";
 export * from "./Widget/Dialog.js";
 export * from "./Widget/ImgPreview.js";
