@@ -1,5 +1,5 @@
 /** 黄金分割比 0.618 **/
-export const GOLDEN_RATIO = (1+Math.sqrt(5))/2 - 1;
+export const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2 - 1;
 
 /**
  * 检测指定值是否在指定区间内
@@ -11,6 +11,16 @@ export const GOLDEN_RATIO = (1+Math.sqrt(5))/2 - 1;
  */
 export const between = (val, min, max, includeEqual = true) => {
 	return includeEqual ? (val >= min && val <= max) : (val > min && val < max);
+};
+
+/**
+ * 随机整数
+ * @param {Number} min
+ * @param {Number} max
+ * @return {Number}
+ */
+export const randomInt = (min, max) => {
+	return Math.floor(Math.random() * (max + 1 - min)) + min;
 };
 
 /**

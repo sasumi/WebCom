@@ -1,4 +1,4 @@
-import {round} from "./Math.js";
+import {randomInt, round} from "./Math.js";
 
 /**
  * 混合ES6模板字符串
@@ -7,7 +7,7 @@ import {round} from "./Math.js";
  * @param {Object} params 数据对象
  * @return {String}
  */
-export const extract = (es_template, params)=>{
+export const extract = (es_template, params) => {
 	const names = Object.keys(params);
 	const values = Object.values(params);
 	return new Function(...names, `return \`${es_template}\`;`)(...values);
@@ -79,7 +79,7 @@ export const formatSize = (num, precision = 2) => {
  * @param eclipse_text
  * @returns {*}
  */
-export const cutString = (str, len, eclipse_text)=>{
+export const cutString = (str, len, eclipse_text) => {
 	if(eclipse_text === undefined){
 		eclipse_text = '...';
 	}
@@ -101,7 +101,7 @@ export const cutString = (str, len, eclipse_text)=>{
  * @param str
  * @returns {string}
  */
-export const regQuote = (str)=>{
+export const regQuote = (str) => {
 	return (str + '').replace(/([\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:])/g, "\\$1");
 };
 
@@ -153,12 +153,12 @@ export const isValidUrl = urlString => {
  * @param {String} json
  * @returns {boolean}
  */
-export const isJSON = (json)=>{
+export const isJSON = (json) => {
 	let is_json = false;
-	try {
+	try{
 		JSON.parse(json);
 		is_json = true;
-	} catch (error) {
+	}catch(error){
 	}
 	return is_json;
 }
@@ -191,7 +191,7 @@ export const utf8Encode = (srcStr) => {
  * @param str
  * @returns {number}
  */
-export const getUTF8StrLen = (str)=>{
+export const getUTF8StrLen = (str) => {
 	let realLength = 0;
 	let len = str.length;
 	let charCode = -1;
@@ -214,14 +214,56 @@ const DEFAULT_RANDOM_STRING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
  * @param {String} sourceStr
  * @returns {String}
  */
-export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
+export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING) => {
 	let codes = '';
 	for(let i = 0; i < length; i++){
-		let rnd =Math.round(Math.random()*(sourceStr.length - 1));
+		let rnd = Math.round(Math.random() * (sourceStr.length - 1));
 		codes += sourceStr.substring(rnd, rnd + 1);
 	}
 	return codes;
-};
+}
+
+/**
+ * 产生随机单词
+ * @param {Number} count 单词数量
+ * @return {String[]} 单词列表
+ */
+export const randomWords = (count = 1) => {
+	let words = [];
+	const possible = 'bcdfghjklmnpqrstvwxyz';
+	const possibleVowels = 'aeiou';
+
+	while(count-- > 0){
+		words.push(
+			possible[Math.floor(Math.random() * possible.length)] +
+			possibleVowels[Math.floor(Math.random() * possibleVowels.length)] +
+			possible[Math.floor(Math.random() * possible.length)]
+		)
+	}
+	return words;
+}
+
+/**
+ * 随机文本
+ * @param {Number} maxLength 最大字符数量
+ * @param {Boolean} multipleLine 是否多行文本（包含换行符）
+ * @return {string}
+ */
+export const randomSentence = (maxLength = 0, multipleLine = false) => {
+	let wordCount = Math.ceil(maxLength / 4);
+	let words = randomWords(wordCount);
+	if(multipleLine){
+		let sep = '';
+		let text = '';
+		words.forEach(word => {
+			text = text + sep + word;
+			sep = randomInt(0, 1) > 0 ? ' ' : "\n";
+		});
+		return text.trim();
+	}else{
+		return words.join(' ').substring(0, maxLength).trim();
+	}
+}
 
 /**
  * 字符串转成首字母大写
@@ -229,7 +271,7 @@ export const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
  * @param {Boolean} capitalize_first 是否将第一个单词首字母大写
  * @return {string}
  */
-export const strToPascalCase = (str, capitalize_first = false)=>{
+export const strToPascalCase = (str, capitalize_first = false) => {
 	let words = [];
 	str.replace(/[-_\s+]/g, ' ').split(' ').forEach((word, idx) => {
 		words.push((idx === 0 && !capitalize_first) ? word : capitalize(word));
@@ -254,7 +296,7 @@ export const capitalize = (str) => {
  * @param val
  * @return {boolean}
  */
-export const isNum = (val)=>{
+export const isNum = (val) => {
 	return !isNaN(val);
 }
 
@@ -269,10 +311,10 @@ export const TRIM_RIGHT = 2;
  * @param {Number} dir 方向
  * @returns {*|boolean}
  */
-export const trim = (str, chars = '', dir = TRIM_BOTH)=>{
+export const trim = (str, chars = '', dir = TRIM_BOTH) => {
 	if(chars.length){
-		let regLeft = new RegExp('^['+regQuote(chars)+']+'),
-		regRight = new RegExp('['+regQuote(chars)+']+$');
+		let regLeft = new RegExp('^[' + regQuote(chars) + ']+'),
+			regRight = new RegExp('[' + regQuote(chars) + ']+$');
 		return dir === TRIM_LEFT ? str.replace(regLeft, '') : (dir === TRIM_RIGHT ? str.replace(regRight, '') : str.replace(regLeft, '').replace(regRight, ''));
 	}else{
 		return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());

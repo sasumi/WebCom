@@ -1,6 +1,9 @@
-const GOLDEN_RATIO = (1+Math.sqrt(5))/2 - 1;
+const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2 - 1;
 const between = (val, min, max, includeEqual = true) => {
 	return includeEqual ? (val >= min && val <= max) : (val > min && val < max);
+};
+const randomInt = (min, max) => {
+	return Math.floor(Math.random() * (max + 1 - min)) + min;
 };
 const round = (num, precision = 2) => {
 	let multiple = Math.pow(10, precision);
@@ -157,7 +160,7 @@ const KEYS = {
 	NumPadEnter: 108
 };
 
-const extract = (es_template, params)=>{
+const extract = (es_template, params) => {
 	const names = Object.keys(params);
 	const values = Object.values(params);
 	return new Function(...names, `return \`${es_template}\`;`)(...values);
@@ -192,7 +195,7 @@ const formatSize = (num, precision = 2) => {
 	}
 	return str + round(num, precision) + units[i];
 };
-const cutString = (str, len, eclipse_text)=>{
+const cutString = (str, len, eclipse_text) => {
 	if(eclipse_text === undefined){
 		eclipse_text = '...';
 	}
@@ -208,7 +211,7 @@ const cutString = (str, len, eclipse_text)=>{
 	}
 	return str;
 };
-const regQuote = (str)=>{
+const regQuote = (str) => {
 	return (str + '').replace(/([\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:])/g, "\\$1");
 };
 const utf8Decode = (srcStr) => {
@@ -242,12 +245,12 @@ const isValidUrl = urlString => {
 		return false;
 	}
 };
-const isJSON = (json)=>{
+const isJSON = (json) => {
 	let is_json = false;
-	try {
+	try{
 		JSON.parse(json);
 		is_json = true;
-	} catch (error) {
+	}catch(error){
 	}
 	return is_json;
 };
@@ -269,7 +272,7 @@ const utf8Encode = (srcStr) => {
 	}
 	return t;
 };
-const getUTF8StrLen = (str)=>{
+const getUTF8StrLen = (str) => {
 	let realLength = 0;
 	let len = str.length;
 	let charCode = -1;
@@ -284,15 +287,43 @@ const getUTF8StrLen = (str)=>{
 	return realLength;
 };
 const DEFAULT_RANDOM_STRING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890';
-const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING)=>{
+const randomString = (length = 6, sourceStr = DEFAULT_RANDOM_STRING) => {
 	let codes = '';
 	for(let i = 0; i < length; i++){
-		let rnd =Math.round(Math.random()*(sourceStr.length - 1));
+		let rnd = Math.round(Math.random() * (sourceStr.length - 1));
 		codes += sourceStr.substring(rnd, rnd + 1);
 	}
 	return codes;
 };
-const strToPascalCase = (str, capitalize_first = false)=>{
+const randomWords = (count = 1) => {
+	let words = [];
+	const possible = 'bcdfghjklmnpqrstvwxyz';
+	const possibleVowels = 'aeiou';
+	while(count-- > 0){
+		words.push(
+			possible[Math.floor(Math.random() * possible.length)] +
+			possibleVowels[Math.floor(Math.random() * possibleVowels.length)] +
+			possible[Math.floor(Math.random() * possible.length)]
+		);
+	}
+	return words;
+};
+const randomSentence = (maxLength = 0, multipleLine = false) => {
+	let wordCount = Math.ceil(maxLength / 4);
+	let words = randomWords(wordCount);
+	if(multipleLine){
+		let sep = '';
+		let text = '';
+		words.forEach(word => {
+			text = text + sep + word;
+			sep = randomInt(0, 1) > 0 ? ' ' : "\n";
+		});
+		return text.trim();
+	}else {
+		return words.join(' ').substring(0, maxLength).trim();
+	}
+};
+const strToPascalCase = (str, capitalize_first = false) => {
 	let words = [];
 	str.replace(/[-_\s+]/g, ' ').split(' ').forEach((word, idx) => {
 		words.push((idx === 0 && !capitalize_first) ? word : capitalize(word));
@@ -305,16 +336,16 @@ const capitalize = (str) => {
 	}
 	return str.charAt(0).toUpperCase() + str.slice(1);
 };
-const isNum = (val)=>{
+const isNum = (val) => {
 	return !isNaN(val);
 };
 const TRIM_BOTH = 0;
 const TRIM_LEFT = 1;
 const TRIM_RIGHT = 2;
-const trim = (str, chars = '', dir = TRIM_BOTH)=>{
+const trim = (str, chars = '', dir = TRIM_BOTH) => {
 	if(chars.length){
-		let regLeft = new RegExp('^['+regQuote(chars)+']+'),
-		regRight = new RegExp('['+regQuote(chars)+']+$');
+		let regLeft = new RegExp('^[' + regQuote(chars) + ']+'),
+			regRight = new RegExp('[' + regQuote(chars) + ']+$');
 		return dir === TRIM_LEFT ? str.replace(regLeft, '') : (dir === TRIM_RIGHT ? str.replace(regRight, '') : str.replace(regLeft, '').replace(regRight, ''));
 	}else {
 		return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());
@@ -5062,4 +5093,4 @@ const showNoviceGuide = (steps, config = {}) => {
 	show_one();
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomString, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

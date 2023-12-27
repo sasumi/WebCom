@@ -90,7 +90,6 @@ export const formSync = (dom, getter, setter) => {
 	});
 }
 
-
 /**
  * 获取指定容器下所有可用表单元素
  * @param {HTMLElement} dom
