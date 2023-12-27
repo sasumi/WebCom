@@ -4560,19 +4560,116 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
+	const SELECT_ALL_TEXT = '全选';
+	const UNSELECT_ALL_TEXT = '取消选择';
+	class ACSelectAll {
+		static init(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let checks = [];
+				let container = document.querySelector(param.container || 'body');
+				let disableBtn = () => {
+					node.setAttribute('disabled', 'disabled');
+				};
+				let enableBtn = () => {
+					node.removeAttribute('disabled');
+				};
+				let updBtn = () => {
+					let checkedCount = 0;
+					checks.forEach(chk => {
+						checkedCount += chk.checked ? 1 : 0;
+					});
+					node.innerHTML = checkedCount ? UNSELECT_ALL_TEXT : SELECT_ALL_TEXT;
+					checks.length ? enableBtn() : disableBtn();
+				};
+				onDomTreeChange(container, () => {
+					checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+					checks.forEach(chk => {
+						if(chk.dataset.__bind_select_all){
+							return;
+						}
+						chk.dataset.__bind_select_all = "1";
+						chk.addEventListener('change', updBtn);
+					});
+					updBtn();
+				});
+				node.addEventListener('click', e => {
+					let toCheck = node.innerHTML === SELECT_ALL_TEXT;
+					checks.forEach(chk => {
+						chk.checked = toCheck;
+						triggerDomEvent(chk, 'change');
+					});
+					node.innerHTML = toCheck ? UNSELECT_ALL_TEXT : SELECT_ALL_TEXT;
+				});
+				let containerInit = () => {
+					checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+					checks.forEach(chk => {
+						if(chk.dataset.__bind_select_all){
+							return;
+						}
+						chk.dataset.__bind_select_all = "1";
+						chk.addEventListener('change', updBtn);
+					});
+					updBtn();
+				};
+				onDomTreeChange(container, containerInit);
+				containerInit();
+			})
+		}
+	}
+
+	class ACMultiSelectRelate {
+		static init(button, param = {}){
+			return new Promise((resolve, reject) => {
+				let checks = [];
+				let container = document.querySelector(param.container || 'body');
+				let disableBtn = () => {
+					button.setAttribute('disabled', 'disabled');
+				};
+				let enableBtn = () => {
+					button.removeAttribute('disabled');
+				};
+				let upd = () => {
+					let hasChecked = false;
+					checks.every(chk => {
+						if(chk.checked){
+							hasChecked = true;
+							return false;
+						}
+					});
+					hasChecked ? enableBtn() : disableBtn();
+				};
+				let containerInit = () => {
+					checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+					checks.forEach(chk => {
+						if(chk.dataset.__bind_select_relate){
+							return;
+						}
+						chk.dataset.__bind_select_relate = "1";
+						chk.addEventListener('change', upd);
+					});
+					upd();
+				};
+				onDomTreeChange(container, containerInit);
+				containerInit();
+			})
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
 		async: ACAsync,
+		copy: ACCopy,
 		dialog: ACDialog,
 		confirm: ACConfirm,
 		preview: ACPreview,
-		copy: ACCopy,
 		select: ACSelect,
-		tip: ACTip,
-		toast: ACToast,
 		hl: ACHighlight,
 		highlight: ACHighlight,
+		selectall: ACSelectAll,
+		selectrelate: ACMultiSelectRelate,
+		tip: ACTip,
+		toast: ACToast,
 	};
 	const parseComponents = function(attr){
 		let tmp = attr.split(',');
@@ -5216,8 +5313,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.ACConfirm = ACConfirm;
 	exports.ACCopy = ACCopy;
 	exports.ACDialog = ACDialog;
+	exports.ACHighlight = ACHighlight;
+	exports.ACMultiSelectRelate = ACMultiSelectRelate;
 	exports.ACPreview = ACPreview;
 	exports.ACSelect = ACSelect;
+	exports.ACSelectAll = ACSelectAll;
 	exports.ACTip = ACTip;
 	exports.ACToast = ACToast;
 	exports.BLOCK_TAGS = BLOCK_TAGS;

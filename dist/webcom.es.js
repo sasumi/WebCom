@@ -4541,19 +4541,116 @@ class ACHighlight {
 	}
 }
 
+const SELECT_ALL_TEXT = '全选';
+const UNSELECT_ALL_TEXT = '取消选择';
+class ACSelectAll {
+	static init(node, param = {}){
+		return new Promise((resolve, reject) => {
+			let checks = [];
+			let container = document.querySelector(param.container || 'body');
+			let disableBtn = () => {
+				node.setAttribute('disabled', 'disabled');
+			};
+			let enableBtn = () => {
+				node.removeAttribute('disabled');
+			};
+			let updBtn = () => {
+				let checkedCount = 0;
+				checks.forEach(chk => {
+					checkedCount += chk.checked ? 1 : 0;
+				});
+				node.innerHTML = checkedCount ? UNSELECT_ALL_TEXT : SELECT_ALL_TEXT;
+				checks.length ? enableBtn() : disableBtn();
+			};
+			onDomTreeChange(container, () => {
+				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+				checks.forEach(chk => {
+					if(chk.dataset.__bind_select_all){
+						return;
+					}
+					chk.dataset.__bind_select_all = "1";
+					chk.addEventListener('change', updBtn);
+				});
+				updBtn();
+			});
+			node.addEventListener('click', e => {
+				let toCheck = node.innerHTML === SELECT_ALL_TEXT;
+				checks.forEach(chk => {
+					chk.checked = toCheck;
+					triggerDomEvent(chk, 'change');
+				});
+				node.innerHTML = toCheck ? UNSELECT_ALL_TEXT : SELECT_ALL_TEXT;
+			});
+			let containerInit = () => {
+				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+				checks.forEach(chk => {
+					if(chk.dataset.__bind_select_all){
+						return;
+					}
+					chk.dataset.__bind_select_all = "1";
+					chk.addEventListener('change', updBtn);
+				});
+				updBtn();
+			};
+			onDomTreeChange(container, containerInit);
+			containerInit();
+		})
+	}
+}
+
+class ACMultiSelectRelate {
+	static init(button, param = {}){
+		return new Promise((resolve, reject) => {
+			let checks = [];
+			let container = document.querySelector(param.container || 'body');
+			let disableBtn = () => {
+				button.setAttribute('disabled', 'disabled');
+			};
+			let enableBtn = () => {
+				button.removeAttribute('disabled');
+			};
+			let upd = () => {
+				let hasChecked = false;
+				checks.every(chk => {
+					if(chk.checked){
+						hasChecked = true;
+						return false;
+					}
+				});
+				hasChecked ? enableBtn() : disableBtn();
+			};
+			let containerInit = () => {
+				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+				checks.forEach(chk => {
+					if(chk.dataset.__bind_select_relate){
+						return;
+					}
+					chk.dataset.__bind_select_relate = "1";
+					chk.addEventListener('change', upd);
+				});
+				upd();
+			};
+			onDomTreeChange(container, containerInit);
+			containerInit();
+		})
+	}
+}
+
 const DEFAULT_ATTR_COM_FLAG = 'data-component';
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 let AC_COMPONENT_NAME_MAPPING = {
 	async: ACAsync,
+	copy: ACCopy,
 	dialog: ACDialog,
 	confirm: ACConfirm,
 	preview: ACPreview,
-	copy: ACCopy,
 	select: ACSelect,
-	tip: ACTip,
-	toast: ACToast,
 	hl: ACHighlight,
 	highlight: ACHighlight,
+	selectall: ACSelectAll,
+	selectrelate: ACMultiSelectRelate,
+	tip: ACTip,
+	toast: ACToast,
 };
 const parseComponents = function(attr){
 	let tmp = attr.split(',');
@@ -5192,4 +5289,4 @@ const showNoviceGuide = (steps, config = {}) => {
 	show_one();
 };
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACPreview, ACSelect, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fillForm, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fillForm, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

@@ -4,8 +4,11 @@ export * from "./Auto/ACComponent.js";
 export * from "./Auto/ACConfirm.js";
 export * from "./Auto/ACCopy.js";
 export * from "./Auto/ACDialog.js";
+export * from "./Auto/ACHighlight.js";
+export * from "./Auto/ACMultiSelectRelate.js";
 export * from "./Auto/ACPreview.js";
 export * from "./Auto/ACSelect.js";
+export * from "./Auto/ACSelectAll.js";
 export * from "./Auto/ACTip.js";
 export * from "./Auto/ACToast.js";
 

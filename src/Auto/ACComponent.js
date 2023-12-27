@@ -8,6 +8,8 @@ import {objectPushByPath} from "../Lang/Array.js";
 import {ACPreview} from "./ACPreview.js";
 import {ACSelect} from "./ACSelect.js";
 import {ACHighlight} from "./ACHighlight.js";
+import {ACSelectAll} from "./ACSelectAll.js";
+import {ACMultiSelectRelate} from "./ACMultiSelectRelate.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
@@ -18,15 +20,17 @@ const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
  */
 let AC_COMPONENT_NAME_MAPPING = {
 	async: ACAsync,
+	copy: ACCopy,
 	dialog: ACDialog,
 	confirm: ACConfirm,
 	preview: ACPreview,
-	copy: ACCopy,
 	select: ACSelect,
-	tip: ACTip,
-	toast: ACToast,
 	hl: ACHighlight,
 	highlight: ACHighlight,
+	selectall: ACSelectAll,
+	selectrelate: ACMultiSelectRelate,
+	tip: ACTip,
+	toast: ACToast,
 };
 
 /**
