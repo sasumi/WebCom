@@ -4985,7 +4985,7 @@ const initAutofillButton = (scopeSelector = 'document.body') => {
 	insertStyleSheet(`
 	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; white-space:nowrap}
 	#auto-fill-form-btn:hover {opacity:1}
-	#auto-fill-form-btn:before {content:"\\e75d"; font-family:var(${Theme.IconFont}); margin-right:0.25em;}
+	#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}; margin-right:0.25em;}
 `);
 	let button = createDomByHtml('<span id="auto-fill-form-btn" class="button outline-button">自动填充</span>', document.body);
 	let start_offset = null;
