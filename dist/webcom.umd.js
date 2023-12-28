@@ -555,6 +555,19 @@
 		});
 		obs.observe(dom, {attributes: true, subtree: true, childList: true});
 	};
+	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
+		let lastState = !!container.querySelector(matchedSelector);
+		onDomTreeChange(container, () => {
+			let currentState = !!container.querySelector(matchedSelector);
+			if(currentState !== lastState){
+				lastState = currentState;
+				notification(currentState);
+			}
+		});
+		if(executionFirst){
+			notification(lastState);
+		}
+	};
 	const keepRectCenter = (width, height, containerDimension = {
 		left: 0,
 		top: 0,
@@ -5377,6 +5390,7 @@
 	exports.deleteCookie = deleteCookie;
 	exports.dimension2Style = dimension2Style;
 	exports.doOnce = doOnce;
+	exports.domChangedWatch = domChangedWatch;
 	exports.domContained = domContained;
 	exports.downloadFile = downloadFile;
 	exports.enterFullScreen = enterFullScreen;

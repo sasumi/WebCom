@@ -147,6 +147,29 @@ export const onDomTreeChange = (dom, callback) => {
 }
 
 /**
+ * 监听指定节点，如果匹配的选择器结果有发生变更，则通知外部
+ * @example 用该函数来做状态联动，如指定容器内是否包含 checkbox，来联动按钮是否能够点击
+ * domChangedWatch(ListDom, 'input:checked', exists=>button.disabled = !exists);
+ * @param {Node} container 指定容器
+ * @param {String} matchedSelector 匹配子节点的选择器
+ * @param {Function} notification(Boolean) 通知函数，产生于为 true|false，表示是否包含选择器子节点
+ * @param {Boolean} executionFirst 是否在一开始先执行一次通知函数
+ */
+export const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
+	let lastState = !!container.querySelector(matchedSelector);
+	onDomTreeChange(container, () => {
+		let currentState = !!container.querySelector(matchedSelector);
+		if(currentState !== lastState){
+			lastState = currentState;
+			notification(currentState);
+		}
+	});
+	if(executionFirst){
+		notification(lastState);
+	}
+}
+
+/**
  * 获取中间对齐布局
  * @param width
  * @param height
