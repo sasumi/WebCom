@@ -468,6 +468,241 @@ const highlightText = (text, kw, replaceTpl = '<span class="matched">%s</span>')
 	});
 };
 
+let _guid = 0;
+const guid = (prefix = '') => {
+	return 'guid_' + (prefix || randomString(6)) + (++_guid);
+};
+const getCurrentScript = function(){
+	let error = new Error()
+		, source
+		, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+		, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+	if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+		return source[1];
+	}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+		return source[1];
+	}else if(error['fileName'] !== undefined){
+		return error['fileName'];
+	}
+	return null;
+};
+const throttle = (fn, intervalMiSec) => {
+	let context, args;
+	let previous = 0;
+	return function(){
+		let now = +new Date();
+		context = this;
+		args = arguments;
+		if(now - previous > intervalMiSec){
+			fn.apply(context, args);
+			previous = now;
+		}
+	}
+};
+const debounce = (fn, intervalMiSec) => {
+	let timeout;
+	return function(){
+		let context = this;
+		let args = arguments;
+		clearTimeout(timeout);
+		timeout = setTimeout(function(){
+			fn.apply(context, args);
+		}, intervalMiSec);
+	}
+};
+const CURRENT_FILE = '/Lang/Util.js';
+const ENTRY_FILE = '/index.js';
+const getLibEntryScript = () => {
+	let script = getCurrentScript();
+	if(!script){
+		throw "Get script failed";
+	}
+	if(script.indexOf(CURRENT_FILE) >= 0){
+		return script.replace(CURRENT_FILE, ENTRY_FILE);
+	}
+	return script;
+};
+const getLibModule = async () => {
+	let script = getLibEntryScript();
+	return await import(script);
+};
+const getLibModuleTop = (() => {
+	if(top === window){
+		return getLibModule;
+	}
+	if(top.WEBCOM_GET_LIB_MODULE){
+		return top.WEBCOM_GET_LIB_MODULE;
+	}
+	throw "No WebCom library script loaded detected.";
+})();
+const normalizeVersion = (version) => {
+	let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+		pieces = trimmed.split('.'),
+		partsLength,
+		parts = [],
+		value,
+		piece,
+		num,
+		i;
+	for(i = 0; i < pieces.length; i += 1){
+		piece = pieces[i].replace(/\D/g, '');
+		num = parseInt(piece, 10);
+		if(isNaN(num)){
+			num = 0;
+		}
+		parts.push(num);
+	}
+	partsLength = parts.length;
+	for(i = partsLength - 1; i >= 0; i -= 1){
+		value = parts[i];
+		if(value === 0){
+			parts.length -= 1;
+		}else {
+			break;
+		}
+	}
+	return parts;
+};
+const versionCompare = (version1, version2, index) => {
+	let stringLength = index + 1,
+		v1 = normalizeVersion(version1),
+		v2 = normalizeVersion(version2);
+	if(v1.length > stringLength){
+		v1.length = stringLength;
+	}
+	if(v2.length > stringLength){
+		v2.length = stringLength;
+	}
+	let size = Math.min(v1.length, v2.length), i;
+	for(i = 0; i < size; i += 1){
+		if(v1[i] !== v2[i]){
+			return v1[i] < v2[i] ? -1 : 1;
+		}
+	}
+	if(v1.length === v2.length){
+		return 0;
+	}
+	return (v1.length < v2.length) ? -1 : 1;
+};
+const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
+	const MARKUP_STR_VAL = 'TRUE';
+	let getMarkState = (key) => {
+		switch(storageType.toLowerCase()){
+			case 'cookie':
+				return getCookie(key) === MARKUP_STR_VAL;
+			case 'storage':
+				return window.localStorage.getItem(key) === MARKUP_STR_VAL;
+			case 'session':
+				return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
+			default:
+				throw "no support:" + storageType;
+		}
+	};
+	let markUp = (key) => {
+		switch(storageType.toLowerCase()){
+			case 'cookie':
+				return setCookie(key, MARKUP_STR_VAL);
+			case 'storage':
+				return window.localStorage.setItem(key, MARKUP_STR_VAL);
+			case 'session':
+				return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
+			default:
+				throw "no support:" + storageType;
+		}
+	};
+	return new Promise((onHit, noHit) => {
+		if(!getMarkState(markKey)){
+			if(typeof (dataFetcher) === 'function'){
+				dataFetcher().then(() => {
+					markUp(markKey);
+					onHit();
+				}, () => {
+					markUp(markKey);
+					noHit();
+				});
+			}else {
+				markUp(markKey);
+				onHit();
+			}
+		}else {
+			noHit();
+		}
+	});
+};
+class ParallelPromise {
+	parallel_limit = 0;
+	current_running_count = 0;
+	task_stack = [
+	];
+	constructor(parallelLimit){
+		if(parallelLimit < 1){
+			throw "最大并发数量必须大于0";
+		}
+		this.parallel_limit = parallelLimit;
+	}
+	loop(){
+		for(let i = 0; i < (this.parallel_limit - this.current_running_count); i++){
+			if(!this.task_stack.length){
+				return;
+			}
+			this.current_running_count++;
+			let {promiseFn, args, resolve, reject} = this.task_stack.shift();
+			promiseFn(...args).then(resolve, reject).finally(() => {
+				this.current_running_count--;
+				this.loop();
+			});
+		}
+	}
+	addPromiseFn(promiseFn, ...args){
+		console.log('并发任务添加：', args);
+		return new Promise((resolve, reject) => {
+			this.task_stack.push({
+				promiseFn: promiseFn,
+				args: args,
+				resolve,
+				reject
+			});
+			this.loop();
+		});
+	}
+}
+const isObject = (item) => {
+	return (item && typeof item === 'object' && !Array.isArray(item));
+};
+const mergeDeep = (target, ...sources) => {
+	if(!sources.length) return target;
+	const source = sources.shift();
+	if(isObject(target) && isObject(source)){
+		for(const key in source){
+			if(isObject(source[key])){
+				if(!target[key]){
+					Object.assign(target, {[key]: {}});
+				}else {
+					target[key] = Object.assign({}, target[key]);
+				}
+				mergeDeep(target[key], source[key]);
+			}else {
+				Object.assign(target, {[key]: source[key]});
+			}
+		}
+	}
+	return mergeDeep(target, ...sources);
+};
+const isPromise = (obj)=>{
+	return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
+};
+const PROMISE_STATE_PENDING = 'pending';
+const PROMISE_STATE_FULFILLED = 'fulfilled';
+const PROMISE_STATE_REJECTED = 'rejected';
+const getPromiseState = (promise)=>{
+	const t = {};
+	return Promise.race([promise, t])
+		.then(v => (v === t) ? PROMISE_STATE_PENDING : PROMISE_STATE_FULFILLED)
+		.catch(() => PROMISE_STATE_REJECTED);
+};
+window.WEBCOM_GET_LIB_MODULE = getLibModule;
+window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
 const getViewWidth = () => {
 	return window.innerWidth;
 };
@@ -541,25 +776,38 @@ const buttonActiveBind = (button, payload, cancelBubble = false) => {
 		}
 	}, cancelBubble);
 };
-const onDomTreeChange = (dom, callback) => {
+const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 	let tm = null;
-	let obs = new MutationObserver(() => {
+	const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
+	const payload = () => {
 		tm && clearTimeout(tm);
 		tm = setTimeout(callback, 10);
+	};
+	const watchEls = (els) => {
+		if(!els || !els.length){
+			return;
+		}
+		els.forEach(el => {
+			el.setAttribute(PRO_KEY, '1');
+			el.addEventListener('change', payload);
+		});
+	};
+	let obs = new MutationObserver(() => {
+		if(includeElementChanged){
+			let els = dom.querySelectorAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`);
+			watchEls(els);
+		}
+		payload();
 	});
 	obs.observe(dom, {attributes: true, subtree: true, childList: true});
+	includeElementChanged && watchEls(dom.querySelectorAll('input,textarea,select'));
 };
 const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
-	let lastState = !!container.querySelector(matchedSelector);
 	onDomTreeChange(container, () => {
-		let currentState = !!container.querySelector(matchedSelector);
-		if(currentState !== lastState){
-			lastState = currentState;
-			notification(currentState);
-		}
+		notification(!!container.querySelector(matchedSelector));
 	});
 	if(executionFirst){
-		notification(lastState);
+		notification(!!container.querySelector(matchedSelector));
 	}
 };
 const keepRectCenter = (width, height, containerDimension = {
@@ -1323,241 +1571,6 @@ const openLinkWithoutReferer = (link) => {
 	instance.document.close();
 	return false;
 };
-
-let _guid = 0;
-const guid = (prefix = '') => {
-	return 'guid_' + (prefix || randomString(6)) + (++_guid);
-};
-const getCurrentScript = function(){
-	let error = new Error()
-		, source
-		, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
-		, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
-	if((source = currentStackFrameRegex.exec(error.stack.trim()))){
-		return source[1];
-	}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
-		return source[1];
-	}else if(error['fileName'] !== undefined){
-		return error['fileName'];
-	}
-	return null;
-};
-const throttle = (fn, intervalMiSec) => {
-	let context, args;
-	let previous = 0;
-	return function(){
-		let now = +new Date();
-		context = this;
-		args = arguments;
-		if(now - previous > intervalMiSec){
-			fn.apply(context, args);
-			previous = now;
-		}
-	}
-};
-const debounce = (fn, intervalMiSec) => {
-	let timeout;
-	return function(){
-		let context = this;
-		let args = arguments;
-		clearTimeout(timeout);
-		timeout = setTimeout(function(){
-			fn.apply(context, args);
-		}, intervalMiSec);
-	}
-};
-const CURRENT_FILE = '/Lang/Util.js';
-const ENTRY_FILE = '/index.js';
-const getLibEntryScript = () => {
-	let script = getCurrentScript();
-	if(!script){
-		throw "Get script failed";
-	}
-	if(script.indexOf(CURRENT_FILE) >= 0){
-		return script.replace(CURRENT_FILE, ENTRY_FILE);
-	}
-	return script;
-};
-const getLibModule = async () => {
-	let script = getLibEntryScript();
-	return await import(script);
-};
-const getLibModuleTop = (() => {
-	if(top === window){
-		return getLibModule;
-	}
-	if(top.WEBCOM_GET_LIB_MODULE){
-		return top.WEBCOM_GET_LIB_MODULE;
-	}
-	throw "No WebCom library script loaded detected.";
-})();
-const normalizeVersion = (version) => {
-	let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
-		pieces = trimmed.split('.'),
-		partsLength,
-		parts = [],
-		value,
-		piece,
-		num,
-		i;
-	for(i = 0; i < pieces.length; i += 1){
-		piece = pieces[i].replace(/\D/g, '');
-		num = parseInt(piece, 10);
-		if(isNaN(num)){
-			num = 0;
-		}
-		parts.push(num);
-	}
-	partsLength = parts.length;
-	for(i = partsLength - 1; i >= 0; i -= 1){
-		value = parts[i];
-		if(value === 0){
-			parts.length -= 1;
-		}else {
-			break;
-		}
-	}
-	return parts;
-};
-const versionCompare = (version1, version2, index) => {
-	let stringLength = index + 1,
-		v1 = normalizeVersion(version1),
-		v2 = normalizeVersion(version2);
-	if(v1.length > stringLength){
-		v1.length = stringLength;
-	}
-	if(v2.length > stringLength){
-		v2.length = stringLength;
-	}
-	let size = Math.min(v1.length, v2.length), i;
-	for(i = 0; i < size; i += 1){
-		if(v1[i] !== v2[i]){
-			return v1[i] < v2[i] ? -1 : 1;
-		}
-	}
-	if(v1.length === v2.length){
-		return 0;
-	}
-	return (v1.length < v2.length) ? -1 : 1;
-};
-const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
-	const MARKUP_STR_VAL = 'TRUE';
-	let getMarkState = (key) => {
-		switch(storageType.toLowerCase()){
-			case 'cookie':
-				return getCookie(key) === MARKUP_STR_VAL;
-			case 'storage':
-				return window.localStorage.getItem(key) === MARKUP_STR_VAL;
-			case 'session':
-				return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
-			default:
-				throw "no support:" + storageType;
-		}
-	};
-	let markUp = (key) => {
-		switch(storageType.toLowerCase()){
-			case 'cookie':
-				return setCookie(key, MARKUP_STR_VAL);
-			case 'storage':
-				return window.localStorage.setItem(key, MARKUP_STR_VAL);
-			case 'session':
-				return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
-			default:
-				throw "no support:" + storageType;
-		}
-	};
-	return new Promise((onHit, noHit) => {
-		if(!getMarkState(markKey)){
-			if(typeof (dataFetcher) === 'function'){
-				dataFetcher().then(() => {
-					markUp(markKey);
-					onHit();
-				}, () => {
-					markUp(markKey);
-					noHit();
-				});
-			}else {
-				markUp(markKey);
-				onHit();
-			}
-		}else {
-			noHit();
-		}
-	});
-};
-class ParallelPromise {
-	parallel_limit = 0;
-	current_running_count = 0;
-	task_stack = [
-	];
-	constructor(parallelLimit){
-		if(parallelLimit < 1){
-			throw "最大并发数量必须大于0";
-		}
-		this.parallel_limit = parallelLimit;
-	}
-	loop(){
-		for(let i = 0; i < (this.parallel_limit - this.current_running_count); i++){
-			if(!this.task_stack.length){
-				return;
-			}
-			this.current_running_count++;
-			let {promiseFn, args, resolve, reject} = this.task_stack.shift();
-			promiseFn(...args).then(resolve, reject).finally(() => {
-				this.current_running_count--;
-				this.loop();
-			});
-		}
-	}
-	addPromiseFn(promiseFn, ...args){
-		console.log('并发任务添加：', args);
-		return new Promise((resolve, reject) => {
-			this.task_stack.push({
-				promiseFn: promiseFn,
-				args: args,
-				resolve,
-				reject
-			});
-			this.loop();
-		});
-	}
-}
-const isObject = (item) => {
-	return (item && typeof item === 'object' && !Array.isArray(item));
-};
-const mergeDeep = (target, ...sources) => {
-	if(!sources.length) return target;
-	const source = sources.shift();
-	if(isObject(target) && isObject(source)){
-		for(const key in source){
-			if(isObject(source[key])){
-				if(!target[key]){
-					Object.assign(target, {[key]: {}});
-				}else {
-					target[key] = Object.assign({}, target[key]);
-				}
-				mergeDeep(target[key], source[key]);
-			}else {
-				Object.assign(target, {[key]: source[key]});
-			}
-		}
-	}
-	return mergeDeep(target, ...sources);
-};
-const isPromise = (obj)=>{
-	return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
-};
-const PROMISE_STATE_PENDING = 'pending';
-const PROMISE_STATE_FULFILLED = 'fulfilled';
-const PROMISE_STATE_REJECTED = 'rejected';
-const getPromiseState = (promise)=>{
-	const t = {};
-	return Promise.race([promise, t])
-		.then(v => (v === t) ? PROMISE_STATE_PENDING : PROMISE_STATE_FULFILLED)
-		.catch(() => PROMISE_STATE_REJECTED);
-};
-window.WEBCOM_GET_LIB_MODULE = getLibModule;
-window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
 
 const arrayColumn = (arr, col_name) => {
 	let data = [];
@@ -4614,37 +4627,20 @@ class ACSelectAll {
 class ACMultiSelectRelate {
 	static init(button, param = {}){
 		return new Promise((resolve, reject) => {
-			let checks = [];
-			let container = document.querySelector(param.container || 'body');
-			let disableBtn = () => {
+			const container = document.querySelector(param.container || 'body');
+			const disableBtn = () => {
+				button.title = '请选择要操作的项目';
 				button.setAttribute('disabled', 'disabled');
+				button.classList.add('button-disabled');
 			};
-			let enableBtn = () => {
+			const enableBtn = () => {
+				button.title = '';
 				button.removeAttribute('disabled');
+				button.classList.remove('button-disabled');
 			};
-			let upd = () => {
-				let hasChecked = false;
-				checks.every(chk => {
-					if(chk.checked){
-						hasChecked = true;
-						return false;
-					}
-				});
-				hasChecked ? enableBtn() : disableBtn();
-			};
-			let containerInit = () => {
-				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
-				checks.forEach(chk => {
-					if(chk.dataset.__bind_select_relate){
-						return;
-					}
-					chk.dataset.__bind_select_relate = "1";
-					chk.addEventListener('change', upd);
-				});
-				upd();
-			};
-			onDomTreeChange(container, containerInit);
-			containerInit();
+			domChangedWatch(container, 'input:checked', exists => {
+				exists ? enableBtn() : disableBtn();
+			});
 		})
 	}
 }

@@ -2,6 +2,7 @@ import {between} from "./Math.js";
 import {KEYS} from "./Event.js";
 import {strToPascalCase} from "./String.js";
 import {dimension2Style} from "./Html.js";
+import {guid} from "./Util.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -136,14 +137,33 @@ export const buttonActiveBind = (button, payload, cancelBubble = false) => {
  * 监听节点树变更
  * @param {Node} dom
  * @param {Function} callback
+ * @param {Boolean} includeElementChanged 是否包含表单元素的值变更
  */
-export const onDomTreeChange = (dom, callback) => {
+export const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 	let tm = null;
-	let obs = new MutationObserver(() => {
+	const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
+	const payload = () => {
 		tm && clearTimeout(tm);
 		tm = setTimeout(callback, 10);
+	}
+	const watchEls = (els) => {
+		if(!els || !els.length){
+			return;
+		}
+		els.forEach(el => {
+			el.setAttribute(PRO_KEY, '1');
+			el.addEventListener('change', payload);
+		});
+	}
+	let obs = new MutationObserver(() => {
+		if(includeElementChanged){
+			let els = dom.querySelectorAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`);
+			watchEls(els);
+		}
+		payload();
 	});
 	obs.observe(dom, {attributes: true, subtree: true, childList: true});
+	includeElementChanged && watchEls(dom.querySelectorAll('input,textarea,select'));
 }
 
 /**
@@ -156,16 +176,11 @@ export const onDomTreeChange = (dom, callback) => {
  * @param {Boolean} executionFirst 是否在一开始先执行一次通知函数
  */
 export const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
-	let lastState = !!container.querySelector(matchedSelector);
 	onDomTreeChange(container, () => {
-		let currentState = !!container.querySelector(matchedSelector);
-		if(currentState !== lastState){
-			lastState = currentState;
-			notification(currentState);
-		}
+		notification(!!container.querySelector(matchedSelector));
 	});
 	if(executionFirst){
-		notification(lastState);
+		notification(!!container.querySelector(matchedSelector));
 	}
 }
 

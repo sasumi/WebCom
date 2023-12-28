@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+<h1>dom changed listen</h1>
+<div id="container">
+    checkbox list
+    <p>
+        <label><input type="checkbox" name="check_1"> checkbox 1</label>
+        <label><input type="checkbox" name="check_2"> checkbox 2</label>
+        <label><input type="checkbox" name="check_3"> checkbox 3</label>
+        <label><input type="checkbox" name="check_4"> checkbox 4</label>
+        <input type="text" name="" id="">
+    </p>
+    <div id="html"></div>
+    <input type="button" value="click">
+</div>
+<script type="module">
+    import {domChangedWatch} from "../src/index.js";
+
+    domChangedWatch(document.body, 'input:checked', exists=>{
+        console.log(exists);
+    })
+
+</script>
+</body>
+</html>

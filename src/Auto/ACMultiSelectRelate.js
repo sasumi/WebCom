@@ -1,5 +1,4 @@
-import {onDomTreeChange} from "../Lang/Dom.js";
-
+import {domChangedWatch} from "../Lang/Dom.js";
 /**
  * 多选关联，如多个checkbox必须至少存在一个选中项目，关联的按钮才允许被使用。
  * 参数：
@@ -8,37 +7,20 @@ import {onDomTreeChange} from "../Lang/Dom.js";
 export class ACMultiSelectRelate {
 	static init(button, param = {}){
 		return new Promise((resolve, reject) => {
-			let checks = [];
-			let container = document.querySelector(param.container || 'body');
-			let disableBtn = () => {
+			const container = document.querySelector(param.container || 'body');
+			const disableBtn = () => {
+				button.title = '请选择要操作的项目';
 				button.setAttribute('disabled', 'disabled');
+				button.classList.add('button-disabled');
 			}
-			let enableBtn = () => {
+			const enableBtn = () => {
+				button.title = '';
 				button.removeAttribute('disabled');
+				button.classList.remove('button-disabled');
 			}
-			let upd = () => {
-				let hasChecked = false;
-				checks.every(chk => {
-					if(chk.checked){
-						hasChecked = true;
-						return false;
-					}
-				});
-				hasChecked ? enableBtn() : disableBtn();
-			};
-			let containerInit = () => {
-				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
-				checks.forEach(chk => {
-					if(chk.dataset.__bind_select_relate){
-						return;
-					}
-					chk.dataset.__bind_select_relate = "1";
-					chk.addEventListener('change', upd);
-				});
-				upd();
-			}
-			onDomTreeChange(container, containerInit);
-			containerInit();
+			domChangedWatch(container, 'input:checked', exists => {
+				exists ? enableBtn() : disableBtn()
+			});
 		})
 	}
 }
