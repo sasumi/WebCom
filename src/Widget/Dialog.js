@@ -393,11 +393,11 @@ const eventBind = (dlg) => {
 				}
 			});
 		}
-		document.body.addEventListener('mouseup', () => {
+		document.addEventListener('mouseup', () => {
 			start_move = false;
 			last_click_offset = null;
 		});
-		document.body.addEventListener('mousemove', (e) => {
+		document.addEventListener('mousemove', (e) => {
 			if(start_move && last_click_offset){
 				dlg.dom.style.left = Math.max(e.clientX - last_click_offset.x, 0) + 'px';
 				dlg.dom.style.top = Math.max(e.clientY - last_click_offset.y, 0) + 'px';

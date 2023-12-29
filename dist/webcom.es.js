@@ -804,10 +804,10 @@ const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 };
 const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
 	onDomTreeChange(container, () => {
-		notification(!!container.querySelector(matchedSelector));
+		notification(Array.from(container.querySelectorAll(matchedSelector)));
 	});
 	if(executionFirst){
-		notification(!!container.querySelector(matchedSelector));
+		notification(Array.from(container.querySelectorAll(matchedSelector)));
 	}
 };
 const keepRectCenter = (width, height, containerDimension = {
@@ -1128,9 +1128,9 @@ const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX + 'full-screen-backgroun
 insertStyleSheet(`
 @font-face {
 	font-family: '${ICON_FONT}';  /* Project id 3359671 */
-	src: url('//at.alicdn.com/t/c/font_3359671_had9uz7ihif.woff2?t=1692238550574') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_had9uz7ihif.woff?t=1692238550574') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_had9uz7ihif.ttf?t=1692238550574') format('truetype');
+	src: url('//at.alicdn.com/t/c/font_3359671_6sdhf2dfnne.woff2?t=1703834753032') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_6sdhf2dfnne.woff?t=1703834753032') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_6sdhf2dfnne.ttf?t=1703834753032') format('truetype');
 }
 :root {
 	${CSS_VAR_COLOR}:#333;
@@ -2331,11 +2331,11 @@ const eventBind = (dlg) => {
 				}
 			});
 		}
-		document.body.addEventListener('mouseup', () => {
+		document.addEventListener('mouseup', () => {
 			start_move = false;
 			last_click_offset = null;
 		});
-		document.body.addEventListener('mousemove', (e) => {
+		document.addEventListener('mousemove', (e) => {
 			if(start_move && last_click_offset){
 				dlg.dom.style.left = Math.max(e.clientX - last_click_offset.x, 0) + 'px';
 				dlg.dom.style.top = Math.max(e.clientY - last_click_offset.y, 0) + 'px';
@@ -5081,46 +5081,56 @@ const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
 const DEFAULT_MAXLENGTH = 40;
 const DEFAULT_MAX = 100;
 let button_init = false;
-const initAutofillButton = (scopeSelector = 'document.body') => {
+const initAutofillButton = (scopeSelector = 'body') => {
 	if(button_init){
 		throw "autofill button already initialized";
 	}
 	button_init = true;
 	insertStyleSheet(`
-	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; white-space:nowrap}
+	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; white-space:nowrap; padding:0.5em 0.5em; border:1px solid #aaa; border-radius:5px; cursor:pointer; background-color:#fff;}
 	#auto-fill-form-btn:hover {opacity:1}
 	#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}; margin-right:0.25em;}
+	#auto-fill-form-btn s {display:block; cursor:move; float:right; text-decoration:none; margin:-20px -20px 0 0; background-color:white; width:20px; height:20px; overflow:hidden; box-sizing:border-box; text-align:center; border-radius:50%; box-shadow:1px 1px 10px #ccc;}
+	#auto-fill-form-btn s:before {content:"\\e83d"; font-family:${Theme.IconFont};} 
 `);
-	let button = createDomByHtml('<span id="auto-fill-form-btn" class="button outline-button">自动填充</span>', document.body);
+	let button = createDomByHtml('<span id="auto-fill-form-btn">自动填充 <s></s></span>', document.body);
+	let move_trigger = button.querySelector('s');
 	let start_offset = null;
-	let moving = false;
-	document.body.addEventListener('mousedown', e => {
-		if(e.target === button){
-			start_offset = {x: e.clientX, y: e.clientY, left: e.target.offsetLeft, top: e.target.offsetTop};
+	document.addEventListener('mousedown', e => {
+		if(e.target === move_trigger){
+			start_offset = {x: e.clientX, y: e.clientY, left: button.offsetLeft, top: button.offsetTop};
 		}else {
-			moving = false;
 			start_offset = null;
 		}
 	});
-	document.body.addEventListener('mouseup', e => {
+	document.addEventListener('mouseup', e => {
 		start_offset = null;
 		setTimeout(() => {
-			moving = false;
 		}, 10);
 	});
-	document.body.addEventListener('mousemove', e => {
+	document.addEventListener('mousemove', e => {
 		if(start_offset){
-			button.style.left = (start_offset.left + e.clientX - start_offset.x) + 'px';
-			button.style.top = (start_offset.top + e.clientY - start_offset.y) + 'px';
-			moving = true;
+			let left = (start_offset.left + e.clientX - start_offset.x);
+			let top = (start_offset.top + e.clientY - start_offset.y);
+			window.requestAnimationFrame(() => {
+				button.style.left = left + 'px';
+				button.style.top = top + 'px';
+			});
 		}
 	});
 	button.addEventListener('click', e => {
-		if(moving){
-			return;
-		}
-		document.body.querySelectorAll(`${scopeSelector} form`).forEach(fillForm);
+		document.querySelectorAll(`${scopeSelector} form`).forEach(fillForm);
 	});
+	tryPositionInFirstForm(`${scopeSelector}`, button);
+};
+const tryPositionInFirstForm = (scope, button) => {
+	let firstAvailableForm = Array.from(document.querySelectorAll(`${scope} form`)).find(form => {
+		return !!getAvailableElements(form).length;
+	});
+	if(firstAvailableForm){
+		button.style.left = firstAvailableForm.offsetLeft + firstAvailableForm.offsetWidth - button.offsetWidth + 'px';
+		button.style.top = firstAvailableForm.offsetTop + 'px';
+	}
 };
 const fillForm = (formOrContainer) => {
 	let inputElements = getAvailableElements(formOrContainer);

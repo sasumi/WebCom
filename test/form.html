@@ -9,6 +9,7 @@
 <body>
 <script src="assets/nav.js"></script>
 <form action="" id="form">
+	<h2>未提交表单提示保存</h2>
 	<fieldset>
 		<legend>表单区块1</legend>
 		<p><label> 表单名称： <input type="text" name="abc1"></label></p>
@@ -28,9 +29,10 @@
 	</p>
 </form>
 <script type="module">
-	import {bindFormUnSavedUnloadAlert} from "../src/index.js";
-
+	import {bindFormUnSavedUnloadAlert, initAutofillButton} from "../src/index.js";
 	bindFormUnSavedUnloadAlert(window.form);
+
+	initAutofillButton();
 </script>
 </body>
 </html>
