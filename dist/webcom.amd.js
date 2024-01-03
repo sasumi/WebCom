@@ -5106,37 +5106,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		button_init = true;
 		insertStyleSheet(`
-	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; white-space:nowrap; padding:0.5em 0.5em; border:1px solid #aaa; border-radius:5px; cursor:pointer; background-color:#fff;}
+	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; border:1px solid #aaa; --size:2em; border-radius:5px; width:var(--size); height:var(--size); line-height:var(--size); text-align:center; cursor:pointer; background-color:#fff;}
 	#auto-fill-form-btn:hover {opacity:1}
-	#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}; margin-right:0.25em;}
-	#auto-fill-form-btn s {display:block; cursor:move; float:right; text-decoration:none; margin:-20px -20px 0 0; background-color:white; width:20px; height:20px; overflow:hidden; box-sizing:border-box; text-align:center; border-radius:50%; box-shadow:1px 1px 10px #ccc;}
-	#auto-fill-form-btn s:before {content:"\\e83d"; font-family:${Theme.IconFont};} 
+	#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}}
 `);
-		let button = createDomByHtml('<span id="auto-fill-form-btn">自动填充 <s></s></span>', document.body);
-		let move_trigger = button.querySelector('s');
-		let start_offset = null;
-		document.addEventListener('mousedown', e => {
-			if(e.target === move_trigger){
-				start_offset = {x: e.clientX, y: e.clientY, left: button.offsetLeft, top: button.offsetTop};
-			}else {
-				start_offset = null;
-			}
-		});
-		document.addEventListener('mouseup', e => {
-			start_offset = null;
-			setTimeout(() => {
-			}, 10);
-		});
-		document.addEventListener('mousemove', e => {
-			if(start_offset){
-				let left = (start_offset.left + e.clientX - start_offset.x);
-				let top = (start_offset.top + e.clientY - start_offset.y);
-				window.requestAnimationFrame(() => {
-					button.style.left = left + 'px';
-					button.style.top = top + 'px';
-				});
-			}
-		});
+		let button = createDomByHtml('<span id="auto-fill-form-btn" title="自动填充"></span>', document.body);
 		button.addEventListener('click', e => {
 			document.querySelectorAll(`${scopeSelector} form`).forEach(fillForm);
 		});
