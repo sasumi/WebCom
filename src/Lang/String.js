@@ -14,6 +14,28 @@ export const extract = (es_template, params) => {
 }
 
 /**
+ * 转换字符串到HTML实体编码
+ * @param {String} str
+ * @return {String}
+ */
+export const toHtmlEntities = (str)=>{
+	return str.replace(/./gm, function(s) {
+		return (s.match(/[a-z0-9\s]+/i)) ? s : '&#' + s.charCodeAt(0) + ';';
+	});
+}
+
+/**
+ * HTML实体转换为字符串
+ * @param {String} str
+ * @return {string}
+ */
+export const fromHtmlEntities = (str)=>{
+	return (str + '').replace(/&#\d+;/gm, function(s) {
+		return String.fromCharCode(s.match(/\d+/gm)[0]);
+	})
+}
+
+/**
  * 反转义字符串
  * @param str
  * @returns {string}

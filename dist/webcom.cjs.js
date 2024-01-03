@@ -167,6 +167,16 @@ const extract = (es_template, params) => {
 	const values = Object.values(params);
 	return new Function(...names, `return \`${es_template}\`;`)(...values);
 };
+const toHtmlEntities = (str)=>{
+	return str.replace(/./gm, function(s) {
+		return (s.match(/[a-z0-9\s]+/i)) ? s : '&#' + s.charCodeAt(0) + ';';
+	});
+};
+const fromHtmlEntities = (str)=>{
+	return (str + '').replace(/&#\d+;/gm, function(s) {
+		return String.fromCharCode(s.match(/\d+/gm)[0]);
+	})
+};
 const stripSlashes = (str) => {
 	return (str + '')
 		.replace(/\\(.?)/g, function(s, n1){
@@ -5384,6 +5394,7 @@ exports.formSync = formSync;
 exports.formValidate = formValidate;
 exports.formatSize = formatSize;
 exports.frequencyControl = frequencyControl;
+exports.fromHtmlEntities = fromHtmlEntities;
 exports.getAvailableElements = getAvailableElements;
 exports.getAverageRGB = getAverageRGB;
 exports.getBase64ByImg = getBase64ByImg;
@@ -5478,6 +5489,7 @@ exports.stringToEntity = stringToEntity;
 exports.stripSlashes = stripSlashes;
 exports.tabConnect = tabConnect;
 exports.throttle = throttle;
+exports.toHtmlEntities = toHtmlEntities;
 exports.toggle = toggle;
 exports.toggleFullScreen = toggleFullScreen;
 exports.trans = trans;
