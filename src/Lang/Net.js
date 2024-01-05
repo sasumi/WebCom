@@ -147,7 +147,7 @@ export const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 		}
 	}
 	xhr.withCredentials = true;
-	xhr.upload.addEventListener('progress', e => {
+	xhr.addEventListener('progress', e => {
 		onProgress(e.loaded, total);
 	}, false);
 	xhr.addEventListener('load', e => {

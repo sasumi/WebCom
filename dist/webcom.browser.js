@@ -1438,7 +1438,7 @@ var WebCom = (function (exports) {
 			}
 		}
 		xhr.withCredentials = true;
-		xhr.upload.addEventListener('progress', e => {
+		xhr.addEventListener('progress', e => {
 			onProgress(e.loaded, total);
 		}, false);
 		xhr.addEventListener('load', e => {
@@ -4784,8 +4784,9 @@ var WebCom = (function (exports) {
 				break;
 			case UPLOAD_STATE_ERROR:
 				fileEl.value = '';
-				contentCtn.innerHTML = data;
-				up.onError.fire();
+				updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+				console.error('Uploader Error:', data);
+				up.onError.fire(data);
 				break;
 			default:
 				throw "todo";
@@ -4813,12 +4814,6 @@ var WebCom = (function (exports) {
 			uploadResponseHandle: DEFAULT_RSP_HANDLE
 		};
 		static bindFileInput(inputEl, initData = {}, option = {}){
-			if(!option.uploadUrl || !option.uploadUrl.length){
-				let form = inputEl.closest('form');
-				if(form){
-					option.uploadUrl = form.action;
-				}
-			}
 			let name = initData.name || inputEl.name;
 			let value = initData.value || inputEl.value;
 			let accepts = inputEl.accept.split(',');
@@ -4892,11 +4887,16 @@ var WebCom = (function (exports) {
 					updateState(this, UPLOAD_STATE_PENDING);
 					this.xhr = uploadFile(this.option.uploadUrl, {[this.option.uploadFileFieldName]: file}, {
 						onSuccess: responseText => {
-							let tmp = this.option.uploadResponseHandle(responseText);
-							this.value = tmp.value;
-							this.thumb = tmp.thumb;
-							this.name = tmp.name;
-							updateState(this, UPLOAD_STATE_NORMAL);
+							try{
+								console.log('response text', responseText);
+								let tmp = this.option.uploadResponseHandle(responseText);
+								this.value = tmp.value;
+								this.thumb = tmp.thumb;
+								this.name = tmp.name;
+								updateState(this, UPLOAD_STATE_NORMAL);
+							}catch(err){
+								updateState(this, UPLOAD_STATE_ERROR, err);
+							}
 						},
 						onProgress: (percent, total) => {
 							updateState(this, UPLOAD_STATE_PENDING);
