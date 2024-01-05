@@ -731,6 +731,12 @@ var WebCom = (function (exports) {
 	const toggle = (dom, toShow) => {
 		toShow ? show(dom) : hide(dom);
 	};
+	const findOne = (selector, parent = document) => {
+		return parent.querySelector(selector);
+	};
+	const findAll = (selector, parent = document) => {
+		return Array.from(parent.querySelectorAll(selector));
+	};
 	const getDomOffset = (target) => {
 		let rect = target.getBoundingClientRect();
 		return {
@@ -758,18 +764,11 @@ var WebCom = (function (exports) {
 			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
 	};
 	const matchParent = (dom, selector) => {
-		let p = dom.parentNode;
-		while(p && p !== document){
-			if(p.matches(selector)){
-				return p;
-			}
-			p = p.parentNode;
-		}
-		return null;
+		return dom.closest(selector);
 	};
 	const domContained = (contains, child, includeEqual = false) => {
 		if(typeof contains === 'string'){
-			contains = document.querySelectorAll(contains);
+			contains = findAll(contains);
 		}else if(Array.isArray(contains));else if(typeof contains === 'object'){
 			contains = [contains];
 		}
@@ -840,7 +839,7 @@ var WebCom = (function (exports) {
 			top: target.top,
 			width: target.clientWidth,
 			height: target.clientHeight,
-		}, {}, posAbs = true);
+		});
 	};
 	const keepRectInContainer = (objDim, ctnDim = {
 		left: 0,
@@ -1006,11 +1005,11 @@ var WebCom = (function (exports) {
 	};
 	const tabConnect = (tabs, contents, option = {}) => {
 		let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
-		if(typeof(tabs) === 'string'){
-			tabs = document.querySelectorAll(tabs);
+		if(typeof (tabs) === 'string'){
+			tabs = findAll(tabs);
 		}
-		if(typeof(contents) === 'string'){
-			contents = document.querySelectorAll(contents);
+		if(typeof (contents) === 'string'){
+			contents = findAll(contents);
 		}
 		tabs.forEach((tab, idx) => {
 			tab.addEventListener(triggerEvent, e => {
@@ -1102,14 +1101,14 @@ var WebCom = (function (exports) {
 		}
 		return win || window;
 	};
-	const setCookie = (name, value, days, path='/') => {
+	const setCookie = (name, value, days, path = '/') => {
 		var expires = "";
 		if(days){
 			var date = new Date();
 			date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
 			expires = "; expires=" + date.toUTCString();
 		}
-		document.cookie = name + "=" + (value || "") + expires + "; path="+path;
+		document.cookie = name + "=" + (value || "") + expires + "; path=" + path;
 	};
 	const getCookie = (name) => {
 		var nameEQ = name + "=";
@@ -1125,9 +1124,9 @@ var WebCom = (function (exports) {
 		document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 	};
 
-	const NS$1 = 'WebCom-';
-	const VAR_PREFIX = '--' + NS$1;
-	const ICON_FONT = NS$1 + 'iconfont';
+	const NS$2 = 'WebCom-';
+	const VAR_PREFIX = '--' + NS$2;
+	const ICON_FONT = NS$2 + 'iconfont';
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1158,9 +1157,9 @@ var WebCom = (function (exports) {
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$1+'style');
+}`, NS$2+'style');
 	const Theme = {
-		Namespace: NS$1,
+		Namespace: NS$2,
 		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
@@ -1421,6 +1420,41 @@ var WebCom = (function (exports) {
 	const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
 		return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);
 	};
+	const uploadFile = (url, fileMap, callbacks, extParam = null) => {
+		let {onSuccess, onProgress, onError, onAbort} = callbacks;
+		onProgress = onProgress || function(){};
+		onError = onError || function(err){ToastClass.showError(err);};
+		onAbort = onAbort || onError;
+		let xhr = new XMLHttpRequest();
+		let formData = new FormData();
+		let total = 0;
+		for(let name in fileMap){
+			formData.append(name, fileMap[name]);
+			total += fileMap[name].size;
+		}
+		if(extParam){
+			for(let k in extParam){
+				formData.append(k, extParam[k]);
+			}
+		}
+		xhr.withCredentials = true;
+		xhr.upload.addEventListener('progress', e => {
+			onProgress(e.loaded, total);
+		}, false);
+		xhr.addEventListener('load', e => {
+			onProgress(total, total);
+			onSuccess(xhr.responseText);
+		});
+		xhr.addEventListener('error', e => {
+			onError(e);
+		});
+		xhr.addEventListener('abort', e => {
+			onAbort();
+		});
+		xhr.open('POST', url);
+		xhr.send(formData);
+		return xhr;
+	};
 	class Net {
 		cgi = null;
 		data = null;
@@ -1519,10 +1553,10 @@ var WebCom = (function (exports) {
 		static request(cgi, data, option = {}){
 			return new Promise((resolve, reject) => {
 				let req = new Net(cgi, data, option);
-				req.onResponse.listen(ret=>{
+				req.onResponse.listen(ret => {
 					resolve(ret);
 				});
-				req.onError.listen(error=>{
+				req.onError.listen(error => {
 					reject(error);
 				});
 				req.send();
@@ -2627,73 +2661,73 @@ var WebCom = (function (exports) {
 	}
 
 	const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	const NS = Theme.Namespace + 'tip';
+	const NS$1 = Theme.Namespace + 'tip';
 	const DEFAULT_DIR = 11;
 	const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	let TIP_COLLECTION = {};
 	insertStyleSheet(`
-	.${NS}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS}-close:hover {opacity:1}
-	.${NS}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$1}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$1}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$1}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$1}-close:hover {opacity:1}
+	.${NS$1}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS}-container-wrap[data-tip-dir="11"],
-	.${NS}-container-wrap[data-tip-dir="0"],
-	.${NS}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS}-container-wrap[data-tip-dir="11"] .${NS}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS}-container-wrap[data-tip-dir="0"] .${NS}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS}-container-wrap[data-tip-dir="1"] .${NS}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="11"],
+	.${NS$1}-container-wrap[data-tip-dir="0"],
+	.${NS$1}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS}-container-wrap[data-tip-dir="8"],
-	.${NS}-container-wrap[data-tip-dir="9"],
-	.${NS}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-close{top:3px;}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS}-container-wrap[data-tip-dir="8"] .${NS}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS}-container-wrap[data-tip-dir="9"] .${NS}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS}-container-wrap[data-tip-dir="10"] .${NS}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="8"],
+	.${NS$1}-container-wrap[data-tip-dir="9"],
+	.${NS$1}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-close{top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS}-container-wrap[data-tip-dir="5"],
-	.${NS}-container-wrap[data-tip-dir="6"],
-	.${NS}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-close{top:3px;}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS}-container-wrap[data-tip-dir="5"] .${NS}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS}-container-wrap[data-tip-dir="6"] .${NS}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS}-container-wrap[data-tip-dir="7"] .${NS}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="5"],
+	.${NS$1}-container-wrap[data-tip-dir="6"],
+	.${NS$1}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-close{top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS}-container-wrap[data-tip-dir="2"],
-	.${NS}-container-wrap[data-tip-dir="3"],
-	.${NS}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-close,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-close{right:13px;top:3px;}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow,
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$1}-container-wrap[data-tip-dir="2"],
+	.${NS$1}-container-wrap[data-tip-dir="3"],
+	.${NS$1}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-close,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-close{right:13px;top:3px;}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow,
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow{top:calc(75% - var(--tip-gap))}
 `, Theme.Namespace + 'tip-style');
 	let bindEvent = (tip)=>{
 		if(tip.option.showCloseButton){
-			let close_btn = tip.dom.querySelector(`.${NS}-close`);
+			let close_btn = tip.dom.querySelector(`.${NS$1}-close`);
 			close_btn.addEventListener('click', () => {tip.hide();}, false);
 			document.addEventListener('keyup', (e) => {
 				if(e.keyCode === KEYS.Esc){
@@ -2778,16 +2812,16 @@ var WebCom = (function (exports) {
 			this.relateNode = relateNode;
 			this.option = Object.assign(this.option, opt);
 			this.dom = createDomByHtml(
-				`<div class="${NS}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS}-close">&#10005;</span>` : ''}
-				<div class="${NS}-content">${content}</div>
+				`<div class="${NS$1}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$1}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$1}-close">&#10005;</span>` : ''}
+				<div class="${NS$1}-content">${content}</div>
 			</div>`);
 			bindEvent(this);
 			TIP_COLLECTION[this.id] = this;
 		}
 		setContent(html){
-			this.dom.querySelector(`.${NS}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$1}-content`).innerHTML = html;
 			updatePosition(this);
 		}
 		show(){
@@ -4009,13 +4043,13 @@ var WebCom = (function (exports) {
 		init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 	};
 	const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
-		let nodes = document.querySelectorAll(nodeSelector);
+		let nodes = findAll(nodeSelector);
 		let imgSrcList = [];
 		if(!nodes.length){
 			console.warn('no images found');
 			return;
 		}
-		Array.from(nodes).forEach((node, idx) => {
+		nodes.forEach((node, idx) => {
 			switch(typeof (srcFetcher)){
 				case 'function':
 					imgSrcList.push(srcFetcher(node));
@@ -4081,7 +4115,7 @@ var WebCom = (function (exports) {
 				}
 				if(selector){
 					let index = 0, imgSrcList = [];
-					document.querySelectorAll(selector).forEach((n, idx) => {
+					findAll(selector).forEach((n, idx) => {
 						if(node === n){
 							index = idx;
 						}
@@ -4097,9 +4131,9 @@ var WebCom = (function (exports) {
 	}
 
 	const COM_ID$1 = Theme.Namespace + 'select';
-	const CLASS_PREFIX$1 = COM_ID$1;
+	const CLASS_PREFIX$2 = COM_ID$1;
 	insertStyleSheet(`
-	.${CLASS_PREFIX$1}-panel{
+	.${CLASS_PREFIX$2}-panel{
 		${Theme.CssVarPrefix}sel-panel-max-width:20em;
 		${Theme.CssVarPrefix}sel-list-max-height:15em;
 		${Theme.CssVarPrefix}sel-item-matched-color:orange;
@@ -4118,8 +4152,8 @@ var WebCom = (function (exports) {
 		z-index:1;
 	}
 	
-	.${CLASS_PREFIX$1}-panel .${CLASS_PREFIX$1}-search{padding:0.5em;}
-	.${CLASS_PREFIX$1}-panel input[type=search]{
+	.${CLASS_PREFIX$2}-panel .${CLASS_PREFIX$2}-search{padding:0.5em;}
+	.${CLASS_PREFIX$2}-panel input[type=search]{
 		width:100%;
 		padding:0.5em;
 		border:none;
@@ -4128,21 +4162,21 @@ var WebCom = (function (exports) {
 		box-shadow:none;
 		transition:border 0.1s linear;
 	}
-	.${CLASS_PREFIX$1}-panel input[type=search]:focus{
+	.${CLASS_PREFIX$2}-panel input[type=search]:focus{
 		border-color:gray;
 	}
 	
-	.${CLASS_PREFIX$1}-list{
+	.${CLASS_PREFIX$2}-list{
 		list-style:none;
 		max-height:var(${Theme.CssVarPrefix}sel-list-max-height);
 		overflow:auto;
 	}
 	
-	.${CLASS_PREFIX$1}-list .sel-item{
+	.${CLASS_PREFIX$2}-list .sel-item{
 		margin:1px 0;
 	}
 	
-	.${CLASS_PREFIX$1}-list .sel-chk{
+	.${CLASS_PREFIX$2}-list .sel-chk{
 		opacity:0;
 		width:1em;
 		height:1em;
@@ -4150,31 +4184,31 @@ var WebCom = (function (exports) {
 		margin:0.05em 0 0 -1.25em;
 	}
 	
-	.${CLASS_PREFIX$1}-list .sel-chk:before{
+	.${CLASS_PREFIX$2}-list .sel-chk:before{
 		content:"\\e624";
 		font-family:"${Theme.IconFont}", serif;
 	}
 	
-	.${CLASS_PREFIX$1}-list .matched{
+	.${CLASS_PREFIX$2}-list .matched{
 		color:var(${Theme.CssVarPrefix}sel-item-matched-color);
 		font-weight:var(${Theme.CssVarPrefix}sel-item-matched-font-weight);
 	}
 	
-	.${CLASS_PREFIX$1}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
-	.${CLASS_PREFIX$1}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
-	.${CLASS_PREFIX$1}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
+	.${CLASS_PREFIX$2}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
+	.${CLASS_PREFIX$2}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX$2}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
 	
-	.${CLASS_PREFIX$1}-list label{
+	.${CLASS_PREFIX$2}-list label{
 		display:block;
 		overflow:hidden;
 		position:relative;
 	}
-	.${CLASS_PREFIX$1}-list label:hover .ti-wrap{
+	.${CLASS_PREFIX$2}-list label:hover .ti-wrap{
 		background:var(${Theme.CssVarPrefix}sel-item-hover-bg);
 		text-shadow:1px 1px 1px white;
 	}
 	
-	.${CLASS_PREFIX$1}-list li[data-group-title]:before{
+	.${CLASS_PREFIX$2}-list li[data-group-title]:before{
 		content:attr(data-group-title) " -";
 		color:gray;
 		display:block;
@@ -4182,21 +4216,21 @@ var WebCom = (function (exports) {
 	}
 	
 	/** checked **/
-	.${CLASS_PREFIX$1}-list input:checked ~ .ti-wrap{
+	.${CLASS_PREFIX$2}-list input:checked ~ .ti-wrap{
 		background-color:var(${Theme.CssVarPrefix}sel-item-selected-bg);
 	}
 	
-	.${CLASS_PREFIX$1}-list input:checked ~ .ti-wrap .sel-chk{
+	.${CLASS_PREFIX$2}-list input:checked ~ .ti-wrap .sel-chk{
 		opacity:1;
 	}
 	
 	/** disabled **/
-	.${CLASS_PREFIX$1}-list input:disabled ~ .ti-wrap{
+	.${CLASS_PREFIX$2}-list input:disabled ~ .ti-wrap{
 		opacity:0.5;
 		cursor:default;
 		background-color:transparent
 	}
-	.${CLASS_PREFIX$1}-list input:disabled ~ .ti-wrap .sel-chk{
+	.${CLASS_PREFIX$2}-list input:disabled ~ .ti-wrap .sel-chk{
 		opacity:.1;
 	}
 `, COM_ID$1 + '-style');
@@ -4264,7 +4298,7 @@ var WebCom = (function (exports) {
 	`
 	};
 	const createPanel = (config) => {
-		let list_html = `<ul class="${CLASS_PREFIX$1}-list">`;
+		let list_html = `<ul class="${CLASS_PREFIX$2}-list">`;
 		config.options.forEach(option => {
 			if(option.options && option.options.length){
 				list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
@@ -4294,8 +4328,8 @@ var WebCom = (function (exports) {
 		});
 		list_html += '</ul>';
 		return createDomByHtml(`
-		<div class="${CLASS_PREFIX$1}-panel" style="display:none;">
-			<div class="${CLASS_PREFIX$1}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
+		<div class="${CLASS_PREFIX$2}-panel" style="display:none;">
+			<div class="${CLASS_PREFIX$2}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
 				<input type="search" placeholder="过滤..." aria-label="过滤选项">
 			</div>
 			${list_html}
@@ -4351,7 +4385,7 @@ var WebCom = (function (exports) {
 			this.config.name = this.config.name || COM_ID$1 + guid();
 			this.panelEl = createPanel(this.config);
 			this.searchEl = this.panelEl.querySelector('input[type=search]');
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach(chk => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list input`).forEach(chk => {
 				chk.addEventListener('change', () => {
 					this.onChange.fire();
 				});
@@ -4366,7 +4400,7 @@ var WebCom = (function (exports) {
 					tabNav(liElList, true);
 				}
 			});
-			let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list .sel-item`);
+			let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list .sel-item`);
 			liElList.forEach(li => {
 				buttonActiveBind(li, e => {
 					if(e.type !== 'click'){
@@ -4390,7 +4424,7 @@ var WebCom = (function (exports) {
 		}
 		search(kw){
 			this.searchEl.value = kw;
-			let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list .sel-item`);
+			let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list .sel-item`);
 			let firstMatchedItem = null;
 			liEls.forEach(li => {
 				this.config.hideNoMatchItems && hide(li);
@@ -4409,18 +4443,18 @@ var WebCom = (function (exports) {
 			}
 		}
 		selectByIndex(selectedIndexList){
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list input`).forEach((chk, idx) => {
 				chk.checked = selectedIndexList.includes(idx);
 			});
 		}
 		selectByValues(values){
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list input`).forEach((chk, idx) => {
 				chk.checked = values.includes(chk.value);
 			});
 		}
 		getValues(){
 			let values = [];
-			let tmp = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input:checked`);
+			let tmp = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list input:checked`);
 			tmp.forEach(chk => {
 				values.push(chk.value);
 			});
@@ -4429,7 +4463,7 @@ var WebCom = (function (exports) {
 		}
 		getSelectedIndexes(){
 			let selectedIndexes = [];
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list input`).forEach((chk, idx) => {
 				if(chk.checked){
 					selectedIndexes.push(idx);
 				}
@@ -4586,7 +4620,7 @@ var WebCom = (function (exports) {
 		static init(node, param = {}){
 			return new Promise((resolve, reject) => {
 				let checks = [];
-				let container = document.querySelector(param.container || 'body');
+				let container = findOne(param.container || 'body');
 				let disableBtn = () => {
 					node.setAttribute('disabled', 'disabled');
 				};
@@ -4640,7 +4674,7 @@ var WebCom = (function (exports) {
 	class ACMultiSelectRelate {
 		static init(button, param = {}){
 			return new Promise((resolve, reject) => {
-				const container = document.querySelector(param.container || 'body');
+				const container = findOne(param.container || 'body');
 				const disableBtn = () => {
 					button.title = '请选择要操作的项目';
 					button.setAttribute('disabled', 'disabled');
@@ -4655,6 +4689,265 @@ var WebCom = (function (exports) {
 					exists ? enableBtn() : disableBtn();
 				});
 			})
+		}
+	}
+
+	const NS = Theme.Namespace + 'uploader';
+	insertStyleSheet(`
+	.${NS}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	
+	.${NS}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	
+	.${NS}[data-state="empty"]{opacity:0.5}
+	.${NS}[data-state="empty"]:hover{opacity:1; transition:all 1s linear}
+	
+	.${NS}[data-state="empty"] :is(.${NS}-handle,.${NS}-progress),
+	.${NS}[data-state="pending"] :is(.${NS}-btn-clean, .${NS}-file, .${NS}-content),
+	.${NS}[data-state="error"] :is(.${NS}-progress,.${NS}-btn-clean),
+	.${NS}[data-state="normal"] :is(.${NS}-progress,.${NS}-btn-cancel),
+	.${NS}[data-state="normal"] .${NS}-file:before{
+		display:none;
+	}
+	
+	.${NS}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS}-content{width:100%;height:100%;}
+	.${NS}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	
+	.${NS}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS}-progress progress{width:100%; transition:all 1s linear}
+	
+	.${NS}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS}-btn:hover{opacity:1;}
+	.${NS}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS}-btn-cancel:before{content:"\\e61a"}
+	.${NS}-btn-clean:before{content:"\\e61b"}
+`);
+	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS}-image`;
+	const UPLOADER_FILE_DEFAULT_CLASS = `${NS}-file`;
+	const UPLOAD_STATE_EMPTY = 'empty';
+	const UPLOAD_STATE_PENDING = 'pending';
+	const UPLOAD_STATE_ERROR = 'error';
+	const UPLOAD_STATE_NORMAL = 'normal';
+	const FILE_TYPE_IMAGE = 'image/*';
+	const FILE_TYPE_VIDEO = 'video/*';
+	const FILE_TYPE_AUDIO = 'audio/*';
+	const FILE_TYPE_DOC = '.txt,.md,.doc,.docx';
+	const FILE_TYPE_SHEET = '.xls,.xlsx,.csv';
+	const DEFAULT_RSP_HANDLE = (rspText) => {
+		let rsp = JSON.parse(rspText);
+		return {
+			error: rsp.error,
+			value: rsp.value,
+			name: rsp.name,
+			thumb: rsp.thumb,
+		}
+	};
+	const mergeNoNull = (target, source) => {
+		for(let i in source){
+			if(source[i] !== null){
+				target[i] = source[i];
+			}
+		}
+	};
+	const cleanUpload = (up) => {
+		updateState(up, UPLOAD_STATE_EMPTY);
+	};
+	const cancelUpload = up => {
+		try{
+			up.xhr && up.xhr.abort();
+		}catch(err){
+			console.error(err);
+		}
+		updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+	};
+	const updateState = (up, state, data = null) => {
+		const fileEl = findOne('input[type=file]', up.dom);
+		const contentCtn = findOne(`.${NS}-content`, up.dom);
+		up.dom.setAttribute('data-state', state);
+		up.dom.title = '';
+		switch(state){
+			case UPLOAD_STATE_EMPTY:
+				fileEl.value = '';
+				contentCtn.innerHTML = '';
+				up.onClean.fire();
+				break;
+			case UPLOAD_STATE_PENDING:
+				up.onUploading.fire();
+				break;
+			case UPLOAD_STATE_NORMAL:
+				fileEl.value = '';
+				up.dom.title = up.name;
+				contentCtn.innerHTML = `<img alt="" src="${up.thumb}">`;
+				up.onSuccess.fire({name: up.name, value: up.value, thumb: up.thumb});
+				break;
+			case UPLOAD_STATE_ERROR:
+				fileEl.value = '';
+				contentCtn.innerHTML = data;
+				up.onError.fire();
+				break;
+			default:
+				throw "todo";
+		}
+	};
+	class Uploader {
+		state = UPLOAD_STATE_EMPTY;
+		xhr = null;
+		dom = null;
+		value = null;
+		thumb = '';
+		name = '';
+		onSuccess = new BizEvent();
+		onAbort = new BizEvent();
+		onUploading = new BizEvent();
+		onClean = new BizEvent();
+		onError = new BizEvent();
+		static globalUploadUrl = '';
+		option = {
+			uploadUrl: null,
+			uploadFileFieldName: 'file',
+			required: false,
+			allowFileTypes: [],
+			fileSizeLimit: 0,
+			uploadResponseHandle: DEFAULT_RSP_HANDLE
+		};
+		static bindFileInput(inputEl, initData = {}, option = {}){
+			if(!option.uploadUrl || !option.uploadUrl.length){
+				let form = inputEl.closest('form');
+				if(form){
+					option.uploadUrl = form.action;
+				}
+			}
+			let name = initData.name || inputEl.name;
+			let value = initData.value || inputEl.value;
+			let accepts = inputEl.accept.split(',');
+			let virtualDom = document.createElement('span');
+			option.required = inputEl.required;
+			if(accepts.length){
+				option.allowFileTypes = accepts;
+			}
+			inputEl.parentNode.insertBefore(virtualDom, inputEl.nextSibling);
+			inputEl.required = false;
+			inputEl.style.cssText = 'display:none';
+			const up = new Uploader(virtualDom, {name, value, thumb: initData.thumb}, option);
+			up.onClean.listen(() => {
+				inputEl.value = '';
+			});
+			if(inputEl.type !== 'file'){
+				up.onSuccess.listen(data => {
+					inputEl.value = data.value;
+				});
+			}
+			return up;
+		}
+		constructor(container, initData = {}, option = {
+			uploadUrl: null,
+			required: null,
+			fileSizeLimit: null,
+			allowFileTypes: null,
+			uploadResponseHandle: null
+		}){
+			this.value = initData.value || '';
+			this.thumb = initData.thumb || '';
+			this.name = initData.name || '';
+			mergeNoNull(this.option, option);
+			this.option.uploadUrl = this.option.uploadUrl || Uploader.globalUploadUrl;
+			if(!this.option.uploadUrl){
+				throw "需要提供上传接口地址：option.uploadUrl 或者 Uploader.globalUploadUrl";
+			}
+			this.onError.listen(err => {ToastClass.showError(err);});
+			let acceptStr = this.option.allowFileTypes.join(',');
+			const html =
+				`<div class="${NS}" data-state="${this.state}">
+			<label class="${NS}-file">
+				<input type="file" tabindex="0" accept="${acceptStr}" value="${this.value}" ${this.option.required ? 'required' : ''}>
+			</label>
+			<div class="${NS}-progress">
+				<progress max="100" value="0">0%</progress>
+				<span>0%</span>
+			</div>
+			<div class="${NS}-content"></div>
+			<div class="${NS}-handle">
+				<span role="button" tabindex="0" class="${NS}-btn ${NS}-btn-cancel" title="取消上传"></span>
+				<span role="button" tabindex="0" class="${NS}-btn ${NS}-btn-clean" title="清除"></span>
+			</div>
+		</div>`;
+			this.dom = createDomByHtml(html, container);
+			const fileEl = findOne('input[type=file]', this.dom);
+			buttonActiveBind(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
+			buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {cancelUpload(this);});
+			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+			fileEl.addEventListener('change', () => {
+				let file = fileEl.files[0];
+				if(file){
+					if(file.size < 1){
+						ToastClass.showError('所选的文件内容为空');
+						return;
+					}
+					if(this.option.fileSizeLimit && file.size < this.option.fileSizeLimit){
+						ToastClass.showError('所选的文件大小超出限制');
+						return;
+					}
+					updateState(this, UPLOAD_STATE_PENDING);
+					this.xhr = uploadFile(this.option.uploadUrl, {[this.option.uploadFileFieldName]: file}, {
+						onSuccess: responseText => {
+							let tmp = this.option.uploadResponseHandle(responseText);
+							this.value = tmp.value;
+							this.thumb = tmp.thumb;
+							this.name = tmp.name;
+							updateState(this, UPLOAD_STATE_NORMAL);
+						},
+						onProgress: (percent, total) => {
+							updateState(this, UPLOAD_STATE_PENDING);
+							const progressEl = findOne('progress', this.dom);
+							const progressPnt = findOne(`.${NS}-progress span`, this.dom);
+							progressEl.value = percent;
+							progressEl.max = total;
+							progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
+						},
+						onError: (err) => {
+							updateState(this, UPLOAD_STATE_ERROR, err);
+						},
+						onAbort: () => {
+							updateState(this, UPLOAD_STATE_EMPTY);
+						},
+					});
+				}
+			});
+		}
+		abort(){
+			cancelUpload(this);
+		}
+		getValue(){
+			return this.value;
+		}
+		getValueAsync(){
+			return new Promise((resolve, reject) => {
+				if(this.state !== UPLOAD_STATE_PENDING){
+					resolve(this.getValue());
+				}else {
+					let success_handle = () => {
+						resolve(this.getValue());
+						this.onSuccess.remove(success_handle);
+					};
+					let error_handle = (msg) => {
+						reject(msg);
+						this.onError.remove(error_handle);
+					};
+					this.onSuccess.listen(success_handle);
+					this.onError.listen(error_handle);
+				}
+			});
+		}
+	}
+
+	class ACUploader {
+		static init(node, param){
+			return new Promise(resolve => {
+				Uploader.bindFileInput(node, param, param);
+				resolve();
+			});
 		}
 	}
 
@@ -4673,6 +4966,7 @@ var WebCom = (function (exports) {
 		selectrelate: ACMultiSelectRelate,
 		tip: ACTip,
 		toast: ACToast,
+		uploader: ACUploader,
 	};
 	const parseComponents = function(attr){
 		let tmp = attr.split(',');
@@ -4760,7 +5054,7 @@ var WebCom = (function (exports) {
 	const ACComponent = {
 		watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 			let m_tm = null;
-			let observer = new MutationObserver(mutations => {
+			let observer = new MutationObserver(() => {
 				clearTimeout(m_tm);
 				m_tm = setTimeout(function(){
 					bindNode(container, attr_flag);
@@ -5106,12 +5400,12 @@ var WebCom = (function (exports) {
 `);
 		let button = createDomByHtml('<span id="auto-fill-form-btn" title="自动填充"></span>', document.body);
 		button.addEventListener('click', e => {
-			document.querySelectorAll(`${scopeSelector} form`).forEach(fillForm);
+			findAll(`${scopeSelector} form`).forEach(fillForm);
 		});
 		tryPositionInFirstForm(`${scopeSelector}`, button);
 	};
 	const tryPositionInFirstForm = (scope, button) => {
-		let firstAvailableForm = Array.from(document.querySelectorAll(`${scope} form`)).find(form => {
+		let firstAvailableForm = findAll(`${scope} form`).find(form => {
 			return !!getAvailableElements(form).length;
 		});
 		if(firstAvailableForm){
@@ -5173,10 +5467,10 @@ var WebCom = (function (exports) {
 	};
 
 	const COM_ID = Theme.Namespace + 'novice-guide';
-	const CLASS_PREFIX = COM_ID;
+	const CLASS_PREFIX$1 = COM_ID;
 	const PADDING_SIZE = '5px';
 	insertStyleSheet(`
-	.${CLASS_PREFIX}-highlight {
+	.${CLASS_PREFIX$1}-highlight {
 		position:absolute; 
 		z-index:10000;
 		--novice-guide-highlight-padding:${PADDING_SIZE}; 
@@ -5185,18 +5479,18 @@ var WebCom = (function (exports) {
 		padding:var(--novice-guide-highlight-padding); 
 		margin:calc(var(--novice-guide-highlight-padding) * -1) 0 0 calc(var(--novice-guide-highlight-padding) * -1); 
 	}
-	.${CLASS_PREFIX}-btn {user-select:none; cursor:pointer;}
-	.${CLASS_PREFIX}-masker {width:100%; height:100%; position:absolute; left:0; top:0; z-index:10000}
-	.${CLASS_PREFIX}-counter {float:left; color:${Theme.CssVar.COLOR}; opacity:0.7} 
-	.${CLASS_PREFIX}-next-wrap {text-align:right; margin-top:10px;}
+	.${CLASS_PREFIX$1}-btn {user-select:none; cursor:pointer;}
+	.${CLASS_PREFIX$1}-masker {width:100%; height:100%; position:absolute; left:0; top:0; z-index:10000}
+	.${CLASS_PREFIX$1}-counter {float:left; color:${Theme.CssVar.COLOR}; opacity:0.7} 
+	.${CLASS_PREFIX$1}-next-wrap {text-align:right; margin-top:10px;}
 `, COM_ID);
 	let highlightHelperEl,
 		maskerEl;
 	const show_highlight_zone = (highlightNode) => {
 		hide_highlight_zone();
 		if(!highlightHelperEl){
-			highlightHelperEl = createDomByHtml(`<div class="${CLASS_PREFIX}-highlight"></div>`, document.body);
-			maskerEl = createDomByHtml(`<div class="${CLASS_PREFIX}-masker"></div>`, document.body);
+			highlightHelperEl = createDomByHtml(`<div class="${CLASS_PREFIX$1}-highlight"></div>`, document.body);
+			maskerEl = createDomByHtml(`<div class="${CLASS_PREFIX$1}-masker"></div>`, document.body);
 		}
 		show(maskerEl);
 		show(highlightHelperEl);
@@ -5250,21 +5544,21 @@ var WebCom = (function (exports) {
 			}else {
 				highlightHelperEl = show_highlight_zone(step.relateNode);
 			}
-			let next_html = `<div class="${CLASS_PREFIX}-next-wrap">`;
+			let next_html = `<div class="${CLASS_PREFIX$1}-next-wrap">`;
 			if((steps.length + 2) <= step_size.length){
-				next_html += `<span class="${CLASS_PREFIX}-btn ${CLASS_PREFIX}-prev-btn ">${config.prev_button_text}</span> `;
+				next_html += `<span class="${CLASS_PREFIX$1}-btn ${CLASS_PREFIX$1}-prev-btn ">${config.prev_button_text}</span> `;
 			}
 			if(steps.length && config.next_button_text){
-				next_html += `<span class="${CLASS_PREFIX}-btn ${CLASS_PREFIX}-next-btn">${config.next_button_text}</span>`;
+				next_html += `<span class="${CLASS_PREFIX$1}-btn ${CLASS_PREFIX$1}-next-btn">${config.next_button_text}</span>`;
 			}
 			if(!steps.length && config.finish_button_text){
-				next_html += `<span class="${CLASS_PREFIX}-btn ${CLASS_PREFIX}-finish-btn">${config.finish_button_text}</span>`;
+				next_html += `<span class="${CLASS_PREFIX$1}-btn ${CLASS_PREFIX$1}-finish-btn">${config.finish_button_text}</span>`;
 			}
 			if(config.show_counter){
-				next_html += `<span class="${CLASS_PREFIX}-counter">${step_size.length - steps.length}/${step_size.length}</span>`;
+				next_html += `<span class="${CLASS_PREFIX$1}-counter">${step_size.length - steps.length}/${step_size.length}</span>`;
 			}
 			next_html += `</div>`;
-			let tp = new Tip(`<div class="${CLASS_PREFIX}-content">${step.content}</div>${next_html}`, showing_cover ? highlightHelperEl : step.relateNode, {
+			let tp = new Tip(`<div class="${CLASS_PREFIX$1}-content">${step.content}</div>${next_html}`, showing_cover ? highlightHelperEl : step.relateNode, {
 				showCloseButton: config.top_close,
 				dir: showing_cover ? 6 : 'auto'
 			});
@@ -5275,11 +5569,11 @@ var WebCom = (function (exports) {
 			});
 			tp.onShow.listen(function(){
 				tp.dom.style.zIndex = "10001";
-				tp.dom.querySelector(`.${CLASS_PREFIX}-next-btn,.${CLASS_PREFIX}-finish-btn`).addEventListener('click', function(){
+				tp.dom.querySelector(`.${CLASS_PREFIX$1}-next-btn,.${CLASS_PREFIX$1}-finish-btn`).addEventListener('click', function(){
 					tp.destroy();
 					show_one();
 				});
-				let prevBtn = tp.dom.querySelector(`.${CLASS_PREFIX}-prev-btn`);
+				let prevBtn = tp.dom.querySelector(`.${CLASS_PREFIX$1}-prev-btn`);
 				if(prevBtn){
 					prevBtn.addEventListener('click', function(){
 						tp.destroy();
@@ -5294,6 +5588,104 @@ var WebCom = (function (exports) {
 		};
 		show_one();
 	};
+
+	let CLASS_PREFIX = Theme.Namespace + 'toc';
+	insertStyleSheet(`
+	.${CLASS_PREFIX}-wrap {}
+	.${CLASS_PREFIX}-wrap ul {list-style:none; padding:0; margin:0}
+	.${CLASS_PREFIX}-wrap li {padding-left:calc((var(--toc-item-level) - 1) * 10px)}
+	.${CLASS_PREFIX}-collapse>ul {display:none;}
+	.${CLASS_PREFIX}-title {display:block; margin:0.1em 0 0; cursor:pointer; user-select:none; padding:0.5em 1em 0.5em 2em;}
+	.${CLASS_PREFIX}-title:hover {border-radius:var(${Theme.CssVar.PANEL_RADIUS})}
+	.${CLASS_PREFIX}-toggle {position:absolute; vertical-align:middle; width:0; height:0; border:0.4em solid transparent; margin:1em 0 0 0.5em; border-top-color:var(${Theme.CssVar.COLOR}); opacity:0; cursor:pointer;}
+	.${CLASS_PREFIX}-collapse>.${CLASS_PREFIX}-toggle {border-top-color:transparent; border-left-color:var(${Theme.CssVar.COLOR}); margin:.75em 0 0 0.5em;}
+	li:hover>.${CLASS_PREFIX}-toggle {opacity:.4}
+	.${CLASS_PREFIX}-wrap .${CLASS_PREFIX}-toggle:hover {opacity:0.8}
+`, Theme.Namespace + 'toc-style');
+	const renderEntriesListHtml = (entries, config) => {
+		console.log(config);
+		let html = '<ul>';
+		entries.forEach(entry => {
+			html += `<li data-id="${entry.id}" data-level="${entry.level}" style="--toc-item-level:${entry.level}">
+					${config.collapseAble && entry.children.length ? `<span class="${CLASS_PREFIX}-toggle"></span>` : ''}
+					<span class="${CLASS_PREFIX}-title">${escapeHtml(entry.title)}</span>`;
+			if(entry.children.length){
+				html += renderEntriesListHtml(entry.children, config);
+			}
+		});
+		html += '</ul>';
+		return html;
+	};
+	const searchNodeById = (id, entries) => {
+		for(let i = 0; i < entries.length; i++){
+			if(entries[i].id === id){
+				return entries[i].relateNode;
+			}
+			if(entries[i].children.length){
+				let m = searchNodeById(id, entries[i].children);
+				if(m){
+					return m;
+				}
+			}
+		}
+		console.warn('no matched', id, entries);
+		return null;
+	};
+	class Toc {
+		dom = null;
+		config = {
+			container: null,
+			collapseAble: true,
+		};
+		constructor(entries, config = {}){
+			this.config = Object.assign(this.config, {container:document.body}, config);
+			this.dom = createDomByHtml(`<div class="${CLASS_PREFIX}-wrap">
+				${renderEntriesListHtml(entries, this.config)}
+			</div>`, this.config.container);
+			this.dom.querySelectorAll(`li>span.${CLASS_PREFIX}-title`).forEach(span => {
+				let id = span.parentNode.getAttribute('data-id');
+				span.addEventListener('click', e => {
+					let n = searchNodeById(id, entries);
+					n.focus();
+					n.scrollIntoView({behavior: 'smooth'});
+				});
+			});
+			eventDelegate(this.dom, `.${CLASS_PREFIX}-toggle`, 'click', target=>{
+				let li = target.closest('li');
+				li.classList.toggle(CLASS_PREFIX+'-collapse');
+			});
+		}
+		static createFromHeading(container = null, config = {}){
+			container = container || document;
+			let entries = Toc.resolveHeading(container);
+			return new Toc(entries, config);
+		}
+		static resolveHeading(container){
+			let levelMaps = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+			let allHeadings = Array.from(container.querySelectorAll(levelMaps.join(','))) || [];
+			let entries = [
+			];
+			const addResult = (title, level, relateNode, list) => {
+				if(!list.length){
+					return list.push({id: guid('toc-'), title, level, relateNode, children: []});
+				}
+				if(list[list.length - 1].level < level){
+					addResult(title, level, relateNode, list[list.length - 1].children);
+				}else if(list[list.length - 1].level === level){
+					return list.push({id: guid('toc-'), title, level, relateNode, children: []});
+				}else {
+					addResult(title, level, relateNode, list[list.length - 1].children);
+				}
+			};
+			allHeadings.forEach(relateNode => {
+				let level = parseInt(relateNode.tagName.replace(/\D+/g, ''), 10);
+				let title = relateNode.innerText;
+				addResult(title, level, relateNode, entries);
+			});
+			console.log(entries);
+			return entries;
+		}
+	}
 
 	exports.ACAsync = ACAsync;
 	exports.ACComponent = ACComponent;
@@ -5312,6 +5704,11 @@ var WebCom = (function (exports) {
 	exports.BizEvent = BizEvent;
 	exports.Dialog = DialogClass;
 	exports.DialogManager = DialogManagerClass;
+	exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;
+	exports.FILE_TYPE_DOC = FILE_TYPE_DOC;
+	exports.FILE_TYPE_IMAGE = FILE_TYPE_IMAGE;
+	exports.FILE_TYPE_SHEET = FILE_TYPE_SHEET;
+	exports.FILE_TYPE_VIDEO = FILE_TYPE_VIDEO;
 	exports.GOLDEN_RATIO = GOLDEN_RATIO;
 	exports.HTTP_METHOD = HTTP_METHOD;
 	exports.IMG_PREVIEW_MODE_MULTIPLE = IMG_PREVIEW_MODE_MULTIPLE;
@@ -5346,6 +5743,14 @@ var WebCom = (function (exports) {
 	exports.Theme = Theme;
 	exports.Tip = Tip;
 	exports.Toast = ToastClass;
+	exports.Toc = Toc;
+	exports.UPLOADER_FILE_DEFAULT_CLASS = UPLOADER_FILE_DEFAULT_CLASS;
+	exports.UPLOADER_IMAGE_DEFAULT_CLASS = UPLOADER_IMAGE_DEFAULT_CLASS;
+	exports.UPLOAD_STATE_EMPTY = UPLOAD_STATE_EMPTY;
+	exports.UPLOAD_STATE_ERROR = UPLOAD_STATE_ERROR;
+	exports.UPLOAD_STATE_NORMAL = UPLOAD_STATE_NORMAL;
+	exports.UPLOAD_STATE_PENDING = UPLOAD_STATE_PENDING;
+	exports.Uploader = Uploader;
 	exports.arrayColumn = arrayColumn;
 	exports.arrayDistinct = arrayDistinct;
 	exports.arrayFilterTree = arrayFilterTree;
@@ -5388,6 +5793,8 @@ var WebCom = (function (exports) {
 	exports.exitFullScreen = exitFullScreen;
 	exports.extract = extract;
 	exports.fillForm = fillForm;
+	exports.findAll = findAll;
+	exports.findOne = findOne;
 	exports.fireEvent = fireEvent;
 	exports.formSerializeJSON = formSerializeJSON;
 	exports.formSerializeString = formSerializeString;
@@ -5497,6 +5904,7 @@ var WebCom = (function (exports) {
 	exports.triggerDomEvent = triggerDomEvent;
 	exports.trim = trim;
 	exports.unescapeHtml = unescapeHtml;
+	exports.uploadFile = uploadFile;
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
