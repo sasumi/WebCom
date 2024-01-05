@@ -1,6 +1,7 @@
 import {getHighestResFromSrcSet} from "../Lang/Img.js";
 import {showImgListPreview, showImgPreview} from "../Widget/ImgPreview.js";
 import {eventDelegate} from "../Lang/Event.js";
+import {findAll} from "../Lang/Dom.js";
 
 /**
  * 提取节点图片源
@@ -53,7 +54,7 @@ export class ACPreview {
 			}
 			if(selector){
 				let index = 0, imgSrcList = [];
-				document.querySelectorAll(selector).forEach((n, idx) => {
+				findAll(selector).forEach((n, idx) => {
 					if(node === n){
 						index = idx;
 					}

@@ -1,4 +1,4 @@
-import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, findAll, insertStyleSheet} from "../Lang/Dom.js";
 import {getAvailableElements} from "../Lang/Form.js";
 import {randomInt} from "../Lang/Math.js";
 import {randomSentence} from "../Lang/String.js";
@@ -25,7 +25,7 @@ export const initAutofillButton = (scopeSelector = 'body') => {
 `);
 	let button = createDomByHtml('<span id="auto-fill-form-btn" title="自动填充"></span>', document.body);
 	button.addEventListener('click', e => {
-		document.querySelectorAll(`${scopeSelector} form`).forEach(fillForm);
+		findAll(`${scopeSelector} form`).forEach(fillForm);
 	});
 	tryPositionInFirstForm(`${scopeSelector}`, button);
 }
@@ -36,7 +36,7 @@ export const initAutofillButton = (scopeSelector = 'body') => {
  * @param {Node} button
  */
 const tryPositionInFirstForm = (scope, button) => {
-	let firstAvailableForm = Array.from(document.querySelectorAll(`${scope} form`)).find(form => {
+	let firstAvailableForm = findAll(`${scope} form`).find(form => {
 		return !!getAvailableElements(form).length;
 	});
 	if(firstAvailableForm){

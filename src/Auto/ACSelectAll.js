@@ -1,4 +1,4 @@
-import {onDomTreeChange} from "../Lang/Dom.js";
+import {findOne, onDomTreeChange} from "../Lang/Dom.js";
 import {triggerDomEvent} from "../Lang/Event.js";
 
 const SELECT_ALL_TEXT = '全选';
@@ -11,7 +11,7 @@ export class ACSelectAll {
 	static init(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let checks = [];
-			let container = document.querySelector(param.container || 'body');
+			let container = findOne(param.container || 'body');
 			let disableBtn = () => {
 				node.setAttribute('disabled', 'disabled');
 			}

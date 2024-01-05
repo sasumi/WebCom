@@ -5,15 +5,34 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
+	<script type="module">
+		import {Uploader} from "../src/Widget/Uploader.js";
+		import {ACComponent} from "../src/index.js";
+		Uploader.globalUploadUrl = 'assets/upload.php';
+		ACComponent.watch(document, 'data-component');
+	</script>
 </head>
 <body>
 <script src="assets/nav.js"></script>
-<span id="upload-dom"></span>
-<link rel="stylesheet" href="assets/upload.css">
-<script type="module">
-	import {Uploader} from "../src/Widget/Uploader.js";
+<span id="upload-dom1"></span>
+<span id="upload-dom2"></span>
 
-	new Uploader(document.getElementById('upload-dom'), {uploadUrl:'assets/upload.php'})
+<hr>
+<input type="file" name="img1" id="img" accept="image/*">
+
+<input type="hidden" name="img2" data-component="uploader">
+
+
+<script type="module">
+
+	// new Uploader(document.getElementById('upload-dom1'), {}, {uploadUrl: 'assets/upload.php'})
+	// new Uploader(document.getElementById('upload-dom2'), {
+	// 	name: "fisherman-s-cottage-at-varengeville.jpg",
+	// 	thumb: "assets/upload_tmp/e62f02b681b54d3a63d8c27a5af4bdfd.jpg",
+	// 	value: "assets/upload_tmp/e62f02b681b54d3a63d8c27a5af4bdfd.jpg",
+	// }, {uploadUrl: 'assets/upload.php'});
+
+	// Uploader.bindFileInput(document.querySelector('[name=img1]'));
 </script>
 </body>
 </html>

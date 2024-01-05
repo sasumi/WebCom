@@ -1,5 +1,5 @@
 /**
- * 解析文件扩展名
+ * 解析文件扩展名（不包含点，格式如：jpg）
  * @param {string} fileName
  * @return {string}
  */

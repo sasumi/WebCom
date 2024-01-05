@@ -28,11 +28,29 @@ export const show = (dom) => {
 }
 
 /**
- * @param {HTMLElement} dom
+ * @param {Node} dom
  * @param toShow
  */
 export const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
+}
+
+/**
+ * @param {String} selector
+ * @param {Node} parent
+ * @return {Node}
+ */
+export const findOne = (selector, parent = document) => {
+	return parent.querySelector(selector);
+}
+
+/**
+ * @param {String} selector
+ * @param {Node} parent
+ * @return {Node[]}
+ */
+export const findAll = (selector, parent = document) => {
+	return Array.from(parent.querySelectorAll(selector));
 }
 
 /**
@@ -80,19 +98,13 @@ export const isButton = (el) => {
 
 /**
  * 获取最近上级节点
+ * @deprecated 请使用原生closest方法
  * @param {HTMLElement} dom
  * @param {String} selector 匹配上级节点选择器
  * @return {(() => (HTMLElement | null))|ParentNode|ActiveX.IXMLDOMNode|null}
  */
 export const matchParent = (dom, selector) => {
-	let p = dom.parentNode;
-	while(p && p !== document){
-		if(p.matches(selector)){
-			return p;
-		}
-		p = p.parentNode;
-	}
-	return null;
+	return dom.closest(selector);
 }
 
 /**
@@ -104,7 +116,7 @@ export const matchParent = (dom, selector) => {
  */
 export const domContained = (contains, child, includeEqual = false) => {
 	if(typeof contains === 'string'){
-		contains = document.querySelectorAll(contains);
+		contains = findAll(contains);
 	}else if(Array.isArray(contains)){
 	}else if(typeof contains === 'object'){
 		contains = [contains];
@@ -208,17 +220,16 @@ export const keepRectCenter = (width, height, containerDimension = {
 }
 
 /**
- *
  * @param target
  * @param container
  */
 export const keepDomInContainer = (target, container = document.body) => {
-	let ret = keepRectInContainer({
+	keepRectInContainer({
 		left: target.left,
 		top: target.top,
 		width: target.clientWidth,
 		height: target.clientHeight,
-	}, {}, posAbs = true);
+	});
 }
 
 /**
@@ -506,11 +517,11 @@ export const nodeHighlight = (node, pattern, hlClass) => {
  */
 export const tabConnect = (tabs, contents, option = {}) => {
 	let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
-	if(typeof(tabs) === 'string'){
-		tabs = document.querySelectorAll(tabs);
+	if(typeof (tabs) === 'string'){
+		tabs = findAll(tabs);
 	}
-	if(typeof(contents) === 'string'){
-		contents = document.querySelectorAll(contents);
+	if(typeof (contents) === 'string'){
+		contents = findAll(contents);
 	}
 	tabs.forEach((tab, idx) => {
 		tab.addEventListener(triggerEvent, e => {
@@ -665,14 +676,14 @@ export const getContextWindow = () => {
  * @param {Number} days
  * @param {String} path
  */
-export const setCookie = (name, value, days, path='/') => {
+export const setCookie = (name, value, days, path = '/') => {
 	var expires = "";
 	if(days){
 		var date = new Date();
 		date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
 		expires = "; expires=" + date.toUTCString();
 	}
-	document.cookie = name + "=" + (value || "") + expires + "; path="+path;
+	document.cookie = name + "=" + (value || "") + expires + "; path=" + path;
 }
 
 /**

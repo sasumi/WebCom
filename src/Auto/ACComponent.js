@@ -10,6 +10,7 @@ import {ACSelect} from "./ACSelect.js";
 import {ACHighlight} from "./ACHighlight.js";
 import {ACSelectAll} from "./ACSelectAll.js";
 import {ACMultiSelectRelate} from "./ACMultiSelectRelate.js";
+import {ACUploader} from "./ACUploader.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
@@ -31,6 +32,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	selectrelate: ACMultiSelectRelate,
 	tip: ACTip,
 	toast: ACToast,
+	uploader: ACUploader,
 };
 
 /**
@@ -161,7 +163,7 @@ export const ACComponent = {
 	 */
 	watch: (container = document, attr_flag = DEFAULT_ATTR_COM_FLAG) => {
 		let m_tm = null;
-		let observer = new MutationObserver(mutations => {
+		let observer = new MutationObserver(() => {
 			clearTimeout(m_tm);
 			m_tm = setTimeout(function(){
 				bindNode(container, attr_flag);

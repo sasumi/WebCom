@@ -1,5 +1,5 @@
 import {guid} from "../Lang/Util.js";
-import {createDomByHtml, insertStyleSheet, matchParent} from "../Lang/Dom.js";
+import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 import {escapeHtml} from "../Lang/Html.js";
 import {eventDelegate} from "../Lang/Event.js";
@@ -71,7 +71,7 @@ class Toc {
 			});
 		});
 		eventDelegate(this.dom, `.${CLASS_PREFIX}-toggle`, 'click', target=>{
-			let li = matchParent(target, 'li');
+			let li = target.closest('li');
 			li.classList.toggle(CLASS_PREFIX+'-collapse');
 		});
 	}

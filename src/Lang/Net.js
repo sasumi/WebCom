@@ -1,5 +1,6 @@
 import {resolveFileExtension, resolveFileName} from "./File.js";
 import {BizEvent} from "./Event.js";
+import {Toast} from "../Widget/Toast.js";
 
 const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
@@ -111,6 +112,57 @@ export const getHash = () => {
  */
 export const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
 	return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);
+}
+
+/**
+ * 文件上传
+ * @param {String} url 接口地址
+ * @param {Object} fileMap 文件映射对象，key为变量名称，如：{name:File}
+ * @param callbacks
+ * @param {Function} callbacks.onSuccess 成功回调
+ * @param {Function} callbacks.onProgress 进度更新回调
+ * @param {Function} callbacks.onError 错误回调
+ * @param {Function} callbacks.onAbort 中断回调
+ * @param {Object|null} extParam 额外传递body变量
+ * @return {XMLHttpRequest}
+ */
+export const uploadFile = (url, fileMap, callbacks, extParam = null) => {
+	let {onSuccess, onProgress, onError, onAbort} = callbacks;
+
+	//缺省值
+	onProgress = onProgress || function(){};
+	onError = onError || function(err){Toast.showError(err)};
+	onAbort = onAbort || onError;
+
+	let xhr = new XMLHttpRequest();
+	let formData = new FormData();
+	let total = 0;
+	for(let name in fileMap){
+		formData.append(name, fileMap[name]);
+		total += fileMap[name].size;
+	}
+	if(extParam){
+		for(let k in extParam){
+			formData.append(k, extParam[k]);
+		}
+	}
+	xhr.withCredentials = true;
+	xhr.upload.addEventListener('progress', e => {
+		onProgress(e.loaded, total);
+	}, false);
+	xhr.addEventListener('load', e => {
+		onProgress(total, total);
+		onSuccess(xhr.responseText);
+	});
+	xhr.addEventListener('error', e => {
+		onError(e);
+	});
+	xhr.addEventListener('abort', e => {
+		onAbort();
+	});
+	xhr.open('POST', url);
+	xhr.send(formData);
+	return xhr;
 }
 
 /**
@@ -235,10 +287,10 @@ export class Net {
 	static request(cgi, data, option = {}){
 		return new Promise((resolve, reject) => {
 			let req = new Net(cgi, data, option);
-			req.onResponse.listen(ret=>{
+			req.onResponse.listen(ret => {
 				resolve(ret);
 			});
-			req.onError.listen(error=>{
+			req.onError.listen(error => {
 				reject(error);
 			});
 			req.send();

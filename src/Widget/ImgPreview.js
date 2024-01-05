@@ -1,4 +1,4 @@
-import {createDomByHtml, getContextWindow, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
+import {createDomByHtml, findAll, getContextWindow, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
@@ -748,13 +748,13 @@ const showImgListPreview = CONTEXT_WINDOW[COM_ID]['showImgListPreview'] || funct
  * @param {Object} option
  */
 const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
-	let nodes = document.querySelectorAll(nodeSelector);
+	let nodes = findAll(nodeSelector);
 	let imgSrcList = [];
 	if(!nodes.length){
 		console.warn('no images found');
 		return;
 	}
-	Array.from(nodes).forEach((node, idx) => {
+	nodes.forEach((node, idx) => {
 		switch(typeof (srcFetcher)){
 			case 'function':
 				imgSrcList.push(srcFetcher(node));

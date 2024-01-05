@@ -13,10 +13,14 @@ if(!move_uploaded_file($file, __DIR__.'/upload_tmp/'.$new_file)){
 	fail('上传文件处理失败:'.error_get_last());
 }
 
-success('文件上传成功', 'assets/upload_tmp/'.$new_file);
+success([
+	'value' => 'assets/upload_tmp/'.$new_file,
+	'thumb' => 'assets/upload_tmp/'.$new_file,
+	'name'  => $F['name'],
+]);
 
 function fail($err){
-	echo json_encode(['code' => 1, 'message' => $err], JSON_UNESCAPED_UNICODE);
+	echo json_encode(['error' => $err], JSON_UNESCAPED_UNICODE);
 	exit;
 }
 
@@ -27,7 +31,7 @@ function getExt($file_name){
 	return '.jpg';
 }
 
-function success($msg, $data){
-	echo json_encode(['code' => 0, 'message' => $msg, 'data' => $data], JSON_UNESCAPED_UNICODE);
+function success($data){
+	echo json_encode($data, JSON_UNESCAPED_UNICODE);
 	exit;
 }

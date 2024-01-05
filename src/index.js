@@ -46,5 +46,5 @@ export * from "./Widget/Select.js";
 export * from "./Widget/Theme.js";
 export * from "./Widget/Tip.js";
 export * from "./Widget/Toast.js";
-// export * from "./Widget/Toc.js";
-// export * from "./Widget/Uploader.js";
+export * from "./Widget/Toc.js";
+export * from "./Widget/Uploader.js";

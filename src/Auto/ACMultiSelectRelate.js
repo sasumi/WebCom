@@ -1,4 +1,4 @@
-import {domChangedWatch} from "../Lang/Dom.js";
+import {domChangedWatch, findOne} from "../Lang/Dom.js";
 /**
  * 多选关联，如多个checkbox必须至少存在一个选中项目，关联的按钮才允许被使用。
  * 参数：
@@ -7,7 +7,7 @@ import {domChangedWatch} from "../Lang/Dom.js";
 export class ACMultiSelectRelate {
 	static init(button, param = {}){
 		return new Promise((resolve, reject) => {
-			const container = document.querySelector(param.container || 'body');
+			const container = findOne(param.container || 'body');
 			const disableBtn = () => {
 				button.title = '请选择要操作的项目';
 				button.setAttribute('disabled', 'disabled');
