@@ -13,7 +13,7 @@ insertStyleSheet(`
 	.${NS}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
 	.${NS}[data-state="empty"]{opacity:0.5}
-	.${NS}[data-state="empty"]:hover{opacity:1; transition:all 1s linear}
+	.${NS}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
 	.${NS}[data-state="empty"] :is(.${NS}-handle,.${NS}-progress),
 	.${NS}[data-state="pending"] :is(.${NS}-btn-clean, .${NS}-file, .${NS}-content),
@@ -45,28 +45,51 @@ export const UPLOAD_STATE_PENDING = 'pending'; //上传中
 export const UPLOAD_STATE_ERROR = 'error'; //上传失败
 export const UPLOAD_STATE_NORMAL = 'normal'; //正常情况(有值)
 
-export const FILE_TYPE_IMAGE = 'image/*';
-export const FILE_TYPE_VIDEO = 'video/*';
-export const FILE_TYPE_AUDIO = 'audio/*';
-export const FILE_TYPE_DOC = '.txt,.md,.doc,.docx';
-export const FILE_TYPE_SHEET = '.xls,.xlsx,.csv'
+export const FILE_TYPE_IMAGE = ['image/*'];
+export const FILE_TYPE_VIDEO = ['video/*'];
+export const FILE_TYPE_AUDIO = ['audio/*'];
+export const FILE_TYPE_DOCUMENT = ['.txt', '.md', '.doc', '.docx'];
+export const FILE_TYPE_SHEET = ['.xls', '.xlsx', '.csv'];
+export const FILE_TYPE_ZIP = ['.7z', '.zip', '.rar'];
 
 /**
- * 缺省后端返回格式处理器
- * @param {String} rspText
- * @return {Object}
+ * 缺省请求处理方法
+ * 接收后台返回格式为：{code, message, data:{name,value,thumb,error}} 格式
+ * @param {String} url
+ * @param {Object} fileMap
+ * @param {Object} callbacks 回调函数合集对象
+ * @param {Function} callbacks.onSuccess 成功回调
+ * @param {Function} callbacks.onError 失败回调
+ * @param {Function} callbacks.onAbort 中断回调
+ * @param {Function} callbacks.onProgress 进度回调
+ * @return {XMLHttpRequest}
  * @constructor
  */
-const DEFAULT_RSP_HANDLE = (rspText) => {
-	let rsp = JSON.parse(rspText);
-	return {
-		error: rsp.error,
-		value: rsp.value,
-		name: rsp.name,
-		thumb: rsp.thumb,
-	}
+const DEFAULT_REQUEST_HANDLE = (url, fileMap, callbacks) => {
+	return uploadFile(url, fileMap, {
+		onSuccess: (rspJson) => {
+			let rspObj = JSON.parse(rspJson);
+			if(rspObj.code !== 0){
+				return {error: rspObj.message};
+			}
+			callbacks.onSuccess({
+				value: rspObj.data.value,
+				thumb: rspObj.data.thumb,
+				name: rspObj.data.name,
+				error: null
+			});
+		},
+		onError: callbacks.onError,
+		onAbort: callbacks.onAbort,
+		onProgress: callbacks.onProgress
+	});
 }
 
+/**
+ * 合并非null值
+ * @param {Object} target
+ * @param {Object} source
+ */
 const mergeNoNull = (target, source) => {
 	for(let i in source){
 		if(source[i] !== null){
@@ -76,6 +99,7 @@ const mergeNoNull = (target, source) => {
 }
 
 /**
+ * 清空上传
  * @param {Uploader} up
  */
 const cleanUpload = (up) => {
@@ -83,9 +107,10 @@ const cleanUpload = (up) => {
 }
 
 /**
+ * 中断上传
  * @param {Uploader} up
  */
-const cancelUpload = up => {
+const abortUpload = up => {
 	try{
 		up.xhr && up.xhr.abort()
 	}catch(err){
@@ -135,6 +160,23 @@ const updateState = (up, state, data = null) => {
 }
 
 /**
+ * 校验返回格式是否符合标准
+ * @param response
+ */
+const responseFormatValidate = response => {
+	let vs = ['value', 'name', 'thumb', 'error'];
+	if(typeof (response) !== 'object'){
+		throw `文件上传返回结果必须是对象，包含 ${vs.join('、')} 属性`;
+	}
+	let objKeys = Object.keys(response);
+	vs.forEach(v => {
+		if(!objKeys.includes(v)){
+			throw `文件上传返回对象必须包含 ${v} 属性`;
+		}
+	});
+}
+
+/**
  * 上传组件
  */
 export class Uploader {
@@ -152,15 +194,16 @@ export class Uploader {
 	onClean = new BizEvent();
 	onError = new BizEvent();
 
-	static globalUploadUrl = ''; //全局默认上传地址。如果option里面uploadUrl为空，则使用该配置
+	static globalUploadUrl = null; //全局默认上传地址。如果option里面uploadUrl为空，则使用该配置
+	static globalRequestHandle = DEFAULT_REQUEST_HANDLE; //默认请求方法，有需要可以指定
 
 	option = {
-		uploadUrl: null, //上传接口地址
+		uploadUrl: null, //上传接口地址，缺省使用 globalUploadUrl
 		uploadFileFieldName: 'file', //上传接口调用中文件名称对应变量名称
 		required: false, //上传组件是否必填
-		allowFileTypes: [], //允许文件类型
+		allowFileTypes: [], //允许文件类型，格式为 input[type=file] 中的 accept 属性
 		fileSizeLimit: 0, //允许最大上传文件大小
-		uploadResponseHandle: DEFAULT_RSP_HANDLE //默认相应处理函数
+		requestHandle: null, //上传处理动作（方法请参考 uploadFile 函数），缺省使用 globalRequestHandle
 	};
 
 	/**
@@ -212,20 +255,25 @@ export class Uploader {
 		required: null,
 		fileSizeLimit: null,
 		allowFileTypes: null,
-		uploadResponseHandle: null
 	}){
 		this.value = initData.value || '';
 		this.thumb = initData.thumb || '';
 		this.name = initData.name || '';
 
 		mergeNoNull(this.option, option);
-		this.option.uploadUrl = this.option.uploadUrl || Uploader.globalUploadUrl;
-		if(!this.option.uploadUrl){
-			throw "需要提供上传接口地址：option.uploadUrl 或者 Uploader.globalUploadUrl";
+		const uploadUrl = this.option.uploadUrl || Uploader.globalUploadUrl;
+		const requestHandle = this.option.requestHandle || Uploader.globalRequestHandle;
+		if(!uploadUrl){
+			throw "上传组件需要提供上传接口地址：option.uploadUrl 或者 Uploader.globalUploadUrl";
+		}
+		if(!requestHandle){
+			throw "上传组件需要提供上传请求函数：option.requestHandle 或者 Uploader.globalRequestHandle"
 		}
 
 		//default error handle
-		this.onError.listen(err => {Toast.showError(err);});
+		this.onError.listen(err => {
+			Toast.showError(err);
+		});
 		let acceptStr = this.option.allowFileTypes.join(',');
 		const html =
 			`<div class="${NS}" data-state="${this.state}">
@@ -246,7 +294,7 @@ export class Uploader {
 		const fileEl = findOne('input[type=file]', this.dom);
 
 		buttonActiveBind(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {cancelUpload(this);});
+		buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
 
 		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {
@@ -261,32 +309,32 @@ export class Uploader {
 					return;
 				}
 				updateState(this, UPLOAD_STATE_PENDING);
-				this.xhr = uploadFile(this.option.uploadUrl, {[this.option.uploadFileFieldName]: file}, {
-					onSuccess: responseText => {
+				this.xhr = requestHandle(uploadUrl, {[this.option.uploadFileFieldName]: file}, {
+					onSuccess: rspObj => {
 						try{
-							console.log('response text', responseText);
-							let tmp = this.option.uploadResponseHandle(responseText);
-							this.value = tmp.value;
-							this.thumb = tmp.thumb;
-							this.name = tmp.name
+							responseFormatValidate(rspObj);
+							let {value, thumb, name} = rspObj;
+							this.value = value;
+							this.thumb = thumb;
+							this.name = name;
 							updateState(this, UPLOAD_STATE_NORMAL);
 						}catch(err){
 							updateState(this, UPLOAD_STATE_ERROR, err);
 						}
 					},
 					onProgress: (percent, total) => {
-						updateState(this, UPLOAD_STATE_PENDING);
 						const progressEl = findOne('progress', this.dom);
 						const progressPnt = findOne(`.${NS}-progress span`, this.dom);
 						progressEl.value = percent;
 						progressEl.max = total;
 						progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
+						updateState(this, UPLOAD_STATE_PENDING);
 					},
 					onError: (err) => {
 						updateState(this, UPLOAD_STATE_ERROR, err);
 					},
 					onAbort: () => {
-						updateState(this, UPLOAD_STATE_EMPTY);
+						updateState(this, UPLOAD_STATE_ERROR, '上传被中断');
 					},
 				});
 			}
@@ -298,7 +346,7 @@ export class Uploader {
 	 * 停止上传
 	 */
 	abort(){
-		cancelUpload(this);
+		abortUpload(this);
 	}
 
 	/**

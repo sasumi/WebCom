@@ -1422,7 +1422,6 @@ const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 	onProgress = onProgress || function(){};
 	onError = onError || function(err){ToastClass.showError(err);};
 	onAbort = onAbort || onError;
-	let xhr = new XMLHttpRequest();
 	let formData = new FormData();
 	let total = 0;
 	for(let name in fileMap){
@@ -1434,8 +1433,9 @@ const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 			formData.append(k, extParam[k]);
 		}
 	}
+	let xhr = new XMLHttpRequest();
 	xhr.withCredentials = true;
-	xhr.addEventListener('progress', e => {
+	xhr.upload.addEventListener('progress', e => {
 		onProgress(e.loaded, total);
 	}, false);
 	xhr.addEventListener('load', e => {
@@ -1449,6 +1449,7 @@ const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 		onAbort();
 	});
 	xhr.open('POST', url);
+	xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[RESPONSE_FORMAT.JSON]);
 	xhr.send(formData);
 	return xhr;
 };
@@ -4698,7 +4699,7 @@ insertStyleSheet(`
 	.${NS}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
 	.${NS}[data-state="empty"]{opacity:0.5}
-	.${NS}[data-state="empty"]:hover{opacity:1; transition:all 1s linear}
+	.${NS}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
 	.${NS}[data-state="empty"] :is(.${NS}-handle,.${NS}-progress),
 	.${NS}[data-state="pending"] :is(.${NS}-btn-clean, .${NS}-file, .${NS}-content),
@@ -4727,19 +4728,30 @@ const UPLOAD_STATE_EMPTY = 'empty';
 const UPLOAD_STATE_PENDING = 'pending';
 const UPLOAD_STATE_ERROR = 'error';
 const UPLOAD_STATE_NORMAL = 'normal';
-const FILE_TYPE_IMAGE = 'image/*';
-const FILE_TYPE_VIDEO = 'video/*';
-const FILE_TYPE_AUDIO = 'audio/*';
-const FILE_TYPE_DOC = '.txt,.md,.doc,.docx';
-const FILE_TYPE_SHEET = '.xls,.xlsx,.csv';
-const DEFAULT_RSP_HANDLE = (rspText) => {
-	let rsp = JSON.parse(rspText);
-	return {
-		error: rsp.error,
-		value: rsp.value,
-		name: rsp.name,
-		thumb: rsp.thumb,
-	}
+const FILE_TYPE_IMAGE = ['image/*'];
+const FILE_TYPE_VIDEO = ['video/*'];
+const FILE_TYPE_AUDIO = ['audio/*'];
+const FILE_TYPE_DOCUMENT = ['.txt', '.md', '.doc', '.docx'];
+const FILE_TYPE_SHEET = ['.xls', '.xlsx', '.csv'];
+const FILE_TYPE_ZIP = ['.7z', '.zip', '.rar'];
+const DEFAULT_REQUEST_HANDLE = (url, fileMap, callbacks) => {
+	return uploadFile(url, fileMap, {
+		onSuccess: (rspJson) => {
+			let rspObj = JSON.parse(rspJson);
+			if(rspObj.code !== 0){
+				return {error: rspObj.message};
+			}
+			callbacks.onSuccess({
+				value: rspObj.data.value,
+				thumb: rspObj.data.thumb,
+				name: rspObj.data.name,
+				error: null
+			});
+		},
+		onError: callbacks.onError,
+		onAbort: callbacks.onAbort,
+		onProgress: callbacks.onProgress
+	});
 };
 const mergeNoNull = (target, source) => {
 	for(let i in source){
@@ -4751,7 +4763,7 @@ const mergeNoNull = (target, source) => {
 const cleanUpload = (up) => {
 	updateState(up, UPLOAD_STATE_EMPTY);
 };
-const cancelUpload = up => {
+const abortUpload = up => {
 	try{
 		up.xhr && up.xhr.abort();
 	}catch(err){
@@ -4789,6 +4801,18 @@ const updateState = (up, state, data = null) => {
 			throw "todo";
 	}
 };
+const responseFormatValidate = response => {
+	let vs = ['value', 'name', 'thumb', 'error'];
+	if(typeof (response) !== 'object'){
+		throw `文件上传返回结果必须是对象，包含 ${vs.join('、')} 属性`;
+	}
+	let objKeys = Object.keys(response);
+	vs.forEach(v => {
+		if(!objKeys.includes(v)){
+			throw `文件上传返回对象必须包含 ${v} 属性`;
+		}
+	});
+};
 class Uploader {
 	state = UPLOAD_STATE_EMPTY;
 	xhr = null;
@@ -4801,14 +4825,15 @@ class Uploader {
 	onUploading = new BizEvent();
 	onClean = new BizEvent();
 	onError = new BizEvent();
-	static globalUploadUrl = '';
+	static globalUploadUrl = null;
+	static globalRequestHandle = DEFAULT_REQUEST_HANDLE;
 	option = {
 		uploadUrl: null,
 		uploadFileFieldName: 'file',
 		required: false,
 		allowFileTypes: [],
 		fileSizeLimit: 0,
-		uploadResponseHandle: DEFAULT_RSP_HANDLE
+		requestHandle: null,
 	};
 	static bindFileInput(inputEl, initData = {}, option = {}){
 		let name = initData.name || inputEl.name;
@@ -4838,17 +4863,22 @@ class Uploader {
 		required: null,
 		fileSizeLimit: null,
 		allowFileTypes: null,
-		uploadResponseHandle: null
 	}){
 		this.value = initData.value || '';
 		this.thumb = initData.thumb || '';
 		this.name = initData.name || '';
 		mergeNoNull(this.option, option);
-		this.option.uploadUrl = this.option.uploadUrl || Uploader.globalUploadUrl;
-		if(!this.option.uploadUrl){
-			throw "需要提供上传接口地址：option.uploadUrl 或者 Uploader.globalUploadUrl";
+		const uploadUrl = this.option.uploadUrl || Uploader.globalUploadUrl;
+		const requestHandle = this.option.requestHandle || Uploader.globalRequestHandle;
+		if(!uploadUrl){
+			throw "上传组件需要提供上传接口地址：option.uploadUrl 或者 Uploader.globalUploadUrl";
 		}
-		this.onError.listen(err => {ToastClass.showError(err);});
+		if(!requestHandle){
+			throw "上传组件需要提供上传请求函数：option.requestHandle 或者 Uploader.globalRequestHandle"
+		}
+		this.onError.listen(err => {
+			ToastClass.showError(err);
+		});
 		let acceptStr = this.option.allowFileTypes.join(',');
 		const html =
 			`<div class="${NS}" data-state="${this.state}">
@@ -4868,7 +4898,7 @@ class Uploader {
 		this.dom = createDomByHtml(html, container);
 		const fileEl = findOne('input[type=file]', this.dom);
 		buttonActiveBind(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {cancelUpload(this);});
+		buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
 		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {
 			let file = fileEl.files[0];
@@ -4882,39 +4912,39 @@ class Uploader {
 					return;
 				}
 				updateState(this, UPLOAD_STATE_PENDING);
-				this.xhr = uploadFile(this.option.uploadUrl, {[this.option.uploadFileFieldName]: file}, {
-					onSuccess: responseText => {
+				this.xhr = requestHandle(uploadUrl, {[this.option.uploadFileFieldName]: file}, {
+					onSuccess: rspObj => {
 						try{
-							console.log('response text', responseText);
-							let tmp = this.option.uploadResponseHandle(responseText);
-							this.value = tmp.value;
-							this.thumb = tmp.thumb;
-							this.name = tmp.name;
+							responseFormatValidate(rspObj);
+							let {value, thumb, name} = rspObj;
+							this.value = value;
+							this.thumb = thumb;
+							this.name = name;
 							updateState(this, UPLOAD_STATE_NORMAL);
 						}catch(err){
 							updateState(this, UPLOAD_STATE_ERROR, err);
 						}
 					},
 					onProgress: (percent, total) => {
-						updateState(this, UPLOAD_STATE_PENDING);
 						const progressEl = findOne('progress', this.dom);
 						const progressPnt = findOne(`.${NS}-progress span`, this.dom);
 						progressEl.value = percent;
 						progressEl.max = total;
 						progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
+						updateState(this, UPLOAD_STATE_PENDING);
 					},
 					onError: (err) => {
 						updateState(this, UPLOAD_STATE_ERROR, err);
 					},
 					onAbort: () => {
-						updateState(this, UPLOAD_STATE_EMPTY);
+						updateState(this, UPLOAD_STATE_ERROR, '上传被中断');
 					},
 				});
 			}
 		});
 	}
 	abort(){
-		cancelUpload(this);
+		abortUpload(this);
 	}
 	getValue(){
 		return this.value;
@@ -5684,4 +5714,4 @@ class Toc {
 	}
 }
 
-export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOC, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fillForm, findAll, findOne, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toHtmlEntities, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTip, ACToast, BLOCK_TAGS, Base64Encode, BizEvent, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, buttonActiveBind, calcBetterPos, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, extract, fillForm, findAll, findOne, fireEvent, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toHtmlEntities, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };

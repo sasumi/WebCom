@@ -115,7 +115,7 @@ export const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) =>
 }
 
 /**
- * 文件上传
+ * 文件上传，同时发送 Accept=application/json，以方便调用方返回
  * @param {String} url 接口地址
  * @param {Object} fileMap 文件映射对象，key为变量名称，如：{name:File}
  * @param callbacks
@@ -134,7 +134,6 @@ export const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 	onError = onError || function(err){Toast.showError(err)};
 	onAbort = onAbort || onError;
 
-	let xhr = new XMLHttpRequest();
 	let formData = new FormData();
 	let total = 0;
 	for(let name in fileMap){
@@ -146,8 +145,9 @@ export const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 			formData.append(k, extParam[k]);
 		}
 	}
+	let xhr = new XMLHttpRequest();
 	xhr.withCredentials = true;
-	xhr.addEventListener('progress', e => {
+	xhr.upload.addEventListener('progress', e => {
 		onProgress(e.loaded, total);
 	}, false);
 	xhr.addEventListener('load', e => {
@@ -161,6 +161,7 @@ export const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 		onAbort();
 	});
 	xhr.open('POST', url);
+	xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[RESPONSE_FORMAT.JSON])
 	xhr.send(formData);
 	return xhr;
 }
