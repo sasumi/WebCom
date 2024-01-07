@@ -1,6 +1,6 @@
 import {buttonActiveBind, createDomByHtml, findOne, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
-import {BizEvent} from "../Lang/Event.js";
+import {BizEvent, triggerDomEvent} from "../Lang/Event.js";
 import {Toast} from "./Toast.js";
 import {uploadFile} from "../Lang/Net.js";
 
@@ -228,10 +228,12 @@ export class Uploader {
 		const up = new Uploader(virtualDom, {name, value, thumb: initData.thumb}, option);
 		up.onClean.listen(() => {
 			inputEl.value = '';
+			triggerDomEvent(inputEl, 'change');
 		});
 		if(inputEl.type !== 'file'){
 			up.onSuccess.listen(data => {
 				inputEl.value = data.value;
+				triggerDomEvent(inputEl, 'change');
 			})
 		}
 		return up;

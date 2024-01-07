@@ -4856,10 +4856,12 @@
 			const up = new Uploader(virtualDom, {name, value, thumb: initData.thumb}, option);
 			up.onClean.listen(() => {
 				inputEl.value = '';
+				triggerDomEvent(inputEl, 'change');
 			});
 			if(inputEl.type !== 'file'){
 				up.onSuccess.listen(data => {
 					inputEl.value = data.value;
+					triggerDomEvent(inputEl, 'change');
 				});
 			}
 			return up;
