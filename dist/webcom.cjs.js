@@ -1440,15 +1440,21 @@ const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 	xhr.upload.addEventListener('progress', e => {
 		onProgress(e.loaded, total);
 	}, false);
-	xhr.addEventListener('load', e => {
-		onProgress(total, total);
-		onSuccess(xhr.responseText);
+	xhr.addEventListener('load', () => {
+		if(xhr.readyState === 4){
+			if(xhr.status === 200){
+				onProgress(total, total);
+				onSuccess(xhr.responseText);
+			}else {
+				onError(xhr.responseText || xhr.statusText);
+			}
+		}
 	});
 	xhr.addEventListener('error', e => {
 		onError(e);
 	});
-	xhr.addEventListener('abort', e => {
-		onAbort();
+	xhr.addEventListener('abort', () => {
+		onAbort('请求中断');
 	});
 	xhr.open('POST', url);
 	xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[RESPONSE_FORMAT.JSON]);
