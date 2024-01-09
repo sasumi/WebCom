@@ -5002,7 +5002,7 @@
 	const STATE_OVERLOAD = 'overload';
 	const MAIN_CLASS = Theme.Namespace + '-text-counter';
 	insertStyleSheet(`
-.${MAIN_CLASS} {pointer-event:none; margin-left:0.5em; user-select:none;}
+.${MAIN_CLASS} {pointer-events:none; margin-left:0.5em; user-select:none;}
 .${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.5}
 .${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_ACTIVE}"] {}
 .${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.8; color:red}
@@ -5785,8 +5785,10 @@
 	exports.ACPreview = ACPreview;
 	exports.ACSelect = ACSelect;
 	exports.ACSelectAll = ACSelectAll;
+	exports.ACTextCounter = ACTextCounter;
 	exports.ACTip = ACTip;
 	exports.ACToast = ACToast;
+	exports.ACUploader = ACUploader;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
