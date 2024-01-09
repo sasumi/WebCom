@@ -25,6 +25,12 @@
 
 <script type="module">
 
+	let fd = new FormData;
+	fd.append('hello', 1);
+	if(fd instanceof FormData){
+		console.log('asfas');
+	}
+	console.log(fd);
 	// new Uploader(document.getElementById('upload-dom1'), {}, {uploadUrl: 'assets/upload.php'})
 	// new Uploader(document.getElementById('upload-dom2'), {
 	// 	name: "fisherman-s-cottage-at-varengeville.jpg",

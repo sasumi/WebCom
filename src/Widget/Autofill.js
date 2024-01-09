@@ -60,7 +60,7 @@ export const fillForm = (formOrContainer) => {
 		if(element.type === 'hidden'){
 			return;
 		}
-		let required = element.required ? true : randomInt(0, 1) > 0;
+		let required = element.required ? true : randomInt(0, 5) > 2;
 		let maxlength = parseInt(element.getAttribute('maxlength') || 0) || DEFAULT_MAXLENGTH;
 		let name = element.name;
 

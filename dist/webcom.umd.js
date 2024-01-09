@@ -1390,13 +1390,20 @@
 			if(method === HTTP_METHOD.GET){
 				return '';
 			}
+			if(data instanceof FormData){
+				let obj = {};
+				data.forEach((v,k)=>{
+					obj[k] = v;
+				});
+				return JSON.stringify(obj);
+			}
 			return JSON.stringify(data);
 		},
 		[REQUEST_FORMAT.FORM]: (data, method) => {
 			if(method === HTTP_METHOD.GET){
 				return '';
 			}
-			return QueryString.stringify(data);
+			return data instanceof FormData ? data : QueryString.stringify(data);
 		}
 	};
 	const RESPONSE_FORMAT = {
@@ -1765,14 +1772,11 @@
 	};
 
 	const inputAble = el => {
-		if(el.disabled ||
+		return !(el.disabled ||
 			el.readOnly ||
 			el.tagName === 'BUTTON' ||
-			(el.tagName === 'INPUT' && ['hidden', 'button','submit', 'reset'].includes(el.type))
-		){
-			return false;
-		}
-		return true;
+			(el.tagName === 'INPUT' && ['hidden', 'button', 'submit', 'reset'].includes(el.type))
+		);
 	};
 	const getElementValue = (el) => {
 		if(el.disabled){
@@ -4992,6 +4996,48 @@
 		}
 	}
 
+	const UI_STATE_ACTIVE = 'active';
+	const UI_STATE_INACTIVE = 'inactive';
+	const STATE_NORMAL = 'normal';
+	const STATE_OVERLOAD = 'overload';
+	const MAIN_CLASS = Theme.Namespace + '-text-counter';
+	insertStyleSheet(`
+.${MAIN_CLASS} {pointer-event:none; margin-left:0.5em; user-select:none;}
+.${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.5}
+.${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_ACTIVE}"] {}
+.${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.8; color:red}
+.${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_ACTIVE}"] {color:red}
+`);
+	class ACTextCounter {
+		static init(input, param = {}){
+			return new Promise((resolve, reject) => {
+				let maxlength = input.maxlength || param.maxlength;
+				let trim = param.trim;
+				if(!maxlength){
+					throw "input maxlength required";
+				}
+				const trigger = createDomByHtml(`<span class="${MAIN_CLASS}" data-state="${STATE_NORMAL}" data-ui-state="${UI_STATE_INACTIVE}">0/${maxlength}</span>`);
+				const updState = () => {
+					let len = trim ? input.value.trim().length : input.value.length;
+					let state = len > maxlength ? STATE_OVERLOAD : STATE_NORMAL;
+					console.log(state);
+					trigger.setAttribute('data-state', state);
+					trigger.innerHTML = len + '/' + maxlength;
+				};
+				input.parentNode.insertBefore(trigger, input.nextSibling);
+				input.addEventListener('focus', () => {
+					trigger.setAttribute('data-ui-state', UI_STATE_ACTIVE);
+				});
+				input.addEventListener('blur', () => {
+					trigger.setAttribute('data-ui-state', UI_STATE_INACTIVE);
+				});
+				input.addEventListener('input', updState);
+				updState();
+				resolve();
+			})
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
@@ -5007,6 +5053,7 @@
 		selectrelate: ACMultiSelectRelate,
 		tip: ACTip,
 		toast: ACToast,
+		textcounter: ACTextCounter,
 		uploader: ACUploader,
 	};
 	const parseComponents = function(attr){
@@ -5464,7 +5511,7 @@
 			if(element.type === 'hidden'){
 				return;
 			}
-			let required = element.required ? true : randomInt(0, 1) > 0;
+			let required = element.required ? true : randomInt(0, 5) > 2;
 			let maxlength = parseInt(element.getAttribute('maxlength') || 0) || DEFAULT_MAXLENGTH;
 			let name = element.name;
 			switch(element.type){

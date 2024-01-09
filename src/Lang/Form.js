@@ -10,14 +10,11 @@ import {escapeAttr} from "./Html.js";
  * @returns {boolean}
  */
 export const inputAble = el => {
-	if(el.disabled || //禁用
+	return !(el.disabled || //禁用
 		el.readOnly || //只读
 		el.tagName === 'BUTTON' || //按钮
-		(el.tagName === 'INPUT' && ['hidden', 'button','submit', 'reset'].includes(el.type)) //隐藏表单、按钮、提交按钮、重置按钮
-	){
-		return false;
-	}
-	return true;
+		(el.tagName === 'INPUT' && ['hidden', 'button', 'submit', 'reset'].includes(el.type)) //特殊input
+	);
 }
 
 /**
@@ -42,7 +39,7 @@ export const getElementValue = (el) => {
 		return vs;
 	}
 	return el.value;
-};
+}
 
 /**
  * 表单元素同步变更

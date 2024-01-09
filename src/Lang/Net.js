@@ -48,13 +48,20 @@ const REQUEST_DATA_HANDLE_MAP = {
 		if(method === HTTP_METHOD.GET){
 			return '';
 		}
+		if(data instanceof FormData){
+			let obj = {};
+			data.forEach((v,k)=>{
+				obj[k] = v;
+			});
+			return JSON.stringify(obj);
+		}
 		return JSON.stringify(data);
 	},
 	[REQUEST_FORMAT.FORM]: (data, method) => {
 		if(method === HTTP_METHOD.GET){
 			return '';
 		}
-		return QueryString.stringify(data);
+		return data instanceof FormData ? data : QueryString.stringify(data);
 	}
 };
 
