@@ -12,10 +12,17 @@
 	<h2>未提交表单提示保存</h2>
 	<fieldset>
 		<legend>表单区块1</legend>
-		<p><label> 表单名称： <input type="text" name="abc1"></label></p>
-		<p><label> 表单名称： <input type="text" name="abc2"></label></p>
-		<p><label> 表单名称： <input type="text" name="abc3"></label></p>
-		<p><label> 表单名称： <input type="text" name="abc4"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc1" data-component="textcounter" data-textcounter-maxlength="10"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc2" data-component="textcounter" data-textcounter-maxlength="10"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc3" data-component="textcounter" data-textcounter-maxlength="10"></label></p>
+		<p><label> 表单名称： <input type="text" name="abc4" data-component="textcounter" data-textcounter-maxlength="10"></label></p>
+		<p>
+			<textarea name="" id="" cols="30" rows="10" data-component="textcounter" data-textcounter-maxlength="10">
+				line1
+				line2asdfasfas
+				asdfasdf
+			</textarea>
+		</p>
 	</fieldset>
 	<fieldset>
 		<legend>表单区块2</legend>
@@ -29,7 +36,8 @@
 	</p>
 </form>
 <script type="module">
-	import {bindFormUnSavedUnloadAlert, initAutofillButton} from "../src/index.js";
+	import {ACComponent, bindFormUnSavedUnloadAlert, initAutofillButton} from "../src/index.js";
+	ACComponent.watch();
 	bindFormUnSavedUnloadAlert(window.form);
 
 	initAutofillButton();
