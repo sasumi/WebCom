@@ -3,6 +3,7 @@ import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
 import {isEquals, objectPushByPath} from "./Array.js";
 import {escapeAttr} from "./Html.js";
+import {requestJSON} from "./Net.js";
 
 /**
  * 检测元素是否可以输入（包含checkbox、radio类）
@@ -10,11 +11,14 @@ import {escapeAttr} from "./Html.js";
  * @returns {boolean}
  */
 export const inputAble = el => {
-	return !(el.disabled || //禁用
-		el.readOnly || //只读
-		el.tagName === 'BUTTON' || //按钮
-		(el.tagName === 'INPUT' && ['hidden', 'button', 'submit', 'reset'].includes(el.type)) //特殊input
-	);
+	if(el instanceof HTMLFormElement){
+		return !(el.disabled || //禁用
+			el.readOnly || //只读
+			el.tagName === 'BUTTON' || //按钮
+			(el.tagName === 'INPUT' && ['hidden', 'button', 'submit', 'reset'].includes(el.type)) //特殊input
+		);
+	}
+	return false;
 }
 
 /**
@@ -186,6 +190,33 @@ export const fixGetFormAction = (form)=>{
 }
 
 /**
+ * 绑定表单提交到JSON
+ * @param {HTMLFormElement} form
+ * @param {Function} onSubmitting
+ * @return {Promise}
+ */
+export const bindFormSubmitAsJSON = (form, onSubmitting = ()=>{})=>{
+	return new Promise((resolve, reject) => {
+		let submitting = false;
+		form.addEventListener('submit', e => {
+			if(submitting){
+				return false;
+			}
+			submitting = true;
+			let url = form.action;
+			let method = form.method.toUpperCase() || "GET";
+			let data = formSerializeJSON(form);
+			onSubmitting();
+			requestJSON(url, data, method).then(resolve, reject).finally(() => {
+				submitting = false;
+			});
+			e.preventDefault();
+			return false;
+		});
+	});
+}
+
+/**
  * 获取表单可用数据，以数组方式返回
  * 注意：该数组包含 [name, value]，其中 name 可重复。
  * @param {HTMLElement} dom 表单节点或普通HTML容器节点
@@ -220,7 +251,7 @@ export const formSerializeJSON = (dom, validate = true) => {
 	let data_list = getFormDataAvailable(dom, validate);
 	let name_counts = {};
 	data_list.forEach(item=>{
-		let [name, value] = item;
+		let [name] = item;
 		if(name_counts[name] === undefined){
 			name_counts[name] = 1;
 		} else {

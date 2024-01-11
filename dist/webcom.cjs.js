@@ -1778,11 +1778,14 @@ const arrayFilterTree = (parent_id, all_list, option = {}, level = 0, group_by_p
 };
 
 const inputAble = el => {
-	return !(el.disabled ||
-		el.readOnly ||
-		el.tagName === 'BUTTON' ||
-		(el.tagName === 'INPUT' && ['hidden', 'button', 'submit', 'reset'].includes(el.type))
-	);
+	if(el instanceof HTMLFormElement){
+		return !(el.disabled ||
+			el.readOnly ||
+			el.tagName === 'BUTTON' ||
+			(el.tagName === 'INPUT' && ['hidden', 'button', 'submit', 'reset'].includes(el.type))
+		);
+	}
+	return false;
 };
 const getElementValue = (el) => {
 	if(el.disabled){
@@ -1901,6 +1904,26 @@ const fixGetFormAction = (form)=>{
 		form.appendChild(ipt);
 	});
 };
+const bindFormSubmitAsJSON = (form, onSubmitting = ()=>{})=>{
+	return new Promise((resolve, reject) => {
+		let submitting = false;
+		form.addEventListener('submit', e => {
+			if(submitting){
+				return false;
+			}
+			submitting = true;
+			let url = form.action;
+			let method = form.method.toUpperCase() || "GET";
+			let data = formSerializeJSON(form);
+			onSubmitting();
+			requestJSON(url, data, method).then(resolve, reject).finally(() => {
+				submitting = false;
+			});
+			e.preventDefault();
+			return false;
+		});
+	});
+};
 const getFormDataAvailable = (dom, validate = true) => {
 	if(validate && !formValidate(dom)){
 		return [];
@@ -1921,7 +1944,7 @@ const formSerializeJSON = (dom, validate = true) => {
 	let data_list = getFormDataAvailable(dom, validate);
 	let name_counts = {};
 	data_list.forEach(item=>{
-		let [name, value] = item;
+		let [name] = item;
 		if(name_counts[name] === undefined){
 			name_counts[name] = 1;
 		} else {
@@ -5873,6 +5896,7 @@ exports.arrayIndex = arrayIndex;
 exports.base64Decode = base64Decode;
 exports.base64UrlSafeEncode = base64UrlSafeEncode;
 exports.between = between;
+exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 exports.bindTargetContextMenu = bindTargetContextMenu;
