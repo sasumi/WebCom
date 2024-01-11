@@ -25,6 +25,23 @@ export const toHtmlEntities = (str)=>{
 }
 
 /**
+ * 字符切割，同时去除空白符号、换行符等
+ * @param {String} separator
+ * @param {String} str
+ * @return {String[]}
+ */
+export const explodeBy = (separator, str) => {
+	let items = str.replace(/\r|\n/mg, '').split(separator);
+	items = items.map(item => {
+		return item.trim();
+	});
+	items = items.filter(item => {
+		return item.length;
+	})
+	return items;
+}
+
+/**
  * HTML实体转换为字符串
  * @param {String} str
  * @return {string}

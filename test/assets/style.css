@@ -57,6 +57,7 @@ input[type=button], button{
 .table th, .table td {padding:0.25em .5em; border:1px solid gray}
 
 input[type=text],
+input[type=number],
 input[type=search],
 input[type=password] {
 	padding:0.5em;

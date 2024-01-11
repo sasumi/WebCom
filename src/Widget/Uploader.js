@@ -45,6 +45,7 @@ export const UPLOAD_STATE_PENDING = 'pending'; //上传中
 export const UPLOAD_STATE_ERROR = 'error'; //上传失败
 export const UPLOAD_STATE_NORMAL = 'normal'; //正常情况(有值)
 
+export const FILE_TYPE_STATIC_IMAGE = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/bmp']; //常见静态图片
 export const FILE_TYPE_IMAGE = ['image/*'];
 export const FILE_TYPE_VIDEO = ['video/*'];
 export const FILE_TYPE_AUDIO = ['audio/*'];

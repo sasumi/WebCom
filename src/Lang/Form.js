@@ -166,6 +166,26 @@ export const serializePhpFormToJSON = (dom, validate = true)=>{
 }
 
 /**
+ * 修正GET提交方式的表单action错误
+ * @param {HTMLFormElement} form
+ */
+export const fixGetFormAction = (form)=>{
+	let action = form.action;
+	if(form.method && form.method.toLowerCase() !== 'get' || !action.length){
+		return;
+	}
+	let url = new URL(action);
+	let ipt;
+	url.searchParams.forEach((v,k)=>{
+		ipt = document.createElement('input');
+		ipt.type = 'hidden';
+		ipt.name = k;
+		ipt.value = v;
+		form.appendChild(ipt);
+	});
+}
+
+/**
  * 获取表单可用数据，以数组方式返回
  * 注意：该数组包含 [name, value]，其中 name 可重复。
  * @param {HTMLElement} dom 表单节点或普通HTML容器节点

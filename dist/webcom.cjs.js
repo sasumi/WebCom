@@ -172,6 +172,16 @@ const toHtmlEntities = (str)=>{
 		return (s.match(/[a-z0-9\s]+/i)) ? s : '&#' + s.charCodeAt(0) + ';';
 	});
 };
+const explodeBy = (separator, str) => {
+	let items = str.replace(/\r|\n/mg, '').split(separator);
+	items = items.map(item => {
+		return item.trim();
+	});
+	items = items.filter(item => {
+		return item.length;
+	});
+	return items;
+};
 const fromHtmlEntities = (str)=>{
 	return (str + '').replace(/&#\d+;/gm, function(s) {
 		return String.fromCharCode(s.match(/\d+/gm)[0]);
@@ -1875,6 +1885,21 @@ const serializePhpFormToJSON = (dom, validate = true)=>{
 		objectPushByPath(name_path, value, json_obj, '.');
 	});
 	return json_obj;
+};
+const fixGetFormAction = (form)=>{
+	let action = form.action;
+	if(form.method && form.method.toLowerCase() !== 'get' || !action.length){
+		return;
+	}
+	let url = new URL(action);
+	let ipt;
+	url.searchParams.forEach((v,k)=>{
+		ipt = document.createElement('input');
+		ipt.type = 'hidden';
+		ipt.name = k;
+		ipt.value = v;
+		form.appendChild(ipt);
+	});
 };
 const getFormDataAvailable = (dom, validate = true) => {
 	if(validate && !formValidate(dom)){
@@ -4740,6 +4765,7 @@ const UPLOAD_STATE_EMPTY = 'empty';
 const UPLOAD_STATE_PENDING = 'pending';
 const UPLOAD_STATE_ERROR = 'error';
 const UPLOAD_STATE_NORMAL = 'normal';
+const FILE_TYPE_STATIC_IMAGE = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/bmp'];
 const FILE_TYPE_IMAGE = ['image/*'];
 const FILE_TYPE_VIDEO = ['video/*'];
 const FILE_TYPE_AUDIO = ['audio/*'];
@@ -5794,6 +5820,7 @@ exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;
 exports.FILE_TYPE_DOCUMENT = FILE_TYPE_DOCUMENT;
 exports.FILE_TYPE_IMAGE = FILE_TYPE_IMAGE;
 exports.FILE_TYPE_SHEET = FILE_TYPE_SHEET;
+exports.FILE_TYPE_STATIC_IMAGE = FILE_TYPE_STATIC_IMAGE;
 exports.FILE_TYPE_VIDEO = FILE_TYPE_VIDEO;
 exports.FILE_TYPE_ZIP = FILE_TYPE_ZIP;
 exports.GOLDEN_RATIO = GOLDEN_RATIO;
@@ -5878,11 +5905,13 @@ exports.escapeAttr = escapeAttr;
 exports.escapeHtml = escapeHtml;
 exports.eventDelegate = eventDelegate;
 exports.exitFullScreen = exitFullScreen;
+exports.explodeBy = explodeBy;
 exports.extract = extract;
 exports.fillForm = fillForm;
 exports.findAll = findAll;
 exports.findOne = findOne;
 exports.fireEvent = fireEvent;
+exports.fixGetFormAction = fixGetFormAction;
 exports.formSerializeJSON = formSerializeJSON;
 exports.formSerializeString = formSerializeString;
 exports.formSync = formSync;
