@@ -1523,7 +1523,11 @@
 				let ret;
 				switch(option.responseFormat){
 					case RESPONSE_FORMAT.JSON:
-						ret = JSON.parse(this.xhr.responseText);
+						try {
+							ret = JSON.parse(this.xhr.responseText);
+						} catch(err){
+							this.onError.fire('JSON解析失败：'+err, this.xhr.status);
+						}
 						break;
 					case RESPONSE_FORMAT.XML:
 					case RESPONSE_FORMAT.TEXT:
