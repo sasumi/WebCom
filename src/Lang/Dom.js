@@ -138,24 +138,19 @@ export const domContained = (contains, child, includeEqual = false) => {
 export const getFocusableElements = (dom = document)=>{
 	let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
 	return els.filter(el=>{
-		return !!( el.offsetWidth || el.offsetHeight || el.getClientRects().length );
+		return !isNodeHidden(el);
 	});
 }
 
 /**
- * 绑定按钮触发（包括鼠标点击、键盘回车、键盘空格）
- * @param {HTMLElement} button
- * @param {CallableFunction} payload
- * @param {Boolean} cancelBubble
+ * 检测节点是否被隐藏了（无法聚焦），可视区域外部的节点是可以聚焦的
+ * @param {Node} node
+ * @return {boolean}
  */
-export const buttonActiveBind = (button, payload, cancelBubble = false) => {
-	button.addEventListener('click', payload, cancelBubble);
-	button.addEventListener('keyup', e => {
-		if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-			payload.call(button, e);
-		}
-	}, cancelBubble);
-};
+export const isNodeHidden = (node) => {
+	return node.offsetParent === null;
+}
+
 
 /**
  * 监听节点树变更

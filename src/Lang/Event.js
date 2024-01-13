@@ -51,6 +51,8 @@ export class BizEvent {
 	}
 }
 
+const EVENT_ACTIVE = 'active';
+
 /**
  * hover event
  * @param {HTMLElement} node
@@ -60,6 +62,25 @@ export class BizEvent {
 export const onHover = (node, hoverIn, hoverOut)=>{
 	node.addEventListener('mouseover', hoverIn);
 	node.addEventListener('mouseout', hoverOut);
+}
+
+/**
+ * 绑定节点交互触发时间（包括鼠标点击、键盘回车、键盘空格）
+ * @param {Node} node
+ * @param {CallableFunction} payload
+ * @param {Boolean} cancelBubble
+ * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
+ */
+export const bindNodeActive = (node, payload, cancelBubble = false, triggerAtOnce = false) => {
+	node.addEventListener('click', payload, cancelBubble);
+	node.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
+			payload.call(node, e);
+		}
+	}, cancelBubble);
+	if(triggerAtOnce){
+		payload.call(node, null);
+	}
 }
 
 /**
@@ -88,6 +109,28 @@ export const triggerDomEvent = (node, event) => {
 		node.fireEvent("on"+event.toLowerCase());
 	}
 };
+
+/**
+ * 批量绑定事件，支持active自定义事件
+ * @param {Node} node
+ * @param {String|String[]} event 事件名称或事件名称列表
+ * @param {Function} payload
+ * @param {*} option
+ * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
+ */
+export const bindNodeEvents = (node, event, payload, option, triggerAtOnce = false) => {
+	let evs = Array.isArray(event) ? event : [event];
+	evs.forEach(ev => {
+		if(ev === EVENT_ACTIVE){
+			bindNodeActive(node, payload, option);
+		}else{
+			node.addEventListener(ev, payload, option);
+		}
+	});
+	if(triggerAtOnce){
+		payload();
+	}
+}
 
 /**
  * 事件代理

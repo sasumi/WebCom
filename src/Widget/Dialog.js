@@ -1,13 +1,12 @@
 import {
-	buttonActiveBind,
 	createDomByHtml,
-	domContained, findOne,
+	domContained,
+	findOne,
 	getContextWindow,
-	getFocusableElements,
 	insertStyleSheet
 } from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
-import {BizEvent, KEYS} from "../Lang/Event.js";
+import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
 import {dimension2Style, escapeAttr} from "../Lang/Html.js";
@@ -48,6 +47,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
@@ -324,7 +324,7 @@ const domConstruct = (dlg) => {
 		style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
 	}
 
-	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}" tabindex="0">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
@@ -417,7 +417,7 @@ const eventBind = (dlg) => {
 	//bind top close button event
 	if(dlg.config.showTopCloseButton){
 		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
-		buttonActiveBind(close_btn, dlg.close.bind(dlg));
+		bindNodeActive(close_btn, dlg.close.bind(dlg));
 	}
 
 	//bind window resize un-move-able dialog
@@ -566,23 +566,15 @@ class Dialog {
 
 	/**
 	 * 聚焦对话框面板中的元素
-	 * 优先顺序为：内容区 > 操作按钮区 > 关闭按钮
+	 * 优先顺序为：设置第一聚焦的按钮区按钮 > 内容区作为开始
 	 */
 	focus(){
-		let firstFocusElement = null;
-		if(resolveContentType(this.config.content) === DLG_CTN_TYPE_IFRAME){
-			try {
-				let iframe = this.dom.querySelector('iframe');
-				firstFocusElement = getFocusableElements(iframe.contentDocument)[0];
-			} catch(err){
-				console.warn('iframe content no focusable:', err);
-			}
+		let forceFocusEl = findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom);
+		if(forceFocusEl){
+			forceFocusEl.focus();
+		} else {
+			findOne(`.${DLG_CLS_CTN}`, this.dom).focus();
 		}
-		firstFocusElement = firstFocusElement ||
-			getFocusableElements(findOne(`.${DLG_CLS_CTN}`, this.dom))[0] ||
-			findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom) ||
-			findOne(`.${DLG_CLS_TOP_CLOSE}`, this.dom);
-		firstFocusElement && firstFocusElement.focus();
 	}
 
 	/**

@@ -1,6 +1,6 @@
-import {buttonActiveBind, createDomByHtml, findOne, insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, findOne, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
-import {BizEvent, triggerDomEvent} from "../Lang/Event.js";
+import {bindNodeActive, BizEvent, triggerDomEvent} from "../Lang/Event.js";
 import {Toast} from "./Toast.js";
 import {uploadFile} from "../Lang/Net.js";
 
@@ -296,8 +296,8 @@ export class Uploader {
 		this.dom = createDomByHtml(html, container);
 		const fileEl = findOne('input[type=file]', this.dom);
 
-		buttonActiveBind(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
+		bindNodeActive(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
+		bindNodeActive(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
 
 		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {

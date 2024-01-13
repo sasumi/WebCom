@@ -39,9 +39,21 @@ class BizEvent {
 		return !breakFlag;
 	}
 }
+const EVENT_ACTIVE = 'active';
 const onHover = (node, hoverIn, hoverOut)=>{
 	node.addEventListener('mouseover', hoverIn);
 	node.addEventListener('mouseout', hoverOut);
+};
+const bindNodeActive = (node, payload, cancelBubble = false, triggerAtOnce = false) => {
+	node.addEventListener('click', payload, cancelBubble);
+	node.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
+			payload.call(node, e);
+		}
+	}, cancelBubble);
+	if(triggerAtOnce){
+		payload.call(node, null);
+	}
 };
 const onDocReady = (callback)=>{
 	if (document.readyState === 'complete') {
@@ -57,6 +69,19 @@ const triggerDomEvent = (node, event) => {
 		node.dispatchEvent(evt);
 	}else {
 		node.fireEvent("on"+event.toLowerCase());
+	}
+};
+const bindNodeEvents = (node, event, payload, option, triggerAtOnce = false) => {
+	let evs = Array.isArray(event) ? event : [event];
+	evs.forEach(ev => {
+		if(ev === EVENT_ACTIVE){
+			bindNodeActive(node, payload, option);
+		}else {
+			node.addEventListener(ev, payload, option);
+		}
+	});
+	if(triggerAtOnce){
+		payload();
 	}
 };
 const eventDelegate = (container, selector, eventName, payload)=>{
@@ -792,16 +817,11 @@ const domContained = (contains, child, includeEqual = false) => {
 const getFocusableElements = (dom = document)=>{
 	let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
 	return els.filter(el=>{
-		return !!( el.offsetWidth || el.offsetHeight || el.getClientRects().length );
+		return !isNodeHidden(el);
 	});
 };
-const buttonActiveBind = (button, payload, cancelBubble = false) => {
-	button.addEventListener('click', payload, cancelBubble);
-	button.addEventListener('keyup', e => {
-		if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-			payload.call(button, e);
-		}
-	}, cancelBubble);
+const isNodeHidden = (node) => {
+	return node.offsetParent === null;
 };
 const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 	let tm = null;
@@ -2213,6 +2233,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
@@ -2385,7 +2406,7 @@ const domConstruct = (dlg) => {
 	if(dlg.config.maxContentHeight){
 		style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
 	}
-	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}">${renderContent(dlg)}</div>`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}" tabindex="0">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
@@ -2460,7 +2481,7 @@ const eventBind = (dlg) => {
 	}
 	if(dlg.config.showTopCloseButton){
 		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
-		buttonActiveBind(close_btn, dlg.close.bind(dlg));
+		bindNodeActive(close_btn, dlg.close.bind(dlg));
 	}
 	!dlg.config.moveAble && window.addEventListener('resize', () => {
 		updatePosition$1(dlg);
@@ -2554,20 +2575,12 @@ class Dialog {
 		DialogManager.close(this);
 	}
 	focus(){
-		let firstFocusElement = null;
-		if(resolveContentType(this.config.content) === DLG_CTN_TYPE_IFRAME){
-			try {
-				let iframe = this.dom.querySelector('iframe');
-				firstFocusElement = getFocusableElements(iframe.contentDocument)[0];
-			} catch(err){
-				console.warn('iframe content no focusable:', err);
-			}
+		let forceFocusEl = findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom);
+		if(forceFocusEl){
+			forceFocusEl.focus();
+		} else {
+			findOne(`.${DLG_CLS_CTN}`, this.dom).focus();
 		}
-		firstFocusElement = firstFocusElement ||
-			getFocusableElements(findOne(`.${DLG_CLS_CTN}`, this.dom))[0] ||
-			findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom) ||
-			findOne(`.${DLG_CLS_TOP_CLOSE}`, this.dom);
-		firstFocusElement && firstFocusElement.focus();
 	}
 	fireCustomEvent(event, ...args){
 		if(CUSTOM_EVENT_BUCKS[this.id] && CUSTOM_EVENT_BUCKS[this.id][event]){
@@ -4487,7 +4500,7 @@ class Select {
 		});
 		let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list .sel-item`);
 		liElList.forEach(li => {
-			buttonActiveBind(li, e => {
+			bindNodeActive(li, e => {
 				if(e.type !== 'click'){
 					let chk = li.querySelector('input');
 					chk.checked ? chk.removeAttribute('checked') : chk.checked = true;
@@ -4571,12 +4584,22 @@ class Select {
 	}
 	static bindSelect(selectEl){
 		let {options} = resolveSelectOptions(selectEl);
-		let sel = new Select({
+		const sel = new Select({
 			name: selectEl.name,
 			required: selectEl.required,
 			multiple: selectEl.multiple,
 			placeholder: selectEl.getAttribute('placeholder'),
 			options
+		});
+		const showSelect = () => {
+			let offset = getDomOffset(selectEl);
+			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
+		};
+		selectEl.addEventListener('invalid', ()=>{
+			sel.hidePanel();
+		});
+		selectEl.addEventListener('input', ()=>{
+			showSelect();
 		});
 		sel.onChange.listen(() => {
 			let selectedIndexes = sel.getSelectedIndexes();
@@ -4586,10 +4609,6 @@ class Select {
 			triggerDomEvent(selectEl, 'change');
 		});
 		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
-		let showSelect = () => {
-			let offset = getDomOffset(selectEl);
-			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
-		};
 		selectEl.addEventListener('keydown', e => {
 			showSelect();
 			e.preventDefault();
@@ -4987,8 +5006,8 @@ class Uploader {
 		</div>`;
 		this.dom = createDomByHtml(html, container);
 		const fileEl = findOne('input[type=file]', this.dom);
-		buttonActiveBind(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		buttonActiveBind(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
+		bindNodeActive(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
+		bindNodeActive(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
 		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {
 			let file = fileEl.files[0];
@@ -5925,10 +5944,11 @@ exports.between = between;
 exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
+exports.bindNodeActive = bindNodeActive;
+exports.bindNodeEvents = bindNodeEvents;
 exports.bindTargetContextMenu = bindTargetContextMenu;
 exports.bindTargetDropdownMenu = bindTargetDropdownMenu;
 exports.buildHtmlHidden = buildHtmlHidden;
-exports.buttonActiveBind = buttonActiveBind;
 exports.calcBetterPos = calcBetterPos;
 exports.capitalize = capitalize;
 exports.chunk = chunk;
@@ -6008,6 +6028,7 @@ exports.isElement = isElement;
 exports.isEquals = isEquals;
 exports.isInFullScreen = isInFullScreen;
 exports.isJSON = isJSON;
+exports.isNodeHidden = isNodeHidden;
 exports.isNum = isNum;
 exports.isObject = isObject;
 exports.isPromise = isPromise;

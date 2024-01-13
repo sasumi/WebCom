@@ -1,6 +1,5 @@
 import {Theme} from "./Theme.js";
 import {
-	buttonActiveBind,
 	createDomByHtml,
 	domContained,
 	getDomOffset,
@@ -9,7 +8,7 @@ import {
 	show
 } from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
-import {BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
+import {bindNodeActive, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
 import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/Html.js";
 
@@ -342,7 +341,7 @@ class Select {
 		//li click, enter
 		let liElList = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
 		liElList.forEach(li => {
-			buttonActiveBind(li, e => {
+			bindNodeActive(li, e => {
 				if(e.type !== 'click'){
 					let chk = li.querySelector('input');
 					chk.checked ? chk.removeAttribute('checked') : chk.checked = true;
@@ -456,17 +455,28 @@ class Select {
 
 	/**
 	 * 绑定 select 元素使其触发行为变成Select组件
+	 * @todo 如果select required，浏览器触发的表单校验提示显示会被遮挡
 	 * @param {HTMLSelectElement} selectEl
 	 */
 	static bindSelect(selectEl){
 		let {options} = resolveSelectOptions(selectEl);
-		let sel = new Select({
+		const sel = new Select({
 			name: selectEl.name,
 			required: selectEl.required,
 			multiple: selectEl.multiple,
 			placeholder: selectEl.getAttribute('placeholder'),
 			options
 		});
+		const showSelect = () => {
+			let offset = getDomOffset(selectEl);
+			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
+		}
+		selectEl.addEventListener('invalid', ()=>{
+			sel.hidePanel();
+		});
+		selectEl.addEventListener('input', ()=>{
+			showSelect();
+		})
 		sel.onChange.listen(() => {
 			let selectedIndexes = sel.getSelectedIndexes();
 			selectEl.querySelectorAll('option').forEach((opt, idx) => {
@@ -476,10 +486,6 @@ class Select {
 		});
 		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 
-		let showSelect = () => {
-			let offset = getDomOffset(selectEl);
-			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
-		}
 
 		selectEl.addEventListener('keydown', e => {
 			showSelect();
