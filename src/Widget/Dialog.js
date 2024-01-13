@@ -1,4 +1,11 @@
-import {buttonActiveBind, createDomByHtml, domContained, getContextWindow, insertStyleSheet} from "../Lang/Dom.js";
+import {
+	buttonActiveBind,
+	createDomByHtml,
+	domContained, findOne,
+	getContextWindow,
+	getFocusableElements,
+	insertStyleSheet
+} from "../Lang/Dom.js";
 import {Masker} from "./Masker.js";
 import {BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
@@ -133,6 +140,7 @@ const setState = (dlg, state) => {
 	dlg.state = state;
 	dlg.dom.setAttribute('data-dialog-state', state);
 	dlg.dom.style.display = state === STATE_HIDDEN ? 'none' : '';
+	dlg.focus();
 }
 
 /**
@@ -320,7 +328,8 @@ const domConstruct = (dlg) => {
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
-			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+			//autofocus 在部分浏览器场景可能会失效，这里采用js主动切换
+			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'data-autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
 		});
 		html += '</div>';
 	}
@@ -351,6 +360,7 @@ const domConstruct = (dlg) => {
 				obs = new MutationObserver(upd);
 				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
 				upd();
+				dlg.focus();
 			});
 		}catch(err){
 			try{
@@ -361,7 +371,6 @@ const domConstruct = (dlg) => {
 			console.warn('iframe content upd', err);
 		}
 	}
-	dlg.dom.style.display = 'none';
 };
 
 /**
@@ -553,6 +562,27 @@ class Dialog {
 
 	close(){
 		DialogManager.close(this);
+	}
+
+	/**
+	 * 聚焦对话框面板中的元素
+	 * 优先顺序为：内容区 > 操作按钮区 > 关闭按钮
+	 */
+	focus(){
+		let firstFocusElement = null;
+		if(resolveContentType(this.config.content) === DLG_CTN_TYPE_IFRAME){
+			try {
+				let iframe = this.dom.querySelector('iframe');
+				firstFocusElement = getFocusableElements(iframe.contentDocument)[0];
+			} catch(err){
+				console.warn('iframe content no focusable:', err);
+			}
+		}
+		firstFocusElement = firstFocusElement ||
+			getFocusableElements(findOne(`.${DLG_CLS_CTN}`, this.dom))[0] ||
+			findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom) ||
+			findOne(`.${DLG_CLS_TOP_CLOSE}`, this.dom);
+		firstFocusElement && firstFocusElement.focus();
 	}
 
 	/**

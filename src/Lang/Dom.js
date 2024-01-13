@@ -131,6 +131,18 @@ export const domContained = (contains, child, includeEqual = false) => {
 };
 
 /**
+ * 获取指定容器下可聚焦元素列表
+ * @param {Node} dom
+ * @return {Node[]}
+ */
+export const getFocusableElements = (dom = document)=>{
+	let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
+	return els.filter(el=>{
+		return !!( el.offsetWidth || el.offsetHeight || el.getClientRects().length );
+	});
+}
+
+/**
  * 绑定按钮触发（包括鼠标点击、键盘回车、键盘空格）
  * @param {HTMLElement} button
  * @param {CallableFunction} payload

@@ -89,7 +89,6 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 			}
 			init_count++;
 			let data = resolveDataParam(node, componentAlias);
-			console.info('com detected:', componentAlias);
 			if(C.init){
 				C.init(node, data);
 			}

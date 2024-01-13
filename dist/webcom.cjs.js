@@ -789,6 +789,12 @@ const domContained = (contains, child, includeEqual = false) => {
 	}
 	return false;
 };
+const getFocusableElements = (dom = document)=>{
+	let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
+	return els.filter(el=>{
+		return !!( el.offsetWidth || el.offsetHeight || el.getClientRects().length );
+	});
+};
 const buttonActiveBind = (button, payload, cancelBubble = false) => {
 	button.addEventListener('click', payload, cancelBubble);
 	button.addEventListener('keyup', e => {
@@ -2259,6 +2265,7 @@ const setState = (dlg, state) => {
 	dlg.state = state;
 	dlg.dom.setAttribute('data-dialog-state', state);
 	dlg.dom.style.display = state === STATE_HIDDEN ? 'none' : '';
+	dlg.focus();
 };
 const setZIndex = (dlg, zIndex) => {
 	dlg.zIndex = dlg.dom.style.zIndex = String(zIndex);
@@ -2382,7 +2389,7 @@ const domConstruct = (dlg) => {
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
-			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'data-autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
 		});
 		html += '</div>';
 	}
@@ -2408,6 +2415,7 @@ const domConstruct = (dlg) => {
 				obs = new MutationObserver(upd);
 				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
 				upd();
+				dlg.focus();
 			});
 		}catch(err){
 			try{
@@ -2418,7 +2426,6 @@ const domConstruct = (dlg) => {
 			console.warn('iframe content upd', err);
 		}
 	}
-	dlg.dom.style.display = 'none';
 };
 const eventBind = (dlg) => {
 	dlg.dom.addEventListener('mousedown', () => {
@@ -2545,6 +2552,22 @@ class Dialog {
 	}
 	close(){
 		DialogManager.close(this);
+	}
+	focus(){
+		let firstFocusElement = null;
+		if(resolveContentType(this.config.content) === DLG_CTN_TYPE_IFRAME){
+			try {
+				let iframe = this.dom.querySelector('iframe');
+				firstFocusElement = getFocusableElements(iframe.contentDocument)[0];
+			} catch(err){
+				console.warn('iframe content no focusable:', err);
+			}
+		}
+		firstFocusElement = firstFocusElement ||
+			getFocusableElements(findOne(`.${DLG_CLS_CTN}`, this.dom))[0] ||
+			findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom) ||
+			findOne(`.${DLG_CLS_TOP_CLOSE}`, this.dom);
+		firstFocusElement && firstFocusElement.focus();
 	}
 	fireCustomEvent(event, ...args){
 		if(CUSTOM_EVENT_BUCKS[this.id] && CUSTOM_EVENT_BUCKS[this.id][event]){
@@ -5139,7 +5162,6 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 			}
 			init_count++;
 			let data = resolveDataParam(node, componentAlias);
-			console.info('com detected:', componentAlias);
 			if(C.init){
 				C.init(node, data);
 			}
@@ -5959,6 +5981,7 @@ exports.getCurrentScript = getCurrentScript;
 exports.getDomDimension = getDomDimension;
 exports.getDomOffset = getDomOffset;
 exports.getElementValue = getElementValue;
+exports.getFocusableElements = getFocusableElements;
 exports.getFormDataAvailable = getFormDataAvailable;
 exports.getHash = getHash;
 exports.getHighestResFromSrcSet = getHighestResFromSrcSet;
