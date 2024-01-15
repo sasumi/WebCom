@@ -11,6 +11,7 @@
 	"author": "sasumi",
 	"license": "MIT",
 	"devDependencies": {
+		"@rollup/plugin-terser": "^0.4.4",
 		"base64-image-loader": "^1.2.0",
 		"css-content-loader": "^1.0.0",
 		"rollup-plugin-cleanup": "^3.2.1",

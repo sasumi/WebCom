@@ -1,5 +1,5 @@
 import cleanupPlugin from "rollup-plugin-cleanup";
-import gzipPlugin from "rollup-plugin-gzip";
+import terser from '@rollup/plugin-terser';
 
 const NS = 'WebCom';
 
@@ -23,7 +23,8 @@ export default {
 		},
 		{
 			format: "es",
-			file: "./dist/webcom.es.js"
+			file: "./dist/webcom.es.js",
+			sourcemap: true,
 		},
 		{
 			format: "iife",
@@ -32,6 +33,7 @@ export default {
 		}
 	],
 	plugins: [
-		cleanupPlugin({comments: "none", sourcemap:true, extensions: ["js", "ts"]})
+		cleanupPlugin({comments: "none", sourcemap:true, extensions: ["js", "ts"]}),
+		terser()
 	]
 }
