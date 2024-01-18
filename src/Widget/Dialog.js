@@ -134,7 +134,6 @@ const setState = (dlg, toState) => {
 	dlg.state = toState;
 	dlg.dom.setAttribute('data-dialog-state', toState);
 	dlg.dom[toState === STATE_HIDDEN ? 'hide' : (dlg.config.modal ? 'showModal' : 'show')]();
-	dlg.focus();
 }
 
 /**
@@ -312,7 +311,6 @@ const domConstruct = (dlg) => {
 			${dlg.state === STATE_HIDDEN ? '' : 'open'} 
 			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
-		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
 	`;
 	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}" tabindex="0">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
@@ -323,7 +321,8 @@ const domConstruct = (dlg) => {
 		});
 		html += '</div>';
 	}
-	html += '</dialog>';
+	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
+	html += `</dialog>`;
 	dlg.dom = createDomByHtml(html, document.body);
 
 	//update content height
@@ -347,7 +346,6 @@ const domConstruct = (dlg) => {
 				obs = new MutationObserver(upd);
 				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
 				upd();
-				dlg.focus();
 			});
 		}catch(err){
 			try{
@@ -485,17 +483,6 @@ class Dialog {
 
 	close(){
 		DialogManager.close(this);
-	}
-
-	/**
-	 * 聚焦对话框面板中的元素
-	 * 优先顺序为：设置第一聚焦的按钮区按钮 > 内容区作为开始
-	 */
-	focus(){
-		let forceFocusEl = findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom);
-		if(forceFocusEl){
-			forceFocusEl.focus();
-		}
 	}
 
 	/**
