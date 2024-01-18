@@ -1,16 +1,8 @@
-import {
-	createDomByHtml,
-	domContained,
-	findOne,
-	getContextWindow,
-	insertStyleSheet
-} from "../Lang/Dom.js";
-import {Masker} from "./Masker.js";
+import {createDomByHtml, findOne, getContextWindow, insertStyleSheet} from "../Lang/Dom.js";
 import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
 import {dimension2Style, escapeAttr} from "../Lang/Html.js";
-import {GOLDEN_RATIO} from "../Lang/Math.js";
 
 const COM_ID = Theme.Namespace + 'dialog';
 const DLG_CLS_PREF = COM_ID;
@@ -40,7 +32,8 @@ const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
 const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 insertStyleSheet(`
-	.${DLG_CLS_PREF} {display:block; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:hidden; padding:0; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.DialogIndex};position:absolute;}
+	.${DLG_CLS_PREF} {border:none; margin:auto !important; border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:auto; min-width:1em; box-sizing:border-box; width:calc(100% - 2 * 5em); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR});}
+	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.5em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
@@ -52,9 +45,9 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 100px); overflow-y:auto}
-	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457; border-color:#ccc;}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
-	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; z-index:9999999999; width:100%; height:100%;}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; position:absolute; width:100%; height:100%;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
 	
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_CONFIRM}"] .${DLG_CLS_CTN} {padding:1.5em 1.5em 1em 1.5em; min-height:40px;}
@@ -65,6 +58,7 @@ insertStyleSheet(`
 	
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; display:block; min-height:30px;}
+	.${DLG_CLS_PREF}::backdrop {background-color:#33333342}
 `, COM_ID + '-style');
 
 /**
@@ -134,12 +128,12 @@ const getAllAvailableDialogs = (excludedDialog = null) => {
 /**
  * 设置对话框状态
  * @param {Dialog} dlg
- * @param {String} state
+ * @param {String} toState
  */
-const setState = (dlg, state) => {
-	dlg.state = state;
-	dlg.dom.setAttribute('data-dialog-state', state);
-	dlg.dom.style.display = state === STATE_HIDDEN ? 'none' : '';
+const setState = (dlg, toState) => {
+	dlg.state = toState;
+	dlg.dom.setAttribute('data-dialog-state', toState);
+	dlg.dom[toState === STATE_HIDDEN ? 'hide' : (dlg.config.modal ? 'showModal' : 'show')]();
 	dlg.focus();
 }
 
@@ -169,9 +163,6 @@ const DialogManager = {
 	 * @param {Dialog} dlg
 	 */
 	show(dlg){
-		if(dlg.config.showMasker){
-			Masker.show();
-		}
 		dlg.state = STATE_DISABLED; //避免 getModal* 获取不到当前对话框
 
 		let modalDialogs = getModalDialogs(dlg);
@@ -224,7 +215,7 @@ const DialogManager = {
 		}else{
 			setState(dlg, STATE_HIDDEN);
 		}
-		getAllAvailableDialogs().length || Masker.hide();
+		getAllAvailableDialogs().length || dlg.dom.classList.remove(`${DLG_CLS_PREF}-masker`);
 	},
 
 	/**
@@ -279,7 +270,6 @@ const DialogManager = {
 			dlg.dom?.parentNode.removeChild(dlg.dom);
 		});
 		DIALOG_COLLECTION = [];
-		Masker.hide();
 	},
 
 	/**
@@ -306,16 +296,6 @@ const resolveContentType = (content) => {
  * @param {Dialog} dlg
  */
 const domConstruct = (dlg) => {
-	let html = `
-		<div class="${DLG_CLS_PREF}" 
-			id="${dlg.id}" 
-			data-dialog-type="${TYPE_NORMAL}"
-			${dlg.config.transparent ? 'data-transparent':''}
-			style="${dlg.state === STATE_HIDDEN ? 'display:none' : ''}; ${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
-		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
-		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
-	`;
-
 	let style = [];
 	if(dlg.config.minContentHeight){
 		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight));
@@ -324,24 +304,32 @@ const domConstruct = (dlg) => {
 		style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
 	}
 
+	let html = `
+		<dialog class="${DLG_CLS_PREF}" 
+			id="${dlg.id}" 
+			data-dialog-type="${TYPE_NORMAL}"
+			${dlg.config.transparent ? 'data-transparent':''}
+			${dlg.state === STATE_HIDDEN ? '' : 'open'} 
+			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
+		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
+		${dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : ''}
+	`;
 	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}" tabindex="0">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
 			//autofocus 在部分浏览器场景可能会失效，这里采用js主动切换
-			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'data-autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
 		});
 		html += '</div>';
 	}
-	html += '</div>';
+	html += '</dialog>';
 	dlg.dom = createDomByHtml(html, document.body);
 
 	//update content height
 	if(dlg.config.height){
 		adjustHeight(dlg, dlg.config.height);
 	}
-
-	updatePosition(dlg);
 
 	//bind iframe content
 	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
@@ -353,7 +341,6 @@ const domConstruct = (dlg) => {
 				if(bdy){
 					let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
 					adjustHeight(dlg, h);
-					updatePosition(dlg);
 				}
 			}
 			iframe.addEventListener('load', () => {
@@ -390,69 +377,12 @@ const eventBind = (dlg) => {
 		btn.addEventListener('click', cb.bind(dlg), false);
 	}
 
-	//bind move
-	if(dlg.config.moveAble){
-		let start_move = false;
-		let last_click_offset = null;
-		if(dlg.config.title){
-			dlg.dom.querySelector('.' + DLG_CLS_TI).addEventListener('mousedown', (e) => {
-				if(e.currentTarget && domContained(dlg.dom, e.currentTarget, true)){
-					start_move = true;
-					last_click_offset = {x: e.clientX - dlg.dom.offsetLeft, y: e.clientY - dlg.dom.offsetTop};
-				}
-			});
-		}
-		document.addEventListener('mouseup', () => {
-			start_move = false;
-			last_click_offset = null;
-		});
-		document.addEventListener('mousemove', (e) => {
-			if(start_move && last_click_offset){
-				dlg.dom.style.left = Math.max(e.clientX - last_click_offset.x, 0) + 'px';
-				dlg.dom.style.top = Math.max(e.clientY - last_click_offset.y, 0) + 'px';
-			}
-		});
-	}
-
 	//bind top close button event
 	if(dlg.config.showTopCloseButton){
 		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
 		bindNodeActive(close_btn, dlg.close.bind(dlg));
 	}
-
-	//bind window resize un-move-able dialog
-	!dlg.config.moveAble && window.addEventListener('resize', () => {
-		updatePosition(dlg);
-	});
 }
-
-export const calcBetterPos = (width, height) => {
-	let vw = window.innerWidth;
-	let vh = window.innerHeight;
-	let new_left = Math.max((vw - width) / 2, 0);
-	let new_top = Math.max((vh - height) * (1 - GOLDEN_RATIO), 0);
-	return [new_top, new_left];
-}
-
-/**
- * 更新对话框位置
- * @param {Dialog} dlg
- */
-const updatePosition = (dlg) => {
-	let _hidden = dlg.state === STATE_HIDDEN;
-	let ml, mt;
-	if(!_hidden){
-		[mt, ml]= calcBetterPos(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
-	}else{
-		dlg.dom.style.visibility = 'hidden';
-		dlg.dom.style.display = 'block';
-		[mt, ml] = calcBetterPos(dlg.dom.offsetWidth, dlg.dom.offsetHeight);
-		dlg.dom.style.display = 'none';
-		dlg.dom.style.visibility = 'visible';
-	}
-	dlg.dom.style.top = mt + 'px';
-	dlg.dom.style.left = ml + 'px';
-};
 
 /**
  * 更新
@@ -511,14 +441,12 @@ class Dialog {
 	config = {
 		title: '', //对话框标题，为 null 或者空字符串时不显示标题行
 		content: '',
-		modal: false, //是否为模态窗口
+		modal: true, //是否为模态窗口
 		transparent:false, //是否透明
 		width: Dialog.DEFAULT_WIDTH,
 		height: null, //高度，缺省为自动高度
 		maxContentHeight: null, //最大内容区高度，默认为标题和空隙预留50px
 		minContentHeight: Dialog.CONTENT_MIN_HEIGHT,
-		moveAble: true, //是否可移动
-		showMasker: true, //是否显示遮罩，如果是模态对话框，会强制显示遮罩
 		buttons: [/** {title:'', default:true, callback }**/], //对话框配置按钮列表
 		showTopCloseButton: true, //是否显示顶部关闭窗口
 	};
@@ -533,7 +461,6 @@ class Dialog {
 	 * @param {Number} config.width 宽度
 	 * @param {Number} config.height 高度
 	 * @param {Number} config.maxHeight 最大高度
-	 * @param {Boolean} config.moveAble 是否可以移动
 	 * @param {Array} config.buttons 按钮列表
 	 * @param {Boolean} config.buttons.default 单个按钮对象中是否作为默认按钮（默认聚焦）
 	 * @param {String} config.buttons.title 按钮标题
@@ -543,10 +470,6 @@ class Dialog {
 	constructor(config = {}){
 		this.config = Object.assign(this.config, config);
 		this.id = this.id || 'dialog-' + Math.random();
-		if(!this.config.showMasker && this.config.modal){
-			console.warn('已矫正：模态窗口强制显示遮罩');
-		}
-		this.config.showMasker = this.config.modal || this.config.showMasker;
 		domConstruct(this);
 		eventBind(this);
 		DialogManager.register(this);
@@ -572,8 +495,6 @@ class Dialog {
 		let forceFocusEl = findOne(`.${DLG_CLS_OP} [data-autofocus]`, this.dom);
 		if(forceFocusEl){
 			forceFocusEl.focus();
-		} else {
-			findOne(`.${DLG_CLS_CTN}`, this.dom).focus();
 		}
 	}
 
@@ -606,10 +527,6 @@ class Dialog {
 		CUSTOM_EVENT_BUCKS[this.id][event].listen(callback);
 	}
 
-	updatePosition(){
-		updatePosition(this);
-	}
-
 	/**
 	 * 显示对话框
 	 * @param {String} title
@@ -621,7 +538,6 @@ class Dialog {
 	 * @param {Number} config.width
 	 * @param {Number} config.height
 	 * @param {Number} config.maxHeight
-	 * @param {Boolean} config.moveAble
 	 * @param {Array} config.buttons
 	 * @param {Boolean} config.buttons.default
 	 * @param {String} config.buttons.title
