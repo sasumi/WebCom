@@ -12,6 +12,7 @@ import {ACSelectAll} from "./ACSelectAll.js";
 import {ACMultiSelectRelate} from "./ACMultiSelectRelate.js";
 import {ACUploader} from "./ACUploader.js";
 import {ACTextCounter} from "./ACTextCounter.js";
+import {findAll} from "../Lang/Dom.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
@@ -77,7 +78,7 @@ const resolveDataParam = (node, ComAlias) => {
  * @param attr_flag
  */
 const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
-	container.querySelectorAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`).forEach(node => {
+	findAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`, container).forEach(node => {
 		let cs = parseComponents(node.getAttribute(attr_flag));
 		let activeStacks = [];
 		let init_count = 0;

@@ -1,4 +1,4 @@
-import {isButton} from "./Dom.js";
+import {findAll, isButton} from "./Dom.js";
 import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
 import {isEquals, objectPushByPath} from "./Array.js";
@@ -37,7 +37,7 @@ export const getElementValue = (el) => {
 	}
 	if(el.tagName === 'SELECT' && el.multiple){
 		let vs = [];
-		el.querySelectorAll('option:checked').forEach(item => {
+		findAll('option:checked', el).forEach(item => {
 			vs.push(item.value);
 		});
 		return vs;

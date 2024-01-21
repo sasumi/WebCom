@@ -196,10 +196,10 @@ export const onDomTreeChange = (dom, callback, includeElementChanged = true) => 
  */
 export const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
 	onDomTreeChange(container, () => {
-		notification(Array.from(container.querySelectorAll(matchedSelector)));
+		notification(findAll(matchedSelector, container));
 	});
 	if(executionFirst){
-		notification(Array.from(container.querySelectorAll(matchedSelector)));
+		notification(findAll(matchedSelector, container));
 	}
 }
 

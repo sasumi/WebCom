@@ -1,4 +1,4 @@
-import {findOne, onDomTreeChange} from "../Lang/Dom.js";
+import {findAll, findOne, onDomTreeChange} from "../Lang/Dom.js";
 import {triggerDomEvent} from "../Lang/Event.js";
 
 const SELECT_ALL_TEXT = '全选';
@@ -27,7 +27,7 @@ export class ACSelectAll {
 				checks.length ? enableBtn() : disableBtn();
 			};
 			onDomTreeChange(container, () => {
-				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+				checks = findAll('input[type=checkbox]', container);
 				checks.forEach(chk => {
 					if(chk.dataset.__bind_select_all){
 						return;
@@ -48,7 +48,7 @@ export class ACSelectAll {
 			});
 
 			let containerInit = () => {
-				checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+				checks = findAll('input[type=checkbox]', container);
 				checks.forEach(chk => {
 					if(chk.dataset.__bind_select_all){
 						return;

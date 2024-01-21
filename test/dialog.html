@@ -6,6 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
 	<style>
+		.test-case-list {list-style:none; display:flex; flex-wrap:wrap; gap:1em; margin-top:2em;}
+		.test-case-list>li {border:1px solid #ddd; border-radius:5px; padding:0 2em 2em;}
+		.test-case-list h3 {font-size:1.1rem;}
 	</style>
 </head>
 <body>
@@ -27,29 +30,37 @@
 	);
 </script>
 
-<div class="test-case">
-	<h3>
-		普通应用：
-	</h3>
-
-	<button id="normal-dialog">普通对话框</button>
-	<button id="normal-nti-dialog">普通无标题对话框</button>
-
-	<h3>内置类型</h3>
-	<button id="alert-dialog">告警对话框</button>
-	<button id="confirm-dialog">确认对话框</button>
-	<button id="prompt-dialog">提示输入对话框</button>
-	<h3>iframe</h3>
-
-	<button id="iframe-dialog">Iframe</button>
-	<button id="iframe-bti-dialog">无标题Iframe</button>
-
-	<h3>模态</h3>
-	<button id="modal1-dialog">modal1</button>
-	<button id="modal2-dialog">modal2</button>
-
-	<h3>异形</h3>
-	<button id="cus-shape">异形透明对话框</button>
+<ul class="test-case-list">
+	<li>
+		<h3>普通应用</h3>
+		<button id="normal-dialog">普通对话框</button>
+		<button id="normal-nti-dialog">普通无标题对话框</button>
+	</li>
+	<li>
+		<h3>内置类型</h3>
+		<button id="alert-dialog">告警对话框</button>
+		<button id="confirm-dialog">确认对话框</button>
+		<button id="prompt-dialog">提示输入对话框</button>
+	</li>
+	<li>
+		<h3>iframe</h3>
+		<button id="iframe-dialog">Iframe</button>
+		<button id="iframe-bti-dialog">无标题Iframe</button>
+	</li>
+	<li>
+		<h3>模态</h3>
+		<button id="modal1-dialog">modal1</button>
+		<button id="modal2-dialog">modal2</button>
+	</li>
+	<li>
+		<h3>异形</h3>
+		<button id="cus-shape">异形透明对话框</button>
+	</li>
+	<li>
+		<h3>多对话框</h3>
+		<button id="muldlg1">多重普通对话框</button>
+		<button id="muldlg2">多重模态对话框</button>
+	</li>
 
 	<script type="module">
 		import {Dialog} from "../src/index.js";
@@ -92,7 +103,27 @@
 		document.getElementById('cus-shape').addEventListener('click', () => {
 			Dialog.show('', '<img src="assets/happy_new_year.png" style="width:500px;">', {transparent:true});
 		});
+
+		muldlg1.addEventListener('click', e=>{
+			let dlg = Dialog.show('多重对话框', '<p style="height:10em">hello <br/> world</p><input type="button" value="开一个"/>');
+			dlg.dom.querySelector('input').addEventListener('click', ()=>{
+				let dlg2 = Dialog.show('asdfasf',`<input type="button" value="再来一个">`);
+				dlg2.dom.querySelector('input').addEventListener('click', ()=>{
+					Dialog.confirm('adfasdf', 'adsfasdf');
+				})
+			});
+		});
+		muldlg2.addEventListener('click', e=>{
+			let dlg = Dialog.show('多重对话框', '<p style="height:10em">hello <br/> world</p><input type="button" value="开一个"/>', {modal:true});
+			dlg.dom.querySelector('input').addEventListener('click', ()=>{
+				let dlg2 = Dialog.show('asdfasf',`<input type="button" value="再来一个">`, {modal:true});
+				dlg2.dom.querySelector('input').addEventListener('click', ()=>{
+					Dialog.confirm('adfasdf', 'adsfasdf', {modal:true});
+				})
+			});
+		});
+
 	</script>
-</div>
+</ul>
 </body>
 </html>
