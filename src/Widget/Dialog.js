@@ -32,7 +32,7 @@ const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
 const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
 insertStyleSheet(`
-	.${DLG_CLS_PREF} {border:none; padding:0; /** 原生浏览器有1em内边距 **/ border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:auto; min-width:1em; box-sizing:border-box; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR});}
+	.${DLG_CLS_PREF} {border:none; margin:auto !important; padding:0 !important; /** 原生浏览器有1em内边距 **/ border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:auto; min-width:1em; box-sizing:border-box; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR});}
 	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;max-width: calc(100% - 6px - 2em);max-height: calc(100% - 6px - 2em);}
 	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
@@ -46,7 +46,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 100px); overflow-y:auto}
-	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 25px 0px #44444457}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 60px 1px #44444457}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; left:0; top:0; position:absolute; width:100%; height:100%;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
@@ -440,7 +440,7 @@ class Dialog {
 	config = {
 		title: '', //对话框标题，为 null 或者空字符串时不显示标题行
 		content: '',
-		modal: false, //是否为模态窗口
+		modal: true, //是否为模态窗口
 		transparent:false, //是否透明
 		width: Dialog.DEFAULT_WIDTH,
 		height: null, //高度，缺省为自动高度
@@ -566,6 +566,7 @@ class Dialog {
 					}
 				],
 				width: 420,
+				modal: true,
 				showTopCloseButton: false,
 				...opt
 			});
@@ -593,6 +594,7 @@ class Dialog {
 					}
 				},],
 				width:420,
+				modal: true,
 				showTopCloseButton: false,
 				...opt
 			});
@@ -624,7 +626,6 @@ class Dialog {
 			let input_id = guid(Theme.Namespace + '-prompt-input');
 			let input = null;
 			let p = new Dialog({
-				width:400,
 				content: `<label for="${input_id}">${title}</label><input type="text" id="${input_id}" value="${escapeAttr(option.initValue || '')}"/>`,
 				buttons: [
 					{
@@ -637,6 +638,8 @@ class Dialog {
 					},
 					{title: '取消',className: DLG_CLS_CANCEL_BTN}
 				],
+				width:400,
+				modal: true,
 				showTopCloseButton: true,
 				...option
 			});
