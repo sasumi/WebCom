@@ -144,7 +144,7 @@ export const eventDelegate = (container, selector, eventName, payload)=>{
 		let target = ev.target;
 		while(target){
 			if(target.matches(selector)){
-				payload.call(target, target, ev);
+				payload.call(target, ev, target);
 				return;
 			}
 			if(target === container){

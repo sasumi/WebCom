@@ -32,7 +32,7 @@ export class ACPreview {
 		return new Promise((resolve, reject) => {
 			let watchSelector = param.watch;
 			if(watchSelector){
-				eventDelegate(node, watchSelector, 'click', clickNode=>{
+				eventDelegate(node, watchSelector, 'click', (e, clickNode)=>{
 					let index = 0, imgSrcList = [];
 					node.querySelectorAll(watchSelector).forEach((n, idx) => {
 						if(node === clickNode){

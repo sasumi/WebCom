@@ -409,7 +409,7 @@ const constructDom = () => {
 	});
 
 	//bind close click & space click
-	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', target => {
+	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', (e, target) => {
 		let cmd = target.getAttribute('data-cmd');
 		if(target.getAttribute(DISABLED_ATTR_KEY)){
 			return false;

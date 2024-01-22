@@ -66,10 +66,10 @@
 		import {Dialog} from "../src/index.js";
 
 		document.getElementById('normal-dialog').addEventListener('click', () => {
-			Dialog.show('这是一个普通对话框标题', '<div style="padding:25px; border:1px solid red;">普通对话框内容，不具备padding等格式，需要自己定义</div>');
+			Dialog.show('这是一个普通对话框标题', '<div style="padding:25px;">普通对话框内容，不具备padding等格式，需要自己定义</div>', {modal:false});
 		});
 		document.getElementById('normal-nti-dialog').addEventListener('click', () => {
-			Dialog.show('', '<div style="padding:25px; border:1px solid red;">这是一个无标题对话框标题对话框内容，不具备padding等格式，需要自己定义</div>');
+			Dialog.show('', '<div style="padding:25px;">这是一个无标题对话框标题对话框内容，不具备padding等格式，需要自己定义</div>', {modal:false});
 		});
 
 		document.getElementById('alert-dialog').addEventListener('click', () => {

@@ -70,7 +70,7 @@ class Toc {
 				n.scrollIntoView({behavior: 'smooth'});
 			});
 		});
-		eventDelegate(this.dom, `.${CLASS_PREFIX}-toggle`, 'click', target=>{
+		eventDelegate(this.dom, `.${CLASS_PREFIX}-toggle`, 'click', (e, target)=>{
 			let li = target.closest('li');
 			li.classList.toggle(CLASS_PREFIX+'-collapse');
 		});

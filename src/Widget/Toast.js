@@ -1,4 +1,4 @@
-import {getContextWindow, hide, insertStyleSheet, show} from "./../Lang/Dom.js"
+import {createDomByHtml, getContextWindow, hide, insertStyleSheet, show} from "./../Lang/Dom.js"
 import {Theme} from "./Theme.js";
 
 const COM_ID = Theme.Namespace + 'toast';
@@ -39,9 +39,7 @@ let toastWrap = null;
 
 const getWrapper = () => {
 	if(!toastWrap){
-		toastWrap = document.createElement('div');
-		document.body.appendChild(toastWrap);
-		toastWrap.className = TOAST_CLS_MAIN + '-wrap';
+		toastWrap = createDomByHtml(`<div class="${TOAST_CLS_MAIN}-wrap"></div>`, document.body);
 	}
 	return toastWrap;
 }
@@ -171,10 +169,10 @@ class Toast{
 	show(onTimeoutClose = null){
 		let wrapper = getWrapper();
 		show(wrapper);
-		this.dom = document.createElement('span');
-		wrapper.appendChild(this.dom);
-		this.dom.className = `${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-` + this.type;
-		this.dom.innerHTML = `<span class="ctn">${this.message}</span><div></div>`;
+		this.dom = createDomByHtml(
+			`<span class="${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-${this.type}">
+				<span class="ctn">${this.message}</span><div></div>
+			</span>`, wrapper);
 		if(this.timeout){
 			setTimeout(() => {
 				this.hide(true);
