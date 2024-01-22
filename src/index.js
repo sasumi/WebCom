@@ -46,6 +46,7 @@ export * from "./Widget/Masker.js";
 export * from "./Widget/Menu.js";
 export * from "./Widget/NoviceGuide.js";
 export * from "./Widget/Select.js";
+export * from "./Widget/Sortable.js";
 export * from "./Widget/Theme.js";
 export * from "./Widget/Tip.js";
 export * from "./Widget/Toast.js";
