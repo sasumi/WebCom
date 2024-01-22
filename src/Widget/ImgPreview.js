@@ -1,4 +1,13 @@
-import {createDomByHtml, findAll, getContextWindow, hide, insertStyleSheet, setStyle, show} from "../Lang/Dom.js";
+import {
+	createDomByHtml,
+	findAll,
+	getContextWindow,
+	hide,
+	insertStyleSheet,
+	remove,
+	setStyle,
+	show
+} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
@@ -208,7 +217,7 @@ const destroy = () => {
 	if(!PREVIEW_DOM){
 		return;
 	}
-	PREVIEW_DOM.parentNode.removeChild(PREVIEW_DOM);
+	remove(PREVIEW_DOM);
 	PREVIEW_DOM = null;
 	Masker.hide();
 	window.removeEventListener('resize', onWinResize);

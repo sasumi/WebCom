@@ -1,5 +1,4 @@
 import {between} from "./Math.js";
-import {KEYS} from "./Event.js";
 import {strToPascalCase} from "./String.js";
 import {dimension2Style} from "./Html.js";
 import {guid} from "./Util.js";
@@ -17,6 +16,19 @@ export const getViewHeight = () => {
  */
 export const hide = (dom) => {
 	dom.style.display = 'none';
+}
+
+/**
+ * 删除节点
+ * @param {Node} dom
+ * @return {boolean}
+ */
+export const remove = (dom)=>{
+	if(dom && dom.parentNode){
+		dom.parentNode.removeChild(dom);
+		return true;
+	}
+	return false;
 }
 
 /**

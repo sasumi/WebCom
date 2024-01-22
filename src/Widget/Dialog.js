@@ -1,4 +1,4 @@
-import {createDomByHtml, getContextWindow, insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, getContextWindow, insertStyleSheet, remove} from "../Lang/Dom.js";
 import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
@@ -211,7 +211,7 @@ const DialogManager = {
 		});
 		if(destroy){
 			DIALOG_COLLECTION = DIALOG_COLLECTION.filter(d => d !== dlg);
-			dlg.dom.parentNode.removeChild(dlg.dom);
+			remove(dlg.dom);
 		}else{
 			setState(dlg, STATE_HIDDEN);
 		}
@@ -267,7 +267,7 @@ const DialogManager = {
 	 */
 	closeAll(){
 		DIALOG_COLLECTION.forEach(dlg => {
-			dlg.dom?.parentNode.removeChild(dlg.dom);
+			remove(dlg.dom);
 		});
 		DIALOG_COLLECTION = [];
 	},

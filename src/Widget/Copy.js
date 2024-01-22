@@ -1,4 +1,4 @@
-import {createDomByHtml} from "../Lang/Dom.js";
+import {createDomByHtml, remove} from "../Lang/Dom.js";
 import {trans} from "../I18N/Lang.js";
 import {Toast} from "./Toast.js";
 import {Dialog} from "./Dialog.js";
@@ -26,7 +26,7 @@ export const copy = (text, silent = false) => {
 		console.error(err);
 		Dialog.prompt('复制失败，请手工复制', {initValue:text});
 	} finally{
-		txtNode.parentNode.removeChild(txtNode);
+		remove(txtNode);
 	}
 	return false;
 };

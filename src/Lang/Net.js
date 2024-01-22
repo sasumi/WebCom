@@ -1,6 +1,7 @@
 import {resolveFileExtension, resolveFileName} from "./File.js";
 import {BizEvent} from "./Event.js";
 import {Toast} from "../Widget/Toast.js";
+import {remove} from "./Dom.js";
 
 const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
@@ -331,7 +332,7 @@ export const downloadFile = (src, save_name) => {
 	link.download = save_name;
 	document.body.appendChild(link);
 	link.click();
-	link.parentNode.removeChild(link);
+	remove(link);
 };
 
 export const QueryString = {

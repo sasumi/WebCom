@@ -1,12 +1,5 @@
 import {Theme} from "./Theme.js";
-import {
-	createDomByHtml,
-	domContained,
-	getDomOffset,
-	hide,
-	insertStyleSheet,
-	show
-} from "../Lang/Dom.js";
+import {createDomByHtml, domContained, getDomOffset, hide, insertStyleSheet, remove, show} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
 import {bindNodeActive, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
@@ -537,7 +530,7 @@ class Select {
 			}
 			options = resolveListOption(datalistEl, inputEl.value);
 			inputEl.removeAttribute('list');
-			datalistEl.parentNode.removeChild(datalistEl);
+			remove(datalistEl);
 		}
 		let sel = new Select({
 			name: inputEl.name,

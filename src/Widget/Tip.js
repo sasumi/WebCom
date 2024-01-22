@@ -6,6 +6,7 @@ import {
 	hide,
 	insertStyleSheet,
 	rectInLayout,
+	remove,
 	show
 } from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
@@ -236,7 +237,7 @@ export class Tip {
 	}
 
 	destroy(){
-		this.dom.parentNode.removeChild(this.dom);
+		remove(this.dom);
 		this.onDestroy.fire();
 		for(let i in TIP_COLLECTION){
 			if(TIP_COLLECTION[i] === this){

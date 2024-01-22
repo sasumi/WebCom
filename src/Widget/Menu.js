@@ -1,5 +1,5 @@
 import {Theme} from "./Theme.js";
-import {createDomByHtml, getDomDimension, insertStyleSheet} from "../Lang/Dom.js";
+import {createDomByHtml, getDomDimension, insertStyleSheet, remove} from "../Lang/Dom.js";
 import {KEYS} from "../Lang/Event.js";
 import {dimension2Style} from "../Lang/Html.js";
 import {guid} from "../Lang/Util.js";
@@ -102,7 +102,7 @@ export const createMenu = (commands, onExecute = null) => {
 let LAST_MENU;
 
 const hideLastMenu = ()=>{
-	LAST_MENU && LAST_MENU.parentNode.removeChild(LAST_MENU);
+	remove(LAST_MENU);
 	LAST_MENU = null;
 }
 

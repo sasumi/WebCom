@@ -1,4 +1,4 @@
-import {createDomByHtml, getContextWindow, hide, insertStyleSheet, show} from "./../Lang/Dom.js"
+import {createDomByHtml, getContextWindow, hide, insertStyleSheet, remove, show} from "./../Lang/Dom.js"
 import {Theme} from "./Theme.js";
 
 const COM_ID = Theme.Namespace + 'toast';
@@ -197,7 +197,7 @@ class Toast{
 			}, FADEOUT_TIME);
 			return;
 		}
-		this.dom.parentNode.removeChild(this.dom);
+		remove(this.dom);
 		this.dom = null;
 		let wrapper = getWrapper();
 		if(!wrapper.childNodes.length){

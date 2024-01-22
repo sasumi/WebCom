@@ -137,7 +137,7 @@ export const bindNodeEvents = (node, event, payload, option, triggerAtOnce = fal
  * @param {HTMLElement} container
  * @param {String} selector
  * @param {String} eventName
- * @param {Function} payload
+ * @param {Function} payload(event, matchedTarget) 回调，第二个参数为匹配的对象节点
  */
 export const eventDelegate = (container, selector, eventName, payload)=>{
 	container.addEventListener(eventName, ev=>{
