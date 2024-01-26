@@ -33,6 +33,9 @@ export const sortable = (listNode, option = {}) => {
 	let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
 	Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
 	listNode.addEventListener('dragstart', e => {
+		if(e.target === listNode){
+			return;
+		}
 		let tag = matchTarget(listNode, e.target);
 		currentNode = tag;
 		currentParent = listNode;
@@ -43,6 +46,9 @@ export const sortable = (listNode, option = {}) => {
 		}, 0);
 	});
 	listNode.addEventListener('dragenter', e => {
+		if(e.target === listNode){
+			return;
+		}
 		let tag = matchTarget(listNode, e.target);
 		if(!currentNode || currentParent !== listNode || tag === listNode || tag === currentNode){
 			return;
@@ -57,6 +63,9 @@ export const sortable = (listNode, option = {}) => {
 		}
 	});
 	listNode.addEventListener('dragend', e => {
+		if(e.target === listNode){
+			return;
+		}
 		let tag = matchTarget(listNode, e.target);
 		currentNode = null;
 		currentParent = null;
