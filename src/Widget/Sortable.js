@@ -4,6 +4,23 @@ const CLS_ON_DRAG = Theme.Namespace + '-on-drag';
 const CLS_DRAG_PROXY = Theme.Namespace + '-drag-proxy';
 
 /**
+ * @param {Node} container
+ * @param {Node} eventTarget
+ * @return {Node}
+ */
+const matchTarget = (container, eventTarget) => {
+	let children = Array.from(container.children);
+	let p = eventTarget;
+	while(p){
+		if(children.includes(p)){
+			return p;
+		}
+		p = p.parentNode;
+	}
+	throw "event target no in container";
+}
+
+/**
  * @param {Node} listNode
  * @param {Object} option
  * @param {String} option.ClassOnDrag 占位对象类名
@@ -16,30 +33,33 @@ export const sortable = (listNode, option = {}) => {
 	let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
 	Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
 	listNode.addEventListener('dragstart', e => {
-		currentNode = e.target;
+		let tag = matchTarget(listNode, e.target);
+		currentNode = tag;
 		currentParent = listNode;
 		currentNode.classList.add(ClassProxy);
 		setTimeout(() => {
-			e.target.classList.remove(ClassProxy);
-			e.target.classList.add(ClassOnDrag);
+			tag.classList.remove(ClassProxy);
+			tag.classList.add(ClassOnDrag);
 		}, 0);
 	});
 	listNode.addEventListener('dragenter', e => {
-		if(!currentNode || currentParent !== listNode || e.target === listNode || e.target === currentNode){
+		let tag = matchTarget(listNode, e.target);
+		if(!currentNode || currentParent !== listNode || tag === listNode || tag === currentNode){
 			return;
 		}
 		let children = Array.from(listNode.children); //实时从拖动之后的children中拿
 		let currentIndex = children.indexOf(currentNode);
-		let targetIndex = children.indexOf(e.target);
+		let targetIndex = children.indexOf(tag);
 		if(currentIndex > targetIndex){
-			listNode.insertBefore(currentNode, e.target.previousSibling);
+			listNode.insertBefore(currentNode, tag.previousSibling);
 		}else{
-			listNode.insertBefore(currentNode, e.target.nextSibling);
+			listNode.insertBefore(currentNode, tag.nextSibling);
 		}
 	});
 	listNode.addEventListener('dragend', e => {
+		let tag = matchTarget(listNode, e.target);
 		currentNode = null;
 		currentParent = null;
-		e.target.classList.remove(ClassOnDrag);
+		tag.classList.remove(ClassOnDrag);
 	});
 }
