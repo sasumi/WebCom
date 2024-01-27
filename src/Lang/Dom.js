@@ -203,7 +203,7 @@ export const onDomTreeChange = (dom, callback, includeElementChanged = true) => 
  * domChangedWatch(ListDom, 'input:checked', exists=>button.disabled = !exists);
  * @param {Node} container 指定容器
  * @param {String} matchedSelector 匹配子节点的选择器
- * @param {Function} notification(Boolean) 通知函数，产生于为 true|false，表示是否包含选择器子节点
+ * @param {Function} notification(collection) 通知函数，产生于为 []，表示是否包含选择器子节点数组
  * @param {Boolean} executionFirst 是否在一开始先执行一次通知函数
  */
 export const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {

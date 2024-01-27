@@ -18,8 +18,8 @@ export class ACMultiSelectRelate {
 				button.removeAttribute('disabled');
 				button.classList.remove('button-disabled');
 			}
-			domChangedWatch(container, 'input:checked', exists => {
-				exists ? enableBtn() : disableBtn()
+			domChangedWatch(container, 'input:checked', coll => {
+				coll.length ? enableBtn() : disableBtn()
 			});
 		})
 	}
