@@ -677,7 +677,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
 		const payload = () => {
 			tm && clearTimeout(tm);
-			tm = setTimeout(callback, 10);
+			tm = setTimeout(callback, 0);
 		};
 		const watchEls = (els) => {
 			if(!els || !els.length){
@@ -5742,7 +5742,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let currentParent = null;
 		let ClassOnDrag = option.ClassOnDrag || CLS_ON_DRAG;
 		let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
-		Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
+		domChangedWatch(listNode, 'li', ()=>{
+			Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
+		}, true);
 		listNode.addEventListener('dragstart', e => {
 			if(e.target === listNode){
 				return;

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #box {height:400px; width:600px; border:10px solid red;}
+        #box video {width:100%; height:100%;}
+    </style>
+</head>
+<body>
+<script>
+
+	const BASE64_KEY_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+	const utf8Encode = (srcStr) => {
+		srcStr = srcStr.replace(/\r\n/g, "n");
+		let t = "";
+		for(let n = 0; n < srcStr.length; n++){
+			let r = srcStr.charCodeAt(n);
+			if(r < 128){
+				t += String.fromCharCode(r)
+			}else if(r > 127 && r < 2048){
+				t += String.fromCharCode(r >> 6 | 192);
+				t += String.fromCharCode(r & 63 | 128)
+			}else{
+				t += String.fromCharCode(r >> 12 | 224);
+				t += String.fromCharCode(r >> 6 & 63 | 128);
+				t += String.fromCharCode(r & 63 | 128)
+			}
+		}
+		return t;
+	};
+
+	const Base64Encode = (text) => {
+		let t = "";
+		let n, r, i, s, o, u, a;
+		let f = 0;
+		text = utf8Encode(text);
+		while(f < text.length){
+			n = text.charCodeAt(f++);
+			r = text.charCodeAt(f++);
+			i = text.charCodeAt(f++);
+			s = n >> 2;
+			o = (n & 3) << 4 | r >> 4;
+			u = (r & 15) << 2 | i >> 6;
+			a = i & 63;
+			if(isNaN(r)){
+				u = a = 64
+			}else if(isNaN(i)){
+				a = 64
+			}
+			t = t + BASE64_KEY_STR.charAt(s) + BASE64_KEY_STR.charAt(o) + BASE64_KEY_STR.charAt(u) + BASE64_KEY_STR.charAt(a)
+		}
+		return t
+	}
+</script>
+<script src="assets/nav.js"></script>
+    <div>
+        <h1>svg</h1>
+
+	    <svg xmlns="http://www.w3.org/2000/svg" >
+		    <circle id="mycircle" cx="50%" cy="50%" r="50" />
+	    </svg>
+
+	    <svg xmlns="http://www.w3.org/2000/svg"><text  x="0" y="20" fill="red">hello world</text></svg>
+
+	    <svg width="300" height="180">
+		    <text x="50" y="25">Hello World</text>
+	    </svg>
+
+
+	    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><text x="0" y="20" fill="#aaa">-</text></svg>
+
+        <input type="text" name="" id="">
+
+        <div class="bgi"></div>
+
+        <style>
+            .bgi {width:200px; height:200px; border:1px solid green;}
+            .bgi {background-image:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"%3E%3Ctext x="5" y="20" fill="#bbbbbb"%3E-%3C/text%3E%3C/svg%3E')}
+        </style>
+
+    </div>
+</body>
+</html>
