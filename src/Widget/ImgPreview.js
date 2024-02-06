@@ -213,13 +213,13 @@ insertStyleSheet(`
  */
 const destroy = () => {
 	if(!PREVIEW_DOM){
-		return;
+		return false;
 	}
 	remove(PREVIEW_DOM);
 	PREVIEW_DOM = null;
 	window.removeEventListener('resize', onWinResize);
-	document.removeEventListener('keyup', bindKeyUp);
 	document.removeEventListener('keydown', bindKeyDown);
+	return true;
 };
 
 /**
@@ -440,22 +440,22 @@ const constructDom = () => {
 
 	//bind resize
 	window.addEventListener('resize', onWinResize);
-	document.addEventListener('keydown', bindKeyDown);
-	document.addEventListener('keyup', bindKeyUp);
+	PREVIEW_DOM.addEventListener('keydown', bindKeyDown); //通过preview dom 提前拦截keydown时间，避免其他组件（如Dialog调用）
 };
-
-const bindKeyUp = (e) => {
-	if(e.keyCode === KEYS.Esc){
-		destroy();
-	}
-}
 
 const bindKeyDown = (e) => {
 	if(e.keyCode === KEYS.LeftArrow){
+		e.stopPropagation();
 		navTo(true);
 	}
 	if(e.keyCode === KEYS.RightArrow){
+		e.stopPropagation();
 		navTo(false);
+	}
+	if(e.keyCode === KEYS.Esc){
+		if(destroy()){
+			e.stopPropagation();
+		}
 	}
 }
 

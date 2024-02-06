@@ -65,12 +65,12 @@ insertStyleSheet(`
 /**
  * 绑定ESC按键事件关闭最上一层可关闭的对话框
  */
-document.addEventListener('keyup', e => {
+document.addEventListener('keydown', e => {
 	if(e.keyCode === KEYS.Esc){
 		let current = DialogManager.getFrontDialog();
 		if(current && current.config.showTopCloseButton){
 			DialogManager.close(current);
-			return false;
+			e.stopImmediatePropagation();
 		}
 	}
 });
@@ -367,6 +367,11 @@ const eventBind = (dlg) => {
 	//bind dialog active
 	dlg.dom.addEventListener('mousedown', () => {
 		dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
+	});
+
+	//阻止原生modal对话框，ESC关闭对话框
+	dlg.dom.addEventListener('cancel', e=>{
+		e.preventDefault();
 	});
 
 	//bind buttons event

@@ -2234,12 +2234,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; display:block; min-height:30px;}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID$3 + '-style');
-	document.addEventListener('keyup', e => {
+	document.addEventListener('keydown', e => {
 		if(e.keyCode === KEYS.Esc){
 			let current = DialogManager.getFrontDialog();
 			if(current && current.config.showTopCloseButton){
 				DialogManager.close(current);
-				return false;
+				e.stopImmediatePropagation();
 			}
 		}
 	});
@@ -2426,6 +2426,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const eventBind = (dlg) => {
 		dlg.dom.addEventListener('mousedown', () => {
 			dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
+		});
+		dlg.dom.addEventListener('cancel', e=>{
+			e.preventDefault();
 		});
 		for(let i in dlg.config.buttons){
 			let cb = dlg.config.buttons[i].callback || dlg.close;
@@ -3371,7 +3374,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 	.${DOM_CLASS}{width:100vw;height:100vh; max-height:100vh !important; max-width:100vw !important; overflow:hidden; padding:0; margin:0; border:none; background-color:#fff0;}
 	.${DOM_CLASS}::backdrop {backdrop-filter:brightness(0.65) blur(10px)}
-	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
+	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:20px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before{font-family:"${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
 	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
@@ -3442,13 +3445,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 `, Theme.Namespace + 'img-preview-style');
 	const destroy = () => {
 		if(!PREVIEW_DOM){
-			return;
+			return false;
 		}
 		remove(PREVIEW_DOM);
 		PREVIEW_DOM = null;
 		window.removeEventListener('resize', onWinResize);
-		document.removeEventListener('keyup', bindKeyUp);
 		document.removeEventListener('keydown', bindKeyDown);
+		return true;
 	};
 	const updateNavState = () => {
 		let prev = PREVIEW_DOM.querySelector('.civ-prev');
@@ -3626,20 +3629,21 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 		PREVIEW_DOM.showModal();
 		window.addEventListener('resize', onWinResize);
-		document.addEventListener('keydown', bindKeyDown);
-		document.addEventListener('keyup', bindKeyUp);
-	};
-	const bindKeyUp = (e) => {
-		if(e.keyCode === KEYS.Esc){
-			destroy();
-		}
+		PREVIEW_DOM.addEventListener('keydown', bindKeyDown);
 	};
 	const bindKeyDown = (e) => {
 		if(e.keyCode === KEYS.LeftArrow){
+			e.stopPropagation();
 			navTo(true);
 		}
 		if(e.keyCode === KEYS.RightArrow){
+			e.stopPropagation();
 			navTo(false);
+		}
+		if(e.keyCode === KEYS.Esc){
+			if(destroy()){
+				e.stopPropagation();
+			}
 		}
 	};
 	let resize_tm = null;
