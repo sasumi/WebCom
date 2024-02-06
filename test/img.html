@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Image Preview</title>
+	<style>
+		.single img,
+		.multiple-images img {height:50px; width:80px;}
+		li {list-style:none;}
+
+		img[loading] {
+			content:"loading"
+		}
+
+		img[broken] {
+			position:relative;
+			border:none;
+		}
+		img[broken]:before {
+			content:""; width:100%;
+			height:100%;
+			background-color:#ccc;
+			position:absolute;
+			top:50%;
+			left:0;
+			transform:translateY(-50%);
+		}
+		img[broken]:after {
+			content:"xx";
+			z-index:2;
+			position:absolute;
+			top:0;
+			left:0;
+			width:100%;
+			height:100%;
+		}
+	</style>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+<h1>Broken Image</h1>
+<div class="single">
+	<a href="img/BingImageOfTheDay_20210219.jpg">
+		<img  loading alt="">
+		<img src="img/BingImageOfTheDay_202102190.jpg" broken alt="">
+	</a>
+</div>
+</body>
+</html>

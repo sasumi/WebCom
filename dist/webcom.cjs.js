@@ -2189,14 +2189,14 @@ const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
 const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 insertStyleSheet(`
 	.${DLG_CLS_PREF} {border:none; margin:auto !important; padding:0 !important; /** 原生浏览器有1em内边距 **/ border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:auto; min-width:1em; box-sizing:border-box; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR});}
-	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;max-width: calc(100% - 6px - 2em);max-height: calc(100% - 6px - 2em);}
+	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;}
 	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
 	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; max-height:calc(100vh - 6em)}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
