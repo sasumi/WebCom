@@ -3711,7 +3711,7 @@ var WebCom = (function (exports) {
 <ul class="${DOM_CLASS}-option-list">
 	<li>
 		<label>界面：</label>
-		<label>
+		<label style="display:none" title="该选项不启用，操作不闭环">
 			<input type="checkbox" name="show_toolbar" value="1">显示顶部操作栏
 		</label>
 		<label>
