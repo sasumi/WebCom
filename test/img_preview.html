@@ -30,17 +30,16 @@
 	<li><img src="img/png1.thumb.png" alt="BingImageOfTheDay_20210311"></li>
 	<li><img src="img/BingImageOfTheDay_20210308.thumb.jpg" alt="BingImageOfTheDay_20210308"></li>
 	<li><img src="img/BingImageOfTheDay_20210309.thumb.jpg" alt="BingImageOfTheDay_20210309"></li>
-	<li><img src="img/BingImageOfTheDay_20210310.thumb.jpg" alt="BingImageOfTheDay_20210310"></li>
-	<li><img src="img/BingImageOfTheDay_20210311.thumb.jpg" alt="BingImageOfTheDay_20210311"></li>
-	<li><img src="img/BingImageOfTheDay_20210308.thumb.jpg" alt="BingImageOfTheDay_20210308"></li>
-	<li><img src="img/BingImageOfTheDay_20210309.thumb.jpg" alt="BingImageOfTheDay_20210309"></li>
-	<li><img src="img/BingImageOfTheDay_20210310.thumb.jpg" alt="BingImageOfTheDay_20210310"></li>
-	<li><img src="img/BingImageOfTheDay_20210311.thumb.jpg" alt="BingImageOfTheDay_20210311"></li>
-	<li><img src="img/BingImageOfTheDay_20210308.thumb.jpg" alt="BingImageOfTheDay_20210308"></li>
 	<li><img src="img/BingImageOfTheDay_20210309.thumb.jpg" alt="BingImageOfTheDay_20210309"></li>
 	<li><img src="img/BingImageOfTheDay_20210310.thumb.jpg" alt="BingImageOfTheDay_20210310"></li>
 	<li><img src="img/BingImageOfTheDay_20210311.thumb.jpg" alt="BingImageOfTheDay_20210311"></li>
 </ul>
+
+<button id="showdlgbtn">Image in dialog</button>
+<dialog id="dlg">
+	<h1>image in dialog</h1>
+	<img src="img/BingImageOfTheDay_20210311.thumb.jpg" alt="BingImageOfTheDay_20210311">
+</dialog>
 
 <script type="module">
 	import {bindImgPreviewViaSelector, showImgPreview} from "../src/index.js";
@@ -49,7 +48,16 @@
 		showImgPreview(this.querySelector('img').src);
 		e.preventDefault();
 	});
-	bindImgPreviewViaSelector('img', 'click', (img)=>{return img.src.replace('.thumb', '')}, {preloadSrcList:false});
+
+	window.showdlgbtn.addEventListener('click', e=>{
+		window.dlg.showModal();
+	});
+
+	window.dlg.querySelector('img').addEventListener('click', e=>{
+		showImgPreview(e.target.src);
+	});
+
+	bindImgPreviewViaSelector('.multiple-images img', 'click', (img)=>{return img.src.replace('.thumb', '')}, {preloadSrcList:false});
 </script>
 </body>
 </html>

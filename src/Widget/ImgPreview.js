@@ -11,13 +11,11 @@ import {
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {eventDelegate, KEYS} from "../Lang/Event.js";
-import {Masker} from "./Masker.js";
 import {downloadFile} from "../Lang/Net.js";
 import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
 import {LocalStorageSetting} from "./LocalStorageSetting.js";
 import {convertFormDataToObject, convertObjectToFormData, formSync} from "../Lang/Form.js";
-import {bindTargetContextMenu} from "./Menu.js";
 import {dimension2Style} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'com-image-viewer'
@@ -117,7 +115,6 @@ const DEFAULT_SETTING = {
 	allow_move: true,
 	show_thumb_list: false,
 	show_toolbar: true,
-	show_context_menu: true,
 };
 let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace + 'com-image-viewer/');
 
@@ -139,8 +136,9 @@ insertStyleSheet(`
 	 @keyframes ${Theme.Namespace}spin{
 		100%{transform:rotate(360deg);}
 	}
-	.${DOM_CLASS}{position:fixed;z-index:${BASE_INDEX};width:100%;height:100%;overflow:hidden;top:0;left:0;}
-	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
+	.${DOM_CLASS}{width:100vw;height:100vh; max-height:100vh !important; max-width:100vw !important; overflow:hidden; padding:0; margin:0; border:none; background-color:#fff0;}
+	.${DOM_CLASS}::backdrop {backdrop-filter:brightness(0.65) blur(10px)}
+	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:20px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before{font-family:"${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
 	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
@@ -191,7 +189,7 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation:${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size); line-height:var(--loading-size)}
 	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
+	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #484848; background:url('${GRID_IMG_BG}')}
 
 	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-btn,
 	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-wrap{display:none;}
@@ -219,7 +217,6 @@ const destroy = () => {
 	}
 	remove(PREVIEW_DOM);
 	PREVIEW_DOM = null;
-	Masker.hide();
 	window.removeEventListener('resize', onWinResize);
 	document.removeEventListener('keyup', bindKeyUp);
 	document.removeEventListener('keydown', bindKeyDown);
@@ -307,18 +304,6 @@ const bindImgMove = (img) => {
 		};
 		e.preventDefault();
 	});
-	if(LocalSetting.get('show_context_menu')){
-		let context_commands = [];
-		CONTEXT_MENU_OPTIONS.forEach(cmdInfo => {
-			if(cmdInfo === '-'){
-				context_commands.push('-');
-			}else{
-				let [cmd_id, title, payload] = cmdInfo;
-				context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
-			}
-		});
-		bindTargetContextMenu(img, context_commands);
-	}
 
 	['mouseup', 'mouseout'].forEach(ev => {
 		img.addEventListener(ev, e => {
@@ -344,7 +329,6 @@ const showImgSrc = (img_index = 0) => {
 		let err = PREVIEW_DOM.querySelector('.civ-error');
 		let img_ctn = PREVIEW_DOM.querySelector('.civ-img');
 		img_ctn.innerHTML = '';
-		Masker.show();
 		show(loading);
 		hide(err);
 		loadImgBySrc(imgItem.normal).then(img => {
@@ -396,7 +380,7 @@ const constructDom = () => {
 	</span>`;
 
 	PREVIEW_DOM = createDomByHtml(`
-		<div class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
+		<dialog class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
 			<span class="civ-closer" data-cmd="${CMD_CLOSE[0]}" title="ESC to close">close</span>
 			<span class="civ-nav-btn civ-prev" data-cmd="${CMD_NAV_TO[0]}" data-dir="0"></span>
 			<span class="civ-nav-btn civ-next" data-cmd="${CMD_NAV_TO[0]}" data-dir="1"></span>
@@ -407,7 +391,7 @@ const constructDom = () => {
 				<span class="civ-error"></span>
 				<span class="civ-img"></span>
 			</div>
-		</div>
+		</dialog>
 	`, document.body);
 
 	LocalSetting.each((k, v) => {
@@ -451,6 +435,8 @@ const constructDom = () => {
 		e.preventDefault();
 		return false;
 	})
+
+	PREVIEW_DOM.showModal();
 
 	//bind resize
 	window.addEventListener('resize', onWinResize);
@@ -601,17 +587,9 @@ const showOptionDialog = () => {
 </ul>
 	`
 	let dlg = Dialog.show('设置', html, {
-		showMasker: false,
-		modal: false
+		modal: true
 	});
 	dlg.dom.style.zIndex = OPTION_DLG_INDEX + "";
-	dlg.onClose.listen(() => {
-		setTimeout(() => {
-			if(PREVIEW_DOM){
-				Masker.show();
-			}
-		}, 0);
-	});
 	let lsSetterTip = null;
 	formSync(dlg.dom, (name) => {
 		return new Promise((resolve, reject) => {
@@ -652,21 +630,7 @@ const TOOLBAR_OPTIONS = [
 	CMD_ROTATE_LEFT,
 	CMD_ROTATE_RIGHT,
 	CMD_VIEW_ORG,
-	CMD_DOWNLOAD,
-	CMD_OPTION
-];
-
-const CONTEXT_MENU_OPTIONS = [
-	CMD_ZOOM_OUT,
-	CMD_ZOOM_IN,
-	CMD_ZOOM_ORG,
-	'-',
-	CMD_ROTATE_LEFT,
-	CMD_ROTATE_RIGHT,
-	'-',
-	CMD_VIEW_ORG,
-	CMD_DOWNLOAD,
-	'-',
+	// CMD_DOWNLOAD,
 	CMD_OPTION
 ];
 
@@ -715,7 +679,6 @@ const init = ({
 	mouse_scroll_type !== null && LocalSetting.set('mouse_scroll_type', mouse_scroll_type);
 	showThumbList !== null && LocalSetting.set('show_thumb_list', showThumbList);
 	showToolbar !== null && LocalSetting.set('show_toolbar', showToolbar);
-	showContextMenu !== null && LocalSetting.set('show_context_menu', showContextMenu);
 
 	constructDom();
 	showImgSrc(IMG_CURRENT_INDEX).finally(() => {

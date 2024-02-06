@@ -3196,49 +3196,6 @@
 		return rgb;
 	};
 
-	let default_masker = null;
-	let CSS_CLASS = Theme.Namespace + '-masker';
-	const showMasker = (masker) => {
-		if(!masker){
-			masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
-		}
-		masker.style.display = '';
-		return masker;
-	};
-	const hideMasker = (masker) => {
-		masker && (masker.style.display = 'none');
-	};
-	const Masker = {
-		zIndex: Theme.MaskIndex,
-		show: () => {
-			default_masker = showMasker(default_masker);
-		},
-		hide: () => {
-			hideMasker(default_masker);
-		},
-		instance: () => {
-			let new_masker;
-			return {
-				show: () => {
-					new_masker = showMasker(new_masker);
-				},
-				hide: () => {
-					hideMasker(new_masker);
-				}
-			}
-		}
-	};
-	insertStyleSheet(`
-.${CSS_CLASS} {
-	position:fixed;
-	top:0;left:0;
-	right:0;
-	bottom:0;
-	background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
-	backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
-	z-index:${Masker.zIndex}}
-`, Theme.Namespace + 'masker-style');
-
 	const json_decode = (v) => {
 		return v === null ? null : JSON.parse(v);
 	};
@@ -3307,194 +3264,6 @@
 			return obj;
 		}
 	}
-
-	let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
-	let CTX_Z_INDEX = Theme.ContextIndex;
-	insertStyleSheet(`
-	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
-	.${CTX_CLASS_PREFIX},
-	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
-	.${CTX_CLASS_PREFIX} ul {left:100%; top:0;}
-	.${CTX_CLASS_PREFIX} li:not([disabled]):hover>ul {display:block;}
-	.${CTX_CLASS_PREFIX} li[role=menuitem] {padding:0 1em; line-height:1; position:relative; min-height:2em; display:flex; align-items:center; background: transparent;user-select:none;opacity: 0.5; cursor:default;}
-	.${CTX_CLASS_PREFIX} li[role=menuitem]>* {flex:1; line-height:1}
-	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]) {cursor:pointer; opacity:1;}
-	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]):hover {background-color: #eeeeee9c;text-shadow: 1px 1px 1px white;opacity: 1;}
-	.${CTX_CLASS_PREFIX} li[data-has-child]:after {content:"\\e73b"; font-family:${Theme.IconFont}; zoom:0.7; position:absolute; right:0.5em; color:var(${Theme.CssVar.DISABLE_COLOR});}
-	.${CTX_CLASS_PREFIX} li[data-has-child]:not([disabled]):hover:after {color:var(${Theme.CssVar.COLOR})}
-	.${CTX_CLASS_PREFIX} .sep {margin:0.25em 0.5em;border-bottom:1px solid #eee;}
-	.${CTX_CLASS_PREFIX} .caption {padding-left: 1em;opacity: 0.7;user-select: none;display:flex;align-items: center;}
-	.${CTX_CLASS_PREFIX} .caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
-	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
-	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
-`);
-	const createMenu = (commands, onExecute = null) => {
-		let html = `<ul class="${CTX_CLASS_PREFIX}">`;
-		let payload_map = {};
-		let buildMenuItemHtml = (item) => {
-			let html = '';
-			if(item === '-'){
-				html += '<li class="sep"></li>';
-				return html;
-			}
-			let [title, cmdOrChildren, disabled] = item;
-			let has_child = Array.isArray(cmdOrChildren);
-			let mnu_item_id = guid();
-			let sub_menu_html = '';
-			if(has_child){
-				sub_menu_html = '<ul>';
-				cmdOrChildren.forEach(subItem => {
-					sub_menu_html += buildMenuItemHtml(subItem);
-				});
-				sub_menu_html += '</ul>';
-			}else {
-				payload_map[mnu_item_id] = cmdOrChildren;
-			}
-			html += `<li role="menuitem" data-id="${mnu_item_id}" ${has_child ? ' data-has-child ' : ''} ${disabled ? 'disabled="disabled"' : 'tabindex="0"'}>${title}${sub_menu_html}</li>`;
-			return html;
-		};
-		for(let i = 0; i < commands.length; i++){
-			let item = commands[i];
-			html += buildMenuItemHtml(item);
-		}
-		html += '</ul>';
-		let menu = createDomByHtml(html, document.body);
-		let items = menu.querySelectorAll('[role=menuitem]:not([disabled])');
-		items.forEach(function(item){
-			let id = item.getAttribute('data-id');
-			let payload = payload_map[id];
-			if(payload){
-				item.addEventListener('click', () => {
-					payload();
-					onExecute && onExecute(item);
-				});
-			}
-		});
-		let sub_menus = menu.querySelectorAll('ul');
-		sub_menus.forEach(function(sub_menu){
-			let parent_item = sub_menu.parentNode;
-			parent_item.addEventListener('mouseover', e => {
-				let pos = alignSubMenuByNode(sub_menu, parent_item);
-				sub_menu.style.left = dimension2Style(pos.left);
-				sub_menu.style.top = dimension2Style(pos.top);
-			});
-		});
-		menu.addEventListener('contextmenu', e => {
-		});
-		return menu;
-	};
-	let LAST_MENU;
-	const hideLastMenu = ()=>{
-		remove(LAST_MENU);
-		LAST_MENU = null;
-	};
-	const bindTargetContextMenu = (target, commands, option = {}) => {
-		option.triggerType = 'contextmenu';
-		return bindTargetMenu(target, commands, option);
-	};
-	const bindTargetDropdownMenu = (target, commands, option = {}) => {
-		option.triggerType = 'click';
-		return bindTargetMenu(target, commands, option);
-	};
-	const showContextMenu = (commands,position)=>{
-		hideLastMenu();
-		let menuEl = createMenu(commands);
-		LAST_MENU = menuEl;
-		let pos = calcMenuByPosition(menuEl, {left: position.left, top: position.top});
-		menuEl.style.left = dimension2Style(pos.left);
-		menuEl.style.top = dimension2Style(pos.top);
-		menuEl.style.display = 'block';
-	};
-	const bindTargetMenu = (target, commands, option = null) => {
-		let triggerType = option?.triggerType || 'click';
-		target.addEventListener(triggerType, e => {
-			hideLastMenu();
-			let menuEl = createMenu(commands);
-			LAST_MENU = menuEl;
-			let pos;
-			if(triggerType === 'contextmenu'){
-				pos = calcMenuByPosition(menuEl, {left: e.clientX, top: e.clientY});
-			}else {
-				pos = alignMenuByNode(menuEl, target);
-			}
-			menuEl.style.left = dimension2Style(pos.left);
-			menuEl.style.top = dimension2Style(pos.top);
-			menuEl.style.display = 'block';
-			e.preventDefault();
-			e.stopPropagation();
-			return false;
-		});
-	};
-	const calcMenuByPosition = (menuEl, point) => {
-		let menu_dim = getDomDimension(menuEl);
-		let con_dim = {width: window.innerWidth, height: window.innerHeight};
-		let top, left = point.left;
-		let right_available = menu_dim.width + point.left <= con_dim.width;
-		let bottom_available = menu_dim.height + point.top <= con_dim.height;
-		let top_available = point.top - menu_dim.height > 0;
-		if(right_available && bottom_available){
-			left = point.left;
-			top = point.top;
-		}else if(right_available && !bottom_available){
-			left = point.left;
-			top = Math.max(con_dim.height - menu_dim.height, 0);
-		}else if(!right_available && bottom_available){
-			left = Math.max(con_dim.width - menu_dim.width, 0);
-			top = point.top;
-		}else if(!right_available && !bottom_available){
-			if(top_available){
-				left = Math.max(con_dim.width - menu_dim.width, 0);
-				top = point.top - menu_dim.height;
-			}else {
-				left = Math.max(con_dim.width - menu_dim.width, 0);
-				top = point.top;
-			}
-		}
-		return {top, left};
-	};
-	const alignMenuByNode = (menuEl, relateNode) => {
-		let top, left;
-		let menu_dim = getDomDimension(menuEl);
-		let relate_node_offset = relateNode.getBoundingClientRect();
-		let con_dim = {width: window.innerWidth, height: window.innerHeight};
-		if((con_dim.height - relate_node_offset.top) > menu_dim.height && (con_dim.height - relate_node_offset.top - relate_node_offset.height) < menu_dim.height){
-			top = relate_node_offset.top - menu_dim.height;
-		}else {
-			top = relate_node_offset.top + relate_node_offset.height;
-		}
-		if((relate_node_offset.left + relate_node_offset.width) > menu_dim.width && (con_dim.width - relate_node_offset.left) < menu_dim.width){
-			left = relate_node_offset.left + relate_node_offset.width - menu_dim.width;
-		}else {
-			left = relate_node_offset.left;
-		}
-		return {top, left};
-	};
-	const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
-		let menu_dim = getDomDimension(subMenuEl);
-		let relate_node_offset = triggerMenuItem.getBoundingClientRect();
-		let con_dim = {width: window.innerWidth, height: window.innerHeight};
-		let top;
-		let left;
-		if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
-			top = con_dim.height - (relate_node_offset.top + menu_dim.height);
-		} else {
-			top = 0;
-		}
-		if(relate_node_offset.left > menu_dim.width && (relate_node_offset.left + relate_node_offset.width + menu_dim.width > con_dim.width)){
-			left = 0 - menu_dim.width;
-		}else {
-			left = relate_node_offset.width;
-		}
-		return {top, left};
-	};
-	document.addEventListener('click', e => {
-		hideLastMenu();
-	});
-	document.addEventListener('keyup', e => {
-		if(e.keyCode === KEYS.Esc){
-			hideLastMenu();
-		}
-	});
 
 	const COM_ID$2 = Theme.Namespace + 'com-image-viewer';
 	const CONTEXT_WINDOW = getContextWindow();
@@ -3573,7 +3342,6 @@
 		allow_move: true,
 		show_thumb_list: false,
 		show_toolbar: true,
-		show_context_menu: true,
 	};
 	let LocalSetting = new LocalStorageSetting(DEFAULT_SETTING, Theme.Namespace + 'com-image-viewer/');
 	const srcSetResolve = srcSet => {
@@ -3588,7 +3356,8 @@
 	 @keyframes ${Theme.Namespace}spin{
 		100%{transform:rotate(360deg);}
 	}
-	.${DOM_CLASS}{position:fixed;z-index:${BASE_INDEX};width:100%;height:100%;overflow:hidden;top:0;left:0;}
+	.${DOM_CLASS}{width:100vw;height:100vh; max-height:100vh !important; max-width:100vw !important; overflow:hidden; padding:0; margin:0; border:none; background-color:#fff0;}
+	.${DOM_CLASS}::backdrop {backdrop-filter:brightness(0.65) blur(10px)}
 	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:10px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before{font-family:"${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
@@ -3640,7 +3409,7 @@
 	.${DOM_CLASS} .civ-loading{--loading-size:50px; position:absolute; left:50%; top:50%; margin:calc(var(--loading-size) / 2) 0 0 calc(var(--loading-size) / 2)}
 	.${DOM_CLASS} .civ-loading:before{content:"\\e635"; font-family:"${Theme.IconFont}" !important; animation:${Theme.Namespace}spin 3s infinite linear; font-size:var(--loading-size); color:#ffffff6e; display:block; width:var(--loading-size); height:var(--loading-size); line-height:var(--loading-size)}
 	.${DOM_CLASS} .civ-img{height:100%; display:block; box-sizing:border-box; position:relative;}
-	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #898989; background:url('${GRID_IMG_BG}')}
+	.${DOM_CLASS} .civ-img img{position:absolute; left:50%; top:50%; transition:width 0.1s, height 0.1s, transform 0.1s; transform:translate(-50%, -50%); box-shadow:1px 1px 20px #484848; background:url('${GRID_IMG_BG}')}
 
 	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-btn,
 	.${DOM_CLASS}[data-ip-mode="1"] .civ-nav-wrap{display:none;}
@@ -3664,7 +3433,6 @@
 		}
 		remove(PREVIEW_DOM);
 		PREVIEW_DOM = null;
-		Masker.hide();
 		window.removeEventListener('resize', onWinResize);
 		document.removeEventListener('keyup', bindKeyUp);
 		document.removeEventListener('keydown', bindKeyDown);
@@ -3729,18 +3497,6 @@
 			};
 			e.preventDefault();
 		});
-		if(LocalSetting.get('show_context_menu')){
-			let context_commands = [];
-			CONTEXT_MENU_OPTIONS.forEach(cmdInfo => {
-				if(cmdInfo === '-'){
-					context_commands.push('-');
-				}else {
-					let [cmd_id, title, payload] = cmdInfo;
-					context_commands.push([`<i class="${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmd_id}"></i>` + title, payload]);
-				}
-			});
-			bindTargetContextMenu(img, context_commands);
-		}
 		['mouseup', 'mouseout'].forEach(ev => {
 			img.addEventListener(ev, e => {
 				moving = false;
@@ -3760,7 +3516,6 @@
 			let err = PREVIEW_DOM.querySelector('.civ-error');
 			let img_ctn = PREVIEW_DOM.querySelector('.civ-img');
 			img_ctn.innerHTML = '';
-			Masker.show();
 			show(loading);
 			hide(err);
 			loadImgBySrc(imgItem.normal).then(img => {
@@ -3809,7 +3564,7 @@
 	}, "")}
 	</span>`;
 		PREVIEW_DOM = createDomByHtml(`
-		<div class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
+		<dialog class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
 			<span class="civ-closer" data-cmd="${CMD_CLOSE[0]}" title="ESC to close">close</span>
 			<span class="civ-nav-btn civ-prev" data-cmd="${CMD_NAV_TO[0]}" data-dir="0"></span>
 			<span class="civ-nav-btn civ-next" data-cmd="${CMD_NAV_TO[0]}" data-dir="1"></span>
@@ -3820,7 +3575,7 @@
 				<span class="civ-error"></span>
 				<span class="civ-img"></span>
 			</div>
-		</div>
+		</dialog>
 	`, document.body);
 		LocalSetting.each((k, v) => {
 			PREVIEW_DOM.setAttribute(k, JSON.stringify(v));
@@ -3856,6 +3611,7 @@
 			e.preventDefault();
 			return false;
 		});
+		PREVIEW_DOM.showModal();
 		window.addEventListener('resize', onWinResize);
 		document.addEventListener('keydown', bindKeyDown);
 		document.addEventListener('keyup', bindKeyUp);
@@ -3974,17 +3730,9 @@
 </ul>
 	`;
 		let dlg = DialogClass.show('设置', html, {
-			showMasker: false,
-			modal: false
+			modal: true
 		});
 		dlg.dom.style.zIndex = OPTION_DLG_INDEX + "";
-		dlg.onClose.listen(() => {
-			setTimeout(() => {
-				if(PREVIEW_DOM){
-					Masker.show();
-				}
-			}, 0);
-		});
 		let lsSetterTip = null;
 		formSync(dlg.dom, (name) => {
 			return new Promise((resolve, reject) => {
@@ -4023,20 +3771,6 @@
 		CMD_ROTATE_LEFT,
 		CMD_ROTATE_RIGHT,
 		CMD_VIEW_ORG,
-		CMD_DOWNLOAD,
-		CMD_OPTION
-	];
-	const CONTEXT_MENU_OPTIONS = [
-		CMD_ZOOM_OUT,
-		CMD_ZOOM_IN,
-		CMD_ZOOM_ORG,
-		'-',
-		CMD_ROTATE_LEFT,
-		CMD_ROTATE_RIGHT,
-		'-',
-		CMD_VIEW_ORG,
-		CMD_DOWNLOAD,
-		'-',
 		CMD_OPTION
 	];
 	const getCmdViaID = (id) => {
@@ -4065,7 +3799,6 @@
 		mouse_scroll_type !== null && LocalSetting.set('mouse_scroll_type', mouse_scroll_type);
 		showThumbList !== null && LocalSetting.set('show_thumb_list', showThumbList);
 		showToolbar !== null && LocalSetting.set('show_toolbar', showToolbar);
-		showContextMenu !== null && LocalSetting.set('show_context_menu', showContextMenu);
 		constructDom();
 		showImgSrc(IMG_CURRENT_INDEX).finally(() => {
 			if(preloadSrcList){
@@ -5587,6 +5320,237 @@
 			required && triggerDomEvent(element, 'change');
 		});
 	};
+
+	let default_masker = null;
+	let CSS_CLASS = Theme.Namespace + '-masker';
+	const showMasker = (masker) => {
+		if(!masker){
+			masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
+		}
+		masker.style.display = '';
+		return masker;
+	};
+	const hideMasker = (masker) => {
+		masker && (masker.style.display = 'none');
+	};
+	const Masker = {
+		zIndex: Theme.MaskIndex,
+		show: () => {
+			default_masker = showMasker(default_masker);
+		},
+		hide: () => {
+			hideMasker(default_masker);
+		},
+		instance: () => {
+			let new_masker;
+			return {
+				show: () => {
+					new_masker = showMasker(new_masker);
+				},
+				hide: () => {
+					hideMasker(new_masker);
+				}
+			}
+		}
+	};
+	insertStyleSheet(`
+.${CSS_CLASS} {
+	position:fixed;
+	top:0;left:0;
+	right:0;
+	bottom:0;
+	background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
+	backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
+	z-index:${Masker.zIndex}}
+`, Theme.Namespace + 'masker-style');
+
+	let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
+	let CTX_Z_INDEX = Theme.ContextIndex;
+	insertStyleSheet(`
+	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
+	.${CTX_CLASS_PREFIX},
+	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
+	.${CTX_CLASS_PREFIX} ul {left:100%; top:0;}
+	.${CTX_CLASS_PREFIX} li:not([disabled]):hover>ul {display:block;}
+	.${CTX_CLASS_PREFIX} li[role=menuitem] {padding:0 1em; line-height:1; position:relative; min-height:2em; display:flex; align-items:center; background: transparent;user-select:none;opacity: 0.5; cursor:default;}
+	.${CTX_CLASS_PREFIX} li[role=menuitem]>* {flex:1; line-height:1}
+	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]) {cursor:pointer; opacity:1;}
+	.${CTX_CLASS_PREFIX} li[role=menuitem]:not([disabled]):hover {background-color: #eeeeee9c;text-shadow: 1px 1px 1px white;opacity: 1;}
+	.${CTX_CLASS_PREFIX} li[data-has-child]:after {content:"\\e73b"; font-family:${Theme.IconFont}; zoom:0.7; position:absolute; right:0.5em; color:var(${Theme.CssVar.DISABLE_COLOR});}
+	.${CTX_CLASS_PREFIX} li[data-has-child]:not([disabled]):hover:after {color:var(${Theme.CssVar.COLOR})}
+	.${CTX_CLASS_PREFIX} .sep {margin:0.25em 0.5em;border-bottom:1px solid #eee;}
+	.${CTX_CLASS_PREFIX} .caption {padding-left: 1em;opacity: 0.7;user-select: none;display:flex;align-items: center;}
+	.${CTX_CLASS_PREFIX} .caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
+	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
+	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
+`);
+	const createMenu = (commands, onExecute = null) => {
+		let html = `<ul class="${CTX_CLASS_PREFIX}">`;
+		let payload_map = {};
+		let buildMenuItemHtml = (item) => {
+			let html = '';
+			if(item === '-'){
+				html += '<li class="sep"></li>';
+				return html;
+			}
+			let [title, cmdOrChildren, disabled] = item;
+			let has_child = Array.isArray(cmdOrChildren);
+			let mnu_item_id = guid();
+			let sub_menu_html = '';
+			if(has_child){
+				sub_menu_html = '<ul>';
+				cmdOrChildren.forEach(subItem => {
+					sub_menu_html += buildMenuItemHtml(subItem);
+				});
+				sub_menu_html += '</ul>';
+			}else {
+				payload_map[mnu_item_id] = cmdOrChildren;
+			}
+			html += `<li role="menuitem" data-id="${mnu_item_id}" ${has_child ? ' data-has-child ' : ''} ${disabled ? 'disabled="disabled"' : 'tabindex="0"'}>${title}${sub_menu_html}</li>`;
+			return html;
+		};
+		for(let i = 0; i < commands.length; i++){
+			let item = commands[i];
+			html += buildMenuItemHtml(item);
+		}
+		html += '</ul>';
+		let menu = createDomByHtml(html, document.body);
+		let items = menu.querySelectorAll('[role=menuitem]:not([disabled])');
+		items.forEach(function(item){
+			let id = item.getAttribute('data-id');
+			let payload = payload_map[id];
+			if(payload){
+				item.addEventListener('click', () => {
+					payload();
+					onExecute && onExecute(item);
+				});
+			}
+		});
+		let sub_menus = menu.querySelectorAll('ul');
+		sub_menus.forEach(function(sub_menu){
+			let parent_item = sub_menu.parentNode;
+			parent_item.addEventListener('mouseover', e => {
+				let pos = alignSubMenuByNode(sub_menu, parent_item);
+				sub_menu.style.left = dimension2Style(pos.left);
+				sub_menu.style.top = dimension2Style(pos.top);
+			});
+		});
+		menu.addEventListener('contextmenu', e => {
+		});
+		return menu;
+	};
+	let LAST_MENU;
+	const hideLastMenu = ()=>{
+		remove(LAST_MENU);
+		LAST_MENU = null;
+	};
+	const bindTargetContextMenu = (target, commands, option = {}) => {
+		option.triggerType = 'contextmenu';
+		return bindTargetMenu(target, commands, option);
+	};
+	const bindTargetDropdownMenu = (target, commands, option = {}) => {
+		option.triggerType = 'click';
+		return bindTargetMenu(target, commands, option);
+	};
+	const showContextMenu = (commands,position)=>{
+		hideLastMenu();
+		let menuEl = createMenu(commands);
+		LAST_MENU = menuEl;
+		let pos = calcMenuByPosition(menuEl, {left: position.left, top: position.top});
+		menuEl.style.left = dimension2Style(pos.left);
+		menuEl.style.top = dimension2Style(pos.top);
+		menuEl.style.display = 'block';
+	};
+	const bindTargetMenu = (target, commands, option = null) => {
+		let triggerType = option?.triggerType || 'click';
+		target.addEventListener(triggerType, e => {
+			hideLastMenu();
+			let menuEl = createMenu(commands);
+			LAST_MENU = menuEl;
+			let pos;
+			if(triggerType === 'contextmenu'){
+				pos = calcMenuByPosition(menuEl, {left: e.clientX, top: e.clientY});
+			}else {
+				pos = alignMenuByNode(menuEl, target);
+			}
+			menuEl.style.left = dimension2Style(pos.left);
+			menuEl.style.top = dimension2Style(pos.top);
+			menuEl.style.display = 'block';
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
+		});
+	};
+	const calcMenuByPosition = (menuEl, point) => {
+		let menu_dim = getDomDimension(menuEl);
+		let con_dim = {width: window.innerWidth, height: window.innerHeight};
+		let top, left = point.left;
+		let right_available = menu_dim.width + point.left <= con_dim.width;
+		let bottom_available = menu_dim.height + point.top <= con_dim.height;
+		let top_available = point.top - menu_dim.height > 0;
+		if(right_available && bottom_available){
+			left = point.left;
+			top = point.top;
+		}else if(right_available && !bottom_available){
+			left = point.left;
+			top = Math.max(con_dim.height - menu_dim.height, 0);
+		}else if(!right_available && bottom_available){
+			left = Math.max(con_dim.width - menu_dim.width, 0);
+			top = point.top;
+		}else if(!right_available && !bottom_available){
+			if(top_available){
+				left = Math.max(con_dim.width - menu_dim.width, 0);
+				top = point.top - menu_dim.height;
+			}else {
+				left = Math.max(con_dim.width - menu_dim.width, 0);
+				top = point.top;
+			}
+		}
+		return {top, left};
+	};
+	const alignMenuByNode = (menuEl, relateNode) => {
+		let top, left;
+		let menu_dim = getDomDimension(menuEl);
+		let relate_node_offset = relateNode.getBoundingClientRect();
+		let con_dim = {width: window.innerWidth, height: window.innerHeight};
+		if((con_dim.height - relate_node_offset.top) > menu_dim.height && (con_dim.height - relate_node_offset.top - relate_node_offset.height) < menu_dim.height){
+			top = relate_node_offset.top - menu_dim.height;
+		}else {
+			top = relate_node_offset.top + relate_node_offset.height;
+		}
+		if((relate_node_offset.left + relate_node_offset.width) > menu_dim.width && (con_dim.width - relate_node_offset.left) < menu_dim.width){
+			left = relate_node_offset.left + relate_node_offset.width - menu_dim.width;
+		}else {
+			left = relate_node_offset.left;
+		}
+		return {top, left};
+	};
+	const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
+		let menu_dim = getDomDimension(subMenuEl);
+		let relate_node_offset = triggerMenuItem.getBoundingClientRect();
+		let con_dim = {width: window.innerWidth, height: window.innerHeight};
+		let top;
+		let left;
+		if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
+			top = con_dim.height - (relate_node_offset.top + menu_dim.height);
+		} else {
+			top = 0;
+		}
+		if(relate_node_offset.left > menu_dim.width && (relate_node_offset.left + relate_node_offset.width + menu_dim.width > con_dim.width)){
+			left = 0 - menu_dim.width;
+		}else {
+			left = relate_node_offset.width;
+		}
+		return {top, left};
+	};
+	document.addEventListener('click', e => {
+		hideLastMenu();
+	});
+	document.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Esc){
+			hideLastMenu();
+		}
+	});
 
 	const COM_ID = Theme.Namespace + 'novice-guide';
 	const CLASS_PREFIX$1 = COM_ID;
