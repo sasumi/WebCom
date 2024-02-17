@@ -10,7 +10,7 @@ import {
 } from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
-import {eventDelegate, KEYS} from "../Lang/Event.js";
+import {bindNodeActive, eventDelegate, KEYS} from "../Lang/Event.js";
 import {downloadFile} from "../Lang/Net.js";
 import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
@@ -140,9 +140,9 @@ insertStyleSheet(`
 	}
 	.${DOM_CLASS}{width:100vw;height:100vh; max-height:100vh !important; max-width:100vw !important; overflow:hidden; padding:0; margin:0; border:none; background-color:#fff0;}
 	.${DOM_CLASS}::backdrop {backdrop-filter:brightness(0.65) blur(10px)}
-	.${DOM_CLASS} .civ-closer{position:fixed; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:20px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
+	.${DOM_CLASS} .civ-closer{position:fixed; opacity:0.7; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:20px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before{font-family:"${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
-	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
+	.${DOM_CLASS} .civ-closer:hover{opacity:1}
 	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
 	.${DOM_CLASS} .civ-nav-btn[disabled]{color:gray; cursor:default !important;}
 	.${DOM_CLASS} .civ-nav-btn:not([disabled]):hover{opacity:1;}
@@ -152,9 +152,9 @@ insertStyleSheet(`
 	.${DOM_CLASS} .civ-next{right:10px}
 	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
-	.${DOM_CLASS} .civ-view-option {position:fixed;display:flex;--opt-btn-size:1.5rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
-	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--o pt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
-	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
+	.${DOM_CLASS} .civ-view-option {position:fixed;display:flex;--opt-btn-size:1.8rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
+	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size); line-height:1; height:var(--opt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
+	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size:var(--opt-btn-size);display: block;width: 100%;height: 100%;}
 	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
 	
 	.${DOM_CLASS}-icon:before {content:""; font-family:"${Theme.IconFont}"; font-style:normal;}
@@ -356,34 +356,31 @@ const showImgSrc = (img_index = 0) => {
 }
 
 const constructDom = () => {
-	let nav_thumb_list_html = '';
-	if(CURRENT_MODE === IMG_PREVIEW_MODE_MULTIPLE){
-		nav_thumb_list_html = `
+	let nav_thumb_list_html = `
 		<div class="civ-nav-wrap">
-			<span class="civ-nav-list-prev" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
+			<span class="civ-nav-list-prev" tabindex="0" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
 			<div class="civ-nav-list-wrap">
 				<div class="civ-nav-list">
 				${IMG_SRC_LIST.reduce((preStr, item, idx) => {
-			return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
+			return preStr + `<span class="civ-nav-thumb" tabindex="0" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
 		}, "")}
 				</div>
 			</div>
-			<span class="civ-nav-list-next" data-cmd="${CMD_THUMB_SCROLL_NEXT[0]}"></span>
+			<span class="civ-nav-list-next" tabindex="0" data-cmd="${CMD_THUMB_SCROLL_NEXT[0]}"></span>
 		</div>`;
-	}
 
 	let option_html = `
 	<span class="civ-view-option">
 		${TOOLBAR_OPTIONS.reduce((lastVal, cmdInfo, idx) => {
-		return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
+		return lastVal + `<span class="civ-opt-btn ${DOM_CLASS}-icon ${DOM_CLASS}-icon-${cmdInfo[0]}" tabindex="0" data-cmd="${cmdInfo[0]}" title="${cmdInfo[1]}"></span>`;
 	}, "")}
 	</span>`;
 
 	PREVIEW_DOM = createDomByHtml(`
 		<dialog class="${DOM_CLASS}" data-ip-mode="${CURRENT_MODE}">
-			<span class="civ-closer" data-cmd="${CMD_CLOSE[0]}" title="ESC to close">close</span>
-			<span class="civ-nav-btn civ-prev" data-cmd="${CMD_NAV_TO[0]}" data-dir="0"></span>
-			<span class="civ-nav-btn civ-next" data-cmd="${CMD_NAV_TO[0]}" data-dir="1"></span>
+			<span tabindex="0" class="civ-closer" data-cmd="${CMD_CLOSE[0]}" title="ESC to close">close</span>
+			<span tabindex="0" class="civ-nav-btn civ-prev" data-cmd="${CMD_NAV_TO[0]}" data-dir="0"></span>
+			<span tabindex="0" class="civ-nav-btn civ-next" data-cmd="${CMD_NAV_TO[0]}" data-dir="1"></span>
 			${option_html}
 			${nav_thumb_list_html}
 			<div class="civ-ctn">
@@ -402,20 +399,23 @@ const constructDom = () => {
 	});
 
 	//bind close click & space click
-	eventDelegate(PREVIEW_DOM, '[data-cmd]', 'click', (e, target) => {
-		let cmd = target.getAttribute('data-cmd');
-		if(target.getAttribute(DISABLED_ATTR_KEY)){
-			return false;
-		}
-		let cmdInfo = getCmdViaID(cmd);
-		if(cmdInfo){
-			return cmdInfo[2](target);
-		}
-		throw "no command found.";
-	});
+	findAll('[data-cmd]', PREVIEW_DOM).forEach(node=>{
+		bindNodeActive(node, ()=>{
+			let cmd = node.getAttribute('data-cmd');
+			if(node.getAttribute(DISABLED_ATTR_KEY)){
+				return false;
+			}
+			let cmdInfo = getCmdViaID(cmd);
+			if(cmdInfo){
+				return cmdInfo[2](node);
+			}
+			throw "no command found.";
 
-	findOne('.civ-ctn', PREVIEW_DOM).addEventListener('click', e => {
-		if(e.target.tagName !== 'IMG'){
+		})
+	})
+
+	bindNodeActive(findOne('.civ-ctn', PREVIEW_DOM), e => {
+		if(e && e.target.tagName !== 'IMG'){
 			destroy();
 		}
 	});
