@@ -6,14 +6,17 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
 	<style>
-		.test-case-list{list-style:none; display:flex; flex-wrap:wrap; gap:1em; margin-top:2em;}
-		.test-case-list > li{border:1px solid #dddddd; border-radius:5px; padding:0 2em 2em;}
-		.test-case-list h3{font-size:1.1rem;}
-		.list {list-style:none;}
+		ul {list-style:none; padding:0; margin:0;}
+		.list {overflow:hidden;}
 		.list li {padding:10px; border:1px solid green; margin:1em; cursor:move; background-color:green; float:left;}
-
 		.list .WebCom--drag-proxy {color:white; background-color:red;}
 		.list .WebCom--on-drag {background-color:transparent;}
+
+		.list2 {width:200px;}
+		.list2 li {background:linear-gradient(0deg, #1e41af, #5e5eff); margin:1px; padding:0.5em; color:white; cursor:move;}
+		.list2 li.WebCom--on-drag {opacity:0.5}
+		.list2 li.WebCom--drag-proxy {box-shadow:1px 1px 10px #ccc;}
+
 	</style>
 </head>
 <body>
@@ -26,10 +29,22 @@
 	<li>item5</li>
 </ul>
 
+
+<ul class="list2">
+	<li>item1</li>
+	<li>item2</li>
+	<li>item3</li>
+	<li>item4</li>
+	<li>item5</li>
+</ul>
+
 <script type="module">
 	import {findOne, sortable} from "../src/index.js";
 
 	sortable(findOne('.list'));
+	sortable(findOne('.list2'), {}, (curIdx, tagIdx)=>{
+		console.log('current index', curIdx, tagIdx);
+	});
 </script>
 </body>
 </html>

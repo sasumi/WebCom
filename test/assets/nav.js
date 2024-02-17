@@ -9,6 +9,7 @@ const resolveFN = (f) => {
 }
 
 const nav = [
+	'index.html',
 	'auto_component.html',
 	'dialog.html',
 	'fullscreen.html',
@@ -18,12 +19,14 @@ const nav = [
 	'net.html',
 	'novice_guide.html',
 	'select.html',
+	'sortable.html',
 	'theme.html',
 	'tip.html',
 	'toast.html',
 	'emoji.html',
 	'form.html',
-	'toc.html'
+	'toc.html',
+	'upload.html'
 ]
 let html = `
 <link rel="stylesheet" href="assets/style.css">

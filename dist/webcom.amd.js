@@ -3290,9 +3290,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const DEFAULT_VIEW_PADDING = 20;
 	const MAX_ZOOM_IN_RATIO = 2;
 	const MIN_ZOOM_OUT_SIZE = 50;
-	const THUMB_WIDTH = 50;
+	const THUMB_SIZE = 56+4;
 	const ZOOM_IN_RATIO = 0.8;
 	const ZOOM_OUT_RATIO = 1.2;
+	const NAV_MAX_WIDTH = 'min(calc(100vw - 200px), 600px)';
 	const ATTR_W_BIND_KEY = 'data-original-width';
 	const ATTR_H_BIND_KEY = 'data-original-height';
 	const DISABLED_ATTR_KEY = 'data-disabled';
@@ -3317,10 +3318,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		switchTo(target.getAttribute('data-index'));
 	}];
 	const CMD_THUMB_SCROLL_PREV = ['thumb_scroll_prev', '关闭', () => {
-		thumbScroll();
+		thumbScroll(true);
 	}];
 	const CMD_THUMB_SCROLL_NEXT = ['thumb_scroll_next', '关闭', () => {
-		thumbScroll();
+		thumbScroll(false);
 	}];
 	const CMD_ZOOM_OUT = ['zoom_out', '放大', () => {
 		zoom(ZOOM_OUT_RATIO);
@@ -3374,7 +3375,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 	.${DOM_CLASS}{width:100vw;height:100vh; max-height:100vh !important; max-width:100vw !important; overflow:hidden; padding:0; margin:0; border:none; background-color:#fff0;}
 	.${DOM_CLASS}::backdrop {backdrop-filter:brightness(0.65) blur(10px)}
-	.${DOM_CLASS} .civ-closer{position:absolute; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:20px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
+	.${DOM_CLASS} .civ-closer{position:fixed; z-index:${OP_INDEX}; background-color:#cccccc87; color:white; right:20px; top:20px; border-radius:3px; cursor:pointer; font-size:0; line-height:1; padding:5px;}
 	.${DOM_CLASS} .civ-closer:before{font-family:"${Theme.IconFont}", serif; content:"\\e61a"; font-size:20px;}
 	.${DOM_CLASS} .civ-closer:hover{background-color:#eeeeee75;}
 	.${DOM_CLASS} .civ-nav-btn{padding:10px; z-index:${OP_INDEX}; transition:all 0.1s linear; border-radius:3px; opacity:0.8; color:white; background-color:#8d8d8d6e; position:fixed; top:calc(50% - 25px); cursor:pointer;}
@@ -3386,7 +3387,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DOM_CLASS} .civ-next{right:10px}
 	.${DOM_CLASS} .civ-next:before{content:"\\e73b";}
 
-	.${DOM_CLASS} .civ-view-option {position:absolute;display:flex;--opt-btn-size:1.5rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
+	.${DOM_CLASS} .civ-view-option {position:fixed;display:flex;--opt-btn-size:1.5rem;background-color: #6f6f6f26;backdrop-filter:blur(4px);padding:0.25em 0.5em;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};gap: 0.5em;border-radius:4px;}
 	.${DOM_CLASS} .civ-opt-btn {cursor:pointer;flex:1;user-select:none;width: var(--opt-btn-size);height: var(--o pt-btn-size);overflow: hidden; color: white;padding: 0.2em;border-radius: 4px;transition: all 0.1s linear;opacity: 0.7;}
 	.${DOM_CLASS} .civ-opt-btn:before {font-family:"${Theme.IconFont}";font-size: var(--opt-btn-size);display: block;width: 100%;height: 100%;}
 	.${DOM_CLASS} .civ-opt-btn:hover {background-color: #ffffff3b;opacity: 1;}
@@ -3401,11 +3402,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DOM_CLASS}-icon-${CMD_DOWNLOAD[0]}:before {content:"\\e839"} 
 	.${DOM_CLASS}-icon-${CMD_OPTION[0]}:before {content:"\\e9cb";}
 
-	.${DOM_CLASS} .civ-nav-wrap{position:absolute;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex;padding: 5px 6px;max-width: calc(100% - 100px);min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
+	.${DOM_CLASS} .civ-nav-wrap{position:fixed;opacity: 0.8;transition:all 0.1s linear;background-color: #ffffff26;bottom:10px;left:50%;transform:translate(-50%, 0);z-index:${OP_INDEX};display: flex; padding:0.5em 0.25em;max-width: ${NAV_MAX_WIDTH};min-width: 100px;border-radius: 5px;backdrop-filter: blur(4px);box-shadow: 1px 1px 30px #6666666b;}
 	.${DOM_CLASS} .civ-nav-wrap:hover {opacity:1}
-	.${DOM_CLASS} .civ-nav-list-wrap {width: calc(100% - 40px);overflow:hidden;}
+	.${DOM_CLASS} .civ-nav-list-wrap {overflow:hidden; scroll-behavior: smooth;}
 	.${DOM_CLASS} .civ-nav-list-prev,
-	.${DOM_CLASS} .civ-nav-list-next {flex: 1;width:20px;cursor: pointer;opacity: 0.5;line-height: 48px;transition: all 0.1s linear;}
+	.${DOM_CLASS} .civ-nav-list-next {color:white; flex: 1; min-width:25px;cursor: pointer;opacity: 0.5;line-height: 48px;transition: all 0.1s linear; display: flex; align-items: center;}
 	.${DOM_CLASS} .civ-nav-list-prev:hover,
 	.${DOM_CLASS} .civ-nav-list-next:hover {opacity:1}
 	.${DOM_CLASS} .civ-nav-list-prev:before,
@@ -3414,11 +3415,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DOM_CLASS} .civ-nav-list-next {right: -20px;}
 	.${DOM_CLASS} .civ-nav-list-prev:before{content:"\\e6103"}
 	.${DOM_CLASS} .civ-nav-list-next:before{content:"\\e73b";}
-	.${DOM_CLASS} .civ-nav-list{height: 50px;}
-	.${DOM_CLASS} .civ-nav-thumb{width: 50px;height: 100%;transition:all 0.1s linear;overflow:hidden;display:inline-block;box-sizing:border-box;margin-right: 5px;opacity: 0.6;border: 4px solid transparent;cursor: pointer;}
-	.${DOM_CLASS} .civ-nav-thumb.active,
-	.${DOM_CLASS} .civ-nav-thumb:hover {border: 3px solid white;opacity: 1;}
-	.${DOM_CLASS} .civ-nav-thumb img{width:100%; height:100%; object-fit:cover;}
+	
+	.${DOM_CLASS} .civ-nav-list{height:${THUMB_SIZE}px; transition:margin 0.4s ease-out; display:flex}
+	.${DOM_CLASS} .civ-nav-thumb{min-width:${THUMB_SIZE}px; height:100%; flex:1; transition:all 0.1s linear;overflow:hidden; box-sizing:border-box; cursor: pointer;}
+	.${DOM_CLASS} .civ-nav-thumb img{border:4px solid transparent; border-radius:3px; width:${THUMB_SIZE}px; height:${THUMB_SIZE}px; object-fit:cover; opacity: 0.6; box-sizing:border-box;}
+	.${DOM_CLASS} .civ-nav-thumb:hover img {border-color:#ffffff82;opacity:0.8;}
+	.${DOM_CLASS} .civ-nav-thumb.active img {border-color:white;opacity: 1;}
 
 	.${DOM_CLASS} .civ-ctn{height:100%; width:100%; position:absolute; top:0; left:0;}
 	.${DOM_CLASS} .civ-error{margin-top:calc(50% - 60px);}
@@ -3436,7 +3438,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DOM_CLASS}-option-list>li>label:first-child {display:block;float: left;width: 5em;margin-left: -5em;user-select:none;}
 	.${DOM_CLASS}-option-list>li>label:not(:first-child) {display:block;user-select:none;margin-bottom: 0.25em;}
 
-	.${DOM_CLASS}-tools-menu {position:fixed;background: white;padding: 5px 0;min-width: 150px;border-radius: 4px;box-shadow: 1px 1px 10px #3e3e3e94;}
+	.${DOM_CLASS}-tools-menu {position:fixed;background: white;padding: 5px 0;min-width: 150px; border-radius: 4px;box-shadow: 1px 1px 10px #3e3e3e94;}
 	.${DOM_CLASS}-tools-menu>li {padding: 0.45em 1em;}
 	.${DOM_CLASS}-tools-menu>li:hover {background: #eee;cursor: pointer;user-select: none;}
 
@@ -3467,11 +3469,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}else {
 			next.removeAttribute(DISABLED_ATTR_KEY);
 		}
-		updateThumbNavState();
-	};
-	const updateThumbNavState = () => {
 		PREVIEW_DOM.querySelectorAll(`.civ-nav-list .civ-nav-thumb`).forEach(item => item.classList.remove('active'));
 		PREVIEW_DOM.querySelector(`.civ-nav-list .civ-nav-thumb[data-index="${IMG_CURRENT_INDEX}"]`).classList.add('active');
+		thumbScrollIntoView();
 	};
 	const listenSelector = (parentNode, selector, event, handler) => {
 		parentNode.querySelectorAll(selector).forEach(target => {
@@ -3564,7 +3564,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		<div class="civ-nav-wrap">
 			<span class="civ-nav-list-prev" data-cmd="${CMD_THUMB_SCROLL_PREV[0]}"></span>
 			<div class="civ-nav-list-wrap">
-				<div class="civ-nav-list" style="width:${THUMB_WIDTH * IMG_SRC_LIST.length}px">
+				<div class="civ-nav-list">
 				${IMG_SRC_LIST.reduce((preStr, item, idx) => {
 			return preStr + `<span class="civ-nav-thumb" data-cmd="${CMD_SWITCH_TO[0]}" data-index="${idx}"><img src="${srcSetResolve(item).thumb}"/></span>`;
 		}, "")}
@@ -3610,10 +3610,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 			throw "no command found.";
 		});
-		PREVIEW_DOM.querySelector('.civ-ctn').addEventListener('click', e => {
+		findOne('.civ-ctn', PREVIEW_DOM).addEventListener('click', e => {
 			if(e.target.tagName !== 'IMG'){
 				destroy();
 			}
+		});
+		findOne('.civ-nav-wrap', PREVIEW_DOM).addEventListener('mousewheel', e=>{
+			navTo(e.wheelDelta > 0);
+			e.preventDefault();
+			return false;
 		});
 		listenSelector(PREVIEW_DOM, '.civ-ctn', 'mousewheel', e => {
 			switch(LocalSetting.get('mouse_scroll_type')){
@@ -3682,8 +3687,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		showImgSrc(IMG_CURRENT_INDEX);
 		updateNavState();
 	};
-	const thumbScroll = (toPrev) => {
-		PREVIEW_DOM.querySelector('.civ-nav-list');
+	const thumbScroll = (toPrev, offset = 200) => {
+		let thumb_wrap = findOne('.civ-nav-list-wrap', PREVIEW_DOM);
+		let thumb_list = findOne('.civ-nav-list', PREVIEW_DOM);
+		let max_scroll_left = thumb_list.scrollWidth - thumb_wrap.offsetWidth;
+		let scroll_left = thumb_wrap.scrollLeft + (toPrev ? -1 : 1) * offset;
+		thumb_wrap.scrollLeft = Math.max(Math.min(scroll_left, max_scroll_left), 0);
+	};
+	const thumbScrollIntoView = ()=>{
+		let current = findOne('.civ-nav-list .active', PREVIEW_DOM);
+		current.scrollIntoView();
 	};
 	const zoom = (ratioOffset) => {
 		let img = PREVIEW_DOM.querySelector('.civ-img img');
@@ -3825,7 +3838,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 		if(mode === IMG_PREVIEW_MODE_MULTIPLE){
-			updateNavState();
+			setTimeout(updateNavState, 100);
 		}
 	};
 	const showImgPreview = CONTEXT_WINDOW[COM_ID$2]['showImgPreview'] || function(imgSrc, option = {}){
@@ -5694,7 +5707,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const CLS_ON_DRAG = Theme.Namespace + '-on-drag';
 	const CLS_DRAG_PROXY = Theme.Namespace + '-drag-proxy';
-	const matchTarget = (container, eventTarget) => {
+	const matchChildren = (container, eventTarget) => {
 		let children = Array.from(container.children);
 		let p = eventTarget;
 		while(p){
@@ -5705,19 +5718,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		throw "event target no in container";
 	};
-	const sortable = (listNode, option = {}) => {
+	const sortable = (listNode, option = {}, onChange = () => {
+	}) => {
 		let currentNode = null;
 		let currentParent = null;
 		let ClassOnDrag = option.ClassOnDrag || CLS_ON_DRAG;
 		let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
-		domChangedWatch(listNode, 'li', ()=>{
+		domChangedWatch(listNode, 'li', () => {
 			Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
 		}, true);
 		listNode.addEventListener('dragstart', e => {
 			if(e.target === listNode){
 				return;
 			}
-			let tag = matchTarget(listNode, e.target);
+			let tag = matchChildren(listNode, e.target);
 			currentNode = tag;
 			currentParent = listNode;
 			currentNode.classList.add(ClassProxy);
@@ -5730,7 +5744,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			if(e.target === listNode){
 				return;
 			}
-			let tag = matchTarget(listNode, e.target);
+			let tag = matchChildren(listNode, e.target);
 			if(!currentNode || currentParent !== listNode || tag === listNode || tag === currentNode){
 				return;
 			}
@@ -5742,12 +5756,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}else {
 				listNode.insertBefore(currentNode, tag.nextSibling);
 			}
+			onChange(currentIndex, targetIndex);
 		});
 		listNode.addEventListener('dragend', e => {
 			if(e.target === listNode){
 				return;
 			}
-			let tag = matchTarget(listNode, e.target);
+			let tag = matchChildren(listNode, e.target);
 			currentNode = null;
 			currentParent = null;
 			tag.classList.remove(ClassOnDrag);
