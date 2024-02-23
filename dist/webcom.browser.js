@@ -1170,7 +1170,7 @@ var WebCom = (function (exports) {
 			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
-				hide(wrapper);
+				wrapper.hidePopover();
 			}
 		}
 	}
