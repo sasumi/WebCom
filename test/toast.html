@@ -23,8 +23,10 @@
 <input type="button" value="loading" id="loading-btn">
 <input type="button" value="success" id="success-btn">
 
+<input type="button" id="dlg-toast-btn" value="toast in dialog">
+
 <script type="module">
-    import {Toast} from "../src/index.js";
+    import {Toast, Dialog} from "../src/index.js";
 
     document.getElementById('info-btn').addEventListener('click', e=>{
         Toast.showInfo('info');
@@ -42,12 +44,18 @@
         Toast.showSuccess('successABcxyzg');
     });
 
+    document.getElementById('dlg-toast-btn').addEventListener('click', e=>{
+        let dlg = Dialog.show('demo dlg', '<div style="padding:1em;"><input type="button" value="button in dlg" class="dlg-btn"/></div>');
+        let btn = dlg.dom.querySelector('.dlg-btn');
+        btn.addEventListener('click', e=>{
+            Toast.showSuccess('button clicked');
+        })
+    })
+
     //长一点时间
     for(let i in Toast.DEFAULT_TIME_MAP){
         Toast.DEFAULT_TIME_MAP[i] = Toast.DEFAULT_TIME_MAP[i]*10000;
     }
-
-    Toast.showSuccess('successABcxyzg');
 </script>
 </body>
 </html>

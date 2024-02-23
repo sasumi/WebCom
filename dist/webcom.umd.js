@@ -1073,8 +1073,9 @@
 		0% { opacity:1;}
 		100% { opacity: 0} 
 	}
-	.${TOAST_CLS_MAIN}-wrap{position:fixed; top:5px; width:100%; height:0; text-align:center; z-index:${Theme.ToastIndex};}
-	.${TOAST_CLS_MAIN}>div {margin-bottom:0.5rem;}
+	.${TOAST_CLS_MAIN}-wrap{position:absolute; margin:0; padding:0; top:5px; pointer-events:none; background-color:transparent; width:100%; border:none; text-align:center; z-index:${Theme.ToastIndex};}
+	.${TOAST_CLS_MAIN} {pointer-events:auto}
+	.${TOAST_CLS_MAIN}>span {margin-bottom:0.5rem;}
 	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:.5rem 1rem .5rem 2.8rem; text-align:left; line-height:1.5rem; background-color:var(${Theme.CssVar.BACKGROUND_COLOR});color:var(${Theme.CssVar.COLOR});box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); animation:${fadeIn_animate} ${FADEIN_TIME}ms}
 	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; position:absolute; font-size:1.4rem; margin-left:-1.8rem;}
 	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
@@ -1087,7 +1088,7 @@
 	let toastWrap = null;
 	const getWrapper = () => {
 		if(!toastWrap){
-			toastWrap = createDomByHtml(`<div class="${TOAST_CLS_MAIN}-wrap"></div>`, document.body);
+			toastWrap = createDomByHtml(`<div class="${TOAST_CLS_MAIN}-wrap" popover="manual"></div>`, document.body);
 		}
 		return toastWrap;
 	};
@@ -1145,7 +1146,7 @@
 		}
 		show(onTimeoutClose = null){
 			let wrapper = getWrapper();
-			show(wrapper);
+			wrapper.showPopover();
 			this.dom = createDomByHtml(
 				`<span class="${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-${this.type}">
 				<span class="ctn">${this.message}</span><div></div>
