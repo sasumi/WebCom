@@ -1915,13 +1915,20 @@ var WebCom = (function (exports) {
 	const serializePhpFormToJSON = (dom, validate = true)=>{
 		let data_list = getFormDataAvailable(dom, validate);
 		let json_obj = {};
+		let index_tmp = {
+		};
 		data_list.forEach(item => {
 			let [name, value] = item;
 			if(name.indexOf('[') < 0){
 				json_obj[name] = value;
 				return;
 			}
-			let name_path = name.replace(/\[]$/, '.0').replace(/]/g, '').replace(/\[/g, '.');
+			if(index_tmp[name] === undefined){
+				index_tmp[name] = 0;
+			} else {
+				index_tmp[name] ++;
+			}
+			let name_path = name.replace(/\[]$/, '.'+index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
 			objectPushByPath(name_path, value, json_obj, '.');
 		});
 		return json_obj;
