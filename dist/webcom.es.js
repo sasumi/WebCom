@@ -4886,7 +4886,6 @@ class ACBatchFiller {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let relative_inputs = findAll(param.selector);
-			let title = findAll(param.title);
 			if(!relative_inputs.length){
 				ToastClass.showInfo("没有可以填写的输入框");
 				return;
@@ -4894,7 +4893,7 @@ class ACBatchFiller {
 			let id = guid(NS);
 			let shadow_el_html = cloneElementAsHtml(relative_inputs[0], id);
 			let el, dlg;
-			let label_html = title || '批量设置';
+			let label_html = param.title || '批量设置';
 			let doFill = () => {
 				relative_inputs.forEach(input => {
 					input.value = el.value;
@@ -4921,6 +4920,13 @@ class ACBatchFiller {
 				});
 			el = findOne('input,textarea,select', dlg.dom);
 			el.focus();
+			if(el.tagName === 'INPUT'){
+				el.addEventListener('keydown', e => {
+					if(e.keyCode === KEYS.Enter){
+						doFill();
+					}
+				});
+			}
 			resolve();
 		});
 	}
