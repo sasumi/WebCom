@@ -43,7 +43,6 @@ const SUPPORT_INPUT_TYPES = [
 	'url',
 ];
 
-
 const cloneElementAsHtml = (el, id = '') => {
 	let required_attr = el.required ? 'required' : '';
 	let pattern_attr = el.getAttribute('pattern') ? `pattern="${el.getAttribute('pattern')}"` : '';
@@ -80,19 +79,39 @@ const cloneElementAsHtml = (el, id = '') => {
 export class ACBatchFiller {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
-			let relative_inputs = findAll(param.selector);
-			if(!relative_inputs.length){
+			let relative_elements = findAll(param.selector);
+			if(!relative_elements.length){
 				Toast.showInfo("没有可以填写的输入框");
 				return;
 			}
 			let id = guid(NS);
-			let shadow_el_html = cloneElementAsHtml(relative_inputs[0], id);
+			let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 			let el, dlg;
 			let label_html = param.title || '批量设置';
 			let doFill = () => {
-				relative_inputs.forEach(input => {
-					input.value = el.value;
-					triggerDomEvent(input, 'change');
+				relative_elements.forEach(element => {
+					switch(el.tagName){
+						case 'TEXTAREA':
+						case 'INPUT':
+							element.value = el.value;
+							break;
+						case 'SELECT':
+							if(el.multiple){
+								let indexes = [];
+								Array.from(el.selectedOptions).forEach(opt => {
+									indexes.push(opt.index);
+								});
+								for(let i = 0; i < element.options.length; i++){
+									element.options[i].selected = indexes.includes(i);
+								}
+							}else{
+								element.selectedIndex = el.selectedIndex;
+							}
+							break;
+						default:
+							throw "no support tag:" + el.tagName;
+					}
+					triggerDomEvent(element, 'change');
 				});
 				dlg.close();
 			};

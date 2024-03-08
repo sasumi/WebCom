@@ -4835,9 +4835,9 @@
 	.${NS} {padding:2em 2em 1em 2em}
 	.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 	.${NS} input,
-	 .${NS} textarea,
-	 .${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	 .${NS} textarea {min-height:5em;}
+	.${NS} textarea,
+	.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+	.${NS} textarea {min-height:5em;}
 `);
 	const SUPPORT_INPUT_TYPES = [
 		'color',
@@ -4891,19 +4891,39 @@
 	class ACBatchFiller {
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
-				let relative_inputs = findAll(param.selector);
-				if(!relative_inputs.length){
+				let relative_elements = findAll(param.selector);
+				if(!relative_elements.length){
 					ToastClass.showInfo("没有可以填写的输入框");
 					return;
 				}
 				let id = guid(NS);
-				let shadow_el_html = cloneElementAsHtml(relative_inputs[0], id);
+				let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 				let el, dlg;
 				let label_html = param.title || '批量设置';
 				let doFill = () => {
-					relative_inputs.forEach(input => {
-						input.value = el.value;
-						triggerDomEvent(input, 'change');
+					relative_elements.forEach(element => {
+						switch(el.tagName){
+							case 'TEXTAREA':
+							case 'INPUT':
+								element.value = el.value;
+								break;
+							case 'SELECT':
+								if(el.multiple){
+									let indexes = [];
+									Array.from(el.selectedOptions).forEach(opt => {
+										indexes.push(opt.index);
+									});
+									for(let i = 0; i < element.options.length; i++){
+										element.options[i].selected = indexes.includes(i);
+									}
+								}else {
+									element.selectedIndex = el.selectedIndex;
+								}
+								break;
+							default:
+								throw "no support tag:" + el.tagName;
+						}
+						triggerDomEvent(element, 'change');
 					});
 					dlg.close();
 				};
