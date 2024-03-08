@@ -12,9 +12,9 @@ insertStyleSheet(`
 	.${NS} {padding:2em 2em 1em 2em}
 	.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 	.${NS} input,
-	 .${NS} textarea,
-	 .${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	 .${NS} textarea {min-height:5em;}
+	.${NS} textarea,
+	.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+	.${NS} textarea {min-height:5em;}
 `)
 
 const SUPPORT_INPUT_TYPES = [
