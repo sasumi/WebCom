@@ -13,6 +13,7 @@ import {ACMultiSelectRelate} from "./ACMultiSelectRelate.js";
 import {ACUploader} from "./ACUploader.js";
 import {ACTextCounter} from "./ACTextCounter.js";
 import {findAll} from "../Lang/Dom.js";
+import {ACBatchFiller} from "./ACBatchFiller.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
@@ -36,6 +37,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	toast: ACToast,
 	textcounter: ACTextCounter,
 	uploader: ACUploader,
+	batchfiller: ACBatchFiller,
 };
 
 /**

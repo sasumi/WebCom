@@ -995,9 +995,9 @@
 		document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 	};
 
-	const NS$2 = 'WebCom-';
-	const VAR_PREFIX = '--' + NS$2;
-	const ICON_FONT = NS$2 + 'iconfont';
+	const NS$3 = 'WebCom-';
+	const VAR_PREFIX = '--' + NS$3;
+	const ICON_FONT = NS$3 + 'iconfont';
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1028,9 +1028,9 @@
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$2+'style');
+}`, NS$3+'style');
 	const Theme = {
-		Namespace: NS$2,
+		Namespace: NS$3,
 		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
@@ -2671,73 +2671,73 @@
 	}
 
 	const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	const NS$1 = Theme.Namespace + 'tip';
+	const NS$2 = Theme.Namespace + 'tip';
 	const DEFAULT_DIR = 11;
 	const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	let TIP_COLLECTION = {};
 	insertStyleSheet(`
-	.${NS$1}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$1}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$1}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$1}-close:hover {opacity:1}
-	.${NS$1}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$2}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$2}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$2}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$2}-close:hover {opacity:1}
+	.${NS$2}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$1}-container-wrap[data-tip-dir="11"],
-	.${NS$1}-container-wrap[data-tip-dir="0"],
-	.${NS$1}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$1}-container-wrap[data-tip-dir="11"] .${NS$1}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$1}-container-wrap[data-tip-dir="0"] .${NS$1}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$1}-container-wrap[data-tip-dir="1"] .${NS$1}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="11"],
+	.${NS$2}-container-wrap[data-tip-dir="0"],
+	.${NS$2}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$2}-container-wrap[data-tip-dir="11"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="0"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="1"] .${NS$2}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$2}-container-wrap[data-tip-dir="11"] .${NS$2}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="0"] .${NS$2}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$2}-container-wrap[data-tip-dir="1"] .${NS$2}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$1}-container-wrap[data-tip-dir="8"],
-	.${NS$1}-container-wrap[data-tip-dir="9"],
-	.${NS$1}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-close{top:3px;}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$1}-container-wrap[data-tip-dir="8"] .${NS$1}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$1}-container-wrap[data-tip-dir="9"] .${NS$1}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$1}-container-wrap[data-tip-dir="10"] .${NS$1}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="8"],
+	.${NS$2}-container-wrap[data-tip-dir="9"],
+	.${NS$2}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$2}-container-wrap[data-tip-dir="8"] .${NS$2}-close,
+	.${NS$2}-container-wrap[data-tip-dir="9"] .${NS$2}-close,
+	.${NS$2}-container-wrap[data-tip-dir="10"] .${NS$2}-close{top:3px;}
+	.${NS$2}-container-wrap[data-tip-dir="8"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="9"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="10"] .${NS$2}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$2}-container-wrap[data-tip-dir="8"] .${NS$2}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="9"] .${NS$2}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="10"] .${NS$2}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$1}-container-wrap[data-tip-dir="5"],
-	.${NS$1}-container-wrap[data-tip-dir="6"],
-	.${NS$1}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-close{top:3px;}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$1}-container-wrap[data-tip-dir="5"] .${NS$1}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$1}-container-wrap[data-tip-dir="6"] .${NS$1}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$1}-container-wrap[data-tip-dir="7"] .${NS$1}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="5"],
+	.${NS$2}-container-wrap[data-tip-dir="6"],
+	.${NS$2}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$2}-container-wrap[data-tip-dir="5"] .${NS$2}-close,
+	.${NS$2}-container-wrap[data-tip-dir="6"] .${NS$2}-close,
+	.${NS$2}-container-wrap[data-tip-dir="7"] .${NS$2}-close{top:3px;}
+	.${NS$2}-container-wrap[data-tip-dir="5"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="6"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="7"] .${NS$2}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$2}-container-wrap[data-tip-dir="5"] .${NS$2}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="6"] .${NS$2}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="7"] .${NS$2}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$1}-container-wrap[data-tip-dir="2"],
-	.${NS$1}-container-wrap[data-tip-dir="3"],
-	.${NS$1}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-close,
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-close{right:13px;top:3px;}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow,
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$1}-container-wrap[data-tip-dir="2"] .${NS$1}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$1}-container-wrap[data-tip-dir="3"] .${NS$1}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$1}-container-wrap[data-tip-dir="4"] .${NS$1}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$2}-container-wrap[data-tip-dir="2"],
+	.${NS$2}-container-wrap[data-tip-dir="3"],
+	.${NS$2}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$2}-container-wrap[data-tip-dir="2"] .${NS$2}-close,
+	.${NS$2}-container-wrap[data-tip-dir="3"] .${NS$2}-close,
+	.${NS$2}-container-wrap[data-tip-dir="4"] .${NS$2}-close{right:13px;top:3px;}
+	.${NS$2}-container-wrap[data-tip-dir="2"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="3"] .${NS$2}-arrow,
+	.${NS$2}-container-wrap[data-tip-dir="4"] .${NS$2}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$2}-container-wrap[data-tip-dir="2"] .${NS$2}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$2}-container-wrap[data-tip-dir="3"] .${NS$2}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$2}-container-wrap[data-tip-dir="4"] .${NS$2}-arrow{top:calc(75% - var(--tip-gap))}
 `, Theme.Namespace + 'tip-style');
 	let bindEvent = (tip)=>{
 		if(tip.option.showCloseButton){
-			let close_btn = tip.dom.querySelector(`.${NS$1}-close`);
+			let close_btn = tip.dom.querySelector(`.${NS$2}-close`);
 			close_btn.addEventListener('click', () => {tip.hide();}, false);
 			document.addEventListener('keyup', (e) => {
 				if(e.keyCode === KEYS.Esc){
@@ -2822,16 +2822,16 @@
 			this.relateNode = relateNode;
 			this.option = Object.assign(this.option, opt);
 			this.dom = createDomByHtml(
-				`<div class="${NS$1}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$1}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$1}-close">&#10005;</span>` : ''}
-				<div class="${NS$1}-content">${content}</div>
+				`<div class="${NS$2}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$2}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$2}-close">&#10005;</span>` : ''}
+				<div class="${NS$2}-content">${content}</div>
 			</div>`);
 			bindEvent(this);
 			TIP_COLLECTION[this.id] = this;
 		}
 		setContent(html){
-			this.dom.querySelector(`.${NS$1}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$2}-content`).innerHTML = html;
 			updatePosition(this);
 		}
 		show(){
@@ -4497,40 +4497,40 @@
 		}
 	}
 
-	const NS = Theme.Namespace + 'uploader';
+	const NS$1 = Theme.Namespace + 'uploader';
 	insertStyleSheet(`
-	.${NS}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$1}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$1}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$1}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$1}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS}[data-state="empty"]{opacity:0.5}
-	.${NS}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$1}[data-state="empty"]{opacity:0.5}
+	.${NS$1}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS}[data-state="empty"] :is(.${NS}-handle,.${NS}-progress),
-	.${NS}[data-state="pending"] :is(.${NS}-btn-clean, .${NS}-file, .${NS}-content),
-	.${NS}[data-state="error"] :is(.${NS}-progress,.${NS}-btn-clean),
-	.${NS}[data-state="normal"] :is(.${NS}-progress,.${NS}-btn-cancel),
-	.${NS}[data-state="normal"] .${NS}-file:before{
+	.${NS$1}[data-state="empty"] :is(.${NS$1}-handle,.${NS$1}-progress),
+	.${NS$1}[data-state="pending"] :is(.${NS$1}-btn-clean, .${NS$1}-file, .${NS$1}-content),
+	.${NS$1}[data-state="error"] :is(.${NS$1}-progress,.${NS$1}-btn-clean),
+	.${NS$1}[data-state="normal"] :is(.${NS$1}-progress,.${NS$1}-btn-cancel),
+	.${NS$1}[data-state="normal"] .${NS$1}-file:before{
 		display:none;
 	}
 	
-	.${NS}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS}-content{width:100%;height:100%;}
-	.${NS}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$1}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$1}-content{width:100%;height:100%;}
+	.${NS$1}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$1}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$1}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS}-btn:hover{opacity:1;}
-	.${NS}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS}-btn-cancel:before{content:"\\e61a"}
-	.${NS}-btn-clean:before{content:"\\e61b"}
+	.${NS$1}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$1}-btn:hover{opacity:1;}
+	.${NS$1}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$1}-btn-cancel:before{content:"\\e61a"}
+	.${NS$1}-btn-clean:before{content:"\\e61b"}
 `);
-	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS}-image`;
-	const UPLOADER_FILE_DEFAULT_CLASS = `${NS}-file`;
+	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$1}-image`;
+	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$1}-file`;
 	const UPLOAD_STATE_EMPTY = 'empty';
 	const UPLOAD_STATE_PENDING = 'pending';
 	const UPLOAD_STATE_ERROR = 'error';
@@ -4581,7 +4581,7 @@
 	};
 	const updateState = (up, state, data = null) => {
 		const fileEl = findOne('input[type=file]', up.dom);
-		const contentCtn = findOne(`.${NS}-content`, up.dom);
+		const contentCtn = findOne(`.${NS$1}-content`, up.dom);
 		up.dom.setAttribute('data-state', state);
 		up.dom.title = '';
 		switch(state){
@@ -4691,24 +4691,24 @@
 			});
 			let acceptStr = this.option.allowFileTypes.join(',');
 			const html =
-				`<div class="${NS}" data-state="${this.state}">
-			<label class="${NS}-file">
+				`<div class="${NS$1}" data-state="${this.state}">
+			<label class="${NS$1}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" value="${this.value}" ${this.option.required ? 'required' : ''}>
 			</label>
-			<div class="${NS}-progress">
+			<div class="${NS$1}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS}-content"></div>
-			<div class="${NS}-handle">
-				<span role="button" tabindex="0" class="${NS}-btn ${NS}-btn-cancel" title="取消上传"></span>
-				<span role="button" tabindex="0" class="${NS}-btn ${NS}-btn-clean" title="清除"></span>
+			<div class="${NS$1}-content"></div>
+			<div class="${NS$1}-handle">
+				<span role="button" tabindex="0" class="${NS$1}-btn ${NS$1}-btn-cancel" title="取消上传"></span>
+				<span role="button" tabindex="0" class="${NS$1}-btn ${NS$1}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 			this.dom = createDomByHtml(html, container);
 			const fileEl = findOne('input[type=file]', this.dom);
-			bindNodeActive(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
-			bindNodeActive(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
+			bindNodeActive(findOne(`.${NS$1}-btn-clean`, this.dom), () => {cleanUpload(this);});
+			bindNodeActive(findOne(`.${NS$1}-btn-cancel`, this.dom), () => {abortUpload(this);});
 			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			fileEl.addEventListener('change', () => {
 				let file = fileEl.files[0];
@@ -4737,7 +4737,7 @@
 						},
 						onProgress: (percent, total) => {
 							const progressEl = findOne('progress', this.dom);
-							const progressPnt = findOne(`.${NS}-progress span`, this.dom);
+							const progressPnt = findOne(`.${NS$1}-progress span`, this.dom);
 							progressEl.value = percent;
 							progressEl.max = total;
 							progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
@@ -4830,6 +4830,106 @@
 		}
 	}
 
+	const NS = Theme.Namespace + '-ac-batchfiller';
+	insertStyleSheet(`
+	.${NS} {padding:2em 2em 1em 2em}
+	.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+	.${NS} input,
+	 .${NS} textarea,
+	 .${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+	 .${NS} textarea {min-height:5em;}
+`);
+	const SUPPORT_INPUT_TYPES = [
+		'color',
+		'date',
+		'datetime',
+		'datetime-local',
+		'month',
+		'week',
+		'time',
+		'email',
+		'number',
+		'password',
+		'range',
+		'search',
+		'tel',
+		'text',
+		'url',
+	];
+	const cloneElementAsHtml = (el, id = '') => {
+		let required_attr = el.required ? 'required' : '';
+		let pattern_attr = el.getAttribute('pattern') ? `pattern="${el.getAttribute('pattern')}"` : '';
+		let placeholder_attr = el.placeholder ? `placeholder="${escapeAttr(el.placeholder)}"` : '';
+		let title_attr = el.title ? `title="${escapeAttr(el.title)}"` : '';
+		let max_attr = el.max ? `max=${escapeAttr(el.max)}` : '';
+		let min_attr = el.min ? `min=${escapeAttr(el.min)}` : '';
+		let step_attr = el.step ? `step=${escapeAttr(el.step)}` : '';
+		let id_attr = id.length ? `id="${escapeAttr(id)}"` : '';
+		switch(el.tagName){
+			case 'SELECT':
+				let multiple = el.hasAttribute('multiple');
+				let size = el.getAttribute('size');
+				let option_html = '';
+				Array.from(el.options).forEach(opt => {
+					option_html +=
+						`<option value="${escapeAttr(opt.name) || ''}" ${opt.disabled ? 'disabled' : ''}>
+						${escapeHtml(opt.innerText)}
+					</option>`;
+				});
+				return `<select ${id_attr} ${required_attr} ${multiple ? 'multiple' : ''} ${size ? 'size="' + size + '"' : ''} ${title_attr}>${option_html}</select>`;
+			case 'INPUT':
+				if(SUPPORT_INPUT_TYPES.includes(el.type.toLowerCase())){
+					return `<input ${id_attr} type="${el.type}" ${max_attr} ${min_attr} ${step_attr} ${required_attr} ${pattern_attr} ${placeholder_attr} ${title_attr} ${el.maxLength > 0 ? 'maxlength="' + el.maxLength + '"' : ''}>`;
+				}
+				throw "no support type" + el.type;
+			case 'TEXTAREA':
+				return `<textarea ${id_attr} ${pattern_attr} ${required_attr} ${placeholder_attr} ${title_attr} ${el.maxLength > 0 ? 'maxlength="' + el.maxLength + '"' : ''}></textarea>`;
+			default:
+				throw "no support type" + el.type;
+		}
+	};
+	class ACBatchFiller {
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				let relative_inputs = findAll(param.selector);
+				if(!relative_inputs.length){
+					ToastClass.showInfo("没有可以填写的输入框");
+					return;
+				}
+				let id = guid(NS);
+				let shadow_el_html = cloneElementAsHtml(relative_inputs[0], id);
+				let el, dlg;
+				let label_html = '批量填充：';
+				let doFill = () => {
+					relative_inputs.forEach(input => {
+						input.value = el.value;
+					});
+					dlg.close();
+				};
+				dlg = DialogClass.show('',
+					`<div class="${NS}">
+	<label for="${id}">${label_html}</label>
+	<div>${shadow_el_html}</div>
+</div>`, {
+						width: 350,
+						buttons: [
+							{
+								default: true,
+								title: '确定', callback: () => {
+									doFill();
+									dlg.close();
+								}
+							},
+							{title: '关闭'}
+						]
+					});
+				el = findOne('input,textarea,select', dlg.dom);
+				el.focus();
+				resolve();
+			});
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
@@ -4847,6 +4947,7 @@
 		toast: ACToast,
 		textcounter: ACTextCounter,
 		uploader: ACUploader,
+		batchfiller: ACBatchFiller,
 	};
 	const parseComponents = function(attr){
 		let tmp = attr.split(',');

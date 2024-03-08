@@ -26,10 +26,15 @@ const nav = [
 	'emoji.html',
 	'form.html',
 	'toc.html',
-	'upload.html'
+	'upload.html',
+	'batchfiller.html'
 ]
 let html = `
 <link rel="stylesheet" href="assets/style.css">
+<script type="module">
+    import {ACComponent} from "../src/index.js";
+    ACComponent.watch();
+</script>
 <h2 class="title">${resolveFN(location.href)}</h2>
 <ul class="nav">`;
 
