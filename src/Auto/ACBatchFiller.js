@@ -4,6 +4,7 @@ import {escapeAttr, escapeHtml} from "../Lang/Html.js";
 import {Dialog} from "../Widget/Dialog.js";
 import {Theme} from "../Widget/Theme.js";
 import {guid} from "../Lang/Util.js";
+import {triggerDomEvent} from "../Lang/Event.js";
 
 const NS = Theme.Namespace + '-ac-batchfiller';
 
@@ -80,6 +81,7 @@ export class ACBatchFiller {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let relative_inputs = findAll(param.selector);
+			let title = findAll(param.title);
 			if(!relative_inputs.length){
 				Toast.showInfo("没有可以填写的输入框");
 				return;
@@ -87,10 +89,11 @@ export class ACBatchFiller {
 			let id = guid(NS);
 			let shadow_el_html = cloneElementAsHtml(relative_inputs[0], id);
 			let el, dlg;
-			let label_html = '批量填充：';
+			let label_html = title || '批量设置';
 			let doFill = () => {
 				relative_inputs.forEach(input => {
 					input.value = el.value;
+					triggerDomEvent(input, 'change');
 				});
 				dlg.close();
 			};

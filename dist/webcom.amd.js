@@ -4905,6 +4905,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
 				let relative_inputs = findAll(param.selector);
+				let title = findAll(param.title);
 				if(!relative_inputs.length){
 					ToastClass.showInfo("没有可以填写的输入框");
 					return;
@@ -4912,10 +4913,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				let id = guid(NS);
 				let shadow_el_html = cloneElementAsHtml(relative_inputs[0], id);
 				let el, dlg;
-				let label_html = '批量填充：';
+				let label_html = title || '批量设置';
 				let doFill = () => {
 					relative_inputs.forEach(input => {
 						input.value = el.value;
+						triggerDomEvent(input, 'change');
 					});
 					dlg.close();
 				};
