@@ -2201,7 +2201,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const DLG_CLS_OP = DLG_CLS_PREF + '-op';
 	const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
 	const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
-	const DLG_CLS_CANCEL_BTN = DLG_CLS_PREF + '-cancel-btn';
+	const DLG_CLS_WEAK_BTN = DLG_CLS_PREF + '-weak-btn';
 	const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
 	const STATE_ACTIVE = 'active';
 	const STATE_DISABLED = 'disabled';
@@ -2541,7 +2541,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 							}
 						},
 						{
-							title: '取消', className: DLG_CLS_CANCEL_BTN, callback: () => {
+							title: '取消', className: DLG_CLS_WEAK_BTN, callback: () => {
 								p.close();
 								reject && reject();
 							}
@@ -2594,7 +2594,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 								p.close();
 							}
 						},
-						{title: '取消',className: DLG_CLS_CANCEL_BTN}
+						{title: '取消',className: DLG_CLS_WEAK_BTN}
 					],
 					width:400,
 					modal: true,
@@ -4850,7 +4850,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${NS} input,
 	.${NS} textarea,
 	.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS} textarea {min-height:5em;}
+	.${NS} textarea {min-height:5em; resize:vertical}
 `);
 	const SUPPORT_INPUT_TYPES = [
 		'color',
@@ -4954,7 +4954,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 									dlg.close();
 								}
 							},
-							{title: '关闭'}
+							{title: '关闭', className:DLG_CLS_WEAK_BTN}
 						]
 					});
 				el = findOne('input,textarea,select', dlg.dom);
@@ -6020,6 +6020,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
+	exports.DLG_CLS_BTN = DLG_CLS_BTN;
+	exports.DLG_CLS_WEAK_BTN = DLG_CLS_WEAK_BTN;
 	exports.Dialog = DialogClass;
 	exports.DialogManager = DialogManagerClass;
 	exports.FILE_TYPE_AUDIO = FILE_TYPE_AUDIO;

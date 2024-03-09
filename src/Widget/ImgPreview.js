@@ -1,6 +1,7 @@
 import {
 	createDomByHtml,
-	findAll, findOne,
+	findAll,
+	findOne,
 	getContextWindow,
 	hide,
 	insertStyleSheet,
@@ -10,7 +11,7 @@ import {
 } from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
-import {bindNodeActive, eventDelegate, KEYS} from "../Lang/Event.js";
+import {bindNodeActive, KEYS} from "../Lang/Event.js";
 import {downloadFile} from "../Lang/Net.js";
 import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";

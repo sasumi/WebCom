@@ -10,8 +10,8 @@ const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
 const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
-const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
-const DLG_CLS_CANCEL_BTN = DLG_CLS_PREF + '-cancel-btn';
+export const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
+export const DLG_CLS_WEAK_BTN = DLG_CLS_PREF + '-weak-btn';
 
 const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
 
@@ -564,7 +564,7 @@ class Dialog {
 						}
 					},
 					{
-						title: '取消', className: DLG_CLS_CANCEL_BTN, callback: () => {
+						title: '取消', className: DLG_CLS_WEAK_BTN, callback: () => {
 							p.close();
 							reject && reject()
 						}
@@ -641,7 +641,7 @@ class Dialog {
 							p.close();
 						}
 					},
-					{title: '取消',className: DLG_CLS_CANCEL_BTN}
+					{title: '取消',className: DLG_CLS_WEAK_BTN}
 				],
 				width:400,
 				modal: true,

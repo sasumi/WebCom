@@ -1,7 +1,7 @@
 import {Toast} from "../Widget/Toast.js";
 import {findAll, findOne, insertStyleSheet} from "../Lang/Dom.js";
 import {escapeAttr, escapeHtml} from "../Lang/Html.js";
-import {Dialog} from "../Widget/Dialog.js";
+import {Dialog, DLG_CLS_WEAK_BTN} from "../Widget/Dialog.js";
 import {Theme} from "../Widget/Theme.js";
 import {guid} from "../Lang/Util.js";
 import {KEYS, triggerDomEvent} from "../Lang/Event.js";
@@ -14,7 +14,7 @@ insertStyleSheet(`
 	.${NS} input,
 	.${NS} textarea,
 	.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS} textarea {min-height:5em;}
+	.${NS} textarea {min-height:5em; resize:vertical}
 `)
 
 const SUPPORT_INPUT_TYPES = [
@@ -129,7 +129,7 @@ export class ACBatchFiller {
 								dlg.close();
 							}
 						},
-						{title: '关闭'}
+						{title: '关闭', className:DLG_CLS_WEAK_BTN}
 					]
 				});
 			el = findOne('input,textarea,select', dlg.dom);

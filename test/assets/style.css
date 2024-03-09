@@ -35,7 +35,7 @@ input[type=button], button{
 	line-height:var(--element-height);
 }
 
-.WebCom-dialog-cancel-btn[type=button] {
+.WebCom-dialog-weak-btn[type=button] {
 	color: #666;
 	background-color:#eee;
 }
