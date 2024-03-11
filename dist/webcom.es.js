@@ -2355,14 +2355,30 @@ const resolveContentType = (content) => {
 	}
 	return DLG_CTN_TYPE_HTML;
 };
+const autoResizeIframeHeight = (iframe)=>{
+	let obs;
+	try{
+		let upd = () => {
+			let bdy = iframe.contentWindow.document.body;
+			if(bdy){
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+			}
+		};
+		iframe.addEventListener('load', () => {
+			obs = new MutationObserver(upd);
+			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+			upd();
+		});
+	}catch(err){
+		try{
+			obs && obs.disconnect();
+		}catch(err){
+			console.error('observer disconnect fail', err);
+		}
+		console.warn('iframe content upd', err);
+	}
+};
 const domConstruct = (dlg) => {
-	let style = [];
-	if(dlg.config.minContentHeight){
-		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight));
-	}
-	if(dlg.config.maxContentHeight){
-		style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
-	}
 	let html = `
 		<dialog class="${DLG_CLS_PREF}" 
 			id="${dlg.id}" 
@@ -2372,7 +2388,9 @@ const domConstruct = (dlg) => {
 			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 	`;
-	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}" tabindex="0">${renderContent(dlg)}</div>`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" 
+			style="min-height: ${dimension2Style(Dialog.CONTENT_MIN_HEIGHT)}; ${dlg.config.height ? 'height:'+dimension2Style(dlg.config.height)+';':''}" 
+			tabindex="0">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
@@ -2383,33 +2401,9 @@ const domConstruct = (dlg) => {
 	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
 	html += `</dialog>`;
 	dlg.dom = createDomByHtml(html, document.body);
-	if(dlg.config.height){
-		adjustHeight(dlg, dlg.config.height);
-	}
-	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
+	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
-		let obs;
-		try{
-			let upd = () => {
-				let bdy = iframe.contentWindow.document.body;
-				if(bdy){
-					let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
-					adjustHeight(dlg, h);
-				}
-			};
-			iframe.addEventListener('load', () => {
-				obs = new MutationObserver(upd);
-				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-				upd();
-			});
-		}catch(err){
-			try{
-				obs && obs.disconnect();
-			}catch(err){
-				console.error('observer disconnect fail', err);
-			}
-			console.warn('iframe content upd', err);
-		}
+		autoResizeIframeHeight(iframe);
 	}
 };
 const eventBind = (dlg) => {
@@ -2427,14 +2421,6 @@ const eventBind = (dlg) => {
 	if(dlg.config.showTopCloseButton){
 		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
 		bindNodeActive(close_btn, dlg.close.bind(dlg));
-	}
-};
-const adjustHeight = (dlg, h) => {
-	let ctn = dlg.dom.querySelector(`.${DLG_CLS_CTN}`);
-	ctn.style.height = dimension2Style(h);
-	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-		let iframe = dlg.dom.querySelector('iframe');
-		iframe.style.height = dimension2Style(h);
 	}
 };
 const renderContent = (dlg) => {
@@ -2467,8 +2453,6 @@ class Dialog {
 		transparent:false,
 		width: Dialog.DEFAULT_WIDTH,
 		height: null,
-		maxContentHeight: null,
-		minContentHeight: Dialog.CONTENT_MIN_HEIGHT,
 		buttons: [],
 		showTopCloseButton: true,
 	};

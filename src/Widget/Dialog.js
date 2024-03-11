@@ -292,18 +292,38 @@ const resolveContentType = (content) => {
 }
 
 /**
+ * 自动调整iframe高度
+ * @param iframe
+ */
+const autoResizeIframeHeight = (iframe)=>{
+	let obs;
+	try{
+		let upd = () => {
+			let bdy = iframe.contentWindow.document.body;
+			if(bdy){
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+			}
+		}
+		iframe.addEventListener('load', () => {
+			obs = new MutationObserver(upd);
+			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+			upd();
+		});
+	}catch(err){
+		try{
+			obs && obs.disconnect();
+		}catch(err){
+			console.error('observer disconnect fail', err)
+		}
+		console.warn('iframe content upd', err);
+	}
+}
+
+/**
  * 构造DOM结构
  * @param {Dialog} dlg
  */
 const domConstruct = (dlg) => {
-	let style = [];
-	if(dlg.config.minContentHeight){
-		style.push('min-height:' + dimension2Style(dlg.config.minContentHeight));
-	}
-	if(dlg.config.maxContentHeight){
-		style.push('max-height:' + dimension2Style(dlg.config.maxContentHeight));
-	}
-
 	let html = `
 		<dialog class="${DLG_CLS_PREF}" 
 			id="${dlg.id}" 
@@ -313,7 +333,9 @@ const domConstruct = (dlg) => {
 			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
 		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
 	`;
-	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" style="${style.join(';')}" tabindex="0">${renderContent(dlg)}</div>`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" 
+			style="min-height: ${dimension2Style(Dialog.CONTENT_MIN_HEIGHT)}; ${dlg.config.height ? 'height:'+dimension2Style(dlg.config.height)+';':''}" 
+			tabindex="0">${renderContent(dlg)}</div>`;
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => {
@@ -326,36 +348,10 @@ const domConstruct = (dlg) => {
 	html += `</dialog>`;
 	dlg.dom = createDomByHtml(html, document.body);
 
-	//update content height
-	if(dlg.config.height){
-		adjustHeight(dlg, dlg.config.height);
-	}
-
 	//bind iframe content
-	if(!dlg.config.height && resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
+	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
-		let obs;
-		try{
-			let upd = () => {
-				let bdy = iframe.contentWindow.document.body;
-				if(bdy){
-					let h = bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight;
-					adjustHeight(dlg, h);
-				}
-			}
-			iframe.addEventListener('load', () => {
-				obs = new MutationObserver(upd);
-				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-				upd();
-			});
-		}catch(err){
-			try{
-				obs && obs.disconnect();
-			}catch(err){
-				console.error('observer disconnect fail', err)
-			}
-			console.warn('iframe content upd', err);
-		}
+		autoResizeIframeHeight(iframe);
 	}
 };
 
@@ -387,20 +383,6 @@ const eventBind = (dlg) => {
 		bindNodeActive(close_btn, dlg.close.bind(dlg));
 	}
 }
-
-/**
- * 更新
- * @param {Dialog} dlg
- * @param {Number} h
- */
-const adjustHeight = (dlg, h) => {
-	let ctn = dlg.dom.querySelector(`.${DLG_CLS_CTN}`);
-	ctn.style.height = dimension2Style(h);
-	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-		let iframe = dlg.dom.querySelector('iframe');
-		iframe.style.height = dimension2Style(h);
-	}
-};
 
 /**
  * 渲染内容区域
@@ -449,8 +431,6 @@ class Dialog {
 		transparent:false, //是否透明
 		width: Dialog.DEFAULT_WIDTH,
 		height: null, //高度，缺省为自动高度
-		maxContentHeight: null, //最大内容区高度，默认为标题和空隙预留50px
-		minContentHeight: Dialog.CONTENT_MIN_HEIGHT,
 		buttons: [/** {title:'', default:true, callback }**/], //对话框配置按钮列表
 		showTopCloseButton: true, //是否显示顶部关闭窗口
 	};
@@ -463,8 +443,7 @@ class Dialog {
 	 * @param {Boolean} config.modal 是否为模态对话框
 	 * @param {Boolean} config.transparent 是否透明
 	 * @param {Number} config.width 宽度
-	 * @param {Number} config.height 高度
-	 * @param {Number} config.maxHeight 最大高度
+	 * @param {Number} config.height 高度（指内容区高度，不包含标题栏）
 	 * @param {Array} config.buttons 按钮列表
 	 * @param {Boolean} config.buttons.default 单个按钮对象中是否作为默认按钮（默认聚焦）
 	 * @param {String} config.buttons.title 按钮标题
@@ -530,7 +509,6 @@ class Dialog {
 	 * @param {Boolean} config.transparent
 	 * @param {Number} config.width
 	 * @param {Number} config.height
-	 * @param {Number} config.maxHeight
 	 * @param {Array} config.buttons
 	 * @param {Boolean} config.buttons.default
 	 * @param {String} config.buttons.title
