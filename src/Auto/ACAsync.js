@@ -39,7 +39,13 @@ export class ACAsync {
 				parent.location.reload();
 			}
 		}
-		rsp.message ? Toast.showSuccess(rsp.message, next) : next();
+		if(rsp.message){
+			let tm = Toast.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS];
+			Toast.showToast(rsp.message, Toast.TYPE_SUCCESS, tm);
+			setTimeout(next, Math.max(tm - 500, 0));
+		}else{
+			next();
+		}
 	};
 
 	static active(node, param = {}, event = null){

@@ -1089,7 +1089,7 @@ var WebCom = (function (exports) {
 		}
 		return toastWrap;
 	};
-	class Toast{
+	class Toast {
 		static TYPE_INFO = 'info';
 		static TYPE_SUCCESS = 'success';
 		static TYPE_WARNING = 'warning';
@@ -2135,7 +2135,13 @@ var WebCom = (function (exports) {
 					parent.location.reload();
 				}
 			};
-			rsp.message ? ToastClass.showSuccess(rsp.message, next) : next();
+			if(rsp.message){
+				let tm = ToastClass.DEFAULT_TIME_MAP[ToastClass.TYPE_SUCCESS];
+				ToastClass.showToast(rsp.message, ToastClass.TYPE_SUCCESS, tm);
+				setTimeout(next, Math.max(tm - 500, 0));
+			}else {
+				next();
+			}
 		};
 		static active(node, param = {}, event = null){
 			return new Promise((resolve, reject) => {

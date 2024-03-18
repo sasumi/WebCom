@@ -45,7 +45,7 @@ const getWrapper = () => {
 	return toastWrap;
 }
 
-class Toast{
+class Toast {
 	static TYPE_INFO = 'info';
 	static TYPE_SUCCESS = 'success';
 	static TYPE_WARNING = 'warning';
