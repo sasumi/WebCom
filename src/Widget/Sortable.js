@@ -42,7 +42,7 @@ export const sortable = (listNode, option = null, onChange = () => {
 		Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
 	};
 
-	onDomTreeChange(listNode, set);
+	onDomTreeChange(listNode, set, false);
 	set();
 
 	listNode.addEventListener('dragover', e=>{
@@ -50,9 +50,7 @@ export const sortable = (listNode, option = null, onChange = () => {
 	});
 
 	listNode.addEventListener('dragstart', e => {
-		console.log(e);
 		if(e.target === listNode){
-			console.log(e.target);
 			return;
 		}
 		let tag = matchChildren(listNode, e.target);
