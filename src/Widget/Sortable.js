@@ -1,5 +1,5 @@
 import {Theme} from "./Theme.js";
-import {domChangedWatch} from "../Lang/Dom.js";
+import {onDomTreeChange} from "../Lang/Dom.js";
 
 const CLS_ON_DRAG = Theme.Namespace + '-on-drag';
 const CLS_DRAG_PROXY = Theme.Namespace + '-drag-proxy';
@@ -25,23 +25,34 @@ const matchChildren = (container, eventTarget) => {
 /**
  * 节点排序
  * @param {Node} listNode 列表父容器（函数自动监听容器子节点变化，重新绑定）
- * @param {Object} option 选项
+ * @param {Object|Null} option 选项
  * @param {String} option.ClassOnDrag 占位对象类名
  * @param {String} option.ClassProxy 拖动过程代理对象类名
  * @param {Function} onChange
  */
-export const sortable = (listNode, option = {}, onChange = () => {
+export const sortable = (listNode, option = null, onChange = () => {
 }) => {
 	let currentNode = null;
 	let currentParent = null; //当前父级，避免多个拖动组件使用出现混淆
+	option = option || {};
 	let ClassOnDrag = option.ClassOnDrag || CLS_ON_DRAG;
 	let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
-	domChangedWatch(listNode, 'li', () => {
+
+	let set = () => {
 		Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
-	}, true);
+	};
+
+	onDomTreeChange(listNode, set);
+	set();
+
+	listNode.addEventListener('dragover', e=>{
+		e.preventDefault();
+	});
 
 	listNode.addEventListener('dragstart', e => {
+		console.log(e);
 		if(e.target === listNode){
+			console.log(e.target);
 			return;
 		}
 		let tag = matchChildren(listNode, e.target);
@@ -52,6 +63,7 @@ export const sortable = (listNode, option = {}, onChange = () => {
 			tag.classList.remove(ClassProxy);
 			tag.classList.add(ClassOnDrag);
 		}, 0);
+		return false;
 	});
 	listNode.addEventListener('dragenter', e => {
 		if(e.target === listNode){

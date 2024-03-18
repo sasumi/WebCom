@@ -2155,7 +2155,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static active(node, param = {}, event = null){
 			return new Promise((resolve, reject) => {
 				let url, data, method,
-					onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
+					onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE,
+					submitter = null;
+				const SUBMITTING_FLAG = 'data-submitting';
 				if(param.onsuccess){
 					if(typeof (param.onsuccess) === 'string'){
 						onsuccess = window[param.onsuccess];
@@ -2165,6 +2167,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 				if(node.tagName === 'FORM'){
 					url = fixFormAction(node, event);
+					submitter = event.submitter;
 					data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 				}else if(node.tagName === 'A'){
@@ -2175,6 +2178,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				method = param.method || method || 'get';
 				data = param.data || data;
 				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
+				node.setAttribute(SUBMITTING_FLAG, '1');
+				submitter && submitter.setAttribute(SUBMITTING_FLAG, '1');
 				requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
 					if(rsp.code === 0){
 						onsuccess(rsp);
@@ -2188,6 +2193,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					ToastClass.showError(err);
 					reject(err);
 				}).finally(() => {
+					node.removeAttribute(SUBMITTING_FLAG);
+					submitter && submitter.removeAttribute(SUBMITTING_FLAG);
 					loader && loader.hide();
 				});
 			})

@@ -2,10 +2,12 @@ import {Toast} from "../Widget/Toast.js";
 import {REQUEST_FORMAT, requestJSON} from "../Lang/Net.js";
 import {formSerializeJSON, formSerializeString} from "../Lang/Form.js";
 
+const SUBMITTING_FLAG = 'data-submitting';
+
 /**
  * 修正从 input[type=submit][formaction] 按钮提交的表单动作
  * @param {HTMLFormElement} form
- * @param {SubmitEvent|Null} event
+ * @param {Event|Null} event
  * @returns {string}
  */
 const fixFormAction = (form, event = null) => {
@@ -28,6 +30,7 @@ export class ACAsync {
 	static REQUEST_FORMAT = REQUEST_FORMAT.JSON;
 
 	//默认成功回调处理函数
+	//允许外部重新定义
 	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
 		let next = () => {
 			if(rsp.forward_url){
@@ -41,8 +44,12 @@ export class ACAsync {
 
 	static active(node, param = {}, event = null){
 		return new Promise((resolve, reject) => {
+			if(node.getAttribute(SUBMITTING_FLAG)){
+				return;
+			}
 			let url, data, method,
-				onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE;
+				onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE,
+				submitter = null;
 
 			if(param.onsuccess){
 				if(typeof (param.onsuccess) === 'string'){
@@ -53,6 +60,7 @@ export class ACAsync {
 			}
 			if(node.tagName === 'FORM'){
 				url = fixFormAction(node, event);
+				submitter = event.submitter;
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 			}else if(node.tagName === 'A'){
@@ -66,6 +74,8 @@ export class ACAsync {
 			data = param.data || data;
 
 			let loader = Toast.showLoadingLater('正在请求中，请稍候···');
+			node.setAttribute(SUBMITTING_FLAG, '1');
+			submitter && submitter.setAttribute(SUBMITTING_FLAG, '1');
 			requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
 				if(rsp.code === 0){
 					onsuccess(rsp);
@@ -79,6 +89,8 @@ export class ACAsync {
 				Toast.showError(err);
 				reject(err);
 			}).finally(() => {
+				node.removeAttribute(SUBMITTING_FLAG);
+				submitter && submitter.removeAttribute(SUBMITTING_FLAG);
 				loader && loader.hide();
 			})
 		})

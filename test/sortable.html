@@ -17,6 +17,7 @@
 		.list2 li.WebCom--on-drag {opacity:0.5}
 		.list2 li.WebCom--drag-proxy {box-shadow:1px 1px 10px #ccc;}
 
+		.list3 img {float:left; padding:1em; background:#000000; margin:0.5em; width:100px; height:100px;}
 	</style>
 </head>
 <body>
@@ -29,7 +30,6 @@
 	<li>item5</li>
 </ul>
 
-
 <ul class="list2">
 	<li>item1</li>
 	<li>item2</li>
@@ -38,13 +38,21 @@
 	<li>item5</li>
 </ul>
 
+<div class="list3">
+	<img src="https://www.w3schools.com/html/img_w3slogo.gif" alt="">
+	<img src="https://www.w3schools.com/images/img_spaces_up_generic_html_300.png" alt="">
+	<img src="https://ns-strategy.cdn.bcebos.com/ns-strategy/upload/fc_big_pic/part-00747-2220.jpg" alt="">
+	<img src="https://img2.baidu.com/it/u=2047628835,2951002323&fm=253&fmt=auto&app=138&f=JPEG?w=834&h=500" alt="">
+</div>
+
 <script type="module">
 	import {findOne, sortable} from "../src/index.js";
 
 	sortable(findOne('.list'));
-	sortable(findOne('.list2'), {}, (curIdx, tagIdx)=>{
+	sortable(findOne('.list2'), null, (curIdx, tagIdx)=>{
 		console.log('current index', curIdx, tagIdx);
 	});
+	sortable(findOne('.list3'));
 </script>
 </body>
 </html>
