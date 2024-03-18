@@ -2118,6 +2118,7 @@ var WebCom = (function (exports) {
 		return html;
 	};
 
+	const SUBMITTING_FLAG = 'data-submitting';
 	const fixFormAction = (form, event = null) => {
 		if(event && event.submitter && event.submitter.formAction){
 			return event.submitter.formAction;
@@ -2138,10 +2139,12 @@ var WebCom = (function (exports) {
 		};
 		static active(node, param = {}, event = null){
 			return new Promise((resolve, reject) => {
+				if(node.getAttribute(SUBMITTING_FLAG)){
+					return;
+				}
 				let url, data, method,
 					onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE,
 					submitter = null;
-				const SUBMITTING_FLAG = 'data-submitting';
 				if(param.onsuccess){
 					if(typeof (param.onsuccess) === 'string'){
 						onsuccess = window[param.onsuccess];
@@ -5829,17 +5832,25 @@ var WebCom = (function (exports) {
 		}
 		throw "event target no in container";
 	};
-	const sortable = (listNode, option = {}, onChange = () => {
+	const sortable = (listNode, option = null, onChange = () => {
 	}) => {
 		let currentNode = null;
 		let currentParent = null;
+		option = option || {};
 		let ClassOnDrag = option.ClassOnDrag || CLS_ON_DRAG;
 		let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
-		domChangedWatch(listNode, 'li', () => {
+		let set = () => {
 			Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
-		}, true);
+		};
+		onDomTreeChange(listNode, set);
+		set();
+		listNode.addEventListener('dragover', e=>{
+			e.preventDefault();
+		});
 		listNode.addEventListener('dragstart', e => {
+			console.log(e);
 			if(e.target === listNode){
+				console.log(e.target);
 				return;
 			}
 			let tag = matchChildren(listNode, e.target);
@@ -5850,6 +5861,7 @@ var WebCom = (function (exports) {
 				tag.classList.remove(ClassProxy);
 				tag.classList.add(ClassOnDrag);
 			}, 0);
+			return false;
 		});
 		listNode.addEventListener('dragenter', e => {
 			if(e.target === listNode){
