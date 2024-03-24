@@ -1,0 +1,23 @@
+@import "mfc.define.css";
+@import "mfc.form.css";
+:root {
+	--border-color:#ccc;
+}
+*, input {margin:0; padding:0; font-family:var(--font-family); font-size:var(--font-size); line-height:var(--line-height)}
+ul,ol,li {list-style:none;}
+html {color:black; background-color:#f4f7fc;}
+
+.content {padding:1em;background-color:#fff;}
+
+
+.tab {margin:0.25em 0 0 0;}
+.tab:after {content:"";display:block;clear:both;border-top: var(--panel-border);height: 0;}
+.tab>li {float:left;padding: 0 .75em;user-select:none;cursor: pointer;margin-right:-1px;background-color:#f0f0f0;border: var(--panel-border);font-weight:bold;margin-bottom: -1px;border-bottom-color: transparent;background-clip: padding-box;}
+.tab>li.active {background-color:#fff;border-bottom: 1px solid #fff;padding-top: 3px;margin-top: -3px;cursor: default;}
+.tab>li:first-child {margin-left:0.25em;}
+
+.toolbar {background-color:#f0f0f0;}
+
+
+.top-op {display:flex; gap:0.5em;}
+.top-op>fieldset {flex:1;}

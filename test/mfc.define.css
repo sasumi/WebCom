@@ -1,0 +1,21 @@
+:root{
+	--font-family:"宋体", serif;
+	--font-size:12px;
+	--codefont:consolas, var(--font-family);
+	--color:#000;
+	--lighten-color:#999999;
+	--back-color:#ffffff;
+	--line-height:1.6;
+	--block-back-color:#ffffff;
+	--block-radius:0px;
+	--place-holder-color:lightgray;
+	--link-color:#666;
+	--link-visited-color:#2f4262;
+	--header-height:52px;
+	--element-border: 1px solid #adadad;
+	--panel-radius:2px;
+	--panel-shadow:0 1px 3px hsla(0, 0%, 7%, .1);
+	--panel-border: 1px solid #ddd;
+	--element-height: 1.75rem;
+	--dash-holder:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"%3E%3Ctext x="5" y="20" fill="gray"%3E-%3C/text%3E%3C/svg%3E');
+}

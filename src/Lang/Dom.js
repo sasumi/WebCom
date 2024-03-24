@@ -57,11 +57,16 @@ export const findOne = (selector, parent = document) => {
 }
 
 /**
+ * 通过选择器查找子节点（强制添加 :scope来约束必须是子节点）
  * @param {String} selector
  * @param {Node} parent
  * @return {Node[]}
  */
 export const findAll = (selector, parent = document) => {
+	selector = selector.trim();
+	if(selector.indexOf(':scope') !== 0){
+		selector = ':scope ' + selector;
+	}
 	return Array.from(parent.querySelectorAll(selector));
 }
 

@@ -602,6 +602,10 @@ var WebCom = (function (exports) {
 		return parent.querySelector(selector);
 	};
 	const findAll = (selector, parent = document) => {
+		selector = selector.trim();
+		if(selector.indexOf(':scope') !== 0){
+			selector = ':scope ' + selector;
+		}
 		return Array.from(parent.querySelectorAll(selector));
 	};
 	const getDomOffset = (target) => {
