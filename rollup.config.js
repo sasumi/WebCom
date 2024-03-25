@@ -24,7 +24,7 @@ export default {
 		{
 			format: "es",
 			file: "./dist/webcom.es.js",
-			sourcemap: false,
+			sourcemap: true,
 		},
 		{
 			format: "iife",
@@ -34,6 +34,6 @@ export default {
 	],
 	plugins: [
 		cleanupPlugin({comments: "none", sourcemap: true, extensions: ["js", "ts"]}),
-		// terser()
+		terser()
 	]
 }
