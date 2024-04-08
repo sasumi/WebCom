@@ -598,6 +598,9 @@ var WebCom = (function (exports) {
 	const toggle = (dom, toShow) => {
 		toShow ? show(dom) : hide(dom);
 	};
+	const nodeIndex = (node)=>{
+		return Array.prototype.indexOf.call(node.parentNode.children, node);
+	};
 	const findOne = (selector, parent = document) => {
 		return parent.querySelector(selector);
 	};
@@ -2122,7 +2125,7 @@ var WebCom = (function (exports) {
 		return html;
 	};
 
-	const SUBMITTING_FLAG = 'data-submitting';
+	const ASYNC_SUBMITTING_FLAG = 'data-submitting';
 	const fixFormAction = (form, event = null) => {
 		if(event && event.submitter && event.submitter.formAction){
 			return event.submitter.formAction;
@@ -2149,7 +2152,7 @@ var WebCom = (function (exports) {
 		};
 		static active(node, param = {}, event = null){
 			return new Promise((resolve, reject) => {
-				if(node.getAttribute(SUBMITTING_FLAG)){
+				if(node.getAttribute(ASYNC_SUBMITTING_FLAG)){
 					return;
 				}
 				let url, data, method,
@@ -2175,8 +2178,8 @@ var WebCom = (function (exports) {
 				method = param.method || method || 'get';
 				data = param.data || data;
 				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
-				node.setAttribute(SUBMITTING_FLAG, '1');
-				submitter && submitter.setAttribute(SUBMITTING_FLAG, '1');
+				node.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
+				submitter && submitter.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
 				requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
 					if(rsp.code === 0){
 						onsuccess(rsp);
@@ -2190,8 +2193,8 @@ var WebCom = (function (exports) {
 					ToastClass.showError(err);
 					reject(err);
 				}).finally(() => {
-					node.removeAttribute(SUBMITTING_FLAG);
-					submitter && submitter.removeAttribute(SUBMITTING_FLAG);
+					node.removeAttribute(ASYNC_SUBMITTING_FLAG);
+					submitter && submitter.removeAttribute(ASYNC_SUBMITTING_FLAG);
 					loader && loader.hide();
 				});
 			})
@@ -2221,7 +2224,7 @@ var WebCom = (function (exports) {
 	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;}
 	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
-	.${DLG_CLS_PREF} .${DLG_CLS_PREF}-ti {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
+	.${DLG_CLS_PREF} .${DLG_CLS_TI} {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
@@ -2232,7 +2235,7 @@ var WebCom = (function (exports) {
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 100px); overflow-y:auto}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 60px 1px #44444457}
-	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .dialog-ti {color:#333}
+	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .${DLG_CLS_TI} {color:#333}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"]:before {content:""; left:0; top:0; position:absolute; width:100%; height:100%;}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_DISABLED}"] * {opacity:0.85 !important; user-select:none;}
 	
@@ -2485,6 +2488,10 @@ var WebCom = (function (exports) {
 			domConstruct(this);
 			eventBind(this);
 			DialogManager.register(this);
+		}
+		setTitle(title){
+			this.config.title = title;
+			findOne('.'+DLG_CLS_TI, this.dom).innerText = title;
 		}
 		show(){
 			DialogManager.show(this);
@@ -6012,6 +6019,7 @@ var WebCom = (function (exports) {
 	exports.ACTip = ACTip;
 	exports.ACToast = ACToast;
 	exports.ACUploader = ACUploader;
+	exports.ASYNC_SUBMITTING_FLAG = ASYNC_SUBMITTING_FLAG;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
 	exports.BizEvent = BizEvent;
@@ -6178,6 +6186,7 @@ var WebCom = (function (exports) {
 	exports.mergerUriParam = mergerUriParam;
 	exports.monthsOffsetCalc = monthsOffsetCalc;
 	exports.nodeHighlight = nodeHighlight;
+	exports.nodeIndex = nodeIndex;
 	exports.objectGetByPath = objectGetByPath;
 	exports.objectPushByPath = objectPushByPath;
 	exports.onDocReady = onDocReady;

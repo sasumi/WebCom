@@ -48,6 +48,15 @@ export const toggle = (dom, toShow) => {
 }
 
 /**
+ * 获取当前节点在父结点中的索引号
+ * @param node
+ * @return {number}
+ */
+export const nodeIndex = (node)=>{
+	return Array.prototype.indexOf.call(node.parentNode.children, node);
+}
+
+/**
  * @param {String} selector
  * @param {Node} parent
  * @return {Node}
