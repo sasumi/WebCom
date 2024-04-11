@@ -4506,6 +4506,22 @@ class ACMultiSelectRelate {
 				button.title = '';
 				button.removeAttribute('disabled');
 				button.classList.remove('button-disabled');
+				if(button.href || button.formAction){
+					let org_url = button.getAttribute('multiple-relate-select-org-url');
+					if(!org_url){
+						org_url = button.href || button.formAction;
+						button.setAttribute('multiple-relate-select-org-url', org_url);
+					}
+					let data_str = [];
+					findAll('input:checked', container).forEach(chk => {
+						data_str.push(encodeURIComponent(chk.name) + '=' + encodeURIComponent(chk.value));
+					});
+					if(button.formAction){
+						button.formAction = org_url + (org_url.indexOf('?') >= 0 ? '&' : '?') + data_str.join('&');
+					}else {
+						button.href = org_url + (org_url.indexOf('?') >= 0 ? '&' : '?') + data_str.join('&');
+					}
+				}
 			};
 			domChangedWatch(container, 'input:checked', coll => {
 				coll.length ? enableBtn() : disableBtn();
