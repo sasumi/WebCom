@@ -1,5 +1,5 @@
-:root {
-	--color:#333;
+:root{
+	--color:#333333;
 	--inversed-color:white;
 	--back-color:#f5f5f5;
 	--link-color:#3470f6;
@@ -7,7 +7,7 @@
 	--element-height:2.25em;
 }
 html, body, ul, li, ol, h1, h2, h3, h4, h5, h6, dd{margin:0; padding:0;}
-body{padding:1em;font-size: 14px;}
+body{padding:1em;font-size:14px;}
 
 a{text-decoration:none; color:var(--link-color)}
 .nav{overflow:hidden; list-style:none; border-bottom:1px solid #cccccc; padding:0.5em; margin-bottom:0.5em;}
@@ -15,14 +15,14 @@ a{text-decoration:none; color:var(--link-color)}
 .nav li:after{content:"|"; display:inline-block; padding:0 1em; color:#cccccc; font-size:14px;}
 .nav li:last-child:after{display:none;}
 
-.title {margin:-1rem 0 0 -1rem;/* background-color:#ccc; */padding:0.25em .5em;border-bottom: 1px solid gray;}
+.title{margin:-1rem 0 0 -1rem; /* background-color:#ccc; */padding:0.25em .5em;border-bottom:1px solid gray;}
 
-h1,h2,h3,h4,h5,h6 {margin:1em 0 .5em; font-weight:normal}
-h2 {font-size:1.8rem;}
-h3 {font-size:1.4rem;}
-h4 {font-size:1.2rem;}
+h1, h2, h3, h4, h5, h6{margin:1em 0 .5em; font-weight:normal}
+h2{font-size:1.8rem;}
+h3{font-size:1.4rem;}
+h4{font-size:1.2rem;}
 
-input[type=button], button{
+input[type=button], button, .button{
 	padding-left:1em;
 	padding-right:1em;
 	cursor:pointer;
@@ -32,12 +32,19 @@ input[type=button], button{
 	border-radius:var(--element-radius);
 	min-width:5em;
 	height:var(--element-height);
-	line-height:var(--element-height);
+	box-sizing:border-box;
+	display:inline-flex;
+	align-items:center;
 }
 
-.WebCom-dialog-weak-btn[type=button] {
-	color: #666;
-	background-color:#eee;
+.button-disabled, button[disabled], input[type=button][disabled]{
+	background-color:gray;
+	cursor:default;
+}
+
+.WebCom-dialog-weak-btn[type=button]{
+	color:#666666;
+	background-color:#eeeeee;
 }
 
 
@@ -46,19 +53,19 @@ input[type=button], button{
 /*	--WebCom-background-color: black;*/
 /*}*/
 
-.table {
+.table{
 	border-collapse:collapse;
 	border-spacing:0;
 }
 
-.table thead tr {background-color:#ddd;}
-.table tbody th {background-color: #eeec;}
-.table th {text-align:left; font-weight:normal}
-.table th, .table td {padding:0.25em .5em; border:1px solid gray}
+.table thead tr{background-color:#dddddd;}
+.table tbody th{background-color:#eeec;}
+.table th{text-align:left; font-weight:normal}
+.table th, .table td{padding:0.25em .5em; border:1px solid gray}
 
 input[type=text],
 input[type=number],
 input[type=search],
-input[type=password] {
+input[type=password]{
 	padding:0.5em;
 }

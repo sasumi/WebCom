@@ -11,6 +11,7 @@ export class ACConfirm {
 		return new Promise((resolve, reject) => {
 			let title = param.title;
 			let message = param.message;
+			console.log('confirm dialog');
 			Dialog.confirm(title || '确认', message).then(resolve, reject);
 		});
 	}

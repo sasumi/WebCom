@@ -2673,6 +2673,7 @@ var WebCom = (function (exports) {
 			return new Promise((resolve, reject) => {
 				let title = param.title;
 				let message = param.message;
+				console.log('confirm dialog');
 				DialogClass.confirm(title || '确认', message).then(resolve, reject);
 			});
 		}
@@ -4485,6 +4486,15 @@ var WebCom = (function (exports) {
 	}
 
 	class ACMultiSelectRelate {
+		static active(button, param){
+			return new Promise((resolve, reject) => {
+				if(button.getAttribute('disabled')){
+					reject('button disabled');
+				}else {
+					resolve();
+				}
+			});
+		}
 		static init(button, param = {}){
 			return new Promise((resolve, reject) => {
 				const container = findOne(param.container || 'body');
@@ -5055,14 +5065,16 @@ var WebCom = (function (exports) {
 			eventName = 'click';
 		}
 		node.addEventListener(eventName, event => {
-			let func = activeStacks[0];
-			let pro = func(event);
-			for(let i = 1; i < activeStacks.length; i++){
-				pro = pro.then(() => {
-					return activeStacks[i](event);
-				}, () => {
-				});
-			}
+			let stacks = [...activeStacks];
+			let exe = () => {
+				let func = stacks.shift();
+				if(func){
+					func(event).then(exe, err => {
+						console.info('ACComponent active chain breakdown', err);
+					});
+				}
+			};
+			exe();
 			event.preventDefault();
 			return false;
 		});

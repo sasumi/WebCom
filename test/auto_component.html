@@ -10,6 +10,7 @@
 <script src="assets/nav.js"></script>
 <button data-component="confirm,toast" data-toast-message="开始行动" data-confirm-object-id="33234" data-confirm-message="hello">confirm &gt; toast</button>
 
+<h3>单个组件绑定</h3>
 <p>
     这里有一个自动化提示的 <a href="" title="链接的更多描述说明<br/>dadfasd" data-component="tip">链接</a>，鼠标移动上来就可以看到tip
 </p>
@@ -18,12 +19,26 @@
     这个提示信息需要点击之后才能显示： <span title="链接的更多描述说明<br/>dadfasd" data-tip-triggerType="click" data-component="tip">链接</span>
 </p>
 
-
-<button data-component="hello">Hello</button>
-
+<h3>自定义Component</h3>
+<button data-componentd="hello">Hello</button>
 <script type="module">
     import {ACComponent} from "../src/index.js";
     ACComponent.watch();
 </script>
+
+<h3>多个组件联动执行</h3>
+
+<div>
+    <a href="/test/request.json" class="button"
+       data-component="selectrelate,confirm,async"
+       data-selectrelate-container=".chks"
+       data-confirm-message="确认">多选，确认，再异步调用</a>
+</div>
+<ul class="chks">
+    <li><label><input type="checkbox">checkbox1</label></li>
+    <li><label><input type="checkbox">checkbox2</label></li>
+    <li><label><input type="checkbox">checkbox3</label></li>
+</ul>
+
 </body>
 </html>

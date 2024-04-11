@@ -1,10 +1,21 @@
 import {domChangedWatch, findOne} from "../Lang/Dom.js";
+
 /**
  * 多选关联，如多个checkbox必须至少存在一个选中项目，关联的按钮才允许被使用。
  * 参数：
  * *[data-multiselectrelate-container] 指定关联容器（会监听该容器dom变更）
  */
 export class ACMultiSelectRelate {
+	static active(button, param){
+		return new Promise((resolve, reject) => {
+			if(button.getAttribute('disabled')){
+				reject('button disabled');
+			}else{
+				resolve();
+			}
+		});
+	}
+
 	static init(button, param = {}){
 		return new Promise((resolve, reject) => {
 			const container = findOne(param.container || 'body');

@@ -146,14 +146,16 @@ const bindActiveChain = (node, activeStacks) => {
 		eventName = 'click';
 	}
 	node.addEventListener(eventName, event => {
-		let func = activeStacks[0];
-		let pro = func(event);
-		for(let i = 1; i < activeStacks.length; i++){
-			pro = pro.then(() => {
-				return activeStacks[i](event);
-			}, () => {
-			});
+		let stacks = [...activeStacks];
+		let exe = () => {
+			let func = stacks.shift();
+			if(func){
+				func(event).then(exe, err => {
+					console.info('ACComponent active chain breakdown', err);
+				});
+			}
 		}
+		exe();
 		event.preventDefault();
 		return false;
 	});

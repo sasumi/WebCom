@@ -76,6 +76,9 @@ const cloneElementAsHtml = (el, id = '') => {
 	}
 }
 
+/**
+ * 批量填充功能
+ */
 export class ACBatchFiller {
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
