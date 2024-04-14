@@ -1,8 +1,16 @@
-import {findAll, findOne, isButton, onDomTreeChange} from "../Lang/Dom.js";
+import {findAll, findOne, onDomTreeChange} from "../Lang/Dom.js";
 import {triggerDomEvent} from "../Lang/Event.js";
 
 const isCheckBox = node => {
 	return node.tagName === 'INPUT' && node.type === 'checkbox';
+}
+
+const isValueButton = node => {
+	return node.tagName === 'INPUT' && ['reset', 'submit', 'button'].includes(node.type);
+}
+
+const isPairTag = node => {
+	return ['BUTTON', 'SPAN', 'DIV', 'P'].includes(node.tagName);
 }
 
 /**
@@ -29,12 +37,10 @@ export class ACSelectAll {
 				checks.forEach(chk => {
 					checkedCount += chk.checked ? 1 : 0;
 				});
-				if(isButton(trigger)){
-					if(trigger.innerText){
-						trigger.innerText = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-					}else{
-						trigger.value = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-					}
+				if(isValueButton(trigger)){
+					trigger.value = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
+				}else if(isPairTag(trigger)){
+					trigger.innerText = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
 				}else if(isCheckBox(trigger)){
 					trigger.indeterminate = checkedCount && checkedCount !== checks.length;
 					trigger.checked = checkedCount;
@@ -54,9 +60,9 @@ export class ACSelectAll {
 				updateTrigger();
 			});
 
-			trigger.addEventListener('click', e => {
+			trigger.addEventListener('click', () => {
 				let toCheck;
-				if(isButton(trigger)){
+				if(isValueButton(trigger) || isPairTag(trigger)){
 					toCheck = (trigger.innerText || trigger.value) === this.SELECT_ALL_TEXT;
 				}else if(isCheckBox(trigger)){
 					toCheck = trigger.checked;
@@ -68,12 +74,10 @@ export class ACSelectAll {
 					chk.checked = toCheck;
 					triggerDomEvent(chk, 'change');
 				});
-				if(isButton(trigger)){
-					if(trigger.innerText){
-						trigger.innerText = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-					}else{
-						trigger.value = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT
-					}
+				if(isValueButton(trigger)){
+					trigger.value = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT
+				}else if(isPairTag(trigger)){
+					trigger.innerText = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
 				}
 			});
 
