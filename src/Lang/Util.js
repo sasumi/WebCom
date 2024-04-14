@@ -333,6 +333,71 @@ export const mergeDeep = (target, ...sources) => {
 }
 
 /**
+ * 控制台颜色枚举
+ */
+export const CONSOLE_COLOR = {
+	RESET: "\x1b[0m",
+	BRIGHT: "\x1b[1m",
+	DIM: "\x1b[2m",
+	UNDERSCORE: "\x1b[4m",
+	BLINK: "\x1b[5m",
+	REVERSE: "\x1b[7m",
+	HIDDEN: "\x1b[8m",
+	FG: {
+		BLACK: "\x1b[30m",
+		RED: "\x1b[31m",
+		GREEN: "\x1b[32m",
+		YELLOW: "\x1b[33m",
+		BLUE: "\x1b[34m",
+		MAGENTA: "\x1b[35m",
+		CYAN: "\x1b[36m",
+		WHITE: "\x1b[37m",
+		GRAY: "\x1b[90m",
+	},
+	BG: {
+		BLACK: "\x1b[40m",
+		RED: "\x1b[41m",
+		GREEN: "\x1b[42m",
+		YELLOW: "\x1b[43m",
+		BLUE: "\x1b[44m",
+		MAGENTA: "\x1b[45m",
+		CYAN: "\x1b[46m",
+		WHITE: "\x1b[47m",
+		GRAY: "\x1b[100m",
+	}
+}
+
+const CONSOLE_METHODS = ['debug', 'info', 'log', 'warn', 'error'];
+let org_console_methods = {};
+/**
+ * 绑定控制台的console
+ * @param {String|String[]} method
+ * @param {Function} payload 处理函数，参数为：(method, args），如果返回是数组，则回回调回原生console
+ */
+export const bindConsole = (method, payload)=>{
+	if(method === '*'){
+		method = CONSOLE_METHODS;
+	}
+	if(Array.isArray(method)){
+		method.forEach(method=>{
+			bindConsole(method, payload);
+		});
+		return;
+	}
+	if(!org_console_methods[method]){
+		org_console_methods[method] = console[method];
+	}
+	console[method] = function(...args){
+		let ret = payload.apply(console, [method, Array.from(args)]);
+		if(!Array.isArray(ret)){
+			return; //breakup
+		}
+		org_console_methods[method].apply(console, ret);
+	}
+}
+
+
+/**
  * 检测对象是否为Promise对象
  * @param {*} obj
  * @returns {boolean}

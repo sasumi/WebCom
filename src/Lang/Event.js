@@ -132,35 +132,6 @@ export const bindNodeEvents = (node, event, payload, option, triggerAtOnce = fal
 	}
 }
 
-const CONSOLE_METHODS = ['debug', 'info', 'log', 'warn', 'error'];
-let org_console_methods = {};
-/**
- * 绑定控制台的console
- * @param {String|String[]} method
- * @param {Function} payload 处理函数，参数为：(method, args），如果返回是数组，则回回调回原生console
- */
-export const bindConsole = (method, payload)=>{
-	if(method === '*'){
-		method = CONSOLE_METHODS;
-	}
-	if(Array.isArray(method)){
-		method.forEach(method=>{
-			bindConsole(method, payload);
-		});
-		return;
-	}
-	if(!org_console_methods[method]){
-		org_console_methods[method] = console[method];
-	}
-	console[method] = function(...args){
-		let ret = payload.apply(console, [method, Array.from(args)]);
-		if(!Array.isArray(ret)){
-			return; //breakup
-		}
-		org_console_methods[method].apply(console, ret);
-	}
-}
-
 /**
  * 事件代理
  * @param {HTMLElement} container
