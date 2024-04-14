@@ -11,6 +11,7 @@ const resolveFN = (f) => {
 const nav = [
 	'index.html',
 	'auto_component.html',
+	'console.html',
 	'dialog.html',
 	'fullscreen.html',
 	'html_cut.html',

@@ -1323,6 +1323,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			payload();
 		}
 	};
+	const CONSOLE_METHODS = ['debug', 'info', 'log', 'warn', 'error'];
+	let org_console_methods = {};
+	const bindConsole = (method, payload)=>{
+		if(method === '*'){
+			method = CONSOLE_METHODS;
+		}
+		if(Array.isArray(method)){
+			method.forEach(method=>{
+				bindConsole(method, payload);
+			});
+			return;
+		}
+		if(!org_console_methods[method]){
+			org_console_methods[method] = console[method];
+		}
+		console[method] = function(...args){
+			let ret = payload.apply(console, [method, Array.from(args)]);
+			if(!Array.isArray(ret)){
+				return;
+			}
+			org_console_methods[method].apply(console, ret);
+		};
+	};
 	const eventDelegate = (container, selector, eventName, payload)=>{
 		container.addEventListener(eventName, ev=>{
 			let target = ev.target;
@@ -6157,6 +6180,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.base64Decode = base64Decode;
 	exports.base64UrlSafeEncode = base64UrlSafeEncode;
 	exports.between = between;
+	exports.bindConsole = bindConsole;
 	exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;

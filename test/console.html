@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		#console div {background-color:#eee; margin-bottom:2px;}
+	</style>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+<div id="console">
+
+</div>
+<script type="module">
+	import {bindConsole} from "../src/index.js";
+
+	const outputdom = document.getElementById('console');
+	bindConsole('*', (method, args)=>{
+		let div = document.createElement('div');
+		let str = [`[${method}]`];
+		args.forEach(arg=>{
+			str.push(JSON.stringify(arg));
+		})
+		div.innerText = str.join(" ");
+		outputdom.appendChild(div);
+	});
+
+	console.log('asdfasdf');
+	console.debug('asdfasdf');
+	console.warn('asdfasdf', {title:'hello'});
+	console.error('asdfasdf', [1,23,3]);
+</script>
+</body>
+</html>
