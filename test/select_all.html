@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+<style>
+	table , td, th{border:1px solid gray; border-collapse:collapse; border-spacing:0;}
+	td, th {padding:.5em 1em;}
+</style>
+<div class="test-case">
+	<table>
+		<thead>
+			<tr>
+				<th><input type="checkbox" data-component="selectall" data-selectall-container="tbody"></th>
+				<th>Name</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<td><input type="checkbox"></td>
+			<td>User1</td>
+			<td>A boy</td>
+		</tr>
+		<tr>
+			<td><input type="checkbox"></td>
+			<td>User2</td>
+			<td>A boy</td>
+		</tr>
+		<tr>
+			<td><input type="checkbox"></td>
+			<td>User3</td>
+			<td>A boy</td>
+		</tr>
+		<tr>
+			<td><input type="checkbox"></td>
+			<td>Usr4</td>
+			<td>A boy</td>
+		</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="3">
+					<button data-component="selectall" data-selectall-container="tbody">选择</button>
+					<input type="button" value="选择" data-component="selectall" data-selectall-container="tbody">
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+</body>
+</html>

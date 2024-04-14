@@ -11,8 +11,9 @@ export const ASYNC_SUBMITTING_FLAG = 'data-submitting';
  * @returns {string}
  */
 const fixFormAction = (form, event = null) => {
-	if(event && event.submitter && event.submitter.formAction){
-		return event.submitter.formAction;
+	//这里不能直接取 submitter.FormAction, FormAction会被浏览器赋值为当前页面地址。
+	if(event && event.submitter && event.submitter.getAttribute('formaction')){
+		return event.submitter.getAttribute('formaction');
 	}
 	return form.action;
 }

@@ -19,6 +19,7 @@ const nav = [
 	'net.html',
 	'novice_guide.html',
 	'select.html',
+	'select_all.html',
 	'sortable.html',
 	'theme.html',
 	'tip.html',
