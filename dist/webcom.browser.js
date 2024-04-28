@@ -2439,10 +2439,11 @@ var WebCom = (function (exports) {
 		let obs;
 		try{
 			let upd = () => {
-				iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight+'px';
-				setTimeout(()=>{
-					iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight+'px';
-				}, 10);
+				console.log('iframe onloaded');
+				let bdy = iframe.contentWindow.document.body;
+				if(bdy){
+					iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+				}
 			};
 			iframe.addEventListener('load', () => {
 				obs = new MutationObserver(upd);

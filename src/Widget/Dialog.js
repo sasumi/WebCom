@@ -299,11 +299,11 @@ const autoResizeIframeHeight = (iframe)=>{
 	let obs;
 	try{
 		let upd = () => {
-			iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight+'px';
-			//修正定高之后，布局变化
-			setTimeout(()=>{
-				iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight+'px';
-			}, 10);
+			console.log('iframe onloaded');
+			let bdy = iframe.contentWindow.document.body;
+			if(bdy){
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+			}
 		}
 		iframe.addEventListener('load', () => {
 			obs = new MutationObserver(upd);
