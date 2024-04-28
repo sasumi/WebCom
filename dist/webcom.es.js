@@ -1019,7 +1019,7 @@ const getContextWindow = () => {
 	let win;
 	try{
 		win = window;
-		while(win != win.parent){
+		while(win !== win.parent){
 			win = win.parent;
 		}
 	}catch(err){
