@@ -2455,10 +2455,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let obs;
 		try{
 			let upd = () => {
-				console.log('iframe onloaded');
 				let bdy = iframe.contentWindow.document.body;
 				if(bdy){
 					iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+					setTimeout(() => {
+						console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight);
+						iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+					}, 10);
 				}
 			};
 			iframe.addEventListener('load', () => {
