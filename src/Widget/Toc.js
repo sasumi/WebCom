@@ -4,7 +4,7 @@ import {Theme} from "./Theme.js";
 import {escapeHtml} from "../Lang/Html.js";
 import {eventDelegate} from "../Lang/Event.js";
 
-let CLASS_PREFIX = Theme.Namespace + 'toc';
+const CLASS_PREFIX = Theme.Namespace + 'toc';
 
 insertStyleSheet(`
 	.${CLASS_PREFIX}-wrap {}

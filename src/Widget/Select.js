@@ -571,7 +571,11 @@ class Select {
 				chk.checked = false;
 			});
 			if(matchSelItem){
-				findOne('input', matchSelItem).checked = true;
+				let lbl = findOne('label', matchSelItem).title;
+				//必须严格相当才能标记选中
+				if(lbl.trim() === inputEl.value.trim()){
+					findOne('input', matchSelItem).checked = true;
+				}
 			}
 		});
 

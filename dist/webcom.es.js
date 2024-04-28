@@ -4443,7 +4443,10 @@ class Select {
 				chk.checked = false;
 			});
 			if(matchSelItem){
-				findOne('input', matchSelItem).checked = true;
+				let lbl = findOne('label', matchSelItem).title;
+				if(lbl.trim() === inputEl.value.trim()){
+					findOne('input', matchSelItem).checked = true;
+				}
 			}
 		});
 		document.addEventListener('click', e => {
@@ -6026,7 +6029,7 @@ const sortable = (listNode, option = null, onChange = () => {
 	});
 };
 
-let CLASS_PREFIX = Theme.Namespace + 'toc';
+const CLASS_PREFIX = Theme.Namespace + 'toc';
 insertStyleSheet(`
 	.${CLASS_PREFIX}-wrap {}
 	.${CLASS_PREFIX}-wrap ul {list-style:none; padding:0; margin:0}
