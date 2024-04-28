@@ -4147,7 +4147,7 @@ var WebCom = (function (exports) {
 	const resolveListOption = (datalistEl, initValue = null) => {
 		let options = [];
 		Array.from(datalistEl.options).forEach((option, index) => {
-			let title = option.innerText;
+			let title = option.label || option.innerText;
 			let value = option.hasAttribute('value') ? option.getAttribute('value') : option.innerText;
 			let selected = initValue !== null && value === initValue;
 			options.push({title, value, disabled: false, selected, index});
@@ -4307,6 +4307,7 @@ var WebCom = (function (exports) {
 			if(firstMatchedItem){
 				firstMatchedItem.scrollIntoView({behavior: 'smooth'});
 			}
+			return firstMatchedItem;
 		}
 		selectByIndex(selectedIndexList){
 			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$2}-list input`).forEach((chk, idx) => {
@@ -4440,7 +4441,13 @@ var WebCom = (function (exports) {
 			inputEl.addEventListener('focus', sh);
 			inputEl.addEventListener('click', sh);
 			inputEl.addEventListener('input', () => {
-				sel.search(inputEl.value.trim());
+				let matchSelItem = sel.search(inputEl.value.trim());
+				findAll(`.${CLASS_PREFIX$2}-list input`, sel.panelEl).forEach(chk => {
+					chk.checked = false;
+				});
+				if(matchSelItem){
+					findOne('input', matchSelItem).checked = true;
+				}
 			});
 			document.addEventListener('click', e => {
 				if(!domContained(sel.panelEl, e.target, true) && !domContained(inputEl, e.target, true)){

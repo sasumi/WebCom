@@ -1,5 +1,15 @@
 import {Theme} from "./Theme.js";
-import {createDomByHtml, domContained, getDomOffset, hide, insertStyleSheet, remove, show} from "../Lang/Dom.js";
+import {
+	createDomByHtml,
+	domContained,
+	findAll,
+	findOne,
+	getDomOffset,
+	hide,
+	insertStyleSheet,
+	remove,
+	show
+} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
 import {bindNodeActive, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
@@ -172,7 +182,7 @@ const resolveListOption = (datalistEl, initValue = null) => {
 	let options = [];
 	let alreadySelected = false;
 	Array.from(datalistEl.options).forEach((option, index) => {
-		let title = option.innerText;
+		let title = option.label || option.innerText;
 		let value = option.hasAttribute('value') ? option.getAttribute('value') : option.innerText;
 		let selected = !alreadySelected && initValue !== null && value === initValue;
 		options.push({title, value, disabled: false, selected, index});
@@ -375,6 +385,7 @@ class Select {
 		if(firstMatchedItem){
 			firstMatchedItem.scrollIntoView({behavior: 'smooth'});
 		}
+		return firstMatchedItem;
 	}
 
 	/**
@@ -555,7 +566,13 @@ class Select {
 		inputEl.addEventListener('focus', sh);
 		inputEl.addEventListener('click', sh);
 		inputEl.addEventListener('input', () => {
-			sel.search(inputEl.value.trim());
+			let matchSelItem = sel.search(inputEl.value.trim());
+			findAll(`.${CLASS_PREFIX}-list input`, sel.panelEl).forEach(chk => {
+				chk.checked = false;
+			});
+			if(matchSelItem){
+				findOne('input', matchSelItem).checked = true;
+			}
 		});
 
 		document.addEventListener('click', e => {
