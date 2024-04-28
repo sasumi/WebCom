@@ -58,7 +58,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; display:block; min-height:30px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; min-height:30px;}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID + '-style');
 
@@ -299,10 +299,11 @@ const autoResizeIframeHeight = (iframe)=>{
 	let obs;
 	try{
 		let upd = () => {
-			let bdy = iframe.contentWindow.document.body;
-			if(bdy){
-				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-			}
+			iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight+'px';
+			//修正定高之后，布局变化
+			setTimeout(()=>{
+				iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight+'px';
+			}, 10);
 		}
 		iframe.addEventListener('load', () => {
 			obs = new MutationObserver(upd);
