@@ -297,6 +297,9 @@ class Option {
 	options = [];
 }
 
+/**
+ * 下拉选择UI组件，用于优化代替原生select、select[multiple]、input[list]组件，同时提供搜索功能。
+ */
 class Select {
 	config = {
 		name: "",
@@ -366,6 +369,11 @@ class Select {
 		return this.panelEl.style.display !== 'none';
 	}
 
+	/**
+	 * 以关键字方式搜索
+	 * @param {String} kw
+	 * @return {HTMLElement}
+	 */
 	search(kw){
 		this.searchEl.value = kw;
 		let liEls = this.panelEl.querySelectorAll(`.${CLASS_PREFIX}-list .sel-item`);
@@ -436,6 +444,9 @@ class Select {
 		return selectedIndexes;
 	}
 
+	/**
+	 * 隐藏面板
+	 */
 	hidePanel(){
 		if(this.panelEl){
 			this.panelEl.style.display = 'none';
@@ -444,6 +455,7 @@ class Select {
 	}
 
 	/**
+	 * 显示面板（@todo，需要改造成 Popover 方式来避免遮挡）
 	 * @param {Object|Null} pos
 	 * @param {Number} pos.top
 	 * @param {Number} pos.left

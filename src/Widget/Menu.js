@@ -106,11 +106,26 @@ const hideLastMenu = ()=>{
 	LAST_MENU = null;
 }
 
+
+
+
+/**
+ * 绑定对象右键菜单
+ * @param {HTMLElement} target
+ * @param {Array} commands
+ * @param {Object} option 更多选项
+ */
 export const bindTargetContextMenu = (target, commands, option = {}) => {
 	option.triggerType = 'contextmenu';
 	return bindTargetMenu(target, commands, option);
 }
 
+/**
+ * 绑定对象点击菜单
+ * @param {HTMLElement} target
+ * @param {Array} commands
+ * @param {Object} option 更多选项
+ */
 export const bindTargetDropdownMenu = (target, commands, option = {}) => {
 	option.triggerType = 'click';
 	return bindTargetMenu(target, commands, option);
@@ -132,6 +147,7 @@ export const showContextMenu = (commands,position)=>{
 }
 
 /**
+ * 绑定菜单到指定对象上，实现点击、右键点击弹出菜单
  * @param {HTMLElement} target
  * @param {Array} commands
  * @param {Object} option 触发事件类型，如 click, contextmenu等。如果是contextmenu，菜单位置按照鼠标点击位置计算

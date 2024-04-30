@@ -29,7 +29,7 @@ insertStyleSheet(`
 	${CSS_VAR_DISABLE_COLOR}:#aaa;
 	${CSS_VAR_BACKGROUND_COLOR}:#fff;
 	
-	${CSS_VAR_PANEL_SHADOW}:1px 1px 5px #bcbcbcb3;
+	${CSS_VAR_PANEL_SHADOW}:1px 1px 5px #7c7c7c5c;
 	${CSS_VAR_PANEL_BORDER_COLOR}:#ccc;
 	${CSS_VAR_PANEL_BORDER}:1px solid var(${CSS_VAR_PANEL_BORDER_COLOR});
 	${CSS_VAR_PANEL_RADIUS}:4px;
