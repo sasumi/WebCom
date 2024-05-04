@@ -4934,18 +4934,18 @@ var WebCom = (function (exports) {
 	class ACTextCounter {
 		static init(input, param = {}){
 			return new Promise((resolve, reject) => {
-				let maxlength = input.maxlength || param.maxlength;
+				let maxlength = parseInt(Math.max(input.maxLength, 0) || param.maxlength, 10) || 0;
 				let trim = param.trim;
 				if(!maxlength){
-					throw "input maxlength required";
+					console.log('no maxlength set');
 				}
 				const trigger = createDomByHtml(`<span class="${MAIN_CLASS}" data-state="${STATE_NORMAL}" data-ui-state="${UI_STATE_INACTIVE}">0/${maxlength}</span>`);
 				const updState = () => {
 					let len = trim ? input.value.trim().length : input.value.length;
-					let state = len > maxlength ? STATE_OVERLOAD : STATE_NORMAL;
+					let state = (maxlength && len > maxlength) ? STATE_OVERLOAD : STATE_NORMAL;
 					console.log(state);
 					trigger.setAttribute('data-state', state);
-					trigger.innerHTML = len + '/' + maxlength;
+					trigger.innerHTML = maxlength ? (len + '/' + maxlength) : len;
 				};
 				input.parentNode.insertBefore(trigger, input.nextSibling);
 				input.addEventListener('focus', () => {

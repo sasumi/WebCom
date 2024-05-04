@@ -11,6 +11,7 @@ const resolveFN = (f) => {
 const nav = [
 	'index.html',
 	'auto_component.html',
+	'copy.html',
 	'console.html',
 	'dialog.html',
 	'fullscreen.html',
@@ -24,6 +25,7 @@ const nav = [
 	'sortable.html',
 	'theme.html',
 	'tip.html',
+	'text_count.html',
 	'toast.html',
 	'emoji.html',
 	'form.html',
@@ -37,7 +39,7 @@ let html = `
     import {ACComponent} from "../src/index.js";
     ACComponent.watch();
 </script>
-<h2 class="title">${resolveFN(location.href)}</h2>
+<h1 class="title">${resolveFN(location.href)}</h1>
 <ul class="nav">`;
 
 nav.forEach(file => {
