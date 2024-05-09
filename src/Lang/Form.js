@@ -330,7 +330,7 @@ let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
 /**
  * 绑定页面离开时，表单未保存警告
  * @param {HTMLFormElement} form
- * @param {String} alertMsg
+ * @param {String} alertMsg 提示语
  */
 export const bindFormUnSavedUnloadAlert = (form, alertMsg = '')=>{
 	if(form.getAttribute(_form_us_sid_attr_key)){
