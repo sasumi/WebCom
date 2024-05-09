@@ -12,6 +12,7 @@ const nav = [
 	'index.html',
 	'auto_component.html',
 	'copy.html',
+	'confirm.html',
 	'console.html',
 	'dialog.html',
 	'fullscreen.html',

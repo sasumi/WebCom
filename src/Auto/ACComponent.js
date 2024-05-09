@@ -14,9 +14,11 @@ import {ACUploader} from "./ACUploader.js";
 import {ACTextCounter} from "./ACTextCounter.js";
 import {findAll} from "../Lang/Dom.js";
 import {ACBatchFiller} from "./ACBatchFiller.js";
+import {guid} from "../Lang/Util.js";
+import {ACUnSaveAlert} from "./ACUnSaveAlert.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
-const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
+const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
 
 /**
  * 组件映射配置
@@ -24,6 +26,7 @@ const COMPONENT_BIND_FLAG_KEY = 'component-init-bind';
  */
 let AC_COMPONENT_NAME_MAPPING = {
 	async: ACAsync,
+	unsavealert: ACUnSaveAlert,
 	copy: ACCopy,
 	dialog: ACDialog,
 	confirm: ACConfirm,
@@ -74,16 +77,21 @@ const resolveDataParam = (node, ComAlias) => {
 	return param;
 }
 
+let BIND_LIST = {
+	//node-bind-guid: [Com1, Com2]
+};
+
 /**
  * 绑定节点
  * @param {Node} container
  * @param attr_flag
  */
 const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLAG){
-	findAll(`:not([${COMPONENT_BIND_FLAG_KEY}])[${attr_flag}]`, container).forEach(node => {
+	findAll(`:not([${COMPONENT_BIND_GUID_KEY}])[${attr_flag}]`, container).forEach(node => {
 		let cs = parseComponents(node.getAttribute(attr_flag));
 		let activeStacks = [];
 		let init_count = 0;
+		let id = guid('component-bind');
 		cs.forEach(componentAlias => {
 			let C = AC_COMPONENT_NAME_MAPPING[componentAlias];
 			if(!C){
@@ -91,6 +99,10 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 				return false;
 			}
 			init_count++;
+			if(!BIND_LIST[id]){
+				BIND_LIST[id] = [];
+			}
+			BIND_LIST[id].push(C);
 			let data = resolveDataParam(node, componentAlias);
 			if(C.init){
 				C.init(node, data);
@@ -104,7 +116,7 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 		});
 		//只有在有成功初始化情况才忽略下次初始化
 		if(init_count !== 0){
-			node.setAttribute(COMPONENT_BIND_FLAG_KEY, "1");
+			node.setAttribute(COMPONENT_BIND_GUID_KEY, id);
 		}
 		if(activeStacks.length){
 			bindActiveChain(node, activeStacks);
@@ -177,6 +189,19 @@ export const ACComponent = {
 		});
 		observer.observe(container, {childList: true, subtree: true});
 		bindNode(container, attr_flag);
+	},
+
+	/**
+	 * 获取已经绑定的组件列表
+	 * @param node
+	 * @return {*[]|*}
+	 */
+	getBindComponents: (node) => {
+		let guid = node.getAttribute(COMPONENT_BIND_GUID_KEY);
+		if(guid && BIND_LIST[guid]){
+			return BIND_LIST[guid];
+		}
+		return [];
 	},
 
 	/**

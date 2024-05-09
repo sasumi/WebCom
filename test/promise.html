@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+<script type="module">
+	import {bindConsole} from "../src/index.js";
+	const COLOR_MAP = {
+		'debug': 'gray',
+		'info': '#519aff',
+		'log': '#519aff',
+		'warn': 'orange',
+		'error': 'red',
+	};
+
+	const arrayToStr = arr=>{
+		let s = [];
+		arr.forEach(item=>{
+			s.push(String(item));
+		});
+		return s.join(" ");
+	}
+	//
+	// bindConsole('*', (method, args) => {
+	// 	let str = arrayToStr(args);
+	// 	return ["%c" + str, "color:" + COLOR_MAP[method]];
+	// });
+</script>
+
+<script type="module" src="assets/promise.js"></script>
+</body>
+</html>

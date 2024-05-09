@@ -8,19 +8,12 @@ import {Select} from "../Widget/Select.js";
  */
 export class ACSelect {
 	static init(node){
-		return new Promise((resolve, reject) => {
-			if(node.tagName === 'SELECT'){
-				Select.bindSelect(node);
-				resolve();
-				return;
-			}
-			if(node.tagName === 'INPUT' && node.list){
-				Select.bindTextInput(node);
-				resolve();
-				return;
-			}
-
-			reject('node type no support');
-		});
+		if(node.tagName === 'SELECT'){
+			Select.bindSelect(node);
+		}
+		else if(node.tagName === 'INPUT' && node.list){
+			Select.bindTextInput(node);
+		}
+		return Promise.resolve();
 	}
 }

@@ -1,4 +1,4 @@
-import {findAll, isButton} from "./Dom.js";
+import {findAll, isButton, onDomTreeChange} from "./Dom.js";
 import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
 import {isEquals, objectPushByPath} from "./Array.js";
@@ -332,12 +332,12 @@ let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
  * @param {HTMLFormElement} form
  * @param {String} alertMsg
  */
-export const bindFormUnSavedUnloadAlert = (form, alertMsg = '您的表单尚未保存，是否确认离开？')=>{
+export const bindFormUnSavedUnloadAlert = (form, alertMsg = '')=>{
 	if(form.getAttribute(_form_us_sid_attr_key)){
 		return;
 	}
 	let us_sid = guid();
-	_form_us_msg[us_sid] = alertMsg;
+	_form_us_msg[us_sid] = alertMsg || '您的表单尚未保存，是否确认离开？';
 	form.setAttribute(_form_us_sid_attr_key, us_sid);
 	window.addEventListener('beforeunload', (e) => {
 		if(!document.body.contains(form)){
@@ -351,12 +351,14 @@ export const bindFormUnSavedUnloadAlert = (form, alertMsg = '您的表单尚未�
 			return msg;
 		}
 	});
-	let els = getAvailableElements(form, true);
-	els.forEach(el=>{
-		el.addEventListener('input', ()=>{
-			_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+	onDomTreeChange(form, ()=>{
+		let els = getAvailableElements(form, true);
+		els.forEach(el=>{
+			el.addEventListener('input', ()=>{
+				_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+			});
 		});
-	});
+	}, true);
 	resetFormChangedState(form);
 }
 
@@ -383,7 +385,8 @@ export const validateFormChanged = (form) => {
 export const resetFormChangedState = (form) => {
 	let us_sid = form.getAttribute(_form_us_sid_attr_key);
 	if(!us_sid){
-		throw "Form no init by bindFormUnSavedAlert()";
+		console.warn("Form no init by bindFormUnSavedAlert()");
+		return false;
 	}
 	_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
 }

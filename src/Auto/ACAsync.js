@@ -1,6 +1,7 @@
 import {Toast} from "../Widget/Toast.js";
 import {REQUEST_FORMAT, requestJSON} from "../Lang/Net.js";
 import {formSerializeJSON, formSerializeString} from "../Lang/Form.js";
+import {BizEvent} from "../Lang/Event.js";
 
 export const ASYNC_SUBMITTING_FLAG = 'data-submitting';
 
@@ -30,6 +31,8 @@ const fixFormAction = (form, event = null) => {
 export class ACAsync {
 	static REQUEST_FORMAT = REQUEST_FORMAT.JSON;
 
+	static onSuccess = new BizEvent();
+
 	//默认成功回调处理函数
 	//允许外部重新定义
 	static COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
@@ -47,7 +50,7 @@ export class ACAsync {
 		}else{
 			next();
 		}
-	};
+	}
 
 	static active(node, param = {}, event = null){
 		return new Promise((resolve, reject) => {
@@ -85,6 +88,7 @@ export class ACAsync {
 			submitter && submitter.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
 			requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
 				if(rsp.code === 0){
+					ACAsync.onSuccess.fire(node, rsp);
 					onsuccess(rsp);
 					resolve();
 				}else{

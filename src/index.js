@@ -1,24 +1,4 @@
-//Auto
-export * from "./Auto/ACAsync.js";
-export * from "./Auto/ACComponent.js";
-export * from "./Auto/ACConfirm.js";
-export * from "./Auto/ACCopy.js";
-export * from "./Auto/ACDialog.js";
-export * from "./Auto/ACHighlight.js";
-export * from "./Auto/ACMultiSelectRelate.js";
-export * from "./Auto/ACPreview.js";
-export * from "./Auto/ACPswValidate.js";
-export * from "./Auto/ACSelect.js";
-export * from "./Auto/ACSelectAll.js";
-export * from "./Auto/ACTextCounter.js";
-export * from "./Auto/ACTip.js";
-export * from "./Auto/ACToast.js";
-export * from "./Auto/ACUploader.js";
-
-//I18N
-export * from "./I18N/Lang.js";
-
-//Lang
+//Lang 模块优先导入
 export * from "./Lang/Array.js";
 export * from "./Lang/Base64.js";
 export * from "./Lang/Dom.js";
@@ -36,7 +16,10 @@ export * from "./Lang/String.js";
 export * from "./Lang/Time.js";
 export * from "./Lang/Util.js";
 
-//Widget
+//I18N
+export * from "./I18N/Lang.js";
+
+//Widget 组件
 export * from "./Widget/Autofill.js";
 export * from "./Widget/Copy.js";
 export * from "./Widget/Dialog.js";
@@ -52,3 +35,24 @@ export * from "./Widget/Tip.js";
 export * from "./Widget/Toast.js";
 export * from "./Widget/Toc.js";
 export * from "./Widget/Uploader.js";
+
+//Auto 组件在 Widget组件后加载
+export * from "./Auto/ACAsync.js";
+export * from "./Auto/ACBatchFiller.js";
+export * from "./Auto/ACConfirm.js";
+export * from "./Auto/ACCopy.js";
+export * from "./Auto/ACDialog.js";
+export * from "./Auto/ACHighlight.js";
+export * from "./Auto/ACMultiSelectRelate.js";
+export * from "./Auto/ACPreview.js";
+export * from "./Auto/ACPswValidate.js";
+export * from "./Auto/ACSelect.js";
+export * from "./Auto/ACSelectAll.js";
+export * from "./Auto/ACTextCounter.js";
+export * from "./Auto/ACTip.js";
+export * from "./Auto/ACToast.js";
+export * from "./Auto/ACUnSaveAlert.js";
+export * from "./Auto/ACUploader.js";
+
+//组件管理模块最后加载
+export * from "./Auto/ACComponent.js";
