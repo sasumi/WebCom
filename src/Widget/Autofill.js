@@ -51,7 +51,7 @@ const tryPositionInFirstForm = (scope, button) => {
  * @return {boolean}
  */
 export const fillForm = (formOrContainer) => {
-	let inputElements = getAvailableElements(formOrContainer);
+	let inputElements = getAvailableElements(formOrContainer, true);
 	if(!inputElements.length){
 		return false;
 	}

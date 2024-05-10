@@ -6,12 +6,12 @@ import {BizEvent} from "../Lang/Event.js";
 export const ASYNC_SUBMITTING_FLAG = 'data-submitting';
 
 /**
- * 修正从 input[type=submit][formaction] 按钮提交的表单动作
+ * 从提交事件中获取操作按钮绑定的表单动作，缺省返回表单action
  * @param {HTMLFormElement} form
  * @param {Event|Null} event
  * @returns {string}
  */
-const fixFormAction = (form, event = null) => {
+const getSubmitterFormAction = (form, event = null) => {
 	//这里不能直接取 submitter.FormAction, FormAction会被浏览器赋值为当前页面地址。
 	if(event && event.submitter && event.submitter.getAttribute('formaction')){
 		return event.submitter.getAttribute('formaction');
@@ -69,7 +69,7 @@ export class ACAsync {
 				}
 			}
 			if(node.tagName === 'FORM'){
-				url = fixFormAction(node, event);
+				url = getSubmitterFormAction(node, event);
 				submitter = event.submitter;
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
