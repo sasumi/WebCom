@@ -154,7 +154,7 @@ export const formSerializeString = (dom, validate = true) => {
  * @param {Boolean} validate 是否校验表单
  * @return {Object}
  */
-export const serializePhpFormToJSON = (dom, validate = true)=>{
+export const serializePhpFormToJSON = (dom, validate = true) => {
 	let data_list = getFormDataAvailable(dom, validate);
 	let json_obj = {};
 	let index_tmp = {
@@ -168,10 +168,10 @@ export const serializePhpFormToJSON = (dom, validate = true)=>{
 		}
 		if(index_tmp[name] === undefined){
 			index_tmp[name] = 0;
-		} else {
-			index_tmp[name] ++;
+		}else{
+			index_tmp[name]++;
 		}
-		let name_path = name.replace(/\[]$/, '.'+index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
+		let name_path = name.replace(/\[]$/, '.' + index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
 		objectPushByPath(name_path, value, json_obj, '.');
 	});
 	return json_obj;
@@ -181,14 +181,14 @@ export const serializePhpFormToJSON = (dom, validate = true)=>{
  * 修正GET提交方式的表单action错误
  * @param {HTMLFormElement} form
  */
-export const fixGetFormAction = (form)=>{
+export const fixGetFormAction = (form) => {
 	let action = form.action;
 	if(form.method && form.method.toLowerCase() !== 'get' || !action.length){
 		return;
 	}
 	let url = new URL(action);
 	let ipt;
-	url.searchParams.forEach((v,k)=>{
+	url.searchParams.forEach((v, k) => {
 		ipt = document.createElement('input');
 		ipt.type = 'hidden';
 		ipt.name = k;
@@ -203,7 +203,8 @@ export const fixGetFormAction = (form)=>{
  * @param {Function} onSubmitting
  * @return {Promise}
  */
-export const bindFormSubmitAsJSON = (form, onSubmitting = ()=>{})=>{
+export const bindFormSubmitAsJSON = (form, onSubmitting = () => {
+}) => {
 	return new Promise((resolve, reject) => {
 		let submitting = false;
 		form.addEventListener('submit', e => {
@@ -237,7 +238,7 @@ export const getFormDataAvailable = (dom, validate = true) => {
 	}
 	let els = getAvailableElements(dom);
 	let data_list = [];
-	els.forEach(el=>{
+	els.forEach(el => {
 		let name = el.name;
 		let value = getElementValue(el);
 		if(value !== null){
@@ -258,11 +259,11 @@ export const formSerializeJSON = (dom, validate = true) => {
 	let json_obj = {};
 	let data_list = getFormDataAvailable(dom, validate);
 	let name_counts = {};
-	data_list.forEach(item=>{
+	data_list.forEach(item => {
 		let [name] = item;
 		if(name_counts[name] === undefined){
 			name_counts[name] = 1;
-		} else {
+		}else{
 			name_counts[name]++
 		}
 	});
@@ -322,75 +323,6 @@ export const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInS
 	return ret;
 }
 
-let _form_data_cache_init = {};
-let _form_data_cache_new = {};
-let _form_us_msg = {};
-let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
-
-/**
- * 绑定页面离开时，表单未保存警告
- * @param {HTMLFormElement} form
- * @param {String} alertMsg 提示语
- */
-export const bindFormUnSavedUnloadAlert = (form, alertMsg = '')=>{
-	if(form.getAttribute(_form_us_sid_attr_key)){
-		return;
-	}
-	let us_sid = guid();
-	_form_us_msg[us_sid] = alertMsg || '您的表单尚未保存，是否确认离开？';
-	form.setAttribute(_form_us_sid_attr_key, us_sid);
-	window.addEventListener('beforeunload', (e) => {
-		if(!document.body.contains(form)){
-			return "";
-		}
-		let msg = validateFormChanged(form);
-		console.log('unchanged msg', msg);
-		if(msg){
-			e.preventDefault();
-			e.returnValue = msg;
-			return msg;
-		}
-	});
-	onDomTreeChange(form, ()=>{
-		let els = getAvailableElements(form, true);
-		els.forEach(el=>{
-			el.addEventListener('input', ()=>{
-				_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
-			});
-		});
-	}, true);
-	resetFormChangedState(form);
-}
-
-/**
- * 校验表单内容是否变更
- * @param {HTMLFormElement} form
- * @return {boolean|String}
- */
-export const validateFormChanged = (form) => {
-	let us_sid = form.getAttribute(_form_us_sid_attr_key);
-	if(!us_sid){
-		throw "Form no init by bindFormUnSavedAlert()";
-	}
-	if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
-		return _form_us_msg[us_sid];
-	}
-	return false;
-}
-
-/**
- * 重置表单未保存提示状态
- * @param {HTMLFormElement} form
- */
-export const resetFormChangedState = (form) => {
-	let us_sid = form.getAttribute(_form_us_sid_attr_key);
-	if(!us_sid){
-		console.warn("Form no init by bindFormUnSavedAlert()");
-		return false;
-	}
-	_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
-}
-
 /**
  * 转换对象为表单元素数值
  * @param {Object} objectMap
@@ -424,11 +356,156 @@ export const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => 
  * @param {Object} maps {key:value}
  * @return {string}
  */
-export const buildHtmlHidden = (maps)=>{
+export const buildHtmlHidden = (maps) => {
 	let html = '';
 	for(let key in maps){
 		let val = maps[key] === null ? '' : maps[key];
 		html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
 	}
 	return html;
+}
+
+///////////////////////////  退出窗口未保存表单提示  ///////////////////////////
+export const WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = 'WINDOW_UNLOAD_ALERT_MAP_VAR_KEY';
+
+window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
+	//{msg, target} 窗口、提示语、表单对象或ID（用于数据定位）
+];
+
+/**
+ * 设置窗口跳转时提示语
+ * @see 当前模式暂不支持多重设置
+ * @param {String} msg 提示语为空表示不提示
+ * @param {Node} target 关联对象DOM，例如Form对象
+ */
+export const setWindowUnloadMessage = (msg, target) => {
+	let found = false;
+
+	//如果是iframe里面调用，target改为iframe
+	if(top !== window){
+		target = window.frameElement;
+	}
+	top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].map(item => {
+		if(item.target === target){
+			item.msg = msg;
+			found = true;
+		}
+	});
+	if(!found){
+		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({msg, target});
+	}
+	console.debug('set window unload message', JSON.stringify(msg), target);
+}
+
+/**
+ * 获取跳转提示
+ * @param {Node|null} specify_target 指定目标
+ * @return {String[]}
+ */
+export const getWindowUnloadAlertList = (specify_target = null) => {
+	let msg_list = [];
+	top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].forEach(item => {
+		if(item.msg.length //msg exists
+			&& item.target.parentNode //dom exists
+			&& (!specify_target || specify_target === item.target) //match target
+		){
+			msg_list.push(item.msg);
+		}
+	});
+	//对同样的提示内容去重
+	return msg_list.filter((val, idx, arr) => arr.indexOf(val) === idx);
+}
+
+//设置方法到window对象，提供给类似dialog等组件使用
+window['getWindowUnloadAlertList'] = getWindowUnloadAlertList;
+window['setWindowUnloadMessage'] = setWindowUnloadMessage;
+
+/**
+ * 采用默认自启绑定方式
+ * beforeunload 只能一次显示所有的告警
+ */
+console.debug('beforeunload bind');
+window.addEventListener('beforeunload', (e) => {
+	let unload_alert_list = getWindowUnloadAlertList();
+	console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
+	if(unload_alert_list.length){
+		let msg = unload_alert_list.join("\n");
+		e.preventDefault();
+		e.returnValue = msg;
+		return msg;
+	}
+});
+
+let _form_data_cache_init = {};
+let _form_data_cache_new = {};
+let _form_us_msg = {};
+let _form_us_sid_attr_key = Theme.Namespace + 'form-unsaved-sid';
+
+/**
+ * 绑定页面离开时，表单未保存警告
+ * @param {HTMLFormElement} form
+ * @param {String} alertMsg 提示语
+ */
+export const bindFormUnSavedUnloadAlert = (form, alertMsg = '') => {
+	if(form.getAttribute(_form_us_sid_attr_key)){
+		return;
+	}
+	let us_sid = guid();
+	_form_us_msg[us_sid] = alertMsg || '表单尚未保存，是否确认离开？';
+	form.setAttribute(_form_us_sid_attr_key, us_sid);
+
+	let upd_tm = null;
+	let upd = ()=>{
+		upd_tm && clearTimeout(upd_tm);
+		upd_tm = setTimeout(()=>{
+			_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+			setWindowUnloadMessage(validateFormChanged(form, us_sid), form);
+		}, 100);
+	}
+
+	//本来reset 需要setTimeout执行的，由于upd()中已经做了，这里就不用重复
+	form.addEventListener('reset', upd);
+	onDomTreeChange(form, () => {
+		let els = getAvailableElements(form, true);
+		els.forEach(el => {
+			if(el.getAttribute('__form_unsaved_bind__')){
+				return;
+			}
+			el.setAttribute('__form_unsaved_bind__', '1');
+			el.addEventListener('input', upd);
+		});
+	}, false);
+	resetFormChangedState(form);
+}
+
+/**
+ * 校验表单内容是否变更
+ * @param {HTMLFormElement} form
+ * @param us_sid
+ * @return {String}
+ */
+export const validateFormChanged = (form, us_sid = null) => {
+	us_sid = us_sid || form.getAttribute(_form_us_sid_attr_key);
+	if(!us_sid){
+		console.warn("Form no init by bindFormUnSavedAlert()");
+		return '';
+	}
+	if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
+		return _form_us_msg[us_sid];
+	}
+	return '';
+}
+
+/**
+ * 重置表单未保存提示状态
+ * @param {HTMLFormElement} form
+ */
+export const resetFormChangedState = (form) => {
+	let us_sid = form.getAttribute(_form_us_sid_attr_key);
+	if(!us_sid){
+		console.warn("Form no init by bindFormUnSavedAlert()");
+		return false;
+	}
+	_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+	setWindowUnloadMessage('', form);
 }

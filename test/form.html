@@ -8,8 +8,8 @@
 </head>
 <body>
 <script src="assets/nav.js"></script>
+<h2>未提交表单提示保存</h2>
 <form action="" id="form">
-	<h2>未提交表单提示保存</h2>
 	<fieldset>
 		<legend>表单区块1</legend>
 		<p><label> 表单名称： <input type="text" name="abc1" data-component="textcounter" data-textcounter-maxlength="10"></label></p>
@@ -24,17 +24,28 @@
 			</textarea>
 		</p>
 	</fieldset>
-	<fieldset>
-		<legend>表单区块2</legend>
-		<p><label> 表单名称： <input type="text" name="abc1"></label></p>
-		<p><label> 表单名称： <input type="text" name="abc2"></label></p>
-		<p><label> 表单名称： <input type="text" name="abc3"></label></p>
-		<p><label> 表单名称： <input type="text" name="abc4"></label></p>
-	</fieldset>
 	<p>
 		<input type="submit" value="提交表单">
 	</p>
 </form>
+
+<h2>对话框中的表单退出提示</h2>
+<a href="/webcom/test/unsavealert_form.html" data-component="dialog">显示对话框表单</a>
+
+<h2>异步组件+表单退出提示</h2>
+<form action="http://localhost/webcom/test/assets/result.php" method="post" data-component="async,unsavealert">
+	<label>
+		name: <input type="text" name="name" value="初始名称">
+	</label>
+	<label for="">
+		password: <input type="password" name="password" value="">
+	</label>
+	<a href="?reload">外部连接</a>
+	<div>
+		<input type="submit" value="submit">
+	</div>
+</form>
+
 <script type="module">
 	import {ACComponent, bindFormUnSavedUnloadAlert, initAutofillButton} from "../src/index.js";
 	ACComponent.watch();

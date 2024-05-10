@@ -2039,7 +2039,7 @@
 		});
 		return data_string_list.join('&');
 	};
-	const serializePhpFormToJSON = (dom, validate = true)=>{
+	const serializePhpFormToJSON = (dom, validate = true) => {
 		let data_list = getFormDataAvailable(dom, validate);
 		let json_obj = {};
 		let index_tmp = {
@@ -2052,22 +2052,22 @@
 			}
 			if(index_tmp[name] === undefined){
 				index_tmp[name] = 0;
-			} else {
-				index_tmp[name] ++;
+			}else {
+				index_tmp[name]++;
 			}
-			let name_path = name.replace(/\[]$/, '.'+index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
+			let name_path = name.replace(/\[]$/, '.' + index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
 			objectPushByPath(name_path, value, json_obj, '.');
 		});
 		return json_obj;
 	};
-	const fixGetFormAction = (form)=>{
+	const fixGetFormAction = (form) => {
 		let action = form.action;
 		if(form.method && form.method.toLowerCase() !== 'get' || !action.length){
 			return;
 		}
 		let url = new URL(action);
 		let ipt;
-		url.searchParams.forEach((v,k)=>{
+		url.searchParams.forEach((v, k) => {
 			ipt = document.createElement('input');
 			ipt.type = 'hidden';
 			ipt.name = k;
@@ -2075,7 +2075,8 @@
 			form.appendChild(ipt);
 		});
 	};
-	const bindFormSubmitAsJSON = (form, onSubmitting = ()=>{})=>{
+	const bindFormSubmitAsJSON = (form, onSubmitting = () => {
+	}) => {
 		return new Promise((resolve, reject) => {
 			let submitting = false;
 			form.addEventListener('submit', e => {
@@ -2101,7 +2102,7 @@
 		}
 		let els = getAvailableElements(dom);
 		let data_list = [];
-		els.forEach(el=>{
+		els.forEach(el => {
 			let name = el.name;
 			let value = getElementValue(el);
 			if(value !== null){
@@ -2114,11 +2115,11 @@
 		let json_obj = {};
 		let data_list = getFormDataAvailable(dom, validate);
 		let name_counts = {};
-		data_list.forEach(item=>{
+		data_list.forEach(item => {
 			let [name] = item;
 			if(name_counts[name] === undefined){
 				name_counts[name] = 1;
-			} else {
+			}else {
 				name_counts[name]++;
 			}
 		});
@@ -2167,57 +2168,6 @@
 		}
 		return ret;
 	};
-	let _form_data_cache_init = {};
-	let _form_data_cache_new = {};
-	let _form_us_msg = {};
-	let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
-	const bindFormUnSavedUnloadAlert = (form, alertMsg = '')=>{
-		if(form.getAttribute(_form_us_sid_attr_key)){
-			return;
-		}
-		let us_sid = guid();
-		_form_us_msg[us_sid] = alertMsg || '您的表单尚未保存，是否确认离开？';
-		form.setAttribute(_form_us_sid_attr_key, us_sid);
-		window.addEventListener('beforeunload', (e) => {
-			if(!document.body.contains(form)){
-				return "";
-			}
-			let msg = validateFormChanged(form);
-			console.log('unchanged msg', msg);
-			if(msg){
-				e.preventDefault();
-				e.returnValue = msg;
-				return msg;
-			}
-		});
-		onDomTreeChange(form, ()=>{
-			let els = getAvailableElements(form, true);
-			els.forEach(el=>{
-				el.addEventListener('input', ()=>{
-					_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
-				});
-			});
-		}, true);
-		resetFormChangedState(form);
-	};
-	const validateFormChanged = (form) => {
-		let us_sid = form.getAttribute(_form_us_sid_attr_key);
-		if(!us_sid){
-			throw "Form no init by bindFormUnSavedAlert()";
-		}
-		if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
-			return _form_us_msg[us_sid];
-		}
-		return false;
-	};
-	const resetFormChangedState = (form) => {
-		let us_sid = form.getAttribute(_form_us_sid_attr_key);
-		if(!us_sid){
-			console.warn("Form no init by bindFormUnSavedAlert()");
-			return false;
-		}
-		_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
-	};
 	const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => {
 		let ret = {};
 		for(let key in objectMap){
@@ -2239,13 +2189,109 @@
 		}
 		return ret;
 	};
-	const buildHtmlHidden = (maps)=>{
+	const buildHtmlHidden = (maps) => {
 		let html = '';
 		for(let key in maps){
 			let val = maps[key] === null ? '' : maps[key];
 			html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
 		}
 		return html;
+	};
+	const WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = 'WINDOW_UNLOAD_ALERT_MAP_VAR_KEY';
+	window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
+	];
+	const setWindowUnloadMessage = (msg, target) => {
+		let found = false;
+		if(top !== window){
+			target = window.frameElement;
+		}
+		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].map(item => {
+			if(item.target === target){
+				item.msg = msg;
+				found = true;
+			}
+		});
+		if(!found){
+			top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({msg, target});
+		}
+		console.debug('set window unload message', JSON.stringify(msg), target);
+	};
+	const getWindowUnloadAlertList = (specify_target = null) => {
+		let msg_list = [];
+		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].forEach(item => {
+			if(item.msg.length
+				&& item.target.parentNode
+				&& (!specify_target || specify_target === item.target)
+			){
+				msg_list.push(item.msg);
+			}
+		});
+		return msg_list.filter((val, idx, arr) => arr.indexOf(val) === idx);
+	};
+	window['getWindowUnloadAlertList'] = getWindowUnloadAlertList;
+	window['setWindowUnloadMessage'] = setWindowUnloadMessage;
+	console.debug('beforeunload bind');
+	window.addEventListener('beforeunload', (e) => {
+		let unload_alert_list = getWindowUnloadAlertList();
+		console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
+		if(unload_alert_list.length){
+			let msg = unload_alert_list.join("\n");
+			e.preventDefault();
+			e.returnValue = msg;
+			return msg;
+		}
+	});
+	let _form_data_cache_init = {};
+	let _form_data_cache_new = {};
+	let _form_us_msg = {};
+	let _form_us_sid_attr_key = Theme.Namespace + 'form-unsaved-sid';
+	const bindFormUnSavedUnloadAlert = (form, alertMsg = '') => {
+		if(form.getAttribute(_form_us_sid_attr_key)){
+			return;
+		}
+		let us_sid = guid();
+		_form_us_msg[us_sid] = alertMsg || '表单尚未保存，是否确认离开？';
+		form.setAttribute(_form_us_sid_attr_key, us_sid);
+		let upd_tm = null;
+		let upd = ()=>{
+			upd_tm && clearTimeout(upd_tm);
+			upd_tm = setTimeout(()=>{
+				_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+				setWindowUnloadMessage(validateFormChanged(form, us_sid), form);
+			}, 100);
+		};
+		form.addEventListener('reset', upd);
+		onDomTreeChange(form, () => {
+			let els = getAvailableElements(form, true);
+			els.forEach(el => {
+				if(el.getAttribute('__form_unsaved_bind__')){
+					return;
+				}
+				el.setAttribute('__form_unsaved_bind__', '1');
+				el.addEventListener('input', upd);
+			});
+		}, false);
+		resetFormChangedState(form);
+	};
+	const validateFormChanged = (form, us_sid = null) => {
+		us_sid = us_sid || form.getAttribute(_form_us_sid_attr_key);
+		if(!us_sid){
+			console.warn("Form no init by bindFormUnSavedAlert()");
+			return '';
+		}
+		if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
+			return _form_us_msg[us_sid];
+		}
+		return '';
+	};
+	const resetFormChangedState = (form) => {
+		let us_sid = form.getAttribute(_form_us_sid_attr_key);
+		if(!us_sid){
+			console.warn("Form no init by bindFormUnSavedAlert()");
+			return false;
+		}
+		_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+		setWindowUnloadMessage('', form);
 	};
 
 	const loadImgBySrc = (src)=>{
@@ -2721,7 +2767,7 @@
 		}
 	};
 	const fillForm = (formOrContainer) => {
-		let inputElements = getAvailableElements(formOrContainer);
+		let inputElements = getAvailableElements(formOrContainer, true);
 		if(!inputElements.length){
 			return false;
 		}
@@ -2961,8 +3007,11 @@
 				if(bdy){
 					iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
 					setTimeout(() => {
-						console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight);
-						iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+						let cs =  iframe.contentWindow.getComputedStyle(bdy);
+						let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+						let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+						console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
+						iframe.style.height = dimension2Style(h);
 					}, 10);
 				}
 			};
@@ -3006,6 +3055,20 @@
 		if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 			let iframe = dlg.dom.querySelector('iframe');
 			autoResizeIframeHeight(iframe);
+			dlg.onClose.listen(()=>{
+				let win = iframe.contentWindow;
+				if(win.getWindowUnloadAlertList){
+					let alert_list =  win.getWindowUnloadAlertList(iframe);
+					if(alert_list.length){
+						let unload_alert = alert_list.join("\n");
+						if(!window.confirm(unload_alert)){
+							return false;
+						}
+						win.setWindowUnloadMessage('', iframe);
+						return true;
+					}
+				}
+			});
 		}
 	};
 	const eventBind = (dlg) => {
@@ -5469,7 +5532,7 @@
 	}
 
 	const ASYNC_SUBMITTING_FLAG = 'data-submitting';
-	const fixFormAction = (form, event = null) => {
+	const getSubmitterFormAction = (form, event = null) => {
 		if(event && event.submitter && event.submitter.getAttribute('formaction')){
 			return event.submitter.getAttribute('formaction');
 		}
@@ -5510,7 +5573,7 @@
 					}
 				}
 				if(node.tagName === 'FORM'){
-					url = fixFormAction(node, event);
+					url = getSubmitterFormAction(node, event);
 					submitter = event.submitter;
 					data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
@@ -6232,6 +6295,7 @@
 	exports.UPLOAD_STATE_NORMAL = UPLOAD_STATE_NORMAL;
 	exports.UPLOAD_STATE_PENDING = UPLOAD_STATE_PENDING;
 	exports.Uploader = Uploader;
+	exports.WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = WINDOW_UNLOAD_ALERT_MAP_VAR_KEY;
 	exports.arrayColumn = arrayColumn;
 	exports.arrayDistinct = arrayDistinct;
 	exports.arrayFilterTree = arrayFilterTree;
@@ -6315,6 +6379,7 @@
 	exports.getUTF8StrLen = getUTF8StrLen;
 	exports.getViewHeight = getViewHeight;
 	exports.getViewWidth = getViewWidth;
+	exports.getWindowUnloadAlertList = getWindowUnloadAlertList;
 	exports.guid = guid;
 	exports.hide = hide;
 	exports.highlightText = highlightText;
@@ -6375,6 +6440,7 @@
 	exports.setCookie = setCookie;
 	exports.setHash = setHash;
 	exports.setStyle = setStyle;
+	exports.setWindowUnloadMessage = setWindowUnloadMessage;
 	exports.show = show;
 	exports.showContextMenu = showContextMenu;
 	exports.showImgListPreview = showImgListPreviewFn;

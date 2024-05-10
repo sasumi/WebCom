@@ -2,7 +2,7 @@ import {createDomByHtml, findOne, getContextWindow, insertStyleSheet, remove} fr
 import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
-import {dimension2Style, escapeAttr} from "../Lang/Html.js";
+import {dimension2Style, escapeAttr, escapeHtml} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'dialog';
 const DLG_CLS_PREF = COM_ID;
@@ -303,8 +303,11 @@ const autoResizeIframeHeight = (iframe)=>{
 			if(bdy){
 				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
 				setTimeout(() => {
-					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight);
-					iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+					let cs =  iframe.contentWindow.getComputedStyle(bdy);
+					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
+					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
+					iframe.style.height = dimension2Style(h);
 				}, 10);
 			}
 		}
@@ -356,6 +359,23 @@ const domConstruct = (dlg) => {
 	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
 		autoResizeIframeHeight(iframe);
+
+		//bind window.unload event
+		dlg.onClose.listen(()=>{
+			let win = iframe.contentWindow;
+			if(win.getWindowUnloadAlertList){
+				let alert_list =  win.getWindowUnloadAlertList(iframe);
+				if(alert_list.length){
+					let unload_alert = alert_list.join("\n");
+					//兼容使用原生弹窗效果
+					if(!window.confirm(unload_alert)){
+						return false;
+					}
+					win.setWindowUnloadMessage('', iframe);
+					return true;
+				}
+			}
+		})
 	}
 };
 

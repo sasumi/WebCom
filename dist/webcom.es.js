@@ -2033,7 +2033,7 @@ const formSerializeString = (dom, validate = true) => {
 	});
 	return data_string_list.join('&');
 };
-const serializePhpFormToJSON = (dom, validate = true)=>{
+const serializePhpFormToJSON = (dom, validate = true) => {
 	let data_list = getFormDataAvailable(dom, validate);
 	let json_obj = {};
 	let index_tmp = {
@@ -2046,22 +2046,22 @@ const serializePhpFormToJSON = (dom, validate = true)=>{
 		}
 		if(index_tmp[name] === undefined){
 			index_tmp[name] = 0;
-		} else {
-			index_tmp[name] ++;
+		}else {
+			index_tmp[name]++;
 		}
-		let name_path = name.replace(/\[]$/, '.'+index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
+		let name_path = name.replace(/\[]$/, '.' + index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
 		objectPushByPath(name_path, value, json_obj, '.');
 	});
 	return json_obj;
 };
-const fixGetFormAction = (form)=>{
+const fixGetFormAction = (form) => {
 	let action = form.action;
 	if(form.method && form.method.toLowerCase() !== 'get' || !action.length){
 		return;
 	}
 	let url = new URL(action);
 	let ipt;
-	url.searchParams.forEach((v,k)=>{
+	url.searchParams.forEach((v, k) => {
 		ipt = document.createElement('input');
 		ipt.type = 'hidden';
 		ipt.name = k;
@@ -2069,7 +2069,8 @@ const fixGetFormAction = (form)=>{
 		form.appendChild(ipt);
 	});
 };
-const bindFormSubmitAsJSON = (form, onSubmitting = ()=>{})=>{
+const bindFormSubmitAsJSON = (form, onSubmitting = () => {
+}) => {
 	return new Promise((resolve, reject) => {
 		let submitting = false;
 		form.addEventListener('submit', e => {
@@ -2095,7 +2096,7 @@ const getFormDataAvailable = (dom, validate = true) => {
 	}
 	let els = getAvailableElements(dom);
 	let data_list = [];
-	els.forEach(el=>{
+	els.forEach(el => {
 		let name = el.name;
 		let value = getElementValue(el);
 		if(value !== null){
@@ -2108,11 +2109,11 @@ const formSerializeJSON = (dom, validate = true) => {
 	let json_obj = {};
 	let data_list = getFormDataAvailable(dom, validate);
 	let name_counts = {};
-	data_list.forEach(item=>{
+	data_list.forEach(item => {
 		let [name] = item;
 		if(name_counts[name] === undefined){
 			name_counts[name] = 1;
-		} else {
+		}else {
 			name_counts[name]++;
 		}
 	});
@@ -2161,57 +2162,6 @@ const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInSchema =
 	}
 	return ret;
 };
-let _form_data_cache_init = {};
-let _form_data_cache_new = {};
-let _form_us_msg = {};
-let _form_us_sid_attr_key = Theme.Namespace+'form-unsaved-sid';
-const bindFormUnSavedUnloadAlert = (form, alertMsg = '')=>{
-	if(form.getAttribute(_form_us_sid_attr_key)){
-		return;
-	}
-	let us_sid = guid();
-	_form_us_msg[us_sid] = alertMsg || '您的表单尚未保存，是否确认离开？';
-	form.setAttribute(_form_us_sid_attr_key, us_sid);
-	window.addEventListener('beforeunload', (e) => {
-		if(!document.body.contains(form)){
-			return "";
-		}
-		let msg = validateFormChanged(form);
-		console.log('unchanged msg', msg);
-		if(msg){
-			e.preventDefault();
-			e.returnValue = msg;
-			return msg;
-		}
-	});
-	onDomTreeChange(form, ()=>{
-		let els = getAvailableElements(form, true);
-		els.forEach(el=>{
-			el.addEventListener('input', ()=>{
-				_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
-			});
-		});
-	}, true);
-	resetFormChangedState(form);
-};
-const validateFormChanged = (form) => {
-	let us_sid = form.getAttribute(_form_us_sid_attr_key);
-	if(!us_sid){
-		throw "Form no init by bindFormUnSavedAlert()";
-	}
-	if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
-		return _form_us_msg[us_sid];
-	}
-	return false;
-};
-const resetFormChangedState = (form) => {
-	let us_sid = form.getAttribute(_form_us_sid_attr_key);
-	if(!us_sid){
-		console.warn("Form no init by bindFormUnSavedAlert()");
-		return false;
-	}
-	_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
-};
 const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => {
 	let ret = {};
 	for(let key in objectMap){
@@ -2233,13 +2183,109 @@ const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => {
 	}
 	return ret;
 };
-const buildHtmlHidden = (maps)=>{
+const buildHtmlHidden = (maps) => {
 	let html = '';
 	for(let key in maps){
 		let val = maps[key] === null ? '' : maps[key];
 		html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
 	}
 	return html;
+};
+const WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = 'WINDOW_UNLOAD_ALERT_MAP_VAR_KEY';
+window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
+];
+const setWindowUnloadMessage = (msg, target) => {
+	let found = false;
+	if(top !== window){
+		target = window.frameElement;
+	}
+	top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].map(item => {
+		if(item.target === target){
+			item.msg = msg;
+			found = true;
+		}
+	});
+	if(!found){
+		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({msg, target});
+	}
+	console.debug('set window unload message', JSON.stringify(msg), target);
+};
+const getWindowUnloadAlertList = (specify_target = null) => {
+	let msg_list = [];
+	top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].forEach(item => {
+		if(item.msg.length
+			&& item.target.parentNode
+			&& (!specify_target || specify_target === item.target)
+		){
+			msg_list.push(item.msg);
+		}
+	});
+	return msg_list.filter((val, idx, arr) => arr.indexOf(val) === idx);
+};
+window['getWindowUnloadAlertList'] = getWindowUnloadAlertList;
+window['setWindowUnloadMessage'] = setWindowUnloadMessage;
+console.debug('beforeunload bind');
+window.addEventListener('beforeunload', (e) => {
+	let unload_alert_list = getWindowUnloadAlertList();
+	console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
+	if(unload_alert_list.length){
+		let msg = unload_alert_list.join("\n");
+		e.preventDefault();
+		e.returnValue = msg;
+		return msg;
+	}
+});
+let _form_data_cache_init = {};
+let _form_data_cache_new = {};
+let _form_us_msg = {};
+let _form_us_sid_attr_key = Theme.Namespace + 'form-unsaved-sid';
+const bindFormUnSavedUnloadAlert = (form, alertMsg = '') => {
+	if(form.getAttribute(_form_us_sid_attr_key)){
+		return;
+	}
+	let us_sid = guid();
+	_form_us_msg[us_sid] = alertMsg || '表单尚未保存，是否确认离开？';
+	form.setAttribute(_form_us_sid_attr_key, us_sid);
+	let upd_tm = null;
+	let upd = ()=>{
+		upd_tm && clearTimeout(upd_tm);
+		upd_tm = setTimeout(()=>{
+			_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+			setWindowUnloadMessage(validateFormChanged(form, us_sid), form);
+		}, 100);
+	};
+	form.addEventListener('reset', upd);
+	onDomTreeChange(form, () => {
+		let els = getAvailableElements(form, true);
+		els.forEach(el => {
+			if(el.getAttribute('__form_unsaved_bind__')){
+				return;
+			}
+			el.setAttribute('__form_unsaved_bind__', '1');
+			el.addEventListener('input', upd);
+		});
+	}, false);
+	resetFormChangedState(form);
+};
+const validateFormChanged = (form, us_sid = null) => {
+	us_sid = us_sid || form.getAttribute(_form_us_sid_attr_key);
+	if(!us_sid){
+		console.warn("Form no init by bindFormUnSavedAlert()");
+		return '';
+	}
+	if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
+		return _form_us_msg[us_sid];
+	}
+	return '';
+};
+const resetFormChangedState = (form) => {
+	let us_sid = form.getAttribute(_form_us_sid_attr_key);
+	if(!us_sid){
+		console.warn("Form no init by bindFormUnSavedAlert()");
+		return false;
+	}
+	_form_data_cache_init[us_sid] = _form_data_cache_new[us_sid] = formSerializeJSON(form, false);
+	setWindowUnloadMessage('', form);
 };
 
 const loadImgBySrc = (src)=>{
@@ -2715,7 +2761,7 @@ const tryPositionInFirstForm = (scope, button) => {
 	}
 };
 const fillForm = (formOrContainer) => {
-	let inputElements = getAvailableElements(formOrContainer);
+	let inputElements = getAvailableElements(formOrContainer, true);
 	if(!inputElements.length){
 		return false;
 	}
@@ -2955,8 +3001,11 @@ const autoResizeIframeHeight = (iframe)=>{
 			if(bdy){
 				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
 				setTimeout(() => {
-					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight);
-					iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+					let cs =  iframe.contentWindow.getComputedStyle(bdy);
+					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
+					iframe.style.height = dimension2Style(h);
 				}, 10);
 			}
 		};
@@ -3000,6 +3049,20 @@ const domConstruct = (dlg) => {
 	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
 		autoResizeIframeHeight(iframe);
+		dlg.onClose.listen(()=>{
+			let win = iframe.contentWindow;
+			if(win.getWindowUnloadAlertList){
+				let alert_list =  win.getWindowUnloadAlertList(iframe);
+				if(alert_list.length){
+					let unload_alert = alert_list.join("\n");
+					if(!window.confirm(unload_alert)){
+						return false;
+					}
+					win.setWindowUnloadMessage('', iframe);
+					return true;
+				}
+			}
+		});
 	}
 };
 const eventBind = (dlg) => {
@@ -5463,7 +5526,7 @@ class Uploader {
 }
 
 const ASYNC_SUBMITTING_FLAG = 'data-submitting';
-const fixFormAction = (form, event = null) => {
+const getSubmitterFormAction = (form, event = null) => {
 	if(event && event.submitter && event.submitter.getAttribute('formaction')){
 		return event.submitter.getAttribute('formaction');
 	}
@@ -5504,7 +5567,7 @@ class ACAsync {
 				}
 			}
 			if(node.tagName === 'FORM'){
-				url = fixFormAction(node, event);
+				url = getSubmitterFormAction(node, event);
 				submitter = event.submitter;
 				data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
@@ -6152,5 +6215,5 @@ const ACComponent = {
 	}
 };
 
-export { ACAsync, ACBatchFiller, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTextCounter, ACTip, ACToast, ACUnSaveAlert, ACUploader, ASYNC_SUBMITTING_FLAG, BLOCK_TAGS, Base64Encode, BizEvent, CONSOLE_COLOR, DLG_CLS_BTN, DLG_CLS_WEAK_BTN, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_STATIC_IMAGE, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindConsole, bindFormSubmitAsJSON, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindNodeActive, bindNodeEvents, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, explodeBy, extract, fillForm, findAll, findOne, fireEvent, fixGetFormAction, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFocusableElements, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNodeHidden, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, nodeIndex, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, remove, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, sortable, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toHtmlEntities, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACBatchFiller, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTextCounter, ACTip, ACToast, ACUnSaveAlert, ACUploader, ASYNC_SUBMITTING_FLAG, BLOCK_TAGS, Base64Encode, BizEvent, CONSOLE_COLOR, DLG_CLS_BTN, DLG_CLS_WEAK_BTN, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_STATIC_IMAGE, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, WINDOW_UNLOAD_ALERT_MAP_VAR_KEY, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindConsole, bindFormSubmitAsJSON, bindFormUnSavedUnloadAlert, bindImgPreviewViaSelector, bindNodeActive, bindNodeEvents, bindTargetContextMenu, bindTargetDropdownMenu, buildHtmlHidden, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, explodeBy, extract, fillForm, findAll, findOne, fireEvent, fixGetFormAction, formSerializeJSON, formSerializeString, formSync, formValidate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getFocusableElements, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, getWindowUnloadAlertList, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNodeHidden, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, nodeHighlight, nodeIndex, objectGetByPath, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, remove, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, setWindowUnloadMessage, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, sortable, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, toHtmlEntities, toggle, toggleFullScreen, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
 //# sourceMappingURL=webcom.es.js.map
