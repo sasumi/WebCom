@@ -1731,10 +1731,8 @@ const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 	onError = onError || function(err){ToastClass.showError(err);};
 	onAbort = onAbort || onError;
 	let formData = new FormData();
-	let total = 0;
 	for(let name in fileMap){
 		formData.append(name, fileMap[name]);
-		total += fileMap[name].size;
 	}
 	if(extParam){
 		for(let k in extParam){
@@ -1744,12 +1742,12 @@ const uploadFile = (url, fileMap, callbacks, extParam = null) => {
 	let xhr = new XMLHttpRequest();
 	xhr.withCredentials = true;
 	xhr.upload.addEventListener('progress', e => {
-		onProgress(e.loaded, total);
+		onProgress(e.loaded, e.total);
 	}, false);
-	xhr.addEventListener('load', () => {
+	xhr.addEventListener('load', e => {
 		if(xhr.readyState === 4){
 			if(xhr.status === 200){
-				onProgress(total, total);
+				onProgress(e.total, e.total || e.loaded);
 				onSuccess(xhr.responseText);
 			}else {
 				onError(xhr.responseText || xhr.statusText);
