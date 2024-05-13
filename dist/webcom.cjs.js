@@ -2858,7 +2858,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; border:none; min-height:30px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px;}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID$3 + '-style');
 document.addEventListener('keydown', e => {
