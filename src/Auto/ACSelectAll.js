@@ -20,9 +20,21 @@ const isPairTag = node => {
 export class ACSelectAll {
 	static SELECT_ALL_TEXT = '全选';
 	static UNSELECT_ALL_TEXT = '取消选择';
+	static SELECT_TIP_TEMPLATE = '已选择 %c/%s';
 
+	/**
+	 * @param trigger
+	 * @param {Object} param
+	 * @param {String} param.container checkbox所在容器，缺省为body
+	 * @param {String} param.selector checkbox 表达式，默认为 'input[type=checkbox]'
+	 * @param {String} param.tip 提示语，%c 表示选中数量，%s 表示总数。
+	 * @return {Promise<void>}
+	 */
 	static init(trigger, param = {}){
 		const container = findOne(param.container || 'body');
+		const checkbox_selector = param.selector || 'input[type=checkbox]';
+		let tip = param.tip !== undefined ? param.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
+
 		const disableTrigger = () => {
 			trigger.setAttribute('disabled', 'disabled');
 		}
@@ -36,6 +48,9 @@ export class ACSelectAll {
 			checks.forEach(chk => {
 				checkedCount += chk.checked ? 1 : 0;
 			});
+			if(tip){
+				trigger.title = tip.replace(/%c/g, checkedCount).replace(/%s/g, checks.length);
+			}
 			if(isValueButton(trigger)){
 				trigger.value = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
 			}else if(isPairTag(trigger)){
@@ -81,7 +96,7 @@ export class ACSelectAll {
 		});
 
 		let containerInit = () => {
-			checks = findAll('input[type=checkbox]', container);
+			checks = findAll(checkbox_selector, container);
 			checks.forEach(chk => {
 				if(chk.dataset.__bind_select_all){
 					return;
