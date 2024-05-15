@@ -1317,7 +1317,7 @@ const bindNodeEvents = (node, event, payload, option, triggerAtOnce = false) => 
 		}
 	});
 	if(triggerAtOnce){
-		payload();
+		payload.call(node, null);
 	}
 };
 const eventDelegate = (container, selector, eventName, payload)=>{
@@ -2859,15 +2859,22 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px;}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID$3 + '-style');
-document.addEventListener('keydown', e => {
-	if(e.keyCode === KEYS.Esc){
-		let current = DialogManager.getFrontDialog();
-		if(current && current.config.showTopCloseButton){
-			DialogManager.close(current);
-			e.stopImmediatePropagation();
-		}
+let _bind_esc_ = false;
+const bindGlobalEsc = () => {
+	if(_bind_esc_){
+		return;
 	}
-});
+	_bind_esc_ = true;
+	document.addEventListener('keydown', e => {
+		if(e.keyCode === KEYS.Esc){
+			let current = DialogManager.getFrontDialog();
+			if(current && current.config.showTopCloseButton){
+				DialogManager.close(current);
+				e.stopImmediatePropagation();
+			}
+		}
+	});
+};
 let DIALOG_COLLECTION = [];
 const sortZIndex = (dialog1, dialog2) => {
 	return dialog1.zIndex - dialog2.zIndex;
@@ -2899,6 +2906,135 @@ const setZIndex = (dlg, zIndex) => {
 };
 const setType = (dlg, type) => {
 	dlg.dom.setAttribute('data-dialog-type', type);
+};
+const resolveContentType = (content) => {
+	if(typeof (content) === 'object' && content.src){
+		return DLG_CTN_TYPE_IFRAME;
+	}
+	return DLG_CTN_TYPE_HTML;
+};
+const autoResizeIframeHeight = (iframe) => {
+	let obs;
+	try{
+		let upd = () => {
+			let bdy = iframe.contentWindow.document.body;
+			if(bdy){
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+				setTimeout(() => {
+					let cs = iframe.contentWindow.getComputedStyle(bdy);
+					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
+					iframe.style.height = dimension2Style(h);
+				}, 10);
+			}
+		};
+		iframe.addEventListener('load', () => {
+			obs = new MutationObserver(upd);
+			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+			upd();
+		});
+	}catch(err){
+		try{
+			obs && obs.disconnect();
+		}catch(err){
+			console.error('observer disconnect fail', err);
+		}
+		console.warn('iframe content upd', err);
+	}
+};
+const domConstruct = (dlg) => {
+	let html = `
+		<dialog class="${DLG_CLS_PREF}" 
+			id="${dlg.id}" 
+			data-dialog-type="${TYPE_NORMAL}"
+			${dlg.config.transparent ? 'data-transparent' : ''}
+			${dlg.state === STATE_HIDDEN ? '' : 'open'} 
+			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
+		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
+	`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" 
+			style="min-height: ${dimension2Style(Dialog.CONTENT_MIN_HEIGHT)}; ${dlg.config.height ? 'height:' + dimension2Style(dlg.config.height) + ';' : ''}" 
+			tabindex="0">${renderContent(dlg)}</div>`;
+	if(dlg.config.buttons.length){
+		html += `<div class="${DLG_CLS_OP}">`;
+		dlg.config.buttons.forEach(button => {
+			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className || ''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+		});
+		html += '</div>';
+	}
+	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
+	html += `</dialog>`;
+	dlg.dom = createDomByHtml(html, document.body);
+	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
+		let iframe = dlg.dom.querySelector('iframe');
+		autoResizeIframeHeight(iframe);
+		dlg.onClose.listen(() => {
+			let win = iframe.contentWindow;
+			if(win.getWindowUnloadAlertList){
+				let alert_list = win.getWindowUnloadAlertList(iframe);
+				if(alert_list.length){
+					let unload_alert = alert_list.join("\n");
+					if(!window.confirm(unload_alert)){
+						return false;
+					}
+					win.setWindowUnloadMessage('', iframe);
+					return true;
+				}
+			}
+		});
+	}
+};
+const eventBind = (dlg) => {
+	dlg.dom.addEventListener('mousedown', () => {
+		dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
+	});
+	dlg.dom.addEventListener('cancel', e => {
+		e.preventDefault();
+	});
+	for(let i in dlg.config.buttons){
+		let cb = dlg.config.buttons[i].callback || dlg.close;
+		let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
+		btn.addEventListener('click', cb.bind(dlg), false);
+	}
+	if(dlg.config.showTopCloseButton){
+		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
+		bindNodeActive(close_btn, dlg.close.bind(dlg));
+		bindGlobalEsc();
+	}
+};
+const renderContent = (dlg) => {
+	switch(resolveContentType(dlg.config.content)){
+		case DLG_CTN_TYPE_IFRAME:
+			return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="${dlg.id}"></iframe>`;
+		case DLG_CTN_TYPE_HTML:
+			return dlg.config.content;
+		default:
+			console.error('Content type error', dlg.config.content);
+			throw 'Content type error';
+	}
+};
+const getCurrentFrameDialog = () => {
+	return new Promise((resolve, reject) => {
+		if(!window.parent || !window.frameElement){
+			reject('no in iframe');
+			return;
+		}
+		if(!parent[COM_ID$3].DialogManager){
+			reject('No dialog manager found.');
+			return;
+		}
+		let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
+		if(!id){
+			reject("ID no found in iframe element");
+		}
+		let dlg = parent[COM_ID$3].DialogManager.findById(id);
+		if(dlg){
+			resolve(dlg);
+		}else {
+			reject('no dlg find:' + id);
+		}
+	});
 };
 const DialogManager = {
 	register(dlg){
@@ -2985,112 +3121,6 @@ const DialogManager = {
 		});
 	}
 };
-const resolveContentType = (content) => {
-	if(typeof (content) === 'object' && content.src){
-		return DLG_CTN_TYPE_IFRAME;
-	}
-	return DLG_CTN_TYPE_HTML;
-};
-const autoResizeIframeHeight = (iframe)=>{
-	let obs;
-	try{
-		let upd = () => {
-			let bdy = iframe.contentWindow.document.body;
-			if(bdy){
-				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-				setTimeout(() => {
-					let cs =  iframe.contentWindow.getComputedStyle(bdy);
-					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
-					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
-					iframe.style.height = dimension2Style(h);
-				}, 10);
-			}
-		};
-		iframe.addEventListener('load', () => {
-			obs = new MutationObserver(upd);
-			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-			upd();
-		});
-	}catch(err){
-		try{
-			obs && obs.disconnect();
-		}catch(err){
-			console.error('observer disconnect fail', err);
-		}
-		console.warn('iframe content upd', err);
-	}
-};
-const domConstruct = (dlg) => {
-	let html = `
-		<dialog class="${DLG_CLS_PREF}" 
-			id="${dlg.id}" 
-			data-dialog-type="${TYPE_NORMAL}"
-			${dlg.config.transparent ? 'data-transparent':''}
-			${dlg.state === STATE_HIDDEN ? '' : 'open'} 
-			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
-		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
-	`;
-	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" 
-			style="min-height: ${dimension2Style(Dialog.CONTENT_MIN_HEIGHT)}; ${dlg.config.height ? 'height:'+dimension2Style(dlg.config.height)+';':''}" 
-			tabindex="0">${renderContent(dlg)}</div>`;
-	if(dlg.config.buttons.length){
-		html += `<div class="${DLG_CLS_OP}">`;
-		dlg.config.buttons.forEach(button => {
-			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
-		});
-		html += '</div>';
-	}
-	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
-	html += `</dialog>`;
-	dlg.dom = createDomByHtml(html, document.body);
-	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-		let iframe = dlg.dom.querySelector('iframe');
-		autoResizeIframeHeight(iframe);
-		dlg.onClose.listen(()=>{
-			let win = iframe.contentWindow;
-			if(win.getWindowUnloadAlertList){
-				let alert_list =  win.getWindowUnloadAlertList(iframe);
-				if(alert_list.length){
-					let unload_alert = alert_list.join("\n");
-					if(!window.confirm(unload_alert)){
-						return false;
-					}
-					win.setWindowUnloadMessage('', iframe);
-					return true;
-				}
-			}
-		});
-	}
-};
-const eventBind = (dlg) => {
-	dlg.dom.addEventListener('mousedown', () => {
-		dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
-	});
-	dlg.dom.addEventListener('cancel', e=>{
-		e.preventDefault();
-	});
-	for(let i in dlg.config.buttons){
-		let cb = dlg.config.buttons[i].callback || dlg.close;
-		let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
-		btn.addEventListener('click', cb.bind(dlg), false);
-	}
-	if(dlg.config.showTopCloseButton){
-		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
-		bindNodeActive(close_btn, dlg.close.bind(dlg));
-	}
-};
-const renderContent = (dlg) => {
-	switch(resolveContentType(dlg.config.content)){
-		case DLG_CTN_TYPE_IFRAME:
-			return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="${dlg.id}"></iframe>`;
-		case DLG_CTN_TYPE_HTML:
-			return dlg.config.content;
-		default:
-			console.error('Content type error', dlg.config.content);
-			throw 'Content type error';
-	}
-};
 const CUSTOM_EVENT_BUCKS = {
 };
 class Dialog {
@@ -3107,7 +3137,7 @@ class Dialog {
 		title: '',
 		content: '',
 		modal: true,
-		transparent:false,
+		transparent: false,
 		width: Dialog.DEFAULT_WIDTH,
 		height: null,
 		buttons: [],
@@ -3122,7 +3152,7 @@ class Dialog {
 	}
 	setTitle(title){
 		this.config.title = title;
-		findOne('.'+DLG_CLS_TI, this.dom).innerText = title;
+		findOne('.' + DLG_CLS_TI, this.dom).innerText = title;
 	}
 	show(){
 		DialogManager.show(this);
@@ -3185,7 +3215,7 @@ class Dialog {
 	static alert(title, content, opt = {}){
 		return new Promise(resolve => {
 			let p = new Dialog({
-				content:`<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
+				content: `<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
 						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 				buttons: [{
 					title: '确定', default: true, callback: () => {
@@ -3193,7 +3223,7 @@ class Dialog {
 						resolve();
 					}
 				},],
-				width:420,
+				width: 420,
 				modal: true,
 				showTopCloseButton: false,
 				...opt
@@ -3220,9 +3250,9 @@ class Dialog {
 							p.close();
 						}
 					},
-					{title: '取消',className: DLG_CLS_WEAK_BTN}
+					{title: '取消', className: DLG_CLS_WEAK_BTN}
 				],
-				width:400,
+				width: 400,
 				modal: true,
 				showTopCloseButton: true,
 				...option
@@ -3245,28 +3275,6 @@ class Dialog {
 		});
 	}
 }
-const getCurrentFrameDialog = () => {
-	return new Promise((resolve, reject) => {
-		if(!window.parent || !window.frameElement){
-			reject('no in iframe');
-			return;
-		}
-		if(!parent[COM_ID$3].DialogManager){
-			reject('No dialog manager found.');
-			return;
-		}
-		let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
-		if(!id){
-			reject("ID no found in iframe element");
-		}
-		let dlg = parent[COM_ID$3].DialogManager.findById(id);
-		if(dlg){
-			resolve(dlg);
-		}else {
-			reject('no dlg find:' + id);
-		}
-	});
-};
 if(!window[COM_ID$3]){
 	window[COM_ID$3] = {};
 }
@@ -3328,7 +3336,7 @@ const json_encode = (v) => {
 	return JSON.stringify(v);
 };
 let callbacks = [];
-let handler_callbacks = (key, newVal, oldVal)=>{
+const handler_callbacks = (key, newVal, oldVal)=>{
 	callbacks.forEach(cb=>{cb(key, newVal, oldVal);});
 };
 let ls_listen_flag = false;
@@ -4054,6 +4062,7 @@ insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
 `);
 const createMenu = (commands, onExecute = null) => {
+	bindGlobalEvent();
 	let html = `<ul class="${CTX_CLASS_PREFIX}">`;
 	let payload_map = {};
 	let buildMenuItemHtml = (item) => {
@@ -4103,8 +4112,6 @@ const createMenu = (commands, onExecute = null) => {
 			sub_menu.style.left = dimension2Style(pos.left);
 			sub_menu.style.top = dimension2Style(pos.top);
 		});
-	});
-	menu.addEventListener('contextmenu', e => {
 	});
 	return menu;
 };
@@ -4212,14 +4219,21 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 	}
 	return {top, left};
 };
-document.addEventListener('click', e => {
-	hideLastMenu();
-});
-document.addEventListener('keyup', e => {
-	if(e.keyCode === KEYS.Esc){
-		hideLastMenu();
+let _global_event_bind_ = false;
+const bindGlobalEvent = ()=>{
+	if(_global_event_bind_){
+		return;
 	}
-});
+	_global_event_bind_ = true;
+	document.addEventListener('click', e => {
+		hideLastMenu();
+	});
+	document.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Esc){
+			hideLastMenu();
+		}
+	});
+};
 
 const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
 const NS$2 = Theme.Namespace + 'tip';

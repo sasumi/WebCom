@@ -2,7 +2,7 @@ import {createDomByHtml, findOne, getContextWindow, insertStyleSheet, remove} fr
 import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
-import {dimension2Style, escapeAttr, escapeHtml} from "../Lang/Html.js";
+import {dimension2Style, escapeAttr} from "../Lang/Html.js";
 
 const COM_ID = Theme.Namespace + 'dialog';
 const DLG_CLS_PREF = COM_ID;
@@ -62,18 +62,26 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID + '-style');
 
+let _bind_esc_ = false
 /**
  * 绑定ESC按键事件关闭最上一层可关闭的对话框
+ * 该事件仅绑定一次
  */
-document.addEventListener('keydown', e => {
-	if(e.keyCode === KEYS.Esc){
-		let current = DialogManager.getFrontDialog();
-		if(current && current.config.showTopCloseButton){
-			DialogManager.close(current);
-			e.stopImmediatePropagation();
-		}
+const bindGlobalEsc = () => {
+	if(_bind_esc_){
+		return;
 	}
-});
+	_bind_esc_ = true;
+	document.addEventListener('keydown', e => {
+		if(e.keyCode === KEYS.Esc){
+			let current = DialogManager.getFrontDialog();
+			if(current && current.config.showTopCloseButton){
+				DialogManager.close(current);
+				e.stopImmediatePropagation();
+			}
+		}
+	});
+}
 
 /** @var Dialog[] **/
 let DIALOG_COLLECTION = [];
@@ -148,6 +156,177 @@ const setZIndex = (dlg, zIndex) => {
 
 const setType = (dlg, type) => {
 	dlg.dom.setAttribute('data-dialog-type', type);
+}
+
+const resolveContentType = (content) => {
+	if(typeof (content) === 'object' && content.src){
+		return DLG_CTN_TYPE_IFRAME;
+	}
+	return DLG_CTN_TYPE_HTML;
+}
+
+/**
+ * 自动调整iframe高度
+ * @param iframe
+ */
+const autoResizeIframeHeight = (iframe) => {
+	let obs;
+	try{
+		let upd = () => {
+			let bdy = iframe.contentWindow.document.body;
+			if(bdy){
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+				setTimeout(() => {
+					let cs = iframe.contentWindow.getComputedStyle(bdy);
+					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
+					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
+					iframe.style.height = dimension2Style(h);
+				}, 10);
+			}
+		}
+		iframe.addEventListener('load', () => {
+			obs = new MutationObserver(upd);
+			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+			upd();
+		});
+	}catch(err){
+		try{
+			obs && obs.disconnect();
+		}catch(err){
+			console.error('observer disconnect fail', err)
+		}
+		console.warn('iframe content upd', err);
+	}
+}
+
+/**
+ * 构造DOM结构
+ * @param {Dialog} dlg
+ */
+const domConstruct = (dlg) => {
+	let html = `
+		<dialog class="${DLG_CLS_PREF}" 
+			id="${dlg.id}" 
+			data-dialog-type="${TYPE_NORMAL}"
+			${dlg.config.transparent ? 'data-transparent' : ''}
+			${dlg.state === STATE_HIDDEN ? '' : 'open'} 
+			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
+		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
+	`;
+	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" 
+			style="min-height: ${dimension2Style(Dialog.CONTENT_MIN_HEIGHT)}; ${dlg.config.height ? 'height:' + dimension2Style(dlg.config.height) + ';' : ''}" 
+			tabindex="0">${renderContent(dlg)}</div>`;
+	if(dlg.config.buttons.length){
+		html += `<div class="${DLG_CLS_OP}">`;
+		dlg.config.buttons.forEach(button => {
+			//autofocus 在部分浏览器场景可能会失效，这里采用js主动切换
+			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className || ''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+		});
+		html += '</div>';
+	}
+	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
+	html += `</dialog>`;
+	dlg.dom = createDomByHtml(html, document.body);
+
+	//bind iframe content
+	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
+		let iframe = dlg.dom.querySelector('iframe');
+		autoResizeIframeHeight(iframe);
+
+		//bind window.unload event
+		dlg.onClose.listen(() => {
+			let win = iframe.contentWindow;
+			if(win.getWindowUnloadAlertList){
+				let alert_list = win.getWindowUnloadAlertList(iframe);
+				if(alert_list.length){
+					let unload_alert = alert_list.join("\n");
+					//兼容使用原生弹窗效果
+					if(!window.confirm(unload_alert)){
+						return false;
+					}
+					win.setWindowUnloadMessage('', iframe);
+					return true;
+				}
+			}
+		})
+	}
+};
+
+/**
+ * 事件绑定
+ * @param {Dialog} dlg
+ */
+const eventBind = (dlg) => {
+	//bind dialog active
+	dlg.dom.addEventListener('mousedown', () => {
+		dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
+	});
+
+	//阻止原生modal对话框，ESC关闭对话框
+	dlg.dom.addEventListener('cancel', e => {
+		e.preventDefault();
+	});
+
+	//bind buttons event
+	for(let i in dlg.config.buttons){
+		let cb = dlg.config.buttons[i].callback || dlg.close;
+		let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
+		btn.addEventListener('click', cb.bind(dlg), false);
+	}
+
+	//bind top close button event
+	if(dlg.config.showTopCloseButton){
+		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
+		bindNodeActive(close_btn, dlg.close.bind(dlg));
+		bindGlobalEsc();
+	}
+}
+
+/**
+ * 渲染内容区域
+ * @param {Dialog} dlg
+ * @returns {string}
+ */
+const renderContent = (dlg) => {
+	switch(resolveContentType(dlg.config.content)){
+		case DLG_CTN_TYPE_IFRAME:
+			return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="${dlg.id}"></iframe>`;
+
+		case DLG_CTN_TYPE_HTML:
+			return dlg.config.content;
+
+		default:
+			console.error('Content type error', dlg.config.content);
+			throw 'Content type error';
+	}
+};
+
+/**
+ * 获取当前页面（iframe）所在的对话框
+ * @returns {Promise}
+ */
+export const getCurrentFrameDialog = () => {
+	return new Promise((resolve, reject) => {
+		if(!window.parent || !window.frameElement){
+			reject('no in iframe');
+			return;
+		}
+		if(!parent[COM_ID].DialogManager){
+			reject('No dialog manager found.');
+			return;
+		}
+		let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
+		if(!id){
+			reject("ID no found in iframe element");
+		}
+		let dlg = parent[COM_ID].DialogManager.findById(id);
+		if(dlg){
+			resolve(dlg);
+		}else{
+			reject('no dlg find:' + id);
+		}
+	});
 }
 
 /**
@@ -284,149 +463,6 @@ const DialogManager = {
 	}
 };
 
-const resolveContentType = (content) => {
-	if(typeof (content) === 'object' && content.src){
-		return DLG_CTN_TYPE_IFRAME;
-	}
-	return DLG_CTN_TYPE_HTML;
-}
-
-/**
- * 自动调整iframe高度
- * @param iframe
- */
-const autoResizeIframeHeight = (iframe)=>{
-	let obs;
-	try{
-		let upd = () => {
-			let bdy = iframe.contentWindow.document.body;
-			if(bdy){
-				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-				setTimeout(() => {
-					let cs =  iframe.contentWindow.getComputedStyle(bdy);
-					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
-					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
-					iframe.style.height = dimension2Style(h);
-				}, 10);
-			}
-		}
-		iframe.addEventListener('load', () => {
-			obs = new MutationObserver(upd);
-			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-			upd();
-		});
-	}catch(err){
-		try{
-			obs && obs.disconnect();
-		}catch(err){
-			console.error('observer disconnect fail', err)
-		}
-		console.warn('iframe content upd', err);
-	}
-}
-
-/**
- * 构造DOM结构
- * @param {Dialog} dlg
- */
-const domConstruct = (dlg) => {
-	let html = `
-		<dialog class="${DLG_CLS_PREF}" 
-			id="${dlg.id}" 
-			data-dialog-type="${TYPE_NORMAL}"
-			${dlg.config.transparent ? 'data-transparent':''}
-			${dlg.state === STATE_HIDDEN ? '' : 'open'} 
-			style="${dlg.config.width ? 'width:' + dimension2Style(dlg.config.width) : ''}">
-		${dlg.config.title ? `<div class="${DLG_CLS_TI}">${dlg.config.title}</div>` : ''}
-	`;
-	html += `<div class="${DLG_CLS_CTN} ${resolveContentType(dlg.config.content)}" 
-			style="min-height: ${dimension2Style(Dialog.CONTENT_MIN_HEIGHT)}; ${dlg.config.height ? 'height:'+dimension2Style(dlg.config.height)+';':''}" 
-			tabindex="0">${renderContent(dlg)}</div>`;
-	if(dlg.config.buttons.length){
-		html += `<div class="${DLG_CLS_OP}">`;
-		dlg.config.buttons.forEach(button => {
-			//autofocus 在部分浏览器场景可能会失效，这里采用js主动切换
-			html += `<input type="button" class="${DLG_CLS_BTN} ${button.className||''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
-		});
-		html += '</div>';
-	}
-	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
-	html += `</dialog>`;
-	dlg.dom = createDomByHtml(html, document.body);
-
-	//bind iframe content
-	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
-		let iframe = dlg.dom.querySelector('iframe');
-		autoResizeIframeHeight(iframe);
-
-		//bind window.unload event
-		dlg.onClose.listen(()=>{
-			let win = iframe.contentWindow;
-			if(win.getWindowUnloadAlertList){
-				let alert_list =  win.getWindowUnloadAlertList(iframe);
-				if(alert_list.length){
-					let unload_alert = alert_list.join("\n");
-					//兼容使用原生弹窗效果
-					if(!window.confirm(unload_alert)){
-						return false;
-					}
-					win.setWindowUnloadMessage('', iframe);
-					return true;
-				}
-			}
-		})
-	}
-};
-
-/**
- * 事件绑定
- * @param {Dialog} dlg
- */
-const eventBind = (dlg) => {
-	//bind dialog active
-	dlg.dom.addEventListener('mousedown', () => {
-		dlg.state === STATE_ACTIVE && DialogManager.trySetFront(dlg);
-	});
-
-	//阻止原生modal对话框，ESC关闭对话框
-	dlg.dom.addEventListener('cancel', e=>{
-		e.preventDefault();
-	});
-
-	//bind buttons event
-	for(let i in dlg.config.buttons){
-		let cb = dlg.config.buttons[i].callback || dlg.close;
-		let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
-		btn.addEventListener('click', cb.bind(dlg), false);
-	}
-
-	//bind top close button event
-	if(dlg.config.showTopCloseButton){
-		let close_btn = dlg.dom.querySelector(`.${DLG_CLS_TOP_CLOSE}`);
-		bindNodeActive(close_btn, dlg.close.bind(dlg));
-	}
-}
-
-/**
- * 渲染内容区域
- * @param {Dialog} dlg
- * @returns {string}
- */
-const renderContent = (dlg) => {
-	switch(resolveContentType(dlg.config.content)){
-		case DLG_CTN_TYPE_IFRAME:
-			return `<iframe src="${dlg.config.content.src}" ${IFRAME_ID_ATTR_FLAG}="${dlg.id}"></iframe>`;
-
-		case DLG_CTN_TYPE_HTML:
-			return dlg.config.content;
-
-		default:
-			console.error('Content type error', dlg.config.content);
-			throw 'Content type error';
-	}
-};
-
 const CUSTOM_EVENT_BUCKS = {
 	/** id: {event: []} **/
 };
@@ -452,7 +488,7 @@ class Dialog {
 		title: '', //对话框标题，为 null 或者空字符串时不显示标题行
 		content: '',
 		modal: true, //是否为模态窗口
-		transparent:false, //是否透明
+		transparent: false, //是否透明
 		width: Dialog.DEFAULT_WIDTH,
 		height: null, //高度，缺省为自动高度
 		buttons: [/** {title:'', default:true, callback }**/], //对话框配置按钮列表
@@ -484,7 +520,7 @@ class Dialog {
 
 	setTitle(title){
 		this.config.title = title;
-		findOne('.'+DLG_CLS_TI, this.dom).innerText = title;
+		findOne('.' + DLG_CLS_TI, this.dom).innerText = title;
 	}
 
 	show(){
@@ -597,7 +633,7 @@ class Dialog {
 	static alert(title, content, opt = {}){
 		return new Promise(resolve => {
 			let p = new Dialog({
-				content:`<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
+				content: `<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
 						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 				buttons: [{
 					title: '确定', default: true, callback: () => {
@@ -605,7 +641,7 @@ class Dialog {
 						resolve();
 					}
 				},],
-				width:420,
+				width: 420,
 				modal: true,
 				showTopCloseButton: false,
 				...opt
@@ -648,9 +684,9 @@ class Dialog {
 							p.close();
 						}
 					},
-					{title: '取消',className: DLG_CLS_WEAK_BTN}
+					{title: '取消', className: DLG_CLS_WEAK_BTN}
 				],
-				width:400,
+				width: 400,
 				modal: true,
 				showTopCloseButton: true,
 				...option
@@ -675,32 +711,8 @@ class Dialog {
 }
 
 /**
- * 获取当前页面（iframe）所在的对话框
- * @returns {Promise}
+ * 类方法透穿到顶部窗口，避免出现窗口中窗口交互形式
  */
-export const getCurrentFrameDialog = () => {
-	return new Promise((resolve, reject) => {
-		if(!window.parent || !window.frameElement){
-			reject('no in iframe');
-			return;
-		}
-		if(!parent[COM_ID].DialogManager){
-			reject('No dialog manager found.');
-			return;
-		}
-		let id = window.frameElement.getAttribute(IFRAME_ID_ATTR_FLAG);
-		if(!id){
-			reject("ID no found in iframe element");
-		}
-		let dlg = parent[COM_ID].DialogManager.findById(id);
-		if(dlg){
-			resolve(dlg);
-		}else{
-			reject('no dlg find:' + id);
-		}
-	});
-}
-
 if(!window[COM_ID]){
 	window[COM_ID] = {};
 }

@@ -33,6 +33,7 @@ insertStyleSheet(`
  * @return {HTMLElement}
  */
 export const createMenu = (commands, onExecute = null) => {
+	bindGlobalEvent();
 	let html = `<ul class="${CTX_CLASS_PREFIX}">`;
 	let payload_map = {};
 
@@ -89,25 +90,14 @@ export const createMenu = (commands, onExecute = null) => {
 			sub_menu.style.top = dimension2Style(pos.top);
 		});
 	})
-
-	//阻止菜单上右键交互
-	menu.addEventListener('contextmenu', e => {
-		// e.preventDefault();
-		// e.stopPropagation();
-		// return false;
-	});
 	return menu;
 }
 
 let LAST_MENU;
-
 const hideLastMenu = ()=>{
 	remove(LAST_MENU);
 	LAST_MENU = null;
 }
-
-
-
 
 /**
  * 绑定对象右键菜单
@@ -302,12 +292,19 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 	return {top, left};
 }
 
-document.addEventListener('click', e => {
-	hideLastMenu();
-});
-
-document.addEventListener('keyup', e => {
-	if(e.keyCode === KEYS.Esc){
-		hideLastMenu();
+let _global_event_bind_ = false;
+const bindGlobalEvent = ()=>{
+	if(_global_event_bind_){
+		return;
 	}
-});
+	_global_event_bind_ = true;
+
+	document.addEventListener('click', e => {
+		hideLastMenu();
+	});
+	document.addEventListener('keyup', e => {
+		if(e.keyCode === KEYS.Esc){
+			hideLastMenu();
+		}
+	});
+}

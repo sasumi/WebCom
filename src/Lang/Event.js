@@ -128,7 +128,7 @@ export const bindNodeEvents = (node, event, payload, option, triggerAtOnce = fal
 		}
 	});
 	if(triggerAtOnce){
-		payload();
+		payload.call(node, null);
 	}
 }
 

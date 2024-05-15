@@ -7,7 +7,7 @@ const json_encode = (v) => {
 }
 
 let callbacks = [];
-let handler_callbacks = (key, newVal, oldVal)=>{
+const handler_callbacks = (key, newVal, oldVal)=>{
 	callbacks.forEach(cb=>{cb(key, newVal, oldVal)});
 };
 
