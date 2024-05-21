@@ -5158,6 +5158,7 @@ var WebCom = (function (exports) {
 			if(selectEl.multiple){
 				proxyInput = document.createElement('input');
 				proxyInput.value = buildOptionText(init_option) || placeholder;
+				proxyInput.title = buildOptionText(init_option) || placeholder;
 				proxyInput.type = 'text';
 				proxyInput.classList.add(this.PROXY_INPUT_CLASS);
 				proxyInput.readOnly = true;
@@ -5167,6 +5168,7 @@ var WebCom = (function (exports) {
 				sel.onChange.listen(() => {
 					let selectedOptions = sel.getSelectedOptions();
 					proxyInput.value = buildOptionText(selectedOptions) || placeholder;
+					proxyInput.title = buildOptionText(selectedOptions) || placeholder;
 				});
 				bindNodeEvents(proxyInput, ['active', 'focus', 'click'], () => {
 					showSelect();
