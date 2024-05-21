@@ -4850,6 +4850,7 @@
 			}
 			if(node.tagName === 'OPTION'){
 				options.push(new Option({
+					type: OPTION_TYPE_OPTION,
 					title: node.innerText,
 					value: node.value,
 					disabled: node.disabled,
@@ -4861,12 +4862,13 @@
 					selectedIndexes.push(node.index);
 				}
 			}else if(node.tagName === 'OPTGROUP'){
-				let opt_group = new Option({title: node.label});
+				let opt_group = new Option({title: node.label, type: OPTION_TYPE_GROUP});
 				node.childNodes.forEach(child => {
 					if(child.nodeType !== 1){
 						return;
 					}
 					opt_group.options.push(new Option({
+						type: OPTION_TYPE_OPTION,
 						title: child.innerText,
 						value: child.value,
 						disabled: child.disabled,
@@ -4886,8 +4888,13 @@
 	const buildOptionText = (options) => {
 		let txt = [];
 		options.forEach(opt => {
-			if(opt.selected){
+			if(opt.type === OPTION_TYPE_OPTION && opt.selected){
 				txt.push(opt.title.trim());
+			}
+			if(opt.type === OPTION_TYPE_GROUP){
+				opt.options.forEach(sub_opt=>{
+					sub_opt.selected && txt.push(sub_opt.title.trim());
+				});
 			}
 		});
 		return txt.join(', ');
@@ -4911,9 +4918,9 @@
 		${option.disabled ? 'disabled' : ''}/>
 	`
 	};
-	const createPanel = (config) => {
+	const createPanel = (config, options) => {
 		let list_html = `<ul class="${CLASS_PREFIX$1}-list">`;
-		config.options.forEach(option => {
+		options.forEach(option => {
 			if(option.options && option.options.length){
 				list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
 				option.options.forEach(childOption => {
@@ -4975,12 +4982,15 @@
 			}
 		});
 	};
+	const OPTION_TYPE_GROUP = 'group';
+	const OPTION_TYPE_OPTION = 'option';
 	class Option {
 		constructor(param){
 			for(let i in param){
 				this[i] = param[i];
 			}
 		}
+		type = OPTION_TYPE_OPTION;
 		title = '';
 		value = '';
 		disabled = false;
@@ -4996,16 +5006,15 @@
 			placeholder: '',
 			displaySearchInput: true,
 			hideNoMatchItems: true,
-			options: []
 		};
 		panelEl = null;
 		searchEl = null;
 		onChange = new BizEvent();
 		static PROXY_INPUT_CLASS = 'multiple-select-proxy-input';
-		constructor(config){
+		constructor(config, options){
 			this.config = Object.assign(this.config, config);
 			this.config.name = this.config.name || COM_ID + guid();
-			this.panelEl = createPanel(this.config);
+			this.panelEl = createPanel(this.config, options);
 			this.searchEl = this.panelEl.querySelector('input[type=search]');
 			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach(chk => {
 				chk.addEventListener('change', () => {
@@ -5090,12 +5099,25 @@
 		}
 		getSelectedIndexes(){
 			let selectedIndexes = [];
-			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
-				if(chk.checked){
-					selectedIndexes.push(idx);
-				}
+			this.getSelectedOptions().forEach(opt=>{
+				selectedIndexes.push(opt.index);
 			});
 			return selectedIndexes;
+		}
+		getSelectedOptions(){
+			let options = [];
+			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach((chk, idx) => {
+				if(chk.checked){
+					options.push(new Option({
+						type: OPTION_TYPE_OPTION,
+						title: findOne('.ti', chk.closest('label')).innerText,
+						value: chk.value,
+						selected: true,
+						index: idx,
+					}));
+				}
+			});
+			return options;
 		}
 		hidePanel(){
 			if(this.panelEl){
@@ -5112,16 +5134,15 @@
 			this.searchEl.focus();
 		}
 		static bindSelect(selectEl){
-			let {options} = resolveSelectOptions(selectEl);
+			let {options:init_option} = resolveSelectOptions(selectEl);
 			let placeholder = resolveSelectPlaceholder(selectEl);
 			let proxyInput;
 			const sel = new Select({
 				name: selectEl.name,
 				required: selectEl.required,
 				multiple: selectEl.multiple,
-				placeholder,
-				options
-			});
+				placeholder
+			}, init_option);
 			sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 			sel.onChange.listen(() => {
 				let selectedIndexes = sel.getSelectedIndexes();
@@ -5139,7 +5160,7 @@
 			};
 			if(selectEl.multiple){
 				proxyInput = document.createElement('input');
-				proxyInput.value = buildOptionText(options) || placeholder;
+				proxyInput.value = buildOptionText(init_option) || placeholder;
 				proxyInput.type = 'text';
 				proxyInput.classList.add(this.PROXY_INPUT_CLASS);
 				proxyInput.readOnly = true;
@@ -5147,11 +5168,8 @@
 				selectEl.parentNode.insertBefore(proxyInput, selectEl);
 				hide(selectEl);
 				sel.onChange.listen(() => {
-					let selectedIndexes = sel.getSelectedIndexes();
-					options.forEach((opt, idx) => {
-						opt.selected = selectedIndexes.includes(idx);
-					});
-					proxyInput.value = buildOptionText(options) || placeholder;
+					let selectedOptions = sel.getSelectedOptions();
+					proxyInput.value = buildOptionText(selectedOptions) || placeholder;
 				});
 				bindNodeEvents(proxyInput, ['active', 'focus', 'click'], () => {
 					showSelect();
@@ -5209,9 +5227,8 @@
 				multiple: false,
 				displaySearchInput: false,
 				hideNoMatchItems: false,
-				placeholder: inputEl.getAttribute('placeholder'),
-				options
-			});
+				placeholder: inputEl.getAttribute('placeholder')
+			}, options);
 			sel.onChange.listen(() => {
 				inputEl.value = sel.getValues()[0];
 				triggerDomEvent(inputEl, 'change');

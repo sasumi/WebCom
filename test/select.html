@@ -10,10 +10,10 @@
 <script src="assets/nav.js"></script>
 
 <style>
-	input[type=search] {
+	input[type=search]{
 	}
 
-	select {
+	select{
 		color:#4c87d9;
 		border:1px solid #519aff;
 		padding:0.5em 1em;
@@ -24,7 +24,10 @@
 
 	<form action="?" method="get">
 		<h3>Select 单选</h3>
-		<select name="sig_sel" id="se" style="width:200px;">
+
+
+		<select name="sig_sel"  style="width:200px;">
+			<optgroup label="group22"></optgroup>
 			<option value="">empty value 1</option>
 			<option value="">empty value 2</option>
 			<optgroup label="group">
@@ -42,24 +45,96 @@
 		</select>
 
 		<h3>Select 多选</h3>
-		<select name="mul_sel" id="sem" style="width:200px;" multiple>
-			<option value="">请选择</option>
-			<optgroup label="group">
-				<option value="sec">sec</option>
-				<option value="third">third</option>
+		<select name="xet_tags[]" id="sem" multiple>
+			<optgroup label="个人提升(7580)">
+				<option value="个人提升/自我提升" selected>自我提升(4980)</option>
+				<option value="个人提升/通用技能" selected>通用技能(1640)</option>
+				<option value="个人提升/沟通表达">沟通表达(480)</option>
+				<option value="个人提升/时间管理">时间管理(60)</option>
+				<option value="个人提升/职业教育">职业教育(420)</option>
 			</optgroup>
-			<option value="last">last</option>
-			<option value="disabled" disabled>disabled</option>
-			<option selected value="last">last</option>
-			<option selected value="324234">234234</option>
-			<option selected value="moreac">moreac</option>
-			<option value="mor234eac">mor234eac</option>
-			<option value="23cas">23cas</option>
-			<option value="moreac1">moreac1</option>
+			<optgroup label="职场创业(6343)">
+				<option value="职场创业/求职加薪">求职加薪(900)</option>
+				<option value="职场创业/职业规划">职业规划(560)</option>
+				<option value="职场创业/办公技能">办公技能(580)</option>
+				<option value="职场创业/营销推广">营销推广(1240)</option>
+				<option value="职场创业/互联网科技">互联网科技(420)</option>
+				<option value="职场创业/人力资源">人力资源(540)</option>
+				<option value="职场创业/团队管理">团队管理(1020)</option>
+				<option value="职场创业/跨境电商">跨境电商(40)</option>
+				<option value="职场创业/会展活动">会展活动(3)</option>
+				<option value="职场创业/创业增长">创业增长(1000)</option>
+				<option value="职场创业/快消零售">快消零售(40)</option>
+			</optgroup>
+			<optgroup label="在线教育(9039)">
+				<option value="在线教育/语言培训">语言培训(1580)</option>
+				<option value="在线教育/学历提升">学历提升(1260)</option>
+				<option value="在线教育/考研留学">考研留学(240)</option>
+				<option value="在线教育/职称技能">职称技能(3000)</option>
+				<option value="在线教育/公务求职">公务求职(280)</option>
+				<option value="在线教育/儿童兴趣">儿童兴趣(2679)</option>
+			</optgroup>
+			<optgroup label="亲子教育(4080)">
+				<option value="亲子教育/家庭教育">家庭教育(1540)</option>
+				<option value="亲子教育/母婴育儿">母婴育儿(1080)</option>
+				<option value="亲子教育/儿童护理">儿童护理(240)</option>
+				<option value="亲子教育/素质教育">素质教育(1220)</option>
+			</optgroup>
+			<optgroup label="女性时尚(1640)">
+				<option value="女性时尚/瑜伽">瑜伽(740)</option>
+				<option value="女性时尚/时尚穿搭">时尚穿搭(80)</option>
+				<option value="女性时尚/护肤美容">护肤美容(200)</option>
+				<option value="女性时尚/礼仪气质">礼仪气质(120)</option>
+				<option value="女性时尚/健身塑形">健身塑形(400)</option>
+				<option value="女性时尚/孕产">孕产(100)</option>
+			</optgroup>
+			<optgroup label="情感心理(2160)">
+				<option value="情感心理/恋爱技巧">恋爱技巧(340)</option>
+				<option value="情感心理/两性关系">两性关系(200)</option>
+				<option value="情感心理/婚姻经营">婚姻经营(500)</option>
+				<option value="情感心理/心理成长">心理成长(1120)</option>
+			</optgroup>
+			<optgroup label="读书文化(1567)">
+				<option value="读书文化/读书听书">读书听书(1100)</option>
+				<option value="读书文化/传统文化">传统文化(240)</option>
+				<option value="读书文化/人文历史">人文历史(160)</option>
+				<option value="读书文化/出版传媒">出版传媒(7)</option>
+				<option value="读书文化/文学">文学(60)</option>
+			</optgroup>
+			<optgroup label="健康养生(2440)">
+				<option value="健康养生/中医护理">中医护理(740)</option>
+				<option value="健康养生/养生康复">养生康复(860)</option>
+				<option value="健康养生/医疗科普">医疗科普(760)</option>
+				<option value="健康养生/食疗养生">食疗养生(80)</option>
+			</optgroup>
+			<optgroup label="生活文艺(2469)">
+				<option value="生活文艺/摄影文艺">摄影文艺(460)</option>
+				<option value="生活文艺/美食">美食(380)</option>
+				<option value="生活文艺/绘画">绘画(960)</option>
+				<option value="生活文艺/音乐">音乐(380)</option>
+				<option value="生活文艺/茶艺">茶艺(80)</option>
+				<option value="生活文艺/舞蹈">舞蹈(120)</option>
+				<option value="生活文艺/旅游">旅游(9)</option>
+				<option value="生活文艺/花艺">花艺(60)</option>
+				<option value="生活文艺/萌宠">萌宠(20)</option>
+			</optgroup>
+			<optgroup label="兴趣特长(1200)">
+				<option value="兴趣特长/体育">体育(200)</option>
+				<option value="兴趣特长/游戏">游戏(40)</option>
+				<option value="兴趣特长/乐器">乐器(560)</option>
+				<option value="兴趣特长/书法">书法(360)</option>
+				<option value="兴趣特长/电影">电影(40)</option>
+			</optgroup>
+			<optgroup label="财经楼市(1780)">
+				<option value="财经楼市/理财投资">理财投资(1300)</option>
+				<option value="财经楼市/房地产">房地产(260)</option>
+				<option value="财经楼市/法律服务">法律服务(60)</option>
+				<option value="财经楼市/财务税务">财务税务(160)</option>
+			</optgroup>
 		</select>
 
 		<h3>采用 input[list] 模式</h3>
-		<input type="search" name="search" id="" list="list" data-component="select">
+		<input type="search" name="search" id="" list="list">
 
 		<datalist id="list">
 			<option value="data1">data1</option>
@@ -81,13 +156,14 @@
 	</form>
 	<script type="module">
 		import {ACComponent, Select} from "../src/index.js";
-		let seEl =  document.getElementById('se');
-		Select.bindSelect(seEl);
-		ACComponent.watch();
-
-		seEl.addEventListener('change', e=>{
-			console.log('seEl change:', seEl.value);
-		});
+		//
+		// let seEl = document.getElementById('se');
+		// Select.bindSelect(seEl);
+		// ACComponent.watch();
+		//
+		// seEl.addEventListener('change', e => {
+		// 	console.log('seEl change:', seEl.value);
+		// });
 
 		Select.bindSelect(document.getElementById('sem'));
 	</script>
