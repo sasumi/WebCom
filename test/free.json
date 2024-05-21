@@ -1,0 +1,263 @@
+{
+	"code": 0,
+	"data": {
+		"app_id": "appfOhkjuCn7315",
+		"catalog": {
+			"count": 502,
+			"data": [
+				{
+					"id": "i_6540c650e4b0694ce9f10b61",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320413lee1f934073l.gif",
+					"order_weight": 502,
+					"title": "dur",
+					"type": 1
+				},
+				{
+					"id": "i_6540c650e4b0694ce9f10b5f",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320448lee248yo08pl.gif",
+					"order_weight": 501,
+					"title": "holic",
+					"type": 1
+				},
+				{
+					"id": "i_6540c650e4b0694ce9f10b5d",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320760lee1k96w0icp.gif",
+					"order_weight": 500,
+					"title": "alt",
+					"type": 1
+				},
+				{
+					"id": "i_6540c650e4b0694ce9f10b5b",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320480l5rm50i70u8h.gif",
+					"order_weight": 499,
+					"title": "pany",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b57",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320194l68lvzgp048i.gif",
+					"order_weight": 498,
+					"title": "dol",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b55",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320101l68nr4fm0i90.gif",
+					"order_weight": 497,
+					"title": "migr",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b51",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320915l68oq36n0gt1.gif",
+					"order_weight": 496,
+					"title": "tangle",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b4d",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320287l68q1nln0auh.gif",
+					"order_weight": 495,
+					"title": "fla",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b4b",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320611l68qfx5m0zo8.gif",
+					"order_weight": 494,
+					"title": "und",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b49",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320296l68qz2680z55.gif",
+					"order_weight": 493,
+					"title": "err",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b47",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320268l68rtrbr0lw7.jpg",
+					"order_weight": 492,
+					"title": "labor",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64fe4b0694ce9f10b45",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320331l68snhvf0i30.gif",
+					"order_weight": 491,
+					"title": "am",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b43",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320160l68vthsx0wzl.jpg",
+					"order_weight": 490,
+					"title": "jelly",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b41",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320451l68w6vi10gm5.gif",
+					"order_weight": 489,
+					"title": "ee",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b3f",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320316l6vfu13o0xak.gif",
+					"order_weight": 488,
+					"title": "conq",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b3d",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320216l68wsulc0pw4.gif",
+					"order_weight": 487,
+					"title": "bhor",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b39",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320333lbof4you07ee.gif",
+					"order_weight": 486,
+					"title": "vita",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b37",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320119l68xodam0yh0.gif",
+					"order_weight": 485,
+					"title": "haus",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b35",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320914l68y6ssh0s8b.jpg",
+					"order_weight": 484,
+					"title": "mon",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ee4b0694ce9f10b31",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320660l68ynunh05nl.jpg",
+					"order_weight": 483,
+					"title": "vigor",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b2f",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320594l68yw48c0y7j.gif",
+					"order_weight": 482,
+					"title": "awe",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b2d",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320115l68z5i6z0wos.jpg",
+					"order_weight": 481,
+					"title": "-er",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b2b",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320103l68zh37v0jzj.gif",
+					"order_weight": 480,
+					"title": "viro",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b29",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320878l68zqyqr0ewl.gif",
+					"order_weight": 479,
+					"title": "dim",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b25",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320402l690d1l40zu8.jpg",
+					"order_weight": 478,
+					"title": "fac",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b23",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320759l690msex0jwh.gif",
+					"order_weight": 477,
+					"title": "sassin",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b1f",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320732l690zzgg039f.gif",
+					"order_weight": 476,
+					"title": "hate",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b1b",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320752l691c23r09f7.gif",
+					"order_weight": 475,
+					"title": "son",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64de4b0694ce9f10b19",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320424l691pxzi078u.jpg",
+					"order_weight": 474,
+					"title": "mort",
+					"type": 1
+				},
+				{
+					"id": "i_6540c64ce4b0694ce9f10b17",
+					"img_url": "http://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/compress/414320879l69221v90xq9.gif",
+					"order_weight": 473,
+					"title": "co con com",
+					"type": 1
+				}
+			]
+		},
+		"channel_class_percent": 0,
+		"content_edit": 0,
+		"distribute_state": 0,
+		"goods_show_type": 2,
+		"guide": "您已采购，可前往\"<a href=\"javascript:void(0);\" onclick=\"window.open('/chosen/channel_side', '_self');_hmt.push(['_trackEvent','分销_市场_商品详情_top_渠道管理引导','clickEvent']);\">我分销的商品</a>\"模块管理",
+		"icon": "<div class=\"title\">小鹅通内容分销</div>\n                    <p>小鹅通内容市场聚集了海量优质课程，支持将其它店铺的优质内容一键<b>「转载」</b>至自己的小鹅通店铺进行分销售卖，解决了好内容没有推广流量，大流量没有好内容可卖的痛点。您可以选择作为内容方或渠道方，在内容市场与其他店铺携手进行一场流量变现之旅。</p>\n                    <p>作为<b>内容方</b>，可以上架自己的内容商品至内容市场，并在后台为您的分销商品设置相应的分成佣金比例，让渠道方<b>采购您的内容为您分销并获得收益。</b></p>\n                    <p>作为<b>渠道方</b>，可以通过内容市场直接将其它内容方的优质内容上架到自己的店铺进行售卖，节省内容制作成本，让用户直接在您的店铺进行购买，<b>0成本展开流量变现。</b></p>\n                    <div class=\"title\">渠道方开启分销步骤</div>\n                    <p>渠道方0成本开启分销仅需4步：</p>\n                    <ul>\n                        <li>1.进入内容市场浏览商品</li>\n                        <li>2.采购分销商品</li>\n                        <li>3.上架已采购的分销商品</li>\n                        <li>4.公众号发文推广分销商品</li>\n                    </ul>\n                    <p><b>详细视频操作教程请看：</b><a href=\"http://t.cn/EPRP6i6\" target=\"_blank\">http://t.cn/EPRP6i6</a></p>\n                    <div class=\"title\">渠道方分销注意事项</div>\n                    <ul>\n                        <li>1. 内容方开启渠道审核后，需要渠道方填写相关资料，待内容方审核通过后可以分销该内容方的商品；</li>\n                        <li>2. 分销商品在渠道方店铺现已支持推广员、拼团、限时折扣及裂变海报4个营销功能，更多营销收益增长功能正在研发中。目前暂不支持直播及音视频单品分销，不支持打卡、小社群等营销/社群功能；</li>\n                        <li>3. 渠道方可在内容市场主页课程介绍中获取分销商品推文素材，供您推广宣传使用；</li>\n                        <li>4. 内容方更变分销商品价格后，您可查看系统通知获取更变详情；</li>\n                        <li>5. 用户在渠道方店铺内购买后需退款，请自行与内容方协商退款事宜；</li>\n                        <li>6.渠道方不得以任何形式对内容方课程进行侵权、盗版、模仿、转售等操作，违者将承担法律责任。</li>\n                    </ul>",
+		"id": "p_6540c617e4b0694ce9f106e7",
+		"img_url": "https://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/b_u_5d999b79bbbe3_nIXyu5Ra/l661yq07031y.jpeg",
+		"isInTheRepertory": false,
+		"is_verify": 1,
+		"name": "单词革命 4000词",
+		"org_content": "<p><img src=\"https://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/b_u_5d999b79bbbe3_nIXyu5Ra/b9kn6olohx1vm0.jpg\" width=\"100%\" height=\"auto\" title=\"red5.jpg\" alt=\"red5.jpg\"/></p>",
+		"price": 19900,
+		"profit": 40,
+		"resource_type": 6,
+		"shopName": "「单词革命」",
+		"shop_info": {
+			"app_id": "appfOhkjuCn7315",
+			"is_violation": 1,
+			"order_price": "1",
+			"product_num": 19,
+			"qr_code": "https://appfOhkjuCn7315.h5.xiaoeknow.com",
+			"shop_logo": "",
+			"shop_name": "「单词革命」",
+			"shop_profile": "",
+			"wx_name": "ZhuRuai9"
+		},
+		"show_type": 0,
+		"study_num": 544525,
+		"summary": "20个小时搞定4000词~\n单词革命4000词~",
+		"tweet_org_content": "<p><img src=\"https://wechatapppro-1252524126.file.myqcloud.com/appfOhkjuCn7315/image/b_u_5d999b79bbbe3_nIXyu5Ra/b9kn6olohx1vm0.jpg\" width=\"100%\" height=\"auto\" title=\"red5.jpg\" alt=\"red5.jpg\"/></p>",
+		"tweet_url": "",
+		"tweets": [
+			{
+				"from_subject": "",
+				"title": "",
+				"tweet_url": ""
+			}
+		],
+		"url": "https://appfOhkjuCn7315.h5.xiaoeknow.com",
+		"verify_type": 1
+	},
+	"msg": "ok"
+}

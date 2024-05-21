@@ -870,7 +870,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return Array.prototype.indexOf.call(node.parentNode.children, node);
 	};
 	const findOne = (selector, parent = document) => {
-		return parent.querySelector(selector);
+		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
 	};
 	const findAll = (selector, parent = document) => {
 		selector = selector.trim();
@@ -4636,6 +4636,96 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		show_one();
 	};
 
+	const isCheckBox = node => {
+		return node.tagName === 'INPUT' && node.type === 'checkbox';
+	};
+	const isValueButton = node => {
+		return node.tagName === 'INPUT' && ['reset', 'submit', 'button'].includes(node.type);
+	};
+	const isPairTag = node => {
+		return ['BUTTON', 'SPAN', 'DIV', 'P'].includes(node.tagName);
+	};
+	class ACSelectAll {
+		static SELECT_ALL_TEXT = '全选';
+		static UNSELECT_ALL_TEXT = '取消选择';
+		static SELECT_TIP_TEMPLATE = '已选择 %c/%s';
+		static init(trigger, param = {}){
+			const container = findOne(param.container || 'body');
+			const checkbox_selector = param.selector || 'input[type=checkbox]';
+			let tip = param.tip !== undefined ? param.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
+			const disableTrigger = () => {
+				trigger.setAttribute('disabled', 'disabled');
+			};
+			const enableTrigger = () => {
+				trigger.removeAttribute('disabled');
+			};
+			let checks = [];
+			let updateTrigger = () => {
+				let checkedCount = 0;
+				checks.forEach(chk => {
+					checkedCount += chk.checked ? 1 : 0;
+				});
+				if(tip){
+					trigger.title = tip.replace(/%c/g, checkedCount).replace(/%s/g, checks.length);
+				}
+				if(isValueButton(trigger)){
+					trigger.value = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
+				}else if(isPairTag(trigger)){
+					trigger.innerText = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
+				}else if(isCheckBox(trigger)){
+					trigger.indeterminate = checkedCount && checkedCount !== checks.length;
+					trigger.checked = checkedCount;
+				}
+				checks.length ? enableTrigger() : disableTrigger();
+			};
+			onDomTreeChange(container, () => {
+				checks = findAll('input[type=checkbox]', container);
+				checks.forEach(chk => {
+					if(chk.dataset.__bind_select_all){
+						return;
+					}
+					chk.dataset.__bind_select_all = "1";
+					chk.addEventListener('change', updateTrigger);
+				});
+				updateTrigger();
+			});
+			trigger.addEventListener('click', () => {
+				let toCheck;
+				if(isValueButton(trigger) || isPairTag(trigger)){
+					toCheck = (trigger.innerText || trigger.value) === this.SELECT_ALL_TEXT;
+				}else if(isCheckBox(trigger)){
+					toCheck = trigger.checked;
+				}else {
+					console.warn('Select All no support this type');
+					return;
+				}
+				checks.forEach(chk => {
+					chk.checked = toCheck;
+					triggerDomEvent(chk, 'change');
+				});
+				if(isValueButton(trigger)){
+					trigger.value = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
+				}else if(isPairTag(trigger)){
+					trigger.innerText = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
+				}
+			});
+			let containerInit = () => {
+				checks = findAll(checkbox_selector, container);
+				checks.forEach(chk => {
+					if(chk.dataset.__bind_select_all){
+						return;
+					}
+					chk.dataset.__bind_select_all = "1";
+					chk.addEventListener('change', updateTrigger);
+				});
+				updateTrigger();
+			};
+			onDomTreeChange(container, containerInit);
+			containerInit();
+			return Promise.resolve();
+		}
+	}
+
 	const COM_ID = Theme.Namespace + 'select';
 	const CLASS_PREFIX$1 = COM_ID;
 	insertStyleSheet(`
@@ -4701,7 +4791,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 	
 	.${CLASS_PREFIX$1}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
-	.${CLASS_PREFIX$1}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX$1}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.15em .5em .15em 2em;user-select:none;transition:all 0.1s linear;}
 	.${CLASS_PREFIX$1}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
 	
 	.${CLASS_PREFIX$1}-list label{
@@ -4739,7 +4829,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${CLASS_PREFIX$1}-list input:disabled ~ .ti-wrap .sel-chk{
 		opacity:.1;
 	}
+	
+	.${CLASS_PREFIX$1}-multiple-operation {
+		padding:0.25em 0.5em;
+	}
+	.${CLASS_PREFIX$1}-multiple-operation label {
+		display:flex;
+		gap:.25em
+	}
+	
 `, COM_ID + '-style');
+	const resolveSelectPlaceholder = sel =>{
+		let pl = sel.getAttribute('placeholder') || '';
+		if(pl){
+			return pl;
+		}
+		findAll('option', sel).every(opt=>{
+			if(!opt.value){
+				pl = opt.innerText;
+				return false;
+			}
+		});
+		return pl;
+	};
 	const resolveSelectOptions = (sel) => {
 		let options = [
 		];
@@ -4783,6 +4895,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 		return {options, values, selectedIndexes};
+	};
+	const buildOptionText = (options) => {
+		let txt = [];
+		options.forEach(opt => {
+			if(opt.selected){
+				txt.push(opt.title.trim());
+			}
+		});
+		return txt.join(', ');
 	};
 	const resolveListOption = (datalistEl, initValue = null) => {
 		let options = [];
@@ -4833,12 +4954,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 		list_html += '</ul>';
+		let multiple_operation_html = config.multiple ?
+`<div class="${CLASS_PREFIX$1}-multiple-operation">
+	<label>
+		<input type="checkbox" class="mul-sel-all-chk"> 全选
+	</label>
+</div>`	 : '';
 		return createDomByHtml(`
 		<div class="${CLASS_PREFIX$1}-panel" style="display:none;">
 			<div class="${CLASS_PREFIX$1}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
 				<input type="search" placeholder="过滤..." aria-label="过滤选项">
 			</div>
 			${list_html}
+			${multiple_operation_html}
 		</div>
 	`, document.body);
 	};
@@ -4886,6 +5014,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		panelEl = null;
 		searchEl = null;
 		onChange = new BizEvent();
+		static PROXY_INPUT_CLASS = 'multiple-select-proxy-input';
 		constructor(config){
 			this.config = Object.assign(this.config, config);
 			this.config.name = this.config.name || COM_ID + guid();
@@ -4924,6 +5053,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					}
 				});
 			});
+			if(this.config.multiple){
+				let list = findOne(`.${CLASS_PREFIX$1}-list`, this.panelEl);
+				ACSelectAll.init(findOne('.mul-sel-all-chk', this.panelEl), {container: list});
+			}
 		}
 		isShown(){
 			return this.panelEl.style.display !== 'none';
@@ -4993,23 +5126,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		static bindSelect(selectEl){
 			let {options} = resolveSelectOptions(selectEl);
+			let placeholder = resolveSelectPlaceholder(selectEl);
+			let proxyInput;
 			const sel = new Select({
 				name: selectEl.name,
 				required: selectEl.required,
 				multiple: selectEl.multiple,
-				placeholder: selectEl.getAttribute('placeholder'),
+				placeholder,
 				options
 			});
-			const showSelect = () => {
-				let offset = getDomOffset(selectEl);
-				sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
-			};
-			selectEl.addEventListener('invalid', ()=>{
-				sel.hidePanel();
-			});
-			selectEl.addEventListener('input', ()=>{
-				showSelect();
-			});
+			sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 			sel.onChange.listen(() => {
 				let selectedIndexes = sel.getSelectedIndexes();
 				selectEl.querySelectorAll('option').forEach((opt, idx) => {
@@ -5017,35 +5143,65 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				});
 				triggerDomEvent(selectEl, 'change');
 			});
-			sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
-			selectEl.addEventListener('keydown', e => {
-				showSelect();
-				e.preventDefault();
-				e.stopPropagation();
-				return false;
-			});
-			selectEl.addEventListener('mousedown', e => {
-				sel.isShown() ? sel.hidePanel() : showSelect();
-				e.preventDefault();
-				e.stopPropagation();
-				return false;
-			});
-			selectEl.addEventListener('focus', showSelect);
-			selectEl.addEventListener('change', () => {
-				let selectedIndexes = [];
-				Array.from(selectEl.selectedOptions).forEach(opt => {
-					selectedIndexes.push(opt.index);
+			const showSelect = () => {
+				let offset = getDomOffset(proxyInput || selectEl);
+				sel.showPanel({top: offset.top + (proxyInput || selectEl).offsetHeight, left: offset.left});
+			};
+			const hideSelect = () => {
+				sel.hidePanel();
+			};
+			if(selectEl.multiple){
+				proxyInput = document.createElement('input');
+				proxyInput.value = buildOptionText(options) || placeholder;
+				proxyInput.type = 'text';
+				proxyInput.classList.add(this.PROXY_INPUT_CLASS);
+				proxyInput.readOnly = true;
+				placeholder && (proxyInput.placeholder = placeholder);
+				selectEl.parentNode.insertBefore(proxyInput, selectEl);
+				hide(selectEl);
+				sel.onChange.listen(() => {
+					let selectedIndexes = sel.getSelectedIndexes();
+					options.forEach((opt, idx) => {
+						opt.selected = selectedIndexes.includes(idx);
+					});
+					proxyInput.value = buildOptionText(options) || placeholder;
 				});
-				sel.selectByIndex(selectedIndexes);
-			});
+				bindNodeEvents(proxyInput, ['active', 'focus', 'click'], () => {
+					showSelect();
+				});
+			}
+			else {
+				selectEl.addEventListener('invalid', hideSelect);
+				selectEl.addEventListener('input', showSelect);
+				selectEl.addEventListener('focus', showSelect);
+				selectEl.addEventListener('keydown', e => {
+					showSelect();
+					e.preventDefault();
+					e.stopPropagation();
+					return false;
+				});
+				selectEl.addEventListener('mousedown', e => {
+					sel.isShown() ? sel.hidePanel() : showSelect();
+					e.preventDefault();
+					e.stopPropagation();
+					return false;
+				});
+				selectEl.addEventListener('change', () => {
+					let selectedIndexes = [];
+					Array.from(selectEl.selectedOptions).forEach(opt => {
+						selectedIndexes.push(opt.index);
+					});
+					sel.selectByIndex(selectedIndexes);
+				});
+			}
 			document.addEventListener('click', e => {
-				if(!domContained(sel.panelEl, e.target, true) && !domContained(selectEl, e.target, true)){
-					sel.hidePanel();
+				if(!domContained(sel.panelEl, e.target, true) && !domContained(proxyInput || selectEl, e.target, true)){
+					hideSelect();
 				}
 			});
 			document.addEventListener('keyup', e => {
 				if(e.keyCode === KEYS.Esc){
-					sel.hidePanel();
+					hideSelect();
 				}
 			});
 		}
@@ -5928,96 +6084,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			else if(node.tagName === 'INPUT' && node.list){
 				Select.bindTextInput(node);
 			}
-			return Promise.resolve();
-		}
-	}
-
-	const isCheckBox = node => {
-		return node.tagName === 'INPUT' && node.type === 'checkbox';
-	};
-	const isValueButton = node => {
-		return node.tagName === 'INPUT' && ['reset', 'submit', 'button'].includes(node.type);
-	};
-	const isPairTag = node => {
-		return ['BUTTON', 'SPAN', 'DIV', 'P'].includes(node.tagName);
-	};
-	class ACSelectAll {
-		static SELECT_ALL_TEXT = '全选';
-		static UNSELECT_ALL_TEXT = '取消选择';
-		static SELECT_TIP_TEMPLATE = '已选择 %c/%s';
-		static init(trigger, param = {}){
-			const container = findOne(param.container || 'body');
-			const checkbox_selector = param.selector || 'input[type=checkbox]';
-			let tip = param.tip !== undefined ? param.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
-			const disableTrigger = () => {
-				trigger.setAttribute('disabled', 'disabled');
-			};
-			const enableTrigger = () => {
-				trigger.removeAttribute('disabled');
-			};
-			let checks = [];
-			let updateTrigger = () => {
-				let checkedCount = 0;
-				checks.forEach(chk => {
-					checkedCount += chk.checked ? 1 : 0;
-				});
-				if(tip){
-					trigger.title = tip.replace(/%c/g, checkedCount).replace(/%s/g, checks.length);
-				}
-				if(isValueButton(trigger)){
-					trigger.value = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-				}else if(isPairTag(trigger)){
-					trigger.innerText = checkedCount ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-				}else if(isCheckBox(trigger)){
-					trigger.indeterminate = checkedCount && checkedCount !== checks.length;
-					trigger.checked = checkedCount;
-				}
-				checks.length ? enableTrigger() : disableTrigger();
-			};
-			onDomTreeChange(container, () => {
-				checks = findAll('input[type=checkbox]', container);
-				checks.forEach(chk => {
-					if(chk.dataset.__bind_select_all){
-						return;
-					}
-					chk.dataset.__bind_select_all = "1";
-					chk.addEventListener('change', updateTrigger);
-				});
-				updateTrigger();
-			});
-			trigger.addEventListener('click', () => {
-				let toCheck;
-				if(isValueButton(trigger) || isPairTag(trigger)){
-					toCheck = (trigger.innerText || trigger.value) === this.SELECT_ALL_TEXT;
-				}else if(isCheckBox(trigger)){
-					toCheck = trigger.checked;
-				}else {
-					console.warn('Select All no support this type');
-					return;
-				}
-				checks.forEach(chk => {
-					chk.checked = toCheck;
-					triggerDomEvent(chk, 'change');
-				});
-				if(isValueButton(trigger)){
-					trigger.value = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-				}else if(isPairTag(trigger)){
-					trigger.innerText = toCheck ? this.UNSELECT_ALL_TEXT : this.SELECT_ALL_TEXT;
-				}
-			});
-			let containerInit = () => {
-				checks = findAll(checkbox_selector, container);
-				checks.forEach(chk => {
-					if(chk.dataset.__bind_select_all){
-						return;
-					}
-					chk.dataset.__bind_select_all = "1";
-					chk.addEventListener('change', updateTrigger);
-				});
-				updateTrigger();
-			};
-			onDomTreeChange(container, containerInit);
-			containerInit();
 			return Promise.resolve();
 		}
 	}

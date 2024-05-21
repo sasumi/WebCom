@@ -57,12 +57,12 @@ export const nodeIndex = (node)=>{
 }
 
 /**
- * @param {String} selector
+ * @param {String|Object} selector 选择器，如果是Object，则直接返回Object
  * @param {Node} parent
  * @return {Node}
  */
 export const findOne = (selector, parent = document) => {
-	return parent.querySelector(selector);
+	return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
 }
 
 /**

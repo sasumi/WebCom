@@ -11,9 +11,10 @@ import {
 	show
 } from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
-import {bindNodeActive, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
+import {bindNodeActive, bindNodeEvents, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
 import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/Html.js";
+import {ACSelectAll} from "../Auto/ACSelectAll.js";
 
 const COM_ID = Theme.Namespace + 'select';
 const CLASS_PREFIX = COM_ID;
@@ -81,7 +82,7 @@ insertStyleSheet(`
 	}
 	
 	.${CLASS_PREFIX}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
-	.${CLASS_PREFIX}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.35em .5em .35em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.15em .5em .15em 2em;user-select:none;transition:all 0.1s linear;}
 	.${CLASS_PREFIX}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
 	
 	.${CLASS_PREFIX}-list label{
@@ -119,7 +120,35 @@ insertStyleSheet(`
 	.${CLASS_PREFIX}-list input:disabled ~ .ti-wrap .sel-chk{
 		opacity:.1;
 	}
+	
+	.${CLASS_PREFIX}-multiple-operation {
+		padding:0.25em 0.5em;
+	}
+	.${CLASS_PREFIX}-multiple-operation label {
+		display:flex;
+		gap:.25em
+	}
+	
 `, COM_ID + '-style');
+
+/**
+ * 提取select placeholder，优先从[placeholder]属性中提取，其次从option[value=""] text 中提取
+ * @param sel
+ * @return {string}
+ */
+const resolveSelectPlaceholder = sel =>{
+	let pl = sel.getAttribute('placeholder') || '';
+	if(pl){
+		return pl;
+	}
+	findAll('option', sel).every(opt=>{
+		if(!opt.value){
+			pl = opt.innerText;
+			return false;
+		}
+	});
+	return pl;
+}
 
 /**
  * @param sel
@@ -170,6 +199,20 @@ const resolveSelectOptions = (sel) => {
 		}
 	});
 	return {options, values, selectedIndexes};
+}
+
+/**
+ * @param options
+ * @return {string}
+ */
+const buildOptionText = (options) => {
+	let txt = [];
+	options.forEach(opt => {
+		if(opt.selected){
+			txt.push(opt.title.trim());
+		}
+	});
+	return txt.join(', ');
 }
 
 /**
@@ -242,12 +285,21 @@ const createPanel = (config) => {
 		}
 	});
 	list_html += '</ul>';
+
+	let multiple_operation_html = config.multiple ?
+`<div class="${CLASS_PREFIX}-multiple-operation">
+	<label>
+		<input type="checkbox" class="mul-sel-all-chk"> 全选
+	</label>
+</div>` : '';
+
 	return createDomByHtml(`
 		<div class="${CLASS_PREFIX}-panel" style="display:none;">
 			<div class="${CLASS_PREFIX}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
 				<input type="search" placeholder="过滤..." aria-label="过滤选项">
 			</div>
 			${list_html}
+			${multiple_operation_html}
 		</div>
 	`, document.body);
 }
@@ -317,6 +369,8 @@ class Select {
 	searchEl = null;
 	onChange = new BizEvent();
 
+	static PROXY_INPUT_CLASS = 'multiple-select-proxy-input';
+
 	constructor(config){
 		this.config = Object.assign(this.config, config);
 		this.config.name = this.config.name || COM_ID + guid();
@@ -363,6 +417,11 @@ class Select {
 				}
 			})
 		});
+
+		if(this.config.multiple){
+			let list = findOne(`.${CLASS_PREFIX}-list`, this.panelEl);
+			ACSelectAll.init(findOne('.mul-sel-all-chk', this.panelEl), {container: list});
+		}
 	}
 
 	isShown(){
@@ -476,23 +535,16 @@ class Select {
 	 */
 	static bindSelect(selectEl){
 		let {options} = resolveSelectOptions(selectEl);
+		let placeholder = resolveSelectPlaceholder(selectEl);
+		let proxyInput;
 		const sel = new Select({
 			name: selectEl.name,
 			required: selectEl.required,
 			multiple: selectEl.multiple,
-			placeholder: selectEl.getAttribute('placeholder'),
+			placeholder,
 			options
 		});
-		const showSelect = () => {
-			let offset = getDomOffset(selectEl);
-			sel.showPanel({top: offset.top + selectEl.offsetHeight, left: offset.left});
-		}
-		selectEl.addEventListener('invalid', ()=>{
-			sel.hidePanel();
-		});
-		selectEl.addEventListener('input', ()=>{
-			showSelect();
-		})
+		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 		sel.onChange.listen(() => {
 			let selectedIndexes = sel.getSelectedIndexes();
 			selectEl.querySelectorAll('option').forEach((opt, idx) => {
@@ -500,41 +552,71 @@ class Select {
 			});
 			triggerDomEvent(selectEl, 'change');
 		});
-		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 
+		const showSelect = () => {
+			let offset = getDomOffset(proxyInput || selectEl);
+			sel.showPanel({top: offset.top + (proxyInput || selectEl).offsetHeight, left: offset.left});
+		}
+		const hideSelect = () => {
+			sel.hidePanel();
+		}
 
-		selectEl.addEventListener('keydown', e => {
-			showSelect();
-			e.preventDefault();
-			e.stopPropagation();
-			return false;
-		});
+		//multiple mode
+		if(selectEl.multiple){
+			proxyInput = document.createElement('input');
+			proxyInput.value = buildOptionText(options) || placeholder;
+			proxyInput.type = 'text';
+			proxyInput.classList.add(this.PROXY_INPUT_CLASS);
+			proxyInput.readOnly = true;
+			placeholder && (proxyInput.placeholder = placeholder);
+			selectEl.parentNode.insertBefore(proxyInput, selectEl);
+			hide(selectEl);
+			sel.onChange.listen(() => {
+				let selectedIndexes = sel.getSelectedIndexes();
+				options.forEach((opt, idx) => {
+					opt.selected = selectedIndexes.includes(idx);
+				});
+				proxyInput.value = buildOptionText(options) || placeholder;
+			});
+			bindNodeEvents(proxyInput, ['active', 'focus', 'click'], () => {
+				showSelect();
+			});
+		}
 
-		selectEl.addEventListener('mousedown', e => {
-			sel.isShown() ? sel.hidePanel() : showSelect();
-			e.preventDefault();
-			e.stopPropagation();
-			return false;
-		});
-
-		selectEl.addEventListener('focus', showSelect);
-		selectEl.addEventListener('change', () => {
-			let selectedIndexes = [];
-			Array.from(selectEl.selectedOptions).forEach(opt => {
-				selectedIndexes.push(opt.index);
-			})
-			sel.selectByIndex(selectedIndexes);
-		});
+		//single select mode
+		else {
+			selectEl.addEventListener('invalid', hideSelect);
+			selectEl.addEventListener('input', showSelect)
+			selectEl.addEventListener('focus', showSelect);
+			selectEl.addEventListener('keydown', e => {
+				showSelect();
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
+			});
+			selectEl.addEventListener('mousedown', e => {
+				sel.isShown() ? sel.hidePanel() : showSelect();
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
+			});
+			selectEl.addEventListener('change', () => {
+				let selectedIndexes = [];
+				Array.from(selectEl.selectedOptions).forEach(opt => {
+					selectedIndexes.push(opt.index);
+				})
+				sel.selectByIndex(selectedIndexes);
+			});
+		}
 
 		document.addEventListener('click', e => {
-			if(!domContained(sel.panelEl, e.target, true) && !domContained(selectEl, e.target, true)){
-				sel.hidePanel();
+			if(!domContained(sel.panelEl, e.target, true) && !domContained(proxyInput || selectEl, e.target, true)){
+				hideSelect();
 			}
 		});
-
 		document.addEventListener('keyup', e => {
 			if(e.keyCode === KEYS.Esc){
-				sel.hidePanel();
+				hideSelect();
 			}
 		});
 	}
