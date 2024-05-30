@@ -10,7 +10,7 @@ let CTX_Z_INDEX = Theme.ContextIndex;
 insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
 	.${CTX_CLASS_PREFIX},
-	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
+	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; max-height:20em; overflow:auto; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
 	.${CTX_CLASS_PREFIX} ul {left:100%; top:0;}
 	.${CTX_CLASS_PREFIX} li:not([disabled]):hover>ul {display:block;}
 	.${CTX_CLASS_PREFIX} li[role=menuitem] {padding:0 1em; line-height:1; position:relative; min-height:2em; display:flex; align-items:center; background: transparent;user-select:none;opacity: 0.5; cursor:default;}
@@ -94,7 +94,7 @@ export const createMenu = (commands, onExecute = null) => {
 }
 
 let LAST_MENU;
-const hideLastMenu = ()=>{
+const hideLastMenu = () => {
 	remove(LAST_MENU);
 	LAST_MENU = null;
 }
@@ -126,7 +126,7 @@ export const bindTargetClickMenu = (target, commands, option = {}) => {
  * @param {Array} commands
  * @param {Object} position
  */
-export const showContextMenu = (commands,position)=>{
+export const showContextMenu = (commands, position) => {
 	hideLastMenu();
 	let menuEl = createMenu(commands);
 	LAST_MENU = menuEl;
@@ -144,9 +144,35 @@ export const showContextMenu = (commands,position)=>{
  */
 export const bindTargetMenu = (target, commands, option = null) => {
 	let triggerType = option?.triggerType || 'click';
+	triggerType = triggerType.toLowerCase();
+	let menuEl;
+
+	const MOUSE_OUT_DELAY = 200;
+	let out_timer = null;
+	if(triggerType === 'mouseover'){
+		target.addEventListener('mouseover', () => {
+			out_timer && clearTimeout(out_timer)
+		});
+		target.addEventListener('mouseout', () => {
+			out_timer = setTimeout(() => {
+				menuEl.style.display = 'none'
+			}, MOUSE_OUT_DELAY);
+		});
+	}
+
 	target.addEventListener(triggerType, e => {
 		hideLastMenu();
-		let menuEl = createMenu(commands);
+		menuEl = createMenu(commands);
+		if(triggerType === 'mouseover'){
+			menuEl.addEventListener('mouseover', () => {
+				out_timer && clearTimeout(out_timer);
+			});
+			menuEl.addEventListener('mouseout', () => {
+				out_timer = setTimeout(() => {
+					menuEl.style.display = 'none'
+				}, MOUSE_OUT_DELAY);
+			})
+		}
 		LAST_MENU = menuEl;
 		let pos;
 		if(triggerType === 'contextmenu'){
@@ -277,7 +303,7 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 	//下面放不下，且上面还有空间，否则还是放下面
 	if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
 		top = con_dim.height - (relate_node_offset.top + menu_dim.height);
-	} else {
+	}else{
 		top = 0;
 	}
 
@@ -293,7 +319,7 @@ const alignSubMenuByNode = (subMenuEl, triggerMenuItem) => {
 }
 
 let _global_event_bind_ = false;
-const bindGlobalEvent = ()=>{
+const bindGlobalEvent = () => {
 	if(_global_event_bind_){
 		return;
 	}

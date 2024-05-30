@@ -2721,9 +2721,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		txt += (txt || s) ? `${delimiter}${s}秒` : '';
 		return txt.trim();
 	};
-	const monthsOffsetCalc = (monthNum, start_date = new Date())=>{
+	const monthsOffsetCalc = (monthNum, start_date = new Date()) => {
 		let year = start_date.getFullYear();
-		let month = start_date.getMonth()+1;
+		let month = start_date.getMonth() + 1;
 		month = month + monthNum;
 		if(month > 12){
 			let yearNum = Math.floor((month - 1) / 12);
@@ -2742,6 +2742,175 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 		return {year, month}
+	};
+	const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+	const longMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+	const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	const longDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+	const PHP_DATE_CHAR_MAP = {
+		d: dateObj => {
+			let d = dateObj.getDate();
+			return (d < 10 ? '0' : '') + d
+		},
+		D: dateObj => {
+			return shortDays[dateObj.getDay()]
+		},
+		j: dateObj => {
+			return dateObj.getDate()
+		},
+		l: dateObj => {
+			return longDays[dateObj.getDay()]
+		},
+		N: dateObj => {
+			let N = dateObj.getDay();
+			return (N === 0 ? 7 : N)
+		},
+		S: dateObj => {
+			let S = dateObj.getDate();
+			return (S % 10 === 1 && S !== 11 ? 'st' : (S % 10 === 2 && S !== 12 ? 'nd' : (S % 10 === 3 && S !== 13 ? 'rd' : 'th')))
+		},
+		w: dateObj => {
+			return dateObj.getDay()
+		},
+		z: dateObj => {
+			let d = new Date(dateObj.getFullYear(), 0, 1);
+			return Math.ceil((undefined - d) / 86400000)
+		},
+		W: dateObj => {
+			let target = new Date(dateObj.valueOf());
+			let dayNr = (dateObj.getDay() + 6) % 7;
+			target.setDate(target.getDate() - dayNr + 3);
+			let firstThursday = target.valueOf();
+			target.setMonth(0, 1);
+			if(target.getDay() !== 4){
+				target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+			}
+			let retVal = 1 + Math.ceil((firstThursday - target) / 604800000);
+			return (retVal < 10 ? '0' + retVal : retVal)
+		},
+		F: dateObj => {
+			return longMonths[dateObj.getMonth()]
+		},
+		m: dateObj => {
+			let m = dateObj.getMonth();
+			return (m < 9 ? '0' : '') + (m + 1)
+		},
+		M: dateObj => {
+			return shortMonths[dateObj.getMonth()]
+		},
+		n: dateObj => {
+			return dateObj.getMonth() + 1
+		},
+		t: dateObj => {
+			let year = dateObj.getFullYear();
+			let nextMonth = dateObj.getMonth() + 1;
+			if(nextMonth === 12){
+				year = year++;
+				nextMonth = 0;
+			}
+			return new Date(year, nextMonth, 0).getDate()
+		},
+		L: dateObj => {
+			let L = dateObj.getFullYear();
+			return (L % 400 === 0 || (L % 100 !== 0 && L % 4 === 0))
+		},
+		o: dateObj => {
+			let d = new Date(dateObj.valueOf());
+			d.setDate(d.getDate() - ((dateObj.getDay() + 6) % 7) + 3);
+			return d.getFullYear()
+		},
+		Y: dateObj => {
+			return dateObj.getFullYear()
+		},
+		y: dateObj => {
+			return ('' + dateObj.getFullYear()).substr(2)
+		},
+		a: dateObj => {
+			return dateObj.getHours() < 12 ? 'am' : 'pm'
+		},
+		A: dateObj => {
+			return dateObj.getHours() < 12 ? 'AM' : 'PM'
+		},
+		B: dateObj => {
+			return Math.floor((((dateObj.getUTCHours() + 1) % 24) + dateObj.getUTCMinutes() / 60 + dateObj.getUTCSeconds() / 3600) * 1000 / 24)
+		},
+		g: dateObj => {
+			return dateObj.getHours() % 12 || 12
+		},
+		G: dateObj => {
+			return dateObj.getHours()
+		},
+		h: dateObj => {
+			let h = dateObj.getHours();
+			return ((h % 12 || 12) < 10 ? '0' : '') + (h % 12 || 12)
+		},
+		H: dateObj => {
+			let H = dateObj.getHours();
+			return (H < 10 ? '0' : '') + H
+		},
+		i: dateObj => {
+			let i = dateObj.getMinutes();
+			return (i < 10 ? '0' : '') + i
+		},
+		s: dateObj => {
+			let s = dateObj.getSeconds();
+			return (s < 10 ? '0' : '') + s
+		},
+		v: dateObj => {
+			let v = dateObj.getMilliseconds();
+			return (v < 10 ? '00' : (v < 100 ? '0' : '')) + v
+		},
+		e: dateObj => {
+			return Intl.DateTimeFormat().resolvedOptions().timeZone
+		},
+		I: dateObj => {
+			let DST = null;
+			for(let i = 0; i < 12; ++i){
+				let d = new Date(dateObj.getFullYear(), i, 1);
+				let offset = d.getTimezoneOffset();
+				if(DST === null) DST = offset;
+				else if(offset < DST){
+					DST = offset;
+					break
+				}else if(offset > DST) break
+			}
+			return (dateObj.getTimezoneOffset() === DST) | 0
+		},
+		O: dateObj => {
+			let O = dateObj.getTimezoneOffset();
+			return (-O < 0 ? '-' : '+') + (Math.abs(O / 60) < 10 ? '0' : '') + Math.floor(Math.abs(O / 60)) + (Math.abs(O % 60) === 0 ? '00' : ((Math.abs(O % 60) < 10 ? '0' : '')) + (Math.abs(O % 60)))
+		},
+		P: dateObj => {
+			let P = dateObj.getTimezoneOffset();
+			return (-P < 0 ? '-' : '+') + (Math.abs(P / 60) < 10 ? '0' : '') + Math.floor(Math.abs(P / 60)) + ':' + (Math.abs(P % 60) === 0 ? '00' : ((Math.abs(P % 60) < 10 ? '0' : '')) + (Math.abs(P % 60)))
+		},
+		T: dateObj => {
+			let tz = dateObj.toLocaleTimeString(navigator.language, {timeZoneName: 'short'}).split(' ');
+			return tz[tz.length - 1]
+		},
+		Z: dateObj => {
+			return -dateObj.getTimezoneOffset() * 60
+		},
+		c: dateObj => {
+			return dateObj.format('Y-m-d\\TH:i:sP')
+		},
+		r: dateObj => {
+			return dateObj.toString()
+		},
+		U: dateObj => {
+			return Math.floor(dateObj.getTime() / 1000)
+		}
+	};
+	const formatDate = function(format, date = null){
+		let dateObj = null;
+		if(typeof date === 'object' && date !== null){
+			dateObj = date;
+		}else {
+			dateObj = new Date(date || (new Date().getTime()));
+		}
+		return format.replace(/(\\?)(.)/g, function(_, esc, chr){
+			return (esc === '' && PHP_DATE_CHAR_MAP[chr]) ? PHP_DATE_CHAR_MAP[chr](dateObj) : chr
+		})
 	};
 
 	const DOMAIN_DEFAULT = 'default';
@@ -4065,7 +4234,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
 	.${CTX_CLASS_PREFIX},
-	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
+	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; max-height:20em; overflow:auto; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
 	.${CTX_CLASS_PREFIX} ul {left:100%; top:0;}
 	.${CTX_CLASS_PREFIX} li:not([disabled]):hover>ul {display:block;}
 	.${CTX_CLASS_PREFIX} li[role=menuitem] {padding:0 1em; line-height:1; position:relative; min-height:2em; display:flex; align-items:center; background: transparent;user-select:none;opacity: 0.5; cursor:default;}
@@ -4135,7 +4304,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return menu;
 	};
 	let LAST_MENU;
-	const hideLastMenu = ()=>{
+	const hideLastMenu = () => {
 		remove(LAST_MENU);
 		LAST_MENU = null;
 	};
@@ -4147,7 +4316,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		option.triggerType = 'click';
 		return bindTargetMenu(target, commands, option);
 	};
-	const showContextMenu = (commands,position)=>{
+	const showContextMenu = (commands, position) => {
 		hideLastMenu();
 		let menuEl = createMenu(commands);
 		LAST_MENU = menuEl;
@@ -4158,9 +4327,33 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const bindTargetMenu = (target, commands, option = null) => {
 		let triggerType = option?.triggerType || 'click';
+		triggerType = triggerType.toLowerCase();
+		let menuEl;
+		const MOUSE_OUT_DELAY = 200;
+		let out_timer = null;
+		if(triggerType === 'mouseover'){
+			target.addEventListener('mouseover', () => {
+				out_timer && clearTimeout(out_timer);
+			});
+			target.addEventListener('mouseout', () => {
+				out_timer = setTimeout(() => {
+					menuEl.style.display = 'none';
+				}, MOUSE_OUT_DELAY);
+			});
+		}
 		target.addEventListener(triggerType, e => {
 			hideLastMenu();
-			let menuEl = createMenu(commands);
+			menuEl = createMenu(commands);
+			if(triggerType === 'mouseover'){
+				menuEl.addEventListener('mouseover', () => {
+					out_timer && clearTimeout(out_timer);
+				});
+				menuEl.addEventListener('mouseout', () => {
+					out_timer = setTimeout(() => {
+						menuEl.style.display = 'none';
+					}, MOUSE_OUT_DELAY);
+				});
+			}
 			LAST_MENU = menuEl;
 			let pos;
 			if(triggerType === 'contextmenu'){
@@ -4228,7 +4421,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let left;
 		if((relate_node_offset.top + menu_dim.height > con_dim.height) && con_dim.height >= menu_dim.height){
 			top = con_dim.height - (relate_node_offset.top + menu_dim.height);
-		} else {
+		}else {
 			top = 0;
 		}
 		if(relate_node_offset.left > menu_dim.width && (relate_node_offset.left + relate_node_offset.width + menu_dim.width > con_dim.width)){
@@ -4239,7 +4432,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return {top, left};
 	};
 	let _global_event_bind_ = false;
-	const bindGlobalEvent = ()=>{
+	const bindGlobalEvent = () => {
 		if(_global_event_bind_){
 			return;
 		}
@@ -6203,6 +6396,205 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
+	const TYPE_TIME = 'time';
+	const TYPE_DATE = 'date';
+	const TYPE_DATETIME = 'datetime';
+	const TYPE_YEAR = 'year';
+	const NOW = (new Date).getTime();
+	const TYPE_MAP = {
+		[TYPE_TIME]: [
+			['近1分钟', () => {
+				return [formatDate('H:i:s', NOW - ONE_MINUTE), formatDate('H:i:s')]
+			}],
+			['近10分钟', () => {
+				return [formatDate('H:i:s', NOW - ONE_MINUTE * 10), formatDate('H:i:s')]
+			}],
+			['近30分钟', () => {
+				return [formatDate('H:i:s', NOW - ONE_MINUTE * 30), formatDate('H:i:s')]
+			}],
+			'-',
+			['近1个小时', () => {
+				return [formatDate('H:i:s', NOW - ONE_HOUR), formatDate('H:i:s')]
+			}],
+			['近2个小时', () => {
+				return [formatDate('H:i:s', NOW - ONE_HOUR * 2), formatDate('H:i:s')]
+			}],
+			['近3个小时', () => {
+				return [formatDate('H:i:s', NOW - ONE_HOUR * 3), formatDate('H:i:s')]
+			}],
+			'-',
+			['今日0点 - 现在', () => {
+				return [formatDate('00:00:00', NOW - ONE_HOUR * 3), formatDate('H:i:s')]
+			}],
+		],
+		[TYPE_DATE]: [
+			['今天', () => {
+				return [formatDate('Y-m-d'), formatDate('Y-m-d')]
+			}],
+			['昨天', () => {
+				return [formatDate('Y-m-d', NOW - ONE_DAY), formatDate('Y-m-d', NOW - ONE_DAY)];
+			}],
+			['前天', () => {
+				return [formatDate('Y-m-d', NOW - ONE_DAY * 2), formatDate('Y-m-d', NOW - ONE_DAY * 2)];
+			}],
+			'-',
+			['昨天 - 今天', () => {
+				return [formatDate('Y-m-d', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			['前天 - 今天', () => {
+				return [formatDate('Y-m-d', NOW - ONE_DAY * 2), formatDate('Y-m-d')];
+			}],
+			['本周（周日） - 今天', () => {
+				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			['本周（周一） - 今天', () => {
+				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			['本月1日 - 今天', () => {
+				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			['今年1月1日 - 今天', () => {
+				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			'-',
+			['上一周', () => {
+				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			['上一个月', () => {
+				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+		],
+		[TYPE_DATETIME]: [
+			['近1分钟', () => {
+				return [formatDate('Y-m-d H:i:s', NOW - ONE_MINUTE), formatDate('Y-m-d H:i:s')]
+			}],
+			['近10分钟', () => {
+				return [formatDate('Y-m-d H:i:s', NOW - ONE_MINUTE * 10), formatDate('Y-m-d H:i:s')]
+			}],
+			['近30分钟', () => {
+				return [formatDate('Y-m-d H:i:s', NOW - ONE_MINUTE * 30), formatDate('Y-m-d H:i:s')]
+			}],
+			'-',
+			['近1个小时', () => {
+				return [formatDate('Y-m-d H:i:s', NOW - ONE_HOUR), formatDate('Y-m-d H:i:s')]
+			}],
+			['近2个小时', () => {
+				return [formatDate('Y-m-d H:i:s', NOW - ONE_HOUR * 2), formatDate('Y-m-d H:i:s')]
+			}],
+			['近3个小时', () => {
+				return [formatDate('Y-m-d H:i:s', NOW - ONE_HOUR * 3), formatDate('Y-m-d H:i:s')]
+			}],
+			'-',
+			['今天', () => {
+				return [formatDate('Y-m-d 00:00:00'), formatDate('Y-m-d H:i:s')]
+			}],
+			['昨天', () => {
+				return [formatDate('Y-m-d 00:00:00', NOW - ONE_DAY), formatDate('Y-m-d 23:59:59')];
+			}],
+			['前天', () => {
+				return [formatDate('Y-m-d 00:00:00', NOW - ONE_DAY * 2), formatDate('Y-m-d', NOW - ONE_DAY * 2)];
+			}],
+			'-',
+			['昨天 - 今天', () => {
+				return [formatDate('Y-m-d 00:00:00', NOW - ONE_DAY), formatDate('Y-m-d H:i:s')];
+			}],
+			['前天 - 今天', () => {
+				return [formatDate('Y-m-d 00:00:00', NOW - ONE_DAY * 2), formatDate('Y-m-d H:i:s')];
+			}],
+			['本周（周日） - 今天', () => {
+				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d H:i:s')];
+			}],
+			['本周（周一） - 今天', () => {
+				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d H:i:s')];
+			}],
+			['本月1日 - 今天', () => {
+				return [formatDate('Y-m-01 00:00:00'), formatDate('Y-m-d H:i:s')];
+			}],
+			['今年1月1日 - 今天', () => {
+				return [formatDate('Y-01-01 00:00:00'), formatDate('Y-m-d H:i:s')];
+			}],
+			'-',
+			['上一周', () => {
+				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+			['上一个月', () => {
+				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
+			}],
+		],
+		[TYPE_YEAR]: [
+			['今年', () => {
+				return [formatDate('Y'), formatDate('Y')];
+			}],
+			['去年', () => {
+				return [formatDate('Y', NOW - 365 * ONE_DAY), formatDate('Y', NOW - 365 * ONE_DAY)];
+			}],
+			['前年', () => {
+				return [formatDate('Y', NOW - 365 * ONE_DAY * 2), formatDate('Y', NOW - 365 * ONE_DAY * 2)];
+			}],
+			'-',
+			['去年 - 今年', () => {
+				return [formatDate('Y', NOW - 365 * ONE_DAY), formatDate('Y')];
+			}],
+			['前年 - 今年', () => {
+				return [formatDate('Y', NOW - 365 * ONE_DAY * 2), formatDate('Y', NOW - 365 * ONE_DAY)];
+			}],
+			['过去5年', () => {
+				return [formatDate('Y', NOW - 365 * ONE_DAY * 5), formatDate('Y')];
+			}],
+		]
+	};
+	const resolveType = input => {
+		switch(input.type){
+			case 'year':
+				return TYPE_YEAR;
+			case 'date':
+				return TYPE_DATE;
+			case 'datetime-local':
+			case 'datetime':
+				return TYPE_DATETIME;
+			case 'time':
+				return TYPE_TIME;
+			default:
+				console.error("No Supported Type:", input);
+				return null;
+		}
+	};
+	class ACDateRangeSelector {
+		static init(node, param = {}){
+			let inputs = [];
+			let target = param.target;
+			if(target){
+				inputs = document.querySelectorAll(target);
+			}else {
+				inputs = node.parentNode.querySelectorAll('input');
+			}
+			if(inputs.length < 2){
+				throw "No date inputs found.";
+			}
+			let type = resolveType(inputs[0]);
+			if(!type){
+				return;
+			}
+			let commands = [];
+			TYPE_MAP[type].forEach(item => {
+				if(item === '-'){
+					commands.push(item);
+				}else {
+					let [title, timesFetcher] = item;
+					commands.push([title, () => {
+						let [st, ed] = timesFetcher();
+						inputs[0].value = st;
+						triggerDomEvent(inputs[0], 'change');
+						inputs[1].value = ed;
+						triggerDomEvent(inputs[1], 'change');
+					}, false]);
+				}
+			});
+			bindTargetMenu(node, commands, {triggerType: 'mouseover'});
+			return Promise.resolve();
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
@@ -6222,6 +6614,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		textcounter: ACTextCounter,
 		uploader: ACUploader,
 		batchfiller: ACBatchFiller,
+		daterangeselector: ACDateRangeSelector,
 	};
 	const parseComponents = function(attr){
 		let tmp = attr.split(',');
@@ -6470,6 +6863,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.formSerializeString = formSerializeString;
 	exports.formSync = formSync;
 	exports.formValidate = formValidate;
+	exports.formatDate = formatDate;
 	exports.formatSize = formatSize;
 	exports.frequencyControl = frequencyControl;
 	exports.fromHtmlEntities = fromHtmlEntities;

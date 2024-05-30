@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+<div class="test-case">
+	<form action="?" method="get">
+		<div>
+			<h3>时间范围选择（时间）</h3>
+			<input type="time" name="start_date">
+			<input type="time" name="end_date">
+			<span class="date-selector" data-component="daterangeselector">Quick Select</span>
+		</div>
+		<div>
+			<h3>时间范围选择（日期）</h3>
+			<input type="date" name="start_date">
+			<input type="date" name="end_date">
+			<span class="date-selector" data-component="daterangeselector">Quick Select</span>
+		</div>
+		<div>
+			<h3>时间范围选择（日期+时间）</h3>
+			<input type="datetime-local" name="start_date">
+			<input type="datetime-local" name="end_date">
+			<span class="date-selector" data-component="daterangeselector">Quick Select</span>
+		</div>
+		<div>
+			<h3>时间范围选择（年份）</h3>
+			<input type="year" name="start_date">
+			<input type="year" name="end_date">
+			<span class="year" data-component="daterangeselector">Quick Select</span>
+		</div>
+		<input type="submit">
+	</form>
+	<script type="module">
+		import {ACComponent, Select} from "../src/index.js";
+	</script>
+</div>
+</body>
+</html>
