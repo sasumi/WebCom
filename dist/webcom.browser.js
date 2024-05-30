@@ -4127,7 +4127,7 @@ var WebCom = (function (exports) {
 		option.triggerType = 'contextmenu';
 		return bindTargetMenu(target, commands, option);
 	};
-	const bindTargetDropdownMenu = (target, commands, option = {}) => {
+	const bindTargetClickMenu = (target, commands, option = {}) => {
 		option.triggerType = 'click';
 		return bindTargetMenu(target, commands, option);
 	};
@@ -6414,8 +6414,9 @@ var WebCom = (function (exports) {
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 	exports.bindNodeActive = bindNodeActive;
 	exports.bindNodeEvents = bindNodeEvents;
+	exports.bindTargetClickMenu = bindTargetClickMenu;
 	exports.bindTargetContextMenu = bindTargetContextMenu;
-	exports.bindTargetDropdownMenu = bindTargetDropdownMenu;
+	exports.bindTargetMenu = bindTargetMenu;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.capitalize = capitalize;
 	exports.chunk = chunk;

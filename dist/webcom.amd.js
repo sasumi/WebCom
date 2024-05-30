@@ -4143,7 +4143,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		option.triggerType = 'contextmenu';
 		return bindTargetMenu(target, commands, option);
 	};
-	const bindTargetDropdownMenu = (target, commands, option = {}) => {
+	const bindTargetClickMenu = (target, commands, option = {}) => {
 		option.triggerType = 'click';
 		return bindTargetMenu(target, commands, option);
 	};
@@ -6430,8 +6430,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 	exports.bindNodeActive = bindNodeActive;
 	exports.bindNodeEvents = bindNodeEvents;
+	exports.bindTargetClickMenu = bindTargetClickMenu;
 	exports.bindTargetContextMenu = bindTargetContextMenu;
-	exports.bindTargetDropdownMenu = bindTargetDropdownMenu;
+	exports.bindTargetMenu = bindTargetMenu;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.capitalize = capitalize;
 	exports.chunk = chunk;

@@ -116,7 +116,7 @@ export const bindTargetContextMenu = (target, commands, option = {}) => {
  * @param {Array} commands
  * @param {Object} option 更多选项
  */
-export const bindTargetDropdownMenu = (target, commands, option = {}) => {
+export const bindTargetClickMenu = (target, commands, option = {}) => {
 	option.triggerType = 'click';
 	return bindTargetMenu(target, commands, option);
 }
@@ -142,7 +142,7 @@ export const showContextMenu = (commands,position)=>{
  * @param {Array} commands
  * @param {Object} option 触发事件类型，如 click, contextmenu等。如果是contextmenu，菜单位置按照鼠标点击位置计算
  */
-const bindTargetMenu = (target, commands, option = null) => {
+export const bindTargetMenu = (target, commands, option = null) => {
 	let triggerType = option?.triggerType || 'click';
 	target.addEventListener(triggerType, e => {
 		hideLastMenu();
