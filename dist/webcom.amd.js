@@ -4931,9 +4931,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		${option.disabled ? 'disabled' : ''}/>
 	`
 	};
-	const createPanel = (config, options) => {
+	const createPanel = (config) => {
 		let list_html = `<ul class="${CLASS_PREFIX$1}-list">`;
-		options.forEach(option => {
+		config.options.forEach(option => {
 			if(option.options && option.options.length){
 				list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
 				option.options.forEach(childOption => {
@@ -5019,15 +5019,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			placeholder: '',
 			displaySearchInput: true,
 			hideNoMatchItems: true,
+			options: [],
 		};
 		panelEl = null;
 		searchEl = null;
 		onChange = new BizEvent();
 		static PROXY_INPUT_CLASS = 'multiple-select-proxy-input';
-		constructor(config, options){
+		constructor(config){
 			this.config = Object.assign(this.config, config);
 			this.config.name = this.config.name || COM_ID + guid();
-			this.panelEl = createPanel(this.config, options);
+			this.panelEl = createPanel(this.config);
 			this.searchEl = this.panelEl.querySelector('input[type=search]');
 			this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach(chk => {
 				chk.addEventListener('change', () => {
@@ -5147,15 +5148,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			this.searchEl.focus();
 		}
 		static bindSelect(selectEl){
-			let {options:init_option} = resolveSelectOptions(selectEl);
+			let {options} = resolveSelectOptions(selectEl);
 			let placeholder = resolveSelectPlaceholder(selectEl);
 			let proxyInput;
 			const sel = new Select({
 				name: selectEl.name,
 				required: selectEl.required,
 				multiple: selectEl.multiple,
-				placeholder
-			}, init_option);
+				placeholder,
+				options
+			});
 			sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 			sel.onChange.listen(() => {
 				let selectedIndexes = sel.getSelectedIndexes();
@@ -5242,8 +5244,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				multiple: false,
 				displaySearchInput: false,
 				hideNoMatchItems: false,
-				placeholder: inputEl.getAttribute('placeholder')
-			}, options);
+				placeholder: inputEl.getAttribute('placeholder'),
+				options
+			});
 			sel.onChange.listen(() => {
 				inputEl.value = sel.getValues()[0];
 				triggerDomEvent(inputEl, 'change');
@@ -5253,6 +5256,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				let offset = getDomOffset(inputEl);
 				sel.showPanel({top: offset.top + inputEl.offsetHeight, left: offset.left});
 			};
+			inputEl.setAttribute('autocomplete', 'off');
 			inputEl.addEventListener('focus', sh);
 			inputEl.addEventListener('click', sh);
 			inputEl.addEventListener('input', () => {

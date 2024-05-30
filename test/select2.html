@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+<div class="test-case">
+	<select id="attr_sel" required="required" data-component="select">
+		<option value=""> ├  A03-S 选头编号(SE通用)（描述含HTML)	</option>
+	</select>
+
+	<script type="module">
+		import {ACComponent, Select} from "../src/index.js";
+		//
+		// let seEl = document.getElementById('se');
+		// Select.bindSelect(seEl);
+		// ACComponent.watch();
+		//
+		// seEl.addEventListener('change', e => {
+		// 	console.log('seEl change:', seEl.value);
+		// });
+
+		Select.bindSelect(document.getElementById('sem'));
+	</script>
+</div>
+</body>
+</html>
