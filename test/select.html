@@ -24,9 +24,7 @@
 
 	<form action="?" method="get">
 		<h3>Select 单选</h3>
-
-
-		<select name="sig_sel"  style="width:200px;">
+		<select name="sig_sel" data-component="select">
 			<optgroup label="group22"></optgroup>
 			<option value="">empty value 1</option>
 			<option value="">empty value 2</option>
@@ -134,7 +132,7 @@
 		</select>
 
 		<h3>采用 input[list] 模式</h3>
-		<input type="search" name="search" id="" list="list">
+		<input type="search" name="search" data-component="select" list="list">
 
 		<datalist id="list">
 			<option value="data1">data1</option>

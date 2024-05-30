@@ -4951,7 +4951,7 @@ const createPanel = (config) => {
 	return createDomByHtml(`
 		<div class="${CLASS_PREFIX$1}-panel" style="display:none;">
 			<div class="${CLASS_PREFIX$1}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
-				<input type="search" placeholder="过滤..." aria-label="过滤选项">
+				<input type="search" placeholder="过滤..." aria-label="过滤选项" autocomplete="off">
 			</div>
 			${list_html}
 			${multiple_operation_html}
@@ -5156,8 +5156,8 @@ class Select {
 		};
 		if(selectEl.multiple){
 			proxyInput = document.createElement('input');
-			proxyInput.value = buildOptionText(init_option) || placeholder;
-			proxyInput.title = buildOptionText(init_option) || placeholder;
+			proxyInput.value = buildOptionText(options) || placeholder;
+			proxyInput.title = buildOptionText(options) || placeholder;
 			proxyInput.type = 'text';
 			proxyInput.classList.add(this.PROXY_INPUT_CLASS);
 			proxyInput.readOnly = true;

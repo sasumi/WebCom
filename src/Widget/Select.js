@@ -304,7 +304,7 @@ const createPanel = (config) => {
 	return createDomByHtml(`
 		<div class="${CLASS_PREFIX}-panel" style="display:none;">
 			<div class="${CLASS_PREFIX}-search" style="${config.displaySearchInput ? '' : 'display:none'}">
-				<input type="search" placeholder="过滤..." aria-label="过滤选项">
+				<input type="search" placeholder="过滤..." aria-label="过滤选项" autocomplete="off">
 			</div>
 			${list_html}
 			${multiple_operation_html}
@@ -590,8 +590,8 @@ class Select {
 		//multiple mode
 		if(selectEl.multiple){
 			proxyInput = document.createElement('input');
-			proxyInput.value = buildOptionText(init_option) || placeholder;
-			proxyInput.title = buildOptionText(init_option) || placeholder;
+			proxyInput.value = buildOptionText(options) || placeholder;
+			proxyInput.title = buildOptionText(options) || placeholder;
 			proxyInput.type = 'text';
 			proxyInput.classList.add(this.PROXY_INPUT_CLASS);
 			proxyInput.readOnly = true;
@@ -682,7 +682,7 @@ class Select {
 			sel.showPanel({top: offset.top + inputEl.offsetHeight, left: offset.left});
 		}
 
-		inputEl.setAttribute('autocomplete', 'off'); //关闭浏览器默认提示建议
+		inputEl.setAttribute('autocomplete', 'off')
 		inputEl.addEventListener('focus', sh);
 		inputEl.addEventListener('click', sh);
 		inputEl.addEventListener('input', () => {
