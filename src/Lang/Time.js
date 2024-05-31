@@ -154,7 +154,7 @@ const PHP_DATE_CHAR_MAP = {
 	},
 	z: dateObj => {
 		let d = new Date(dateObj.getFullYear(), 0, 1);
-		return Math.ceil((this - d) / 86400000)
+		return Math.ceil((dateObj - d) / 86400000)
 	},
 	// Week
 	W: dateObj => {

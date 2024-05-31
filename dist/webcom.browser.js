@@ -2758,7 +2758,7 @@ var WebCom = (function (exports) {
 		},
 		z: dateObj => {
 			let d = new Date(dateObj.getFullYear(), 0, 1);
-			return Math.ceil((undefined - d) / 86400000)
+			return Math.ceil((dateObj - d) / 86400000)
 		},
 		W: dateObj => {
 			let target = new Date(dateObj.valueOf());
@@ -6408,7 +6408,7 @@ var WebCom = (function (exports) {
 			}],
 			'-',
 			['今日0点 - 现在', () => {
-				return [formatDate('00:00:00', NOW - ONE_HOUR * 3), formatDate('H:i:s')]
+				return ['00:00:00', formatDate('H:i:s')]
 			}],
 		],
 		[TYPE_DATE]: [
@@ -6428,12 +6428,6 @@ var WebCom = (function (exports) {
 			['前天 - 今天', () => {
 				return [formatDate('Y-m-d', NOW - ONE_DAY * 2), formatDate('Y-m-d')];
 			}],
-			['本周（周日） - 今天', () => {
-				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d')];
-			}],
-			['本周（周一） - 今天', () => {
-				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d')];
-			}],
 			['本月1日 - 今天', () => {
 				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d')];
 			}],
@@ -6441,12 +6435,6 @@ var WebCom = (function (exports) {
 				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
 			}],
 			'-',
-			['上一周', () => {
-				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
-			}],
-			['上一个月', () => {
-				return [formatDate('Y-01-01', NOW - ONE_DAY), formatDate('Y-m-d')];
-			}],
 		],
 		[TYPE_DATETIME]: [
 			['近1分钟', () => {
@@ -6485,12 +6473,6 @@ var WebCom = (function (exports) {
 			['前天 - 今天', () => {
 				return [formatDate('Y-m-d 00:00:00', NOW - ONE_DAY * 2), formatDate('Y-m-d H:i:s')];
 			}],
-			['本周（周日） - 今天', () => {
-				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d H:i:s')];
-			}],
-			['本周（周一） - 今天', () => {
-				return [formatDate('Y-m-01', NOW - ONE_DAY), formatDate('Y-m-d H:i:s')];
-			}],
 			['本月1日 - 今天', () => {
 				return [formatDate('Y-m-01 00:00:00'), formatDate('Y-m-d H:i:s')];
 			}],
@@ -6506,31 +6488,29 @@ var WebCom = (function (exports) {
 			}],
 		],
 		[TYPE_YEAR]: [
-			['今年', () => {
+			[formatDate('Y') + ' 年', () => {
 				return [formatDate('Y'), formatDate('Y')];
 			}],
-			['去年', () => {
-				return [formatDate('Y', NOW - 365 * ONE_DAY), formatDate('Y', NOW - 365 * ONE_DAY)];
+			[(new Date).getFullYear() - 1 + ' 年', () => {
+				return [(new Date).getFullYear() - 1, (new Date).getFullYear() - 1];
 			}],
-			['前年', () => {
-				return [formatDate('Y', NOW - 365 * ONE_DAY * 2), formatDate('Y', NOW - 365 * ONE_DAY * 2)];
+			[(new Date).getFullYear() - 2 + ' 年', () => {
+				return [(new Date).getFullYear() - 2, (new Date).getFullYear() - 2];
 			}],
 			'-',
-			['去年 - 今年', () => {
-				return [formatDate('Y', NOW - 365 * ONE_DAY), formatDate('Y')];
+			[(new Date).getFullYear() - 1 + ' - ' + formatDate('Y') + ' (去年至今)', () => {
+				return [(new Date).getFullYear() - 1, formatDate('Y')];
 			}],
-			['前年 - 今年', () => {
-				return [formatDate('Y', NOW - 365 * ONE_DAY * 2), formatDate('Y', NOW - 365 * ONE_DAY)];
+			[(new Date).getFullYear() - 2 + ' - ' + formatDate('Y') + ' (前年至今)', () => {
+				return [(new Date).getFullYear() - 2, (new Date).getFullYear() - 2];
 			}],
-			['过去5年', () => {
-				return [formatDate('Y', NOW - 365 * ONE_DAY * 5), formatDate('Y')];
+			[(new Date).getFullYear() - 5 + ' - ' + formatDate('Y') + ' (过去5年)', () => {
+				return [(new Date).getFullYear() - 5, formatDate('Y')];
 			}],
 		]
 	};
 	const resolveType = input => {
 		switch(input.type){
-			case 'year':
-				return TYPE_YEAR;
 			case 'date':
 				return TYPE_DATE;
 			case 'datetime-local':
@@ -6544,6 +6524,7 @@ var WebCom = (function (exports) {
 		}
 	};
 	class ACDateRangeSelector {
+		static WEEK_START = 1;
 		static init(node, param = {}){
 			let inputs = [];
 			let target = param.target;
@@ -6555,7 +6536,7 @@ var WebCom = (function (exports) {
 			if(inputs.length < 2){
 				throw "No date inputs found.";
 			}
-			let type = resolveType(inputs[0]);
+			let type = param.type || resolveType(inputs[0]);
 			if(!type){
 				return;
 			}
