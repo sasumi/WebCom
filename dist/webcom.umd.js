@@ -1479,9 +1479,9 @@
 		seek();
 	};
 
-	const NS$3 = 'WebCom-';
-	const VAR_PREFIX = '--' + NS$3;
-	const ICON_FONT = NS$3 + 'iconfont';
+	const NS$4 = 'WebCom-';
+	const VAR_PREFIX = '--' + NS$4;
+	const ICON_FONT = NS$4 + 'iconfont';
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1494,11 +1494,12 @@
 	const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX + 'full-screen-background-color';
 	insertStyleSheet(`
 @font-face {
-	font-family: '${ICON_FONT}';  /* Project id 3359671 */
-	src: url('//at.alicdn.com/t/c/font_3359671_6sdhf2dfnne.woff2?t=1703834753032') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_6sdhf2dfnne.woff?t=1703834753032') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_6sdhf2dfnne.ttf?t=1703834753032') format('truetype');
+  font-family: '${ICON_FONT}';  /* Project id 3359671 */
+  src: url('//at.alicdn.com/t/c/font_3359671_bl4ttoz4q7u.woff2?t=1717248904257') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_bl4ttoz4q7u.woff?t=1717248904257') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_bl4ttoz4q7u.ttf?t=1717248904257') format('truetype');
 }
+
 :root {
 	${CSS_VAR_COLOR}:#333;
 	${CSS_VAR_COLOR_LIGHTEN}:#666;
@@ -1512,9 +1513,9 @@
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$3+'style');
+}`, NS$4+'style');
 	const Theme = {
-		Namespace: NS$3,
+		Namespace: NS$4,
 		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
@@ -3459,7 +3460,7 @@
 	let DialogClass = CONTEXT_WINDOW$1[COM_ID$3].Dialog || Dialog;
 	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$3].DialogManager || DialogManager;
 
-	const copy = (text, silent = false) => {
+	const copy = (text, show_msg = false) => {
 		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
 		txtNode.style.cssText = 'position:absolute; left:-9999px;';
 		let y = window.pageYOffset || document.documentElement.scrollTop;
@@ -3470,11 +3471,11 @@
 		txtNode.select();
 		try{
 			let succeeded = document.execCommand('copy');
-			!silent && ToastClass.showSuccess(trans('复制成功'));
+			show_msg && ToastClass.showSuccess(trans('复制成功'));
 			return succeeded;
 		}catch(err){
 			console.error(err);
-			DialogClass.prompt('复制失败，请手工复制', {initValue:text});
+			show_msg && DialogClass.prompt('复制失败，请手工复制', {initValue:text});
 		} finally{
 			remove(txtNode);
 		}
@@ -4435,73 +4436,73 @@
 	};
 
 	const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	const NS$2 = Theme.Namespace + 'tip';
+	const NS$3 = Theme.Namespace + 'tip';
 	const DEFAULT_DIR = 11;
 	const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	let TIP_COLLECTION = {};
 	insertStyleSheet(`
-	.${NS$2}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$2}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$2}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$2}-close:hover {opacity:1}
-	.${NS$2}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$3}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$3}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$3}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$3}-close:hover {opacity:1}
+	.${NS$3}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$2}-container-wrap[data-tip-dir="11"],
-	.${NS$2}-container-wrap[data-tip-dir="0"],
-	.${NS$2}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$2}-container-wrap[data-tip-dir="11"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="0"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="1"] .${NS$2}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$2}-container-wrap[data-tip-dir="11"] .${NS$2}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$2}-container-wrap[data-tip-dir="0"] .${NS$2}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$2}-container-wrap[data-tip-dir="1"] .${NS$2}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="11"],
+	.${NS$3}-container-wrap[data-tip-dir="0"],
+	.${NS$3}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$3}-container-wrap[data-tip-dir="11"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="0"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="1"] .${NS$3}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$3}-container-wrap[data-tip-dir="11"] .${NS$3}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="0"] .${NS$3}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$3}-container-wrap[data-tip-dir="1"] .${NS$3}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$2}-container-wrap[data-tip-dir="8"],
-	.${NS$2}-container-wrap[data-tip-dir="9"],
-	.${NS$2}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$2}-container-wrap[data-tip-dir="8"] .${NS$2}-close,
-	.${NS$2}-container-wrap[data-tip-dir="9"] .${NS$2}-close,
-	.${NS$2}-container-wrap[data-tip-dir="10"] .${NS$2}-close{top:3px;}
-	.${NS$2}-container-wrap[data-tip-dir="8"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="9"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="10"] .${NS$2}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$2}-container-wrap[data-tip-dir="8"] .${NS$2}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$2}-container-wrap[data-tip-dir="9"] .${NS$2}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$2}-container-wrap[data-tip-dir="10"] .${NS$2}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="8"],
+	.${NS$3}-container-wrap[data-tip-dir="9"],
+	.${NS$3}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$3}-container-wrap[data-tip-dir="8"] .${NS$3}-close,
+	.${NS$3}-container-wrap[data-tip-dir="9"] .${NS$3}-close,
+	.${NS$3}-container-wrap[data-tip-dir="10"] .${NS$3}-close{top:3px;}
+	.${NS$3}-container-wrap[data-tip-dir="8"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="9"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="10"] .${NS$3}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$3}-container-wrap[data-tip-dir="8"] .${NS$3}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="9"] .${NS$3}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="10"] .${NS$3}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$2}-container-wrap[data-tip-dir="5"],
-	.${NS$2}-container-wrap[data-tip-dir="6"],
-	.${NS$2}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$2}-container-wrap[data-tip-dir="5"] .${NS$2}-close,
-	.${NS$2}-container-wrap[data-tip-dir="6"] .${NS$2}-close,
-	.${NS$2}-container-wrap[data-tip-dir="7"] .${NS$2}-close{top:3px;}
-	.${NS$2}-container-wrap[data-tip-dir="5"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="6"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="7"] .${NS$2}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$2}-container-wrap[data-tip-dir="5"] .${NS$2}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$2}-container-wrap[data-tip-dir="6"] .${NS$2}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$2}-container-wrap[data-tip-dir="7"] .${NS$2}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="5"],
+	.${NS$3}-container-wrap[data-tip-dir="6"],
+	.${NS$3}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$3}-container-wrap[data-tip-dir="5"] .${NS$3}-close,
+	.${NS$3}-container-wrap[data-tip-dir="6"] .${NS$3}-close,
+	.${NS$3}-container-wrap[data-tip-dir="7"] .${NS$3}-close{top:3px;}
+	.${NS$3}-container-wrap[data-tip-dir="5"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="6"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="7"] .${NS$3}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$3}-container-wrap[data-tip-dir="5"] .${NS$3}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="6"] .${NS$3}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="7"] .${NS$3}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$2}-container-wrap[data-tip-dir="2"],
-	.${NS$2}-container-wrap[data-tip-dir="3"],
-	.${NS$2}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$2}-container-wrap[data-tip-dir="2"] .${NS$2}-close,
-	.${NS$2}-container-wrap[data-tip-dir="3"] .${NS$2}-close,
-	.${NS$2}-container-wrap[data-tip-dir="4"] .${NS$2}-close{right:13px;top:3px;}
-	.${NS$2}-container-wrap[data-tip-dir="2"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="3"] .${NS$2}-arrow,
-	.${NS$2}-container-wrap[data-tip-dir="4"] .${NS$2}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$2}-container-wrap[data-tip-dir="2"] .${NS$2}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$2}-container-wrap[data-tip-dir="3"] .${NS$2}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$2}-container-wrap[data-tip-dir="4"] .${NS$2}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$3}-container-wrap[data-tip-dir="2"],
+	.${NS$3}-container-wrap[data-tip-dir="3"],
+	.${NS$3}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$3}-container-wrap[data-tip-dir="2"] .${NS$3}-close,
+	.${NS$3}-container-wrap[data-tip-dir="3"] .${NS$3}-close,
+	.${NS$3}-container-wrap[data-tip-dir="4"] .${NS$3}-close{right:13px;top:3px;}
+	.${NS$3}-container-wrap[data-tip-dir="2"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="3"] .${NS$3}-arrow,
+	.${NS$3}-container-wrap[data-tip-dir="4"] .${NS$3}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$3}-container-wrap[data-tip-dir="2"] .${NS$3}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$3}-container-wrap[data-tip-dir="3"] .${NS$3}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$3}-container-wrap[data-tip-dir="4"] .${NS$3}-arrow{top:calc(75% - var(--tip-gap))}
 `, Theme.Namespace + 'tip-style');
 	let bindEvent = (tip)=>{
 		if(tip.option.showCloseButton){
-			let close_btn = tip.dom.querySelector(`.${NS$2}-close`);
+			let close_btn = tip.dom.querySelector(`.${NS$3}-close`);
 			close_btn.addEventListener('click', () => {tip.hide();}, false);
 			document.addEventListener('keyup', (e) => {
 				if(e.keyCode === KEYS.Esc){
@@ -4586,16 +4587,16 @@
 			this.relateNode = relateNode;
 			this.option = Object.assign(this.option, opt);
 			this.dom = createDomByHtml(
-				`<div class="${NS$2}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$2}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$2}-close">&#10005;</span>` : ''}
-				<div class="${NS$2}-content">${content}</div>
+				`<div class="${NS$3}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$3}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$3}-close">&#10005;</span>` : ''}
+				<div class="${NS$3}-content">${content}</div>
 			</div>`);
 			bindEvent(this);
 			TIP_COLLECTION[this.id] = this;
 		}
 		setContent(html){
-			this.dom.querySelector(`.${NS$2}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$3}-content`).innerHTML = html;
 			updatePosition(this);
 		}
 		show(){
@@ -5633,40 +5634,40 @@
 		}
 	}
 
-	const NS$1 = Theme.Namespace + 'uploader';
+	const NS$2 = Theme.Namespace + 'uploader';
 	insertStyleSheet(`
-	.${NS$1}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$2}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS$1}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS$1}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS$1}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$2}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$2}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$2}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS$1}[data-state="empty"]{opacity:0.5}
-	.${NS$1}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$2}[data-state="empty"]{opacity:0.5}
+	.${NS$2}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS$1}[data-state="empty"] :is(.${NS$1}-handle,.${NS$1}-progress),
-	.${NS$1}[data-state="pending"] :is(.${NS$1}-btn-clean, .${NS$1}-file, .${NS$1}-content),
-	.${NS$1}[data-state="error"] :is(.${NS$1}-progress,.${NS$1}-btn-clean),
-	.${NS$1}[data-state="normal"] :is(.${NS$1}-progress,.${NS$1}-btn-cancel),
-	.${NS$1}[data-state="normal"] .${NS$1}-file:before{
+	.${NS$2}[data-state="empty"] :is(.${NS$2}-handle,.${NS$2}-progress),
+	.${NS$2}[data-state="pending"] :is(.${NS$2}-btn-clean, .${NS$2}-file, .${NS$2}-content),
+	.${NS$2}[data-state="error"] :is(.${NS$2}-progress,.${NS$2}-btn-clean),
+	.${NS$2}[data-state="normal"] :is(.${NS$2}-progress,.${NS$2}-btn-cancel),
+	.${NS$2}[data-state="normal"] .${NS$2}-file:before{
 		display:none;
 	}
 	
-	.${NS$1}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS$1}-content{width:100%;height:100%;}
-	.${NS$1}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$2}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$2}-content{width:100%;height:100%;}
+	.${NS$2}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS$1}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS$1}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$2}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$2}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS$1}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS$1}-btn:hover{opacity:1;}
-	.${NS$1}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS$1}-btn-cancel:before{content:"\\e61a"}
-	.${NS$1}-btn-clean:before{content:"\\e61b"}
+	.${NS$2}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$2}-btn:hover{opacity:1;}
+	.${NS$2}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$2}-btn-cancel:before{content:"\\e61a"}
+	.${NS$2}-btn-clean:before{content:"\\e61b"}
 `);
-	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$1}-image`;
-	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$1}-file`;
+	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$2}-image`;
+	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$2}-file`;
 	const UPLOAD_STATE_EMPTY = 'empty';
 	const UPLOAD_STATE_PENDING = 'pending';
 	const UPLOAD_STATE_ERROR = 'error';
@@ -5717,7 +5718,7 @@
 	};
 	const updateState = (up, state, data = null) => {
 		const fileEl = findOne('input[type=file]', up.dom);
-		const contentCtn = findOne(`.${NS$1}-content`, up.dom);
+		const contentCtn = findOne(`.${NS$2}-content`, up.dom);
 		up.dom.setAttribute('data-state', state);
 		up.dom.title = '';
 		switch(state){
@@ -5827,24 +5828,24 @@
 			});
 			let acceptStr = this.option.allowFileTypes.join(',');
 			const html =
-				`<div class="${NS$1}" data-state="${this.state}">
-			<label class="${NS$1}-file">
+				`<div class="${NS$2}" data-state="${this.state}">
+			<label class="${NS$2}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" value="${this.value}" ${this.option.required ? 'required' : ''}>
 			</label>
-			<div class="${NS$1}-progress">
+			<div class="${NS$2}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS$1}-content"></div>
-			<div class="${NS$1}-handle">
-				<span role="button" tabindex="0" class="${NS$1}-btn ${NS$1}-btn-cancel" title="取消上传"></span>
-				<span role="button" tabindex="0" class="${NS$1}-btn ${NS$1}-btn-clean" title="清除"></span>
+			<div class="${NS$2}-content"></div>
+			<div class="${NS$2}-handle">
+				<span role="button" tabindex="0" class="${NS$2}-btn ${NS$2}-btn-cancel" title="取消上传"></span>
+				<span role="button" tabindex="0" class="${NS$2}-btn ${NS$2}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 			this.dom = createDomByHtml(html, container);
 			const fileEl = findOne('input[type=file]', this.dom);
-			bindNodeActive(findOne(`.${NS$1}-btn-clean`, this.dom), () => {cleanUpload(this);});
-			bindNodeActive(findOne(`.${NS$1}-btn-cancel`, this.dom), () => {abortUpload(this);});
+			bindNodeActive(findOne(`.${NS$2}-btn-clean`, this.dom), () => {cleanUpload(this);});
+			bindNodeActive(findOne(`.${NS$2}-btn-cancel`, this.dom), () => {abortUpload(this);});
 			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			fileEl.addEventListener('change', () => {
 				let file = fileEl.files[0];
@@ -5873,7 +5874,7 @@
 						},
 						onProgress: (percent, total) => {
 							const progressEl = findOne('progress', this.dom);
-							const progressPnt = findOne(`.${NS$1}-progress span`, this.dom);
+							const progressPnt = findOne(`.${NS$2}-progress span`, this.dom);
 							progressEl.value = percent;
 							progressEl.max = total;
 							progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
@@ -5993,14 +5994,14 @@
 		}
 	}
 
-	const NS = Theme.Namespace + '-ac-batchfiller';
+	const NS$1 = Theme.Namespace + '-ac-batchfiller';
 	insertStyleSheet(`
-	.${NS} {padding:2em 2em 1em 2em}
-	.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-	.${NS} input,
-	.${NS} textarea,
-	.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS} textarea {min-height:5em; resize:vertical}
+	.${NS$1} {padding:2em 2em 1em 2em}
+	.${NS$1} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+	.${NS$1} input,
+	.${NS$1} textarea,
+	.${NS$1} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+	.${NS$1} textarea {min-height:5em; resize:vertical}
 `);
 	const SUPPORT_INPUT_TYPES = [
 		'color',
@@ -6059,7 +6060,7 @@
 					ToastClass.showInfo("没有可以填写的输入框");
 					return;
 				}
-				let id = guid(NS);
+				let id = guid(NS$1);
 				let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 				let el, dlg;
 				let label_html = param.title || '批量设置';
@@ -6091,7 +6092,7 @@
 					dlg.close();
 				};
 				dlg = DialogClass.show('',
-					`<div class="${NS}">
+					`<div class="${NS$1}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </div>`, {
@@ -6132,14 +6133,23 @@
 		}
 	}
 
+	const NS = Theme.Namespace + '-ac-copy';
+	insertStyleSheet(`
+	.${NS} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+	.${NS}:hover {opacity:1}
+	.${NS}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+`);
 	class ACCopy {
-		static active(node, param = {}){
-			return new Promise((resolve, reject) => {
-				if(!param.content){
-					throw "复制内容为空";
-				}
-				param.type === 'html' ? copyFormatted(param.content) : copy(param.content);
-				resolve();
+		static COPY_CLASS = NS;
+		static init(node, param = {}){
+			let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
+			bindNodeActive(trigger, e => {
+				let content = param.content || node.innerText;
+				copy(content);
+				ToastClass.showSuccess('内容已复制到剪贴板');
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
 			});
 		}
 	}

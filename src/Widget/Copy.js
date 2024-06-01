@@ -6,10 +6,10 @@ import {Dialog} from "./Dialog.js";
 /**
  * copy text
  * @param {String} text
- * @param {Boolean} silent 是否在不兼容是进行提醒
+ * @param {Boolean} show_msg 是否在不兼容是进行提醒
  * @returns {boolean} 是否复制成功
  */
-export const copy = (text, silent = false) => {
+export const copy = (text, show_msg = false) => {
 	let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
 	txtNode.style.cssText = 'position:absolute; left:-9999px;';
 	let y = window.pageYOffset || document.documentElement.scrollTop;
@@ -20,11 +20,11 @@ export const copy = (text, silent = false) => {
 	txtNode.select();
 	try{
 		let succeeded = document.execCommand('copy');
-		!silent && Toast.showSuccess(trans('复制成功'));
+		show_msg && Toast.showSuccess(trans('复制成功'));
 		return succeeded;
 	}catch(err){
 		console.error(err);
-		Dialog.prompt('复制失败，请手工复制', {initValue:text});
+		show_msg && Dialog.prompt('复制失败，请手工复制', {initValue:text});
 	} finally{
 		remove(txtNode);
 	}
