@@ -6,7 +6,7 @@ import {Theme} from "../Widget/Theme.js";
 import {guid} from "../Lang/Util.js";
 import {KEYS, triggerDomEvent} from "../Lang/Event.js";
 
-const NS = Theme.Namespace + '-ac-batchfiller';
+const NS = Theme.Namespace + 'ac-batchfiller';
 
 insertStyleSheet(`
 	.${NS} {padding:2em 2em 1em 2em}

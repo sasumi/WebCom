@@ -6007,7 +6007,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS$1 = Theme.Namespace + '-ac-batchfiller';
+	const NS$1 = Theme.Namespace + 'ac-batchfiller';
 	insertStyleSheet(`
 	.${NS$1} {padding:2em 2em 1em 2em}
 	.${NS$1} label {font-size:1.1em; margin-bottom:.75em; display:block;}
@@ -6146,7 +6146,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS = Theme.Namespace + '-ac-copy';
+	const NS = Theme.Namespace + 'ac-copy';
 	insertStyleSheet(`
 	.${NS} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
 	.${NS}:hover {opacity:1}
@@ -6155,6 +6155,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	class ACCopy {
 		static COPY_CLASS = NS;
 		static init(node, param = {}){
+			if(param.content){
+				bindNodeActive(node, e=>{
+					let content = param.content || node.innerText;
+					copy(content);
+					e.preventDefault();
+					e.stopPropagation();
+					return false;
+				});
+				return;
+			}
 			let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 			bindNodeActive(trigger, e => {
 				let content = param.content || node.innerText;
