@@ -3471,7 +3471,7 @@
 		txtNode.select();
 		try{
 			let succeeded = document.execCommand('copy');
-			show_msg && ToastClass.showSuccess(trans('复制成功'));
+			show_msg && ToastClass.showSuccess(trans('内容已复制到剪贴板'));
 			return succeeded;
 		}catch(err){
 			console.error(err);
@@ -6145,7 +6145,7 @@
 			if(param.content){
 				bindNodeActive(node, e=>{
 					let content = param.content || node.innerText;
-					copy(content);
+					copy(content, true);
 					e.preventDefault();
 					e.stopPropagation();
 					return false;
@@ -6155,8 +6155,7 @@
 			let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 			bindNodeActive(trigger, e => {
 				let content = param.content || node.innerText;
-				copy(content);
-				ToastClass.showSuccess('内容已复制到剪贴板');
+				copy(content, true);
 				e.preventDefault();
 				e.stopPropagation();
 				return false;

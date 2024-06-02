@@ -20,7 +20,7 @@ export const copy = (text, show_msg = false) => {
 	txtNode.select();
 	try{
 		let succeeded = document.execCommand('copy');
-		show_msg && Toast.showSuccess(trans('复制成功'));
+		show_msg && Toast.showSuccess(trans('内容已复制到剪贴板'));
 		return succeeded;
 	}catch(err){
 		console.error(err);

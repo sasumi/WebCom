@@ -2,7 +2,6 @@ import {copy} from "../Widget/Copy.js";
 import {Theme} from "../Widget/Theme.js";
 import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {bindNodeActive} from "../Lang/Event.js";
-import {Toast} from "../Widget/Toast.js";
 
 const NS = Theme.Namespace + 'ac-copy';
 insertStyleSheet(`
@@ -28,7 +27,7 @@ export class ACCopy {
 		if(param.content){
 			bindNodeActive(node, e=>{
 				let content = param.content || node.innerText;
-				copy(content);
+				copy(content, true);
 				e.preventDefault();
 				e.stopPropagation();
 				return false;
@@ -38,8 +37,7 @@ export class ACCopy {
 		let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		bindNodeActive(trigger, e => {
 			let content = param.content || node.innerText;
-			copy(content);
-			Toast.showSuccess('内容已复制到剪贴板');
+			copy(content, true);
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
