@@ -1218,6 +1218,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		})
 	};
+	const toggleStickyClass = (node, className) => {
+		const observer = new IntersectionObserver(([e]) => {
+			e.target.classList.toggle(className, e.intersectionRatio < 1);
+		}, {
+			rootMargin: '-1px 0px 0px 0px',
+			threshold: [1],
+		});
+		observer.observe(node);
+	};
 	const isInFullScreen = () => {
 		return !!document.fullscreenElement;
 	};
@@ -6971,6 +6980,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.toHtmlEntities = toHtmlEntities;
 	exports.toggle = toggle;
 	exports.toggleFullScreen = toggleFullScreen;
+	exports.toggleStickyClass = toggleStickyClass;
 	exports.trans = trans;
 	exports.triggerDomEvent = triggerDomEvent;
 	exports.trim = trim;

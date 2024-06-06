@@ -657,6 +657,22 @@ export const toggleFullScreen = (element) => {
 }
 
 /**
+ * 检测元素是否设置为sticky，且已经产生了吸顶效果
+ * @param {Node} node
+ * @param {String} className
+ * @see https://stackoverflow.com/questions/16302483/event-to-detect-when-positionsticky-is-triggered
+ */
+export const toggleStickyClass = (node, className) => {
+	const observer = new IntersectionObserver(([e]) => {
+		e.target.classList.toggle(className, e.intersectionRatio < 1);
+	}, {
+		rootMargin: '-1px 0px 0px 0px',
+		threshold: [1],
+	});
+	observer.observe(node);
+}
+
+/**
  * 检测是否正在全屏
  * @returns {boolean}
  */
