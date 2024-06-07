@@ -5105,8 +5105,8 @@
 	const resolveListOption = (datalistEl, initValue = null) => {
 		let options = [];
 		Array.from(datalistEl.options).forEach((option, index) => {
-			let title = option.label || option.innerText;
-			let value = option.hasAttribute('value') ? option.getAttribute('value') : option.innerText;
+			let title = option.label || option.innerText || option.value;
+			let value = option.hasAttribute('value') ? option.getAttribute('value') : title;
 			let selected = initValue !== null && value === initValue;
 			options.push({title, value, disabled: false, selected, index});
 		});

@@ -232,8 +232,8 @@ const resolveListOption = (datalistEl, initValue = null) => {
 	let options = [];
 	let alreadySelected = false;
 	Array.from(datalistEl.options).forEach((option, index) => {
-		let title = option.label || option.innerText;
-		let value = option.hasAttribute('value') ? option.getAttribute('value') : option.innerText;
+		let title = option.label || option.innerText || option.value;
+		let value = option.hasAttribute('value') ? option.getAttribute('value') : title; //避免某些空值 "" value获取不到
 		let selected = !alreadySelected && initValue !== null && value === initValue;
 		options.push({title, value, disabled: false, selected, index});
 	});
