@@ -2067,7 +2067,7 @@ var WebCom = (function (exports) {
 	};
 	const fixGetFormAction = (form) => {
 		let action = form.action;
-		if(form.method && form.method.toLowerCase() !== 'get' || !action.length){
+		if(form.method && form.method.toLowerCase() !== 'get' || !action.length || action.indexOf('?') < 0){
 			return;
 		}
 		let url = new URL(action);
