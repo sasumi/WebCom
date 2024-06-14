@@ -1318,7 +1318,7 @@ const triggerDomEvent = (node, event) => {
 		node.fireEvent("on"+event.toLowerCase());
 	}
 };
-const bindNodeEvents = (node, event, payload, option, triggerAtOnce = false) => {
+const bindNodeEvents = (node, event, payload, option = null, triggerAtOnce = false) => {
 	let evs = Array.isArray(event) ? event : [event];
 	evs.forEach(ev => {
 		if(ev === EVENT_ACTIVE){

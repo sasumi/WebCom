@@ -259,8 +259,8 @@ const renderItemChecker = (name, multiple, option) => {
 
 /**
  * 创建面板 DOM
- * @param config
- * @param options
+ * @param {Object} config
+ * @param {*} config.options
  * @return {HTMLElement|HTMLElement[]}
  */
 const createPanel = (config) => {

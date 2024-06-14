@@ -118,7 +118,7 @@ export const triggerDomEvent = (node, event) => {
  * @param {*} option
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
-export const bindNodeEvents = (node, event, payload, option, triggerAtOnce = false) => {
+export const bindNodeEvents = (node, event, payload, option = null, triggerAtOnce = false) => {
 	let evs = Array.isArray(event) ? event : [event];
 	evs.forEach(ev => {
 		if(ev === EVENT_ACTIVE){
