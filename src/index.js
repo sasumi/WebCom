@@ -43,6 +43,7 @@ export * from "./Auto/ACConfirm.js";
 export * from "./Auto/ACCopy.js";
 export * from "./Auto/ACDialog.js";
 export * from "./Auto/ACHighlight.js";
+export * from "./Auto/ACInlineEditor.js";
 export * from "./Auto/ACMultiSelectRelate.js";
 export * from "./Auto/ACPreview.js";
 export * from "./Auto/ACPswValidate.js";

@@ -1484,9 +1484,9 @@ const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
 	seek();
 };
 
-const NS$4 = 'WebCom-';
-const VAR_PREFIX = '--' + NS$4;
-const ICON_FONT = NS$4 + 'iconfont';
+const NS$5 = 'WebCom-';
+const VAR_PREFIX = '--' + NS$5;
+const ICON_FONT = NS$5 + 'iconfont';
 const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1500,9 +1500,9 @@ const CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR = VAR_PREFIX + 'full-screen-backgroun
 insertStyleSheet(`
 @font-face {
   font-family: '${ICON_FONT}';  /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_bl4ttoz4q7u.woff2?t=1717248904257') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_bl4ttoz4q7u.woff?t=1717248904257') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_bl4ttoz4q7u.ttf?t=1717248904257') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_3359671_wejlvzke90f.woff2?t=1717248904257') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_wejlvzke90f.woff?t=1717248904257') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_wejlvzke90f.ttf?t=1717248904257') format('truetype');
 }
 
 :root {
@@ -1518,9 +1518,9 @@ insertStyleSheet(`
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$4+'style');
+}`, NS$5+'style');
 const Theme = {
-	Namespace: NS$4,
+	Namespace: NS$5,
 	CssVarPrefix: VAR_PREFIX,
 	CssVar: {
 		'COLOR': CSS_VAR_COLOR,
@@ -4441,73 +4441,73 @@ const bindGlobalEvent = () => {
 };
 
 const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-const NS$3 = Theme.Namespace + 'tip';
+const NS$4 = Theme.Namespace + 'tip';
 const DEFAULT_DIR = 11;
 const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let TIP_COLLECTION = {};
 insertStyleSheet(`
-	.${NS$3}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$3}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$3}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$3}-close:hover {opacity:1}
-	.${NS$3}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$4}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$4}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$4}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$4}-close:hover {opacity:1}
+	.${NS$4}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$3}-container-wrap[data-tip-dir="11"],
-	.${NS$3}-container-wrap[data-tip-dir="0"],
-	.${NS$3}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$3}-container-wrap[data-tip-dir="11"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="0"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="1"] .${NS$3}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$3}-container-wrap[data-tip-dir="11"] .${NS$3}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$3}-container-wrap[data-tip-dir="0"] .${NS$3}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$3}-container-wrap[data-tip-dir="1"] .${NS$3}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="11"],
+	.${NS$4}-container-wrap[data-tip-dir="0"],
+	.${NS$4}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$4}-container-wrap[data-tip-dir="11"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="0"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="1"] .${NS$4}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$4}-container-wrap[data-tip-dir="11"] .${NS$4}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="0"] .${NS$4}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$4}-container-wrap[data-tip-dir="1"] .${NS$4}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$3}-container-wrap[data-tip-dir="8"],
-	.${NS$3}-container-wrap[data-tip-dir="9"],
-	.${NS$3}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$3}-container-wrap[data-tip-dir="8"] .${NS$3}-close,
-	.${NS$3}-container-wrap[data-tip-dir="9"] .${NS$3}-close,
-	.${NS$3}-container-wrap[data-tip-dir="10"] .${NS$3}-close{top:3px;}
-	.${NS$3}-container-wrap[data-tip-dir="8"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="9"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="10"] .${NS$3}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$3}-container-wrap[data-tip-dir="8"] .${NS$3}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$3}-container-wrap[data-tip-dir="9"] .${NS$3}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$3}-container-wrap[data-tip-dir="10"] .${NS$3}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="8"],
+	.${NS$4}-container-wrap[data-tip-dir="9"],
+	.${NS$4}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$4}-container-wrap[data-tip-dir="8"] .${NS$4}-close,
+	.${NS$4}-container-wrap[data-tip-dir="9"] .${NS$4}-close,
+	.${NS$4}-container-wrap[data-tip-dir="10"] .${NS$4}-close{top:3px;}
+	.${NS$4}-container-wrap[data-tip-dir="8"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="9"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="10"] .${NS$4}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$4}-container-wrap[data-tip-dir="8"] .${NS$4}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="9"] .${NS$4}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="10"] .${NS$4}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$3}-container-wrap[data-tip-dir="5"],
-	.${NS$3}-container-wrap[data-tip-dir="6"],
-	.${NS$3}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$3}-container-wrap[data-tip-dir="5"] .${NS$3}-close,
-	.${NS$3}-container-wrap[data-tip-dir="6"] .${NS$3}-close,
-	.${NS$3}-container-wrap[data-tip-dir="7"] .${NS$3}-close{top:3px;}
-	.${NS$3}-container-wrap[data-tip-dir="5"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="6"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="7"] .${NS$3}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$3}-container-wrap[data-tip-dir="5"] .${NS$3}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$3}-container-wrap[data-tip-dir="6"] .${NS$3}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$3}-container-wrap[data-tip-dir="7"] .${NS$3}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="5"],
+	.${NS$4}-container-wrap[data-tip-dir="6"],
+	.${NS$4}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$4}-container-wrap[data-tip-dir="5"] .${NS$4}-close,
+	.${NS$4}-container-wrap[data-tip-dir="6"] .${NS$4}-close,
+	.${NS$4}-container-wrap[data-tip-dir="7"] .${NS$4}-close{top:3px;}
+	.${NS$4}-container-wrap[data-tip-dir="5"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="6"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="7"] .${NS$4}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$4}-container-wrap[data-tip-dir="5"] .${NS$4}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="6"] .${NS$4}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="7"] .${NS$4}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$3}-container-wrap[data-tip-dir="2"],
-	.${NS$3}-container-wrap[data-tip-dir="3"],
-	.${NS$3}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$3}-container-wrap[data-tip-dir="2"] .${NS$3}-close,
-	.${NS$3}-container-wrap[data-tip-dir="3"] .${NS$3}-close,
-	.${NS$3}-container-wrap[data-tip-dir="4"] .${NS$3}-close{right:13px;top:3px;}
-	.${NS$3}-container-wrap[data-tip-dir="2"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="3"] .${NS$3}-arrow,
-	.${NS$3}-container-wrap[data-tip-dir="4"] .${NS$3}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$3}-container-wrap[data-tip-dir="2"] .${NS$3}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$3}-container-wrap[data-tip-dir="3"] .${NS$3}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$3}-container-wrap[data-tip-dir="4"] .${NS$3}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$4}-container-wrap[data-tip-dir="2"],
+	.${NS$4}-container-wrap[data-tip-dir="3"],
+	.${NS$4}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$4}-container-wrap[data-tip-dir="2"] .${NS$4}-close,
+	.${NS$4}-container-wrap[data-tip-dir="3"] .${NS$4}-close,
+	.${NS$4}-container-wrap[data-tip-dir="4"] .${NS$4}-close{right:13px;top:3px;}
+	.${NS$4}-container-wrap[data-tip-dir="2"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="3"] .${NS$4}-arrow,
+	.${NS$4}-container-wrap[data-tip-dir="4"] .${NS$4}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$4}-container-wrap[data-tip-dir="2"] .${NS$4}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$4}-container-wrap[data-tip-dir="3"] .${NS$4}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$4}-container-wrap[data-tip-dir="4"] .${NS$4}-arrow{top:calc(75% - var(--tip-gap))}
 `, Theme.Namespace + 'tip-style');
 let bindEvent = (tip)=>{
 	if(tip.option.showCloseButton){
-		let close_btn = tip.dom.querySelector(`.${NS$3}-close`);
+		let close_btn = tip.dom.querySelector(`.${NS$4}-close`);
 		close_btn.addEventListener('click', () => {tip.hide();}, false);
 		document.addEventListener('keyup', (e) => {
 			if(e.keyCode === KEYS.Esc){
@@ -4592,16 +4592,16 @@ class Tip {
 		this.relateNode = relateNode;
 		this.option = Object.assign(this.option, opt);
 		this.dom = createDomByHtml(
-			`<div class="${NS$3}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$3}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$3}-close">&#10005;</span>` : ''}
-				<div class="${NS$3}-content">${content}</div>
+			`<div class="${NS$4}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$4}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$4}-close">&#10005;</span>` : ''}
+				<div class="${NS$4}-content">${content}</div>
 			</div>`);
 		bindEvent(this);
 		TIP_COLLECTION[this.id] = this;
 	}
 	setContent(html){
-		this.dom.querySelector(`.${NS$3}-content`).innerHTML = html;
+		this.dom.querySelector(`.${NS$4}-content`).innerHTML = html;
 		updatePosition(this);
 	}
 	show(){
@@ -5639,40 +5639,40 @@ class Toc {
 	}
 }
 
-const NS$2 = Theme.Namespace + 'uploader';
+const NS$3 = Theme.Namespace + 'uploader';
 insertStyleSheet(`
-	.${NS$2}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$3}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS$2}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS$2}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS$2}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$3}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$3}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$3}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS$2}[data-state="empty"]{opacity:0.5}
-	.${NS$2}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$3}[data-state="empty"]{opacity:0.5}
+	.${NS$3}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS$2}[data-state="empty"] :is(.${NS$2}-handle,.${NS$2}-progress),
-	.${NS$2}[data-state="pending"] :is(.${NS$2}-btn-clean, .${NS$2}-file, .${NS$2}-content),
-	.${NS$2}[data-state="error"] :is(.${NS$2}-progress,.${NS$2}-btn-clean),
-	.${NS$2}[data-state="normal"] :is(.${NS$2}-progress,.${NS$2}-btn-cancel),
-	.${NS$2}[data-state="normal"] .${NS$2}-file:before{
+	.${NS$3}[data-state="empty"] :is(.${NS$3}-handle,.${NS$3}-progress),
+	.${NS$3}[data-state="pending"] :is(.${NS$3}-btn-clean, .${NS$3}-file, .${NS$3}-content),
+	.${NS$3}[data-state="error"] :is(.${NS$3}-progress,.${NS$3}-btn-clean),
+	.${NS$3}[data-state="normal"] :is(.${NS$3}-progress,.${NS$3}-btn-cancel),
+	.${NS$3}[data-state="normal"] .${NS$3}-file:before{
 		display:none;
 	}
 	
-	.${NS$2}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS$2}-content{width:100%;height:100%;}
-	.${NS$2}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$3}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$3}-content{width:100%;height:100%;}
+	.${NS$3}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS$2}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS$2}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$3}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$3}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS$2}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS$2}-btn:hover{opacity:1;}
-	.${NS$2}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS$2}-btn-cancel:before{content:"\\e61a"}
-	.${NS$2}-btn-clean:before{content:"\\e61b"}
+	.${NS$3}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$3}-btn:hover{opacity:1;}
+	.${NS$3}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$3}-btn-cancel:before{content:"\\e61a"}
+	.${NS$3}-btn-clean:before{content:"\\e61b"}
 `);
-const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$2}-image`;
-const UPLOADER_FILE_DEFAULT_CLASS = `${NS$2}-file`;
+const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$3}-image`;
+const UPLOADER_FILE_DEFAULT_CLASS = `${NS$3}-file`;
 const UPLOAD_STATE_EMPTY = 'empty';
 const UPLOAD_STATE_PENDING = 'pending';
 const UPLOAD_STATE_ERROR = 'error';
@@ -5723,7 +5723,7 @@ const abortUpload = up => {
 };
 const updateState = (up, state, data = null) => {
 	const fileEl = findOne('input[type=file]', up.dom);
-	const contentCtn = findOne(`.${NS$2}-content`, up.dom);
+	const contentCtn = findOne(`.${NS$3}-content`, up.dom);
 	up.dom.setAttribute('data-state', state);
 	up.dom.title = '';
 	switch(state){
@@ -5833,24 +5833,24 @@ class Uploader {
 		});
 		let acceptStr = this.option.allowFileTypes.join(',');
 		const html =
-			`<div class="${NS$2}" data-state="${this.state}">
-			<label class="${NS$2}-file">
+			`<div class="${NS$3}" data-state="${this.state}">
+			<label class="${NS$3}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" value="${this.value}" ${this.option.required ? 'required' : ''}>
 			</label>
-			<div class="${NS$2}-progress">
+			<div class="${NS$3}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS$2}-content"></div>
-			<div class="${NS$2}-handle">
-				<span role="button" tabindex="0" class="${NS$2}-btn ${NS$2}-btn-cancel" title="取消上传"></span>
-				<span role="button" tabindex="0" class="${NS$2}-btn ${NS$2}-btn-clean" title="清除"></span>
+			<div class="${NS$3}-content"></div>
+			<div class="${NS$3}-handle">
+				<span role="button" tabindex="0" class="${NS$3}-btn ${NS$3}-btn-cancel" title="取消上传"></span>
+				<span role="button" tabindex="0" class="${NS$3}-btn ${NS$3}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 		this.dom = createDomByHtml(html, container);
 		const fileEl = findOne('input[type=file]', this.dom);
-		bindNodeActive(findOne(`.${NS$2}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		bindNodeActive(findOne(`.${NS$2}-btn-cancel`, this.dom), () => {abortUpload(this);});
+		bindNodeActive(findOne(`.${NS$3}-btn-clean`, this.dom), () => {cleanUpload(this);});
+		bindNodeActive(findOne(`.${NS$3}-btn-cancel`, this.dom), () => {abortUpload(this);});
 		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {
 			let file = fileEl.files[0];
@@ -5879,7 +5879,7 @@ class Uploader {
 					},
 					onProgress: (percent, total) => {
 						const progressEl = findOne('progress', this.dom);
-						const progressPnt = findOne(`.${NS$2}-progress span`, this.dom);
+						const progressPnt = findOne(`.${NS$3}-progress span`, this.dom);
 						progressEl.value = percent;
 						progressEl.max = total;
 						progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
@@ -5999,14 +5999,14 @@ class ACAsync {
 	}
 }
 
-const NS$1 = Theme.Namespace + 'ac-batchfiller';
+const NS$2 = Theme.Namespace + 'ac-batchfiller';
 insertStyleSheet(`
-	.${NS$1} {padding:2em 2em 1em 2em}
-	.${NS$1} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-	.${NS$1} input,
-	.${NS$1} textarea,
-	.${NS$1} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS$1} textarea {min-height:5em; resize:vertical}
+	.${NS$2} {padding:2em 2em 1em 2em}
+	.${NS$2} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+	.${NS$2} input,
+	.${NS$2} textarea,
+	.${NS$2} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+	.${NS$2} textarea {min-height:5em; resize:vertical}
 `);
 const SUPPORT_INPUT_TYPES = [
 	'color',
@@ -6065,7 +6065,7 @@ class ACBatchFiller {
 				ToastClass.showInfo("没有可以填写的输入框");
 				return;
 			}
-			let id = guid(NS$1);
+			let id = guid(NS$2);
 			let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 			let el, dlg;
 			let label_html = param.title || '批量设置';
@@ -6097,7 +6097,7 @@ class ACBatchFiller {
 				dlg.close();
 			};
 			dlg = DialogClass.show('',
-				`<div class="${NS$1}">
+				`<div class="${NS$2}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </div>`, {
@@ -6138,14 +6138,14 @@ class ACConfirm {
 	}
 }
 
-const NS = Theme.Namespace + 'ac-copy';
+const NS$1 = Theme.Namespace + 'ac-copy';
 insertStyleSheet(`
-	.${NS} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-	.${NS}:hover {opacity:1}
-	.${NS}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+	.${NS$1} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+	.${NS$1}:hover {opacity:1}
+	.${NS$1}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
 `);
 class ACCopy {
-	static COPY_CLASS = NS;
+	static COPY_CLASS = NS$1;
 	static init(node, param = {}){
 		if(param.content){
 			bindNodeActive(node, e=>{
@@ -6200,6 +6200,146 @@ class ACHighlight {
 				nodeHighlight(node, kw, ACHighlight.cssClass);
 			}
 			resolve();
+		});
+	}
+}
+
+const NS = Theme.Namespace + 'ac-ie-';
+let _patch_flag = false;
+const patchCss = ()=>{
+	if(_patch_flag){
+		return;
+	}
+	_patch_flag = true;
+	insertStyleSheet(`
+		.${NS}editor {cursor:pointer}
+		.${NS}editor:hover:after {opacity:1; color:var(--color-link)}
+		.${NS}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		
+		.${NS}editor-wrap {
+		    display:inline-flex;
+		    align-items:center;
+		    gap:0.5em;
+		}
+		.${NS}save-btn,
+		.${NS}cancel-btn {
+		    display: inline-flex;
+		    border: 1px solid gray;
+		    align-items: center;
+		    height: var(--element-height);
+		    width: var(--element-height);
+		    justify-content: center;
+		    border-radius: var(--panel-radius);
+		    line-height: 90%;
+		    box-sizing: border-box;
+		    zoom: 0.92;
+		    cursor: pointer;
+		}
+		
+		.${NS}save-btn[disabled],
+		.${NS}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
+		.${NS}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
+		.${NS}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
+	`, NS+'style');
+};
+class ACInlineEditor {
+	static transmitter;
+	static onUpdate = new BizEvent();
+	static init(node, param){
+		node.tabIndex = 0;
+		let name = param.name;
+		let multiple = param.multiple === '1';
+		let text = node.innerText.trim();
+		let required = !!param.required;
+		let action = param.action;
+		let method = param.method ? param.method.toLocaleUpperCase() : 'get';
+		if(!action){
+			let form = node.closest('form');
+			if(!form){
+				throw "QKEditor required action or in form context";
+			}
+			action = form.action;
+			method = form.method.toLocaleUpperCase() || 'get';
+		}
+		patchCss();
+		node.classList.add(NS+'editor');
+		let input_wrap;
+		let input_el;
+		let switchState = (edit) => {
+			if(edit){
+				if(!input_wrap){
+					input_wrap = createDomByHtml(`
+						<span class="${NS}editor-wrap">
+							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
+						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
+							<span disabled class="${NS}save-btn" tabindex="0"></span>
+							<span class="${NS}cancel-btn" tabindex="0"></span>
+						</span>
+					`);
+					node.parentNode.insertBefore(input_wrap, node);
+					let save_btn = input_wrap.querySelector(`.${NS}save-btn`);
+					let cancel_btn = input_wrap.querySelector(`.${NS}cancel-btn`);
+					input_el = input_wrap.querySelector('input,textarea');
+					const doSave = ()=>{
+						let new_text = input_el.value;
+						let data = {};
+						data[name] = new_text;
+						if(!ACInlineEditor.transmitter){
+							throw "ACInlineEditor.transmitter 未配置";
+						}
+						ACInlineEditor.transmitter(action, data, method).then(()=>{
+							node.innerText = new_text;
+							text = new_text;
+							ToastClass.showSuccess('保存成功');
+							switchState(false);
+							ACInlineEditor.onUpdate.fire(name, new_text, node);
+						}, err=>{
+							ToastClass.showError(err);
+						});
+					};
+					input_el.addEventListener('input', ()=>{
+						let disabled = input_el.value.trim() === text;
+						if(disabled){
+							save_btn.setAttribute('disabled', 'disabled');
+						} else {
+							save_btn.removeAttribute('disabled');
+						}
+					});
+					input_el.addEventListener('keydown', e=>{
+						if(!multiple && e.keyCode === KEYS.Enter){
+							if(input_el.value.trim() !== text){
+								doSave();
+							} else {
+								switchState(false);
+							}
+							e.preventDefault();
+							return false;
+						}
+						if(e.keyCode === KEYS.Esc){
+							if(input_el.value.trim() === text){
+								switchState(false);
+								e.preventDefault();
+								return false;
+							}
+						}
+					});
+					bindNodeActive(cancel_btn, () => {switchState(false);});
+					bindNodeActive(save_btn,doSave);
+					input_el.focus();
+				}
+				input_el.focus();
+				input_el.value = text;
+			}
+			edit ? show(input_wrap) : hide(input_wrap);
+			edit ? hide(node) : show(node);
+		};
+		node.addEventListener('click', () => {
+			switchState(true);
+		});
+		node.addEventListener('keyup', e => {
+			if(e.keyCode === KEYS.Enter){
+				switchState(true);
+			}
 		});
 	}
 }
@@ -6599,6 +6739,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	select: ACSelect,
 	hl: ACHighlight,
 	highlight: ACHighlight,
+	inlineeditor: ACInlineEditor,
 	selectall: ACSelectAll,
 	selectrelate: ACMultiSelectRelate,
 	tip: ACTip,
@@ -6733,6 +6874,7 @@ exports.ACConfirm = ACConfirm;
 exports.ACCopy = ACCopy;
 exports.ACDialog = ACDialog;
 exports.ACHighlight = ACHighlight;
+exports.ACInlineEditor = ACInlineEditor;
 exports.ACMultiSelectRelate = ACMultiSelectRelate;
 exports.ACPreview = ACPreview;
 exports.ACSelect = ACSelect;

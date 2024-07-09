@@ -13,6 +13,7 @@ const nav = [
 	'auto_component.html',
 	'copy.html',
 	'daterange.html',
+	'inlineeditor.html',
 	'confirm.html',
 	'console.html',
 	'dialog.html',

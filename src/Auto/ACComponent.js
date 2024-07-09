@@ -17,6 +17,7 @@ import {ACBatchFiller} from "./ACBatchFiller.js";
 import {guid} from "../Lang/Util.js";
 import {ACUnSaveAlert} from "./ACUnSaveAlert.js";
 import {ACDateRangeSelector} from "./ACDateRangeSelector.js";
+import {ACInlineEditor} from "./ACInlineEditor.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
@@ -35,6 +36,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	select: ACSelect,
 	hl: ACHighlight,
 	highlight: ACHighlight,
+	inlineeditor: ACInlineEditor,
 	selectall: ACSelectAll,
 	selectrelate: ACMultiSelectRelate,
 	tip: ACTip,

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+<script type="module">
+	import {ACInlineEditor} from "../src/Auto/ACInlineEditor.js";
+	ACInlineEditor.transmitter = (url, data, method)=>{
+		return new Promise((resolve, reject) => {
+			alert('保存成功');
+			resolve();
+		})
+	}
+</script>
+<h2>内联编辑器</h2>
+<form action="?" method="post">
+	<table>
+		<thead>
+			<tr>
+				<th>姓名</th>
+				<th>备注</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><span data-component="inlineeditor" data-inlineeditor-name="name">Jack</span></td>
+				<td><span data-component="inlineeditor" data-inlineeditor-name="memo" data-inlineeditor-multiple="1">A handsome boy</span></td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</body>
+</html>
