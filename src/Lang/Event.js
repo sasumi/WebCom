@@ -65,6 +65,21 @@ export const onHover = (node, hoverIn, hoverOut)=>{
 }
 
 /**
+ * 主动触发事件
+ * @param {HTMLElement} el
+ * @param event
+ */
+export const fireEvent = (el, event) => {
+	if("createEvent" in document){
+		let evo = document.createEvent("HTMLEvents");
+		evo.initEvent(event, false, true);
+		el.dispatchEvent(evo);
+	}else{
+		el.fireEvent("on" + event);
+	}
+}
+
+/**
  * 绑定节点交互触发时间（包括鼠标点击、键盘回车、键盘空格）
  * @param {Node} node
  * @param {CallableFunction} payload

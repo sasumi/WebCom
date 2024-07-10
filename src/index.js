@@ -1,6 +1,7 @@
 //Lang 模块优先导入
 export * from "./Lang/Array.js";
 export * from "./Lang/Base64.js";
+export * from "./Lang/Cookie.js";
 export * from "./Lang/Dom.js";
 export * from "./Lang/Event.js";
 export * from "./Lang/File.js";

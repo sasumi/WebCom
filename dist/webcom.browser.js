@@ -425,6 +425,29 @@ var WebCom = (function (exports) {
 		reader.onerror = error => reject(error);
 	});
 
+	const setCookie = (name, value, days, path = '/') => {
+		let expires = "";
+		if(days){
+			let date = new Date();
+			date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+			expires = "; expires=" + date.toUTCString();
+		}
+		document.cookie = name + "=" + (value || "") + expires + "; path=" + path;
+	};
+	const getCookie = (name) => {
+		let nameEQ = name + "=";
+		let ca = document.cookie.split(';');
+		for(let i = 0; i < ca.length; i++){
+			let c = ca[i];
+			while(c.charAt(0) === ' ') c = c.substring(1, c.length);
+			if(c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+		}
+		return null;
+	};
+	const deleteCookie = (name) => {
+		document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+	};
+
 	const BLOCK_TAGS = [
 		'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'address', 'pre', 'form',
 		'table', 'li', 'ol', 'ul', 'tr', 'td', 'caption', 'blockquote', 'center','legend',
@@ -876,15 +899,6 @@ var WebCom = (function (exports) {
 			y: rect.y,
 		}
 	};
-	const fireEvent = (el, event) => {
-		if("createEvent" in document){
-			let evo = document.createEvent("HTMLEvents");
-			evo.initEvent(event, false, true);
-			el.dispatchEvent(evo);
-		}else {
-			el.fireEvent("on" + event);
-		}
-	};
 	const isButton = (el) => {
 		return el.tagName === 'BUTTON' ||
 			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
@@ -1237,28 +1251,6 @@ var WebCom = (function (exports) {
 		}
 		return win || window;
 	};
-	const setCookie = (name, value, days, path = '/') => {
-		var expires = "";
-		if(days){
-			var date = new Date();
-			date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-			expires = "; expires=" + date.toUTCString();
-		}
-		document.cookie = name + "=" + (value || "") + expires + "; path=" + path;
-	};
-	const getCookie = (name) => {
-		var nameEQ = name + "=";
-		var ca = document.cookie.split(';');
-		for(var i = 0; i < ca.length; i++){
-			var c = ca[i];
-			while(c.charAt(0) == ' ') c = c.substring(1, c.length);
-			if(c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-		}
-		return null;
-	};
-	const deleteCookie = (name) => {
-		document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-	};
 
 	class BizEvent {
 		events = [];
@@ -1291,6 +1283,15 @@ var WebCom = (function (exports) {
 	const onHover = (node, hoverIn, hoverOut)=>{
 		node.addEventListener('mouseover', hoverIn);
 		node.addEventListener('mouseout', hoverOut);
+	};
+	const fireEvent = (el, event) => {
+		if("createEvent" in document){
+			let evo = document.createEvent("HTMLEvents");
+			evo.initEvent(event, false, true);
+			el.dispatchEvent(evo);
+		}else {
+			el.fireEvent("on" + event);
+		}
 	};
 	const bindNodeActive = (node, payload, cancelBubble = false, triggerAtOnce = false) => {
 		node.addEventListener('click', payload, cancelBubble);

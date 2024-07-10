@@ -1,5 +1,5 @@
 import {randomString} from "./String.js";
-import {getCookie, setCookie} from "./Dom.js";
+import {getCookie, setCookie} from "./Cookie.js";
 
 let _guid = 0;
 export const guid = (prefix = '') => {
