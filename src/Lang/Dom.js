@@ -108,6 +108,36 @@ export const isButton = (el) => {
 }
 
 /**
+ * 绑定 textarea 自动增长
+ * @param {HTMLTextAreaElement} textarea
+ * @param init
+ */
+export const bindTextAutoResize = (textarea, init = true) => {
+	textarea.style.height = 'auto';
+	textarea.addEventListener('input',()=>{
+		textarea.style.height = textarea.scrollHeight + 'px';
+	});
+	if(init){
+		textarea.style.height = textarea.scrollHeight + 'px';
+	}
+}
+
+/**
+ * textarea 支持 tab 输入
+ * @param {HTMLTextAreaElement} textarea
+ * @param {String} tabChar
+ */
+export const bindTextSupportTab = (textarea, tabChar = "\t") => {
+	textarea.addEventListener('keydown', function(e){
+		if(e.key !== 'Tab'){
+			return;
+		}
+		e.preventDefault();
+		document.execCommand('insertText', false, tabChar); //支持undo
+	});
+}
+
+/**
  * 获取最近上级节点
  * @deprecated 请使用原生closest方法
  * @param {HTMLElement} dom

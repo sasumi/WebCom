@@ -903,6 +903,24 @@ var WebCom = (function (exports) {
 		return el.tagName === 'BUTTON' ||
 			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
 	};
+	const bindTextAutoResize = (textarea, init = true) => {
+		textarea.style.height = 'auto';
+		textarea.addEventListener('input',()=>{
+			textarea.style.height = textarea.scrollHeight + 'px';
+		});
+		if(init){
+			textarea.style.height = textarea.scrollHeight + 'px';
+		}
+	};
+	const bindTextSupportTab = (textarea, tabChar = "\t") => {
+		textarea.addEventListener('keydown', function(e){
+			if(e.key !== 'Tab'){
+				return;
+			}
+			e.preventDefault();
+			document.execCommand('insertText', false, tabChar);
+		});
+	};
 	const matchParent = (dom, selector) => {
 		return dom.closest(selector);
 	};
@@ -6962,6 +6980,8 @@ var WebCom = (function (exports) {
 	exports.bindTargetClickMenu = bindTargetClickMenu;
 	exports.bindTargetContextMenu = bindTargetContextMenu;
 	exports.bindTargetMenu = bindTargetMenu;
+	exports.bindTextAutoResize = bindTextAutoResize;
+	exports.bindTextSupportTab = bindTextSupportTab;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.capitalize = capitalize;
 	exports.chunk = chunk;
