@@ -46,6 +46,49 @@ export const getElementValue = (el) => {
 }
 
 /**
+ * 根据表单元素名称获取值
+ * @param {String} name
+ * @param {Node} container 容器，缺省为整个文档
+ * @return {String[]|String} 表单元素值，如果是checkbox或者select多选情况，返回类型为数组，其他返回为字符串
+ */
+export const getElementValueByName = (name, container = document)=>{
+	let els = findAll(`[name="${name}"]:not([disabled])`, container);
+	let values = [];
+	let multiple = false;
+	els.forEach(el => {
+		switch(el.type){
+			case 'checkbox':
+				multiple = true;
+				if(el.checked){
+					values.push(el.value);
+				}
+				break;
+			case 'radio':
+				if(el.checked){
+					values.push(el.value);
+				}
+				break;
+			case 'select':
+				if(el.multiple){
+					multiple = true;
+					Array.from(el.selectedOptions).forEach(opt => {
+						values.push(opt.value);
+					});
+				}else{
+					values.push(el.value);
+				}
+				break;
+			default:
+				values.push(el.value);
+		}
+	})
+	if(values.length > 1){
+		return values;
+	}
+	return multiple ? values : values[0];
+}
+
+/**
  * 表单元素同步变更
  * 该方法会检测元素数据合法性（表单校验）
  * @param {HTMLElement} dom
