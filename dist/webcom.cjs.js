@@ -1990,6 +1990,42 @@ const getElementValue = (el) => {
 	}
 	return el.value;
 };
+const getElementValueByName = (name, container = document)=>{
+	let els = findAll(`[name="${name}"]:not([disabled])`, container);
+	let values = [];
+	let multiple = false;
+	els.forEach(el => {
+		switch(el.type){
+			case 'checkbox':
+				multiple = true;
+				if(el.checked){
+					values.push(el.value);
+				}
+				break;
+			case 'radio':
+				if(el.checked){
+					values.push(el.value);
+				}
+				break;
+			case 'select':
+				if(el.multiple){
+					multiple = true;
+					Array.from(el.selectedOptions).forEach(opt => {
+						values.push(opt.value);
+					});
+				}else {
+					values.push(el.value);
+				}
+				break;
+			default:
+				values.push(el.value);
+		}
+	});
+	if(values.length > 1){
+		return values;
+	}
+	return multiple ? values : values[0];
+};
 const formSync = (dom, getter, setter) => {
 	let els = getAvailableElements(dom);
 	els.forEach(function(el){
@@ -7034,6 +7070,7 @@ exports.getCurrentScript = getCurrentScript;
 exports.getDomDimension = getDomDimension;
 exports.getDomOffset = getDomOffset;
 exports.getElementValue = getElementValue;
+exports.getElementValueByName = getElementValueByName;
 exports.getFocusableElements = getFocusableElements;
 exports.getFormDataAvailable = getFormDataAvailable;
 exports.getHash = getHash;
