@@ -37,10 +37,33 @@
 	<label>
 		name: <input type="text" name="name" value="初始名称">
 	</label>
-	<label for="">
+	<label>
 		password: <input type="password" name="password" value="">
 	</label>
 	<a href="?reload">外部连接</a>
+	<div>
+		<input type="submit" value="submit">
+	</div>
+</form>
+
+<h2>PHP变量方式提交数据（原始表单）</h2>
+<form action="http://localhost/webcom/test/assets/result.php" method="post" data-component="async,unsavealert" data-async-requestformat="form">
+	<div>
+		<label>
+			name: <input type="text" name="name" value="初始名称">
+		</label>
+	</div>
+	<div>
+		<label>
+			password: <input type="password" name="password" value="">
+		</label>
+	</div>
+	<div>
+			<label><input type="checkbox" name="chk[]" value="1" checked> 多选</label>
+			<label><input type="checkbox" name="chk[]" value="2" checked> 多选2</label>
+			<label><input type="checkbox" name="chk[]" value="3"> 多选3</label>
+	</div>
+	
 	<div>
 		<input type="submit" value="submit">
 	</div>

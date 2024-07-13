@@ -284,9 +284,17 @@ export class Net {
 		return Net.request(cgi, data, option);
 	}
 
+	/**
+	 * 以JSON方式请求，并以JSON方式处理响应
+	 * @param cgi
+	 * @param data
+	 * @param option
+	 * @return {Promise<unknown>}
+	 */
 	static getJSON(cgi, data, option = {}){
-		option.requestFormat = option.requestFormat || REQUEST_FORMAT.JSON;
-		option.responseFormat = option.responseFormat || RESPONSE_FORMAT.JSON;
+		//强制，如果不适用请使用 get() 方法
+		option.requestFormat = REQUEST_FORMAT.JSON;
+		option.responseFormat = RESPONSE_FORMAT.JSON;
 		return Net.get(cgi, data, option);
 	}
 
@@ -295,9 +303,17 @@ export class Net {
 		return Net.request(cgi, data, option);
 	}
 
+	/**
+	 * 以JSON方式请求，并以JSON方式处理响应
+	 * @param cgi
+	 * @param data
+	 * @param option
+	 * @return {Promise<unknown>}
+	 */
 	static postJSON(cgi, data, option = {}){
-		option.requestFormat = option.requestFormat || REQUEST_FORMAT.JSON;
-		option.responseFormat = option.responseFormat || RESPONSE_FORMAT.JSON;
+		//强制，如果不适用请使用 post() 方法
+		option.requestFormat = REQUEST_FORMAT.JSON;
+		option.responseFormat = RESPONSE_FORMAT.JSON;
 		return Net.post(cgi, data, option);
 	}
 

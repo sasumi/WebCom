@@ -1899,8 +1899,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			return Net.request(cgi, data, option);
 		}
 		static getJSON(cgi, data, option = {}){
-			option.requestFormat = option.requestFormat || REQUEST_FORMAT.JSON;
-			option.responseFormat = option.responseFormat || RESPONSE_FORMAT.JSON;
+			option.requestFormat = REQUEST_FORMAT.JSON;
+			option.responseFormat = RESPONSE_FORMAT.JSON;
 			return Net.get(cgi, data, option);
 		}
 		static post(cgi, data, option = {}){
@@ -1908,8 +1908,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			return Net.request(cgi, data, option);
 		}
 		static postJSON(cgi, data, option = {}){
-			option.requestFormat = option.requestFormat || REQUEST_FORMAT.JSON;
-			option.responseFormat = option.responseFormat || RESPONSE_FORMAT.JSON;
+			option.requestFormat = REQUEST_FORMAT.JSON;
+			option.responseFormat = RESPONSE_FORMAT.JSON;
 			return Net.post(cgi, data, option);
 		}
 		static request(cgi, data, option = {}){
@@ -6025,6 +6025,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					return;
 				}
 				let url, data, method,
+					requestFormat = param.requestformat ? param.requestformat.toUpperCase() : ACAsync.REQUEST_FORMAT,
 					onsuccess = ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE,
 					submitter = null;
 				if(param.onsuccess){
@@ -6037,19 +6038,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				if(node.tagName === 'FORM'){
 					url = getSubmitterFormAction(node, event);
 					submitter = event.submitter;
-					data = ACAsync.REQUEST_FORMAT === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
+					data = requestFormat === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
 					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
 				}else if(node.tagName === 'A'){
 					url = node.href;
 					method = 'get';
 				}
 				url = param.url || url;
-				method = param.method || method || 'get';
+				method = (param.method || method || 'get').toUpperCase();
 				data = param.data || data;
 				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
 				node.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
 				submitter && submitter.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
-				requestJSON(url, data, method, {requestFormat: ACAsync.REQUEST_FORMAT}).then(rsp => {
+				let sender = method === HTTP_METHOD.GET ? Net.get : Net.post;
+				sender(url, data, {requestFormat, responseFormat:RESPONSE_FORMAT.JSON}).then(rsp => {
 					if(rsp.code === 0){
 						ACAsync.onSuccess.fire(node, rsp);
 						onsuccess(rsp);
