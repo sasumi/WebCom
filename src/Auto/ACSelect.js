@@ -7,12 +7,14 @@ import {Select} from "../Widget/Select.js";
  * input[list]
  */
 export class ACSelect {
-	static init(node){
-		if(node.tagName === 'SELECT'){
-			Select.bindSelect(node);
+	static init(node, params){
+		if(params.displaysearchinput !== undefined){
+			params.displaySearchInput = !!params.displaysearchinput; //修正大小写参数名称问题
 		}
-		else if(node.tagName === 'INPUT' && node.list){
-			Select.bindTextInput(node);
+		if(node.tagName === 'SELECT'){
+			Select.bindSelect(node, params);
+		}else if(node.tagName === 'INPUT' && node.list){
+			Select.bindTextInput(node, params);
 		}
 		return Promise.resolve();
 	}

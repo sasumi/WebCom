@@ -23,10 +23,10 @@ insertStyleSheet(`
 export class ACCopy {
 	static COPY_CLASS = NS;
 
-	static init(node, param = {}){
-		if(param.content){
+	static init(node, params = {}){
+		if(params.content){
 			bindNodeActive(node, e=>{
-				let content = param.content || node.innerText;
+				let content = params.content || node.innerText;
 				copy(content, true);
 				e.preventDefault();
 				e.stopPropagation();
@@ -36,7 +36,7 @@ export class ACCopy {
 		}
 		let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		bindNodeActive(trigger, e => {
-			let content = param.content || node.innerText;
+			let content = params.content || node.innerText;
 			copy(content, true);
 			e.preventDefault();
 			e.stopPropagation();

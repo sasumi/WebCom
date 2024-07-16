@@ -18,10 +18,10 @@ insertStyleSheet(`
 `);
 
 export class ACTextCounter {
-	static init(input, param = {}){
+	static init(input, params = {}){
 		return new Promise((resolve, reject) => {
-			let maxlength = parseInt(Math.max(input.maxLength, 0) || param.maxlength, 10) || 0;
-			let trim = param.trim;
+			let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
+			let trim = params.trim;
 			if(!maxlength){
 				console.log('no maxlength set');
 			}

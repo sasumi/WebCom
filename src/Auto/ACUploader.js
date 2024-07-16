@@ -12,9 +12,9 @@ import {Uploader} from "../Widget/Uploader.js";
  * <input type="button" value="复制链接” data-copy-content="http://abc.com" data-component="copy"/>
  */
 export class ACUploader {
-	static init(node, param){
+	static init(node, params){
 		return new Promise(resolve => {
-			Uploader.bindFileInput(node, param, param);
+			Uploader.bindFileInput(node, params, params);
 			resolve();
 		});
 	}

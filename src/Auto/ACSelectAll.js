@@ -24,16 +24,16 @@ export class ACSelectAll {
 
 	/**
 	 * @param trigger
-	 * @param {Object} param
-	 * @param {String} param.container checkbox所在容器，缺省为body
-	 * @param {String} param.selector checkbox 表达式，默认为 'input[type=checkbox]'
-	 * @param {String} param.tip 提示语，%c 表示选中数量，%s 表示总数。
+	 * @param {Object} params
+	 * @param {String} params.container checkbox所在容器，缺省为body
+	 * @param {String} params.selector checkbox 表达式，默认为 'input[type=checkbox]'
+	 * @param {String} params.tip 提示语，%c 表示选中数量，%s 表示总数。
 	 * @return {Promise<void>}
 	 */
-	static init(trigger, param = {}){
-		const container = findOne(param.container || 'body');
-		const checkbox_selector = param.selector || 'input[type=checkbox]';
-		let tip = param.tip !== undefined ? param.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
+	static init(trigger, params = {}){
+		const container = findOne(params.container || 'body');
+		const checkbox_selector = params.selector || 'input[type=checkbox]';
+		let tip = params.tip !== undefined ? params.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
 
 		const disableTrigger = () => {
 			trigger.setAttribute('disabled', 'disabled');

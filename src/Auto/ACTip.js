@@ -7,8 +7,8 @@ import {Tip} from "../Widget/Tip.js";
  * node[data-tip-triggertype] 提示方式，缺省为 hover 触发
  */
 export class ACTip {
-	static init(node, option){
-		let {content, triggertype = 'hover'} = option;
+	static init(node, params){
+		let {content, triggertype = 'hover'} = params;
 		return new Promise((resolve, reject) => {
 			if(!content && node.title){
 				content = node.title;

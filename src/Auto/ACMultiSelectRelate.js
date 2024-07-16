@@ -16,9 +16,9 @@ export class ACMultiSelectRelate {
 		});
 	}
 
-	static init(button, param = {}){
+	static init(button, params = {}){
 		return new Promise((resolve, reject) => {
-			const container = findOne(param.container || 'body');
+			const container = findOne(params.container || 'body');
 			const disableBtn = () => {
 				button.title = '请选择要操作的项目';
 				button.setAttribute('disabled', 'disabled');

@@ -10,8 +10,8 @@ import {ACAsync} from "./ACAsync.js";
  * <input type="button" value="复制链接” data-copy-content="http://abc.com" data-component="copy"/>
  */
 export class ACUnSaveAlert {
-	static init(form, param = {}){
-		let msg = param.message || null;
+	static init(form, params = {}){
+		let msg = params.message || null;
 		ACAsync.onSuccess.listen((node, rsp) => {
 			if(node === form){
 				resetFormChangedState(node)

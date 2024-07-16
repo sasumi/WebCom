@@ -169,9 +169,9 @@ const resolveType = input => {
  */
 export class ACDateRangeSelector {
 	static WEEK_START = 1; //每周是从周一(1)开始算，还是周日(7)开始
-	static init(node, param = {}){
+	static init(node, params = {}){
 		let inputs = [];
-		let target = param.target;
+		let target = params.target;
 		if(target){
 			inputs = document.querySelectorAll(target);
 		}else{
@@ -180,7 +180,7 @@ export class ACDateRangeSelector {
 		if(inputs.length < 2){
 			throw "No date inputs found.";
 		}
-		let type = param.type || resolveType(inputs[0]);
+		let type = params.type || resolveType(inputs[0]);
 		if(!type){
 			return;
 		}

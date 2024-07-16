@@ -1,15 +1,5 @@
 import {Theme} from "./Theme.js";
-import {
-	createDomByHtml,
-	domContained,
-	findAll,
-	findOne,
-	getDomOffset,
-	hide,
-	insertStyleSheet,
-	remove,
-	show
-} from "../Lang/Dom.js";
+import {createDomByHtml, domContained, findAll, findOne, getDomOffset, hide, insertStyleSheet, remove, show} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
 import {bindNodeActive, bindNodeEvents, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
@@ -60,16 +50,10 @@ insertStyleSheet(`
 	}
 	
 	.${CLASS_PREFIX}-list .sel-item{
-		margin:1px 0;
+		margin:0.2em 0;
 	}
 	
-	.${CLASS_PREFIX}-list .sel-chk{
-		opacity:0;
-		width:1em;
-		height:1em;
-		position:absolute;
-		margin:0.05em 0 0 -1.25em;
-	}
+	.${CLASS_PREFIX}-list .sel-chk{opacity:0;width:1em;height:1em;position:absolute;margin:0.05em 0 0 -1.25em;}
 	
 	.${CLASS_PREFIX}-list .sel-chk:before{
 		content:"\\e624";
@@ -82,8 +66,9 @@ insertStyleSheet(`
 	}
 	
 	.${CLASS_PREFIX}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
-	.${CLASS_PREFIX}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.15em .5em .15em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.5em 1em .5em 2em;user-select:none;transition:all 0.1s linear;}
 	.${CLASS_PREFIX}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
+	.${CLASS_PREFIX}-list .desc {display:block; opacity:0.5}
 	
 	.${CLASS_PREFIX}-list label{
 		display:block;
@@ -168,7 +153,8 @@ const resolveSelectOptions = (sel) => {
 		if(node.tagName === 'OPTION'){
 			options.push(new Option({
 				type: OPTION_TYPE_OPTION,
-				title: node.innerText,
+				title: node.title,
+				text: node.innerText,
 				value: node.value,
 				disabled: node.disabled,
 				selected: node.selected,
@@ -179,14 +165,19 @@ const resolveSelectOptions = (sel) => {
 				selectedIndexes.push(node.index);
 			}
 		}else if(node.tagName === 'OPTGROUP'){
-			let opt_group = new Option({title: node.label, type: OPTION_TYPE_GROUP});
+			let opt_group = new Option({
+				text: node.label,
+				title: node.title,
+				type: OPTION_TYPE_GROUP
+			});
 			node.childNodes.forEach(child => {
 				if(child.nodeType !== 1){
 					return;
 				}
 				opt_group.options.push(new Option({
 					type: OPTION_TYPE_OPTION,
-					title: child.innerText,
+					title: child.title,
+					text: child.innerText,
 					value: child.value,
 					disabled: child.disabled,
 					selected: child.selected,
@@ -211,11 +202,11 @@ const buildOptionText = (options) => {
 	let txt = [];
 	options.forEach(opt => {
 		if(opt.type === OPTION_TYPE_OPTION && opt.selected){
-			txt.push(opt.title.trim());
+			txt.push(opt.text.trim());
 		}
 		if(opt.type === OPTION_TYPE_GROUP){
 			opt.options.forEach(sub_opt=>{
-				sub_opt.selected && txt.push(sub_opt.title.trim());
+				sub_opt.selected && txt.push(sub_opt.text.trim());
 			});
 		}
 	});
@@ -232,10 +223,11 @@ const resolveListOption = (datalistEl, initValue = null) => {
 	let options = [];
 	let alreadySelected = false;
 	Array.from(datalistEl.options).forEach((option, index) => {
-		let title = option.label || option.innerText || option.value;
-		let value = option.hasAttribute('value') ? option.getAttribute('value') : title; //避免某些空值 "" value获取不到
+		let text = option.label || option.innerText || option.value;
+		let title = option.title || '';
+		let value = option.hasAttribute('value') ? option.getAttribute('value') : text; //避免某些空值 "" value获取不到
 		let selected = !alreadySelected && initValue !== null && value === initValue;
-		options.push({title, value, disabled: false, selected, index});
+		options.push({text, title, value, disabled: false, selected, index});
 	});
 	return options;
 }
@@ -249,7 +241,7 @@ const resolveListOption = (datalistEl, initValue = null) => {
  */
 const renderItemChecker = (name, multiple, option) => {
 	return `<input type="${multiple ? 'checkbox' : 'radio'}" 
-		tabindex="-1"
+		tabindex="0"
 		name="${name}" 
 		value="${escapeAttr(option.value)}" 
 		${option.selected ? 'checked' : ''} 
@@ -260,36 +252,46 @@ const renderItemChecker = (name, multiple, option) => {
 /**
  * 创建面板 DOM
  * @param {Object} config
- * @param {*} config.options
+ * @param {String} config.name
+ * @param {Boolean} config.required
+ * @param {Boolean} config.multiple
+ * @param {String} config.placeholder
+ * @param {Boolean} config.displaySearchInput
+ * @param {Boolean} config.hideNoMatchItems
+ * @param {Object[]} config.initOptions
  * @return {HTMLElement|HTMLElement[]}
  */
 const createPanel = (config) => {
 	let list_html = `<ul class="${CLASS_PREFIX}-list">`;
-	config.options.forEach(option => {
+	config.initOptions.forEach(option => {
 		if(option.options && option.options.length){
 			list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
 			option.options.forEach(childOption => {
-				list_html += `<li class="sel-item" tabindex="0">
-									<label title="${escapeAttr(childOption.title)}" tabindex="0">
-										${renderItemChecker(config.name, config.multiple, childOption)} 
-										<span class="ti-wrap">
-											<span class="sel-chk"></span> 
-											<span class="ti">${escapeHtml(childOption.title)}</span>
-										</span>
-									</label>
-								</li>`
+				list_html +=
+					`<li class="sel-item" tabindex="0">
+						<label data-text="${escapeAttr(childOption.text)}" tabindex="0">
+							${renderItemChecker(config.name, config.multiple, childOption)} 
+							<span class="ti-wrap">
+								<span class="sel-chk"></span> 
+								<span class="ti">${escapeHtml(childOption.text)}</span>
+								<span class="desc">${escapeHtml(childOption.title)}</span>
+							</span>
+						</label>
+					</li>`;
 			})
 			list_html += `</ul></li>`;
 		}else{
-			list_html += `<li class="sel-item" tabindex="0">
-							<label title="${escapeAttr(option.title)}">
-								${renderItemChecker(config.name, config.multiple, option)} 
-								<span class="ti-wrap">
-									<span class="sel-chk"></span> 
-									<span class="ti">${escapeHtml(option.title)}</span>
-								</span>
-							</label>
-						</li>`
+			list_html +=
+				`<li class="sel-item" tabindex="0">
+					<label data-text="${escapeAttr(option.text)}">
+						${renderItemChecker(config.name, config.multiple, option)} 
+						<span class="ti-wrap">
+							<span class="sel-chk"></span> 
+							<span class="ti">${escapeHtml(option.text)}</span>
+							<span class="desc">${escapeHtml(option.title)}</span>
+						</span>
+					</label>
+				</li>`;
 		}
 	});
 	list_html += '</ul>';
@@ -348,6 +350,9 @@ class Option {
 	title = '';
 
 	/** @type {string} */
+	text = '';
+
+	/** @type {string} */
 	value = '';
 
 	/** @type {Boolean} */
@@ -372,10 +377,9 @@ class Select {
 		required: false,
 		multiple: false,
 		placeholder: '',
-
 		displaySearchInput: true, //是否显示搜索输入框
 		hideNoMatchItems: true, //隐藏未匹配的搜索结果项目
-		options: [], //仅在初始化时使用，后面不再维护这个属性
+		initOptions: [], //初始化时的选项列表。仅在初始化时使用，后面不再维护这个属性
 	};
 	panelEl = null;
 	searchEl = null;
@@ -383,6 +387,17 @@ class Select {
 
 	static PROXY_INPUT_CLASS = 'multiple-select-proxy-input';
 
+	/**
+	 * 构造函数
+	 * @param {Object} config
+	 * @param {String} config.name
+	 * @param {Boolean} config.required
+	 * @param {Boolean} config.multiple
+	 * @param {String} config.placeholder
+	 * @param {Boolean} config.displaySearchInput
+	 * @param {Boolean} config.hideNoMatchItems
+	 * @param {Object[]} config.initOptions
+	 */
 	constructor(config){
 		this.config = Object.assign(this.config, config);
 		this.config.name = this.config.name || COM_ID + guid();
@@ -451,10 +466,10 @@ class Select {
 		let firstMatchedItem = null;
 		liEls.forEach(li => {
 			this.config.hideNoMatchItems && hide(li);
-			let title = li.querySelector('label').title;
+			let text = li.querySelector('label').dataset.text;
 			li.blur();
-			li.querySelector('.ti').innerHTML = highlightText(title, kw);
-			if(!kw || title.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
+			li.querySelector('.ti').innerHTML = highlightText(text, kw);
+			if(!kw || text.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
 				this.config.hideNoMatchItems && show(li);
 				if(!firstMatchedItem){
 					firstMatchedItem = li;
@@ -519,7 +534,7 @@ class Select {
 			if(chk.checked){
 				options.push(new Option({
 					type: OPTION_TYPE_OPTION,
-					title: findOne('.ti', chk.closest('label')).innerText,
+					text: findOne('.ti', chk.closest('label')).dataset.text,
 					value: chk.value,
 					selected: true,
 					index: idx,
@@ -558,8 +573,9 @@ class Select {
 	 * 绑定 select 元素使其触发行为变成Select组件
 	 * @todo 如果select required，浏览器触发的表单校验提示显示会被遮挡
 	 * @param {HTMLSelectElement} selectEl
+	 * @param {Object} params
 	 */
-	static bindSelect(selectEl){
+	static bindSelect(selectEl, params = {}){
 		let {options} = resolveSelectOptions(selectEl);
 		let placeholder = resolveSelectPlaceholder(selectEl);
 		let proxyInput;
@@ -568,7 +584,8 @@ class Select {
 			required: selectEl.required,
 			multiple: selectEl.multiple,
 			placeholder,
-			options
+			initOptions: options,
+			...params
 		});
 		sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 		sel.onChange.listen(() => {
@@ -649,16 +666,19 @@ class Select {
 	/**
 	 * 绑定有关联 datalist 的输入框
 	 * @param {HTMLInputElement} inputEl
-	 * @param {Option[]} options 是否指定选项列表，默认从 input[list] 中读取
+	 * @param {Object} params 初始化参数对象
+	 * @param {Object[]} params.initOptions 是否指定选项列表，默认从 input[list] 中读取
 	 */
-	static bindTextInput(inputEl, options = null){
-		if(!options){
+	static bindTextInput(inputEl, params = {}){
+		params = params || {initOptions:null};
+
+		if(!params.initOptions){
 			let listTagId = inputEl.getAttribute('list');
 			let datalistEl = document.getElementById(listTagId);
 			if(!datalistEl){
 				throw "no datalist found: " + inputEl.getAttribute('list');
 			}
-			options = resolveListOption(datalistEl, inputEl.value);
+			params.initOptions = resolveListOption(datalistEl, inputEl.value);
 			inputEl.removeAttribute('list');
 			remove(datalistEl);
 		}
@@ -669,7 +689,7 @@ class Select {
 			displaySearchInput: false,
 			hideNoMatchItems: false,
 			placeholder: inputEl.getAttribute('placeholder'),
-			options
+			...params
 		});
 		sel.onChange.listen(() => {
 			inputEl.value = sel.getValues()[0];
@@ -691,7 +711,7 @@ class Select {
 				chk.checked = false;
 			});
 			if(matchSelItem){
-				let lbl = findOne('label', matchSelItem).title;
+				let lbl = findOne('label', matchSelItem).dataset.text;
 				//必须严格相当才能标记选中
 				if(lbl.trim() === inputEl.value.trim()){
 					findOne('input', matchSelItem).checked = true;

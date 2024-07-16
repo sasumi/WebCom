@@ -59,14 +59,14 @@ export class ACInlineEditor {
 	/** @var BizEvent onUpdate fire(name, new_text, node) **/
 	static onUpdate = new BizEvent();
 
-	static init(node, param){
+	static init(node, params){
 		node.tabIndex = 0;
-		let name = param.name;
-		let multiple = param.multiple === '1';
+		let name = params.name;
+		let multiple = params.multiple === '1';
 		let text = node.innerText.trim();
-		let required = !!param.required;
-		let action = param.action;
-		let method = param.method ? param.method.toLocaleUpperCase() : 'get';
+		let required = !!params.required;
+		let action = params.action;
+		let method = params.method ? params.method.toLocaleUpperCase() : 'get';
 
 		//从上级表单中读取action和method
 		if(!action){

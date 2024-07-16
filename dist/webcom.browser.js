@@ -4891,10 +4891,10 @@ var WebCom = (function (exports) {
 		static SELECT_ALL_TEXT = '全选';
 		static UNSELECT_ALL_TEXT = '取消选择';
 		static SELECT_TIP_TEMPLATE = '已选择 %c/%s';
-		static init(trigger, param = {}){
-			const container = findOne(param.container || 'body');
-			const checkbox_selector = param.selector || 'input[type=checkbox]';
-			let tip = param.tip !== undefined ? param.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
+		static init(trigger, params = {}){
+			const container = findOne(params.container || 'body');
+			const checkbox_selector = params.selector || 'input[type=checkbox]';
+			let tip = params.tip !== undefined ? params.tip :  ACSelectAll.SELECT_TIP_TEMPLATE;
 			const disableTrigger = () => {
 				trigger.setAttribute('disabled', 'disabled');
 			};
@@ -5011,16 +5011,10 @@ var WebCom = (function (exports) {
 	}
 	
 	.${CLASS_PREFIX$1}-list .sel-item{
-		margin:1px 0;
+		margin:0.2em 0;
 	}
 	
-	.${CLASS_PREFIX$1}-list .sel-chk{
-		opacity:0;
-		width:1em;
-		height:1em;
-		position:absolute;
-		margin:0.05em 0 0 -1.25em;
-	}
+	.${CLASS_PREFIX$1}-list .sel-chk{opacity:0;width:1em;height:1em;position:absolute;margin:0.05em 0 0 -1.25em;}
 	
 	.${CLASS_PREFIX$1}-list .sel-chk:before{
 		content:"\\e624";
@@ -5033,8 +5027,9 @@ var WebCom = (function (exports) {
 	}
 	
 	.${CLASS_PREFIX$1}-list input{display:block;position:absolute;z-index:1;left:-2em;top:0;opacity:0;}
-	.${CLASS_PREFIX$1}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.15em .5em .15em 2em;user-select:none;transition:all 0.1s linear;}
+	.${CLASS_PREFIX$1}-list .ti-wrap{cursor:pointer;position:relative;display:block;padding:.5em 1em .5em 2em;user-select:none;transition:all 0.1s linear;}
 	.${CLASS_PREFIX$1}-list ul .ti-wrap{padding-left:2.25em;display:block; padding-left:3.5em;}
+	.${CLASS_PREFIX$1}-list .desc {display:block; opacity:0.5}
 	
 	.${CLASS_PREFIX$1}-list label{
 		display:block;
@@ -5106,7 +5101,8 @@ var WebCom = (function (exports) {
 			if(node.tagName === 'OPTION'){
 				options.push(new Option({
 					type: OPTION_TYPE_OPTION,
-					title: node.innerText,
+					title: node.title,
+					text: node.innerText,
 					value: node.value,
 					disabled: node.disabled,
 					selected: node.selected,
@@ -5117,14 +5113,19 @@ var WebCom = (function (exports) {
 					selectedIndexes.push(node.index);
 				}
 			}else if(node.tagName === 'OPTGROUP'){
-				let opt_group = new Option({title: node.label, type: OPTION_TYPE_GROUP});
+				let opt_group = new Option({
+					text: node.label,
+					title: node.title,
+					type: OPTION_TYPE_GROUP
+				});
 				node.childNodes.forEach(child => {
 					if(child.nodeType !== 1){
 						return;
 					}
 					opt_group.options.push(new Option({
 						type: OPTION_TYPE_OPTION,
-						title: child.innerText,
+						title: child.title,
+						text: child.innerText,
 						value: child.value,
 						disabled: child.disabled,
 						selected: child.selected,
@@ -5144,11 +5145,11 @@ var WebCom = (function (exports) {
 		let txt = [];
 		options.forEach(opt => {
 			if(opt.type === OPTION_TYPE_OPTION && opt.selected){
-				txt.push(opt.title.trim());
+				txt.push(opt.text.trim());
 			}
 			if(opt.type === OPTION_TYPE_GROUP){
 				opt.options.forEach(sub_opt=>{
-					sub_opt.selected && txt.push(sub_opt.title.trim());
+					sub_opt.selected && txt.push(sub_opt.text.trim());
 				});
 			}
 		});
@@ -5157,16 +5158,17 @@ var WebCom = (function (exports) {
 	const resolveListOption = (datalistEl, initValue = null) => {
 		let options = [];
 		Array.from(datalistEl.options).forEach((option, index) => {
-			let title = option.label || option.innerText || option.value;
-			let value = option.hasAttribute('value') ? option.getAttribute('value') : title;
+			let text = option.label || option.innerText || option.value;
+			let title = option.title || '';
+			let value = option.hasAttribute('value') ? option.getAttribute('value') : text;
 			let selected = initValue !== null && value === initValue;
-			options.push({title, value, disabled: false, selected, index});
+			options.push({text, title, value, disabled: false, selected, index});
 		});
 		return options;
 	};
 	const renderItemChecker = (name, multiple, option) => {
 		return `<input type="${multiple ? 'checkbox' : 'radio'}" 
-		tabindex="-1"
+		tabindex="0"
 		name="${name}" 
 		value="${escapeAttr(option.value)}" 
 		${option.selected ? 'checked' : ''} 
@@ -5175,31 +5177,35 @@ var WebCom = (function (exports) {
 	};
 	const createPanel = (config) => {
 		let list_html = `<ul class="${CLASS_PREFIX$1}-list">`;
-		config.options.forEach(option => {
+		config.initOptions.forEach(option => {
 			if(option.options && option.options.length){
 				list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
 				option.options.forEach(childOption => {
-					list_html += `<li class="sel-item" tabindex="0">
-									<label title="${escapeAttr(childOption.title)}" tabindex="0">
-										${renderItemChecker(config.name, config.multiple, childOption)} 
-										<span class="ti-wrap">
-											<span class="sel-chk"></span> 
-											<span class="ti">${escapeHtml(childOption.title)}</span>
-										</span>
-									</label>
-								</li>`;
+					list_html +=
+						`<li class="sel-item" tabindex="0">
+						<label data-text="${escapeAttr(childOption.text)}" tabindex="0">
+							${renderItemChecker(config.name, config.multiple, childOption)} 
+							<span class="ti-wrap">
+								<span class="sel-chk"></span> 
+								<span class="ti">${escapeHtml(childOption.text)}</span>
+								<span class="desc">${escapeHtml(childOption.title)}</span>
+							</span>
+						</label>
+					</li>`;
 				});
 				list_html += `</ul></li>`;
 			}else {
-				list_html += `<li class="sel-item" tabindex="0">
-							<label title="${escapeAttr(option.title)}">
-								${renderItemChecker(config.name, config.multiple, option)} 
-								<span class="ti-wrap">
-									<span class="sel-chk"></span> 
-									<span class="ti">${escapeHtml(option.title)}</span>
-								</span>
-							</label>
-						</li>`;
+				list_html +=
+					`<li class="sel-item" tabindex="0">
+					<label data-text="${escapeAttr(option.text)}">
+						${renderItemChecker(config.name, config.multiple, option)} 
+						<span class="ti-wrap">
+							<span class="sel-chk"></span> 
+							<span class="ti">${escapeHtml(option.text)}</span>
+							<span class="desc">${escapeHtml(option.title)}</span>
+						</span>
+					</label>
+				</li>`;
 			}
 		});
 		list_html += '</ul>';
@@ -5247,6 +5253,7 @@ var WebCom = (function (exports) {
 		}
 		type = OPTION_TYPE_OPTION;
 		title = '';
+		text = '';
 		value = '';
 		disabled = false;
 		selected = false;
@@ -5261,7 +5268,7 @@ var WebCom = (function (exports) {
 			placeholder: '',
 			displaySearchInput: true,
 			hideNoMatchItems: true,
-			options: [],
+			initOptions: [],
 		};
 		panelEl = null;
 		searchEl = null;
@@ -5319,10 +5326,10 @@ var WebCom = (function (exports) {
 			let firstMatchedItem = null;
 			liEls.forEach(li => {
 				this.config.hideNoMatchItems && hide(li);
-				let title = li.querySelector('label').title;
+				let text = li.querySelector('label').dataset.text;
 				li.blur();
-				li.querySelector('.ti').innerHTML = highlightText(title, kw);
-				if(!kw || title.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
+				li.querySelector('.ti').innerHTML = highlightText(text, kw);
+				if(!kw || text.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
 					this.config.hideNoMatchItems && show(li);
 					if(!firstMatchedItem){
 						firstMatchedItem = li;
@@ -5366,7 +5373,7 @@ var WebCom = (function (exports) {
 				if(chk.checked){
 					options.push(new Option({
 						type: OPTION_TYPE_OPTION,
-						title: findOne('.ti', chk.closest('label')).innerText,
+						text: findOne('.ti', chk.closest('label')).dataset.text,
 						value: chk.value,
 						selected: true,
 						index: idx,
@@ -5389,7 +5396,7 @@ var WebCom = (function (exports) {
 			}
 			this.searchEl.focus();
 		}
-		static bindSelect(selectEl){
+		static bindSelect(selectEl, params = {}){
 			let {options} = resolveSelectOptions(selectEl);
 			let placeholder = resolveSelectPlaceholder(selectEl);
 			let proxyInput;
@@ -5398,7 +5405,8 @@ var WebCom = (function (exports) {
 				required: selectEl.required,
 				multiple: selectEl.multiple,
 				placeholder,
-				options
+				initOptions: options,
+				...params
 			});
 			sel.panelEl.style.minWidth = dimension2Style(selectEl.offsetWidth);
 			sel.onChange.listen(() => {
@@ -5469,14 +5477,15 @@ var WebCom = (function (exports) {
 				}
 			});
 		}
-		static bindTextInput(inputEl, options = null){
-			if(!options){
+		static bindTextInput(inputEl, params = {}){
+			params = params || {initOptions:null};
+			if(!params.initOptions){
 				let listTagId = inputEl.getAttribute('list');
 				let datalistEl = document.getElementById(listTagId);
 				if(!datalistEl){
 					throw "no datalist found: " + inputEl.getAttribute('list');
 				}
-				options = resolveListOption(datalistEl, inputEl.value);
+				params.initOptions = resolveListOption(datalistEl, inputEl.value);
 				inputEl.removeAttribute('list');
 				remove(datalistEl);
 			}
@@ -5487,7 +5496,7 @@ var WebCom = (function (exports) {
 				displaySearchInput: false,
 				hideNoMatchItems: false,
 				placeholder: inputEl.getAttribute('placeholder'),
-				options
+				...params
 			});
 			sel.onChange.listen(() => {
 				inputEl.value = sel.getValues()[0];
@@ -5507,7 +5516,7 @@ var WebCom = (function (exports) {
 					chk.checked = false;
 				});
 				if(matchSelItem){
-					let lbl = findOne('label', matchSelItem).title;
+					let lbl = findOne('label', matchSelItem).dataset.text;
 					if(lbl.trim() === inputEl.value.trim()){
 						findOne('input', matchSelItem).checked = true;
 					}
@@ -6204,10 +6213,10 @@ var WebCom = (function (exports) {
 `);
 	class ACCopy {
 		static COPY_CLASS = NS$1;
-		static init(node, param = {}){
-			if(param.content){
+		static init(node, params = {}){
+			if(params.content){
 				bindNodeActive(node, e=>{
-					let content = param.content || node.innerText;
+					let content = params.content || node.innerText;
 					copy(content, true);
 					e.preventDefault();
 					e.stopPropagation();
@@ -6217,7 +6226,7 @@ var WebCom = (function (exports) {
 			}
 			let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 			bindNodeActive(trigger, e => {
-				let content = param.content || node.innerText;
+				let content = params.content || node.innerText;
 				copy(content, true);
 				e.preventDefault();
 				e.stopPropagation();
@@ -6251,9 +6260,9 @@ var WebCom = (function (exports) {
 
 	class ACHighlight {
 		static cssClass = 'highlight';
-		static init(node, param = {}){
+		static init(node, params = {}){
 			return new Promise((resolve, reject) => {
-				let kw = (param.keyword || param.kw || '').trim();
+				let kw = (params.keyword || params.kw || '').trim();
 				if(kw){
 					nodeHighlight(node, kw, ACHighlight.cssClass);
 				}
@@ -6303,14 +6312,14 @@ var WebCom = (function (exports) {
 	class ACInlineEditor {
 		static transmitter;
 		static onUpdate = new BizEvent();
-		static init(node, param){
+		static init(node, params){
 			node.tabIndex = 0;
-			let name = param.name;
-			let multiple = param.multiple === '1';
+			let name = params.name;
+			let multiple = params.multiple === '1';
 			let text = node.innerText.trim();
-			let required = !!param.required;
-			let action = param.action;
-			let method = param.method ? param.method.toLocaleUpperCase() : 'get';
+			let required = !!params.required;
+			let action = params.action;
+			let method = params.method ? params.method.toLocaleUpperCase() : 'get';
 			if(!action){
 				let form = node.closest('form');
 				if(!form){
@@ -6412,9 +6421,9 @@ var WebCom = (function (exports) {
 				}
 			});
 		}
-		static init(button, param = {}){
+		static init(button, params = {}){
 			return new Promise((resolve, reject) => {
-				const container = findOne(param.container || 'body');
+				const container = findOne(params.container || 'body');
 				const disableBtn = () => {
 					button.title = '请选择要操作的项目';
 					button.setAttribute('disabled', 'disabled');
@@ -6502,12 +6511,14 @@ var WebCom = (function (exports) {
 	}
 
 	class ACSelect {
-		static init(node){
-			if(node.tagName === 'SELECT'){
-				Select.bindSelect(node);
+		static init(node, params){
+			if(params.displaysearchinput !== undefined){
+				params.displaySearchInput = !!params.displaysearchinput;
 			}
-			else if(node.tagName === 'INPUT' && node.list){
-				Select.bindTextInput(node);
+			if(node.tagName === 'SELECT'){
+				Select.bindSelect(node, params);
+			}else if(node.tagName === 'INPUT' && node.list){
+				Select.bindTextInput(node, params);
 			}
 			return Promise.resolve();
 		}
@@ -6526,10 +6537,10 @@ var WebCom = (function (exports) {
 .${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_ACTIVE}"] {color:red}
 `);
 	class ACTextCounter {
-		static init(input, param = {}){
+		static init(input, params = {}){
 			return new Promise((resolve, reject) => {
-				let maxlength = parseInt(Math.max(input.maxLength, 0) || param.maxlength, 10) || 0;
-				let trim = param.trim;
+				let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
+				let trim = params.trim;
 				if(!maxlength){
 					console.log('no maxlength set');
 				}
@@ -6556,8 +6567,8 @@ var WebCom = (function (exports) {
 	}
 
 	class ACTip {
-		static init(node, option){
-			let {content, triggertype = 'hover'} = option;
+		static init(node, params){
+			let {content, triggertype = 'hover'} = params;
 			return new Promise((resolve, reject) => {
 				if(!content && node.title){
 					content = node.title;
@@ -6584,8 +6595,8 @@ var WebCom = (function (exports) {
 	}
 
 	class ACUnSaveAlert {
-		static init(form, param = {}){
-			let msg = param.message || null;
+		static init(form, params = {}){
+			let msg = params.message || null;
 			ACAsync.onSuccess.listen((node, rsp) => {
 				if(node === form){
 					resetFormChangedState(node);
@@ -6597,9 +6608,9 @@ var WebCom = (function (exports) {
 	}
 
 	class ACUploader {
-		static init(node, param){
+		static init(node, params){
 			return new Promise(resolve => {
-				Uploader.bindFileInput(node, param, param);
+				Uploader.bindFileInput(node, params, params);
 				resolve();
 			});
 		}
@@ -6750,9 +6761,9 @@ var WebCom = (function (exports) {
 	};
 	class ACDateRangeSelector {
 		static WEEK_START = 1;
-		static init(node, param = {}){
+		static init(node, params = {}){
 			let inputs = [];
-			let target = param.target;
+			let target = params.target;
 			if(target){
 				inputs = document.querySelectorAll(target);
 			}else {
@@ -6761,7 +6772,7 @@ var WebCom = (function (exports) {
 			if(inputs.length < 2){
 				throw "No date inputs found.";
 			}
-			let type = param.type || resolveType(inputs[0]);
+			let type = params.type || resolveType(inputs[0]);
 			if(!type){
 				return;
 			}
@@ -6822,8 +6833,8 @@ var WebCom = (function (exports) {
 		let param = {};
 		Array.from(node.attributes).forEach(attr => {
 			if(attr.name.indexOf('data-' + ComAlias.toLowerCase() + '-') >= 0){
-				let objKeyPath = attr.name.substring(('data-' + ComAlias.toLowerCase()).length + 1);
-				objectPushByPath(objKeyPath, attr.value, param);
+				let objKeyPath = attr.name.substring(('data-' + ComAlias.toLowerCase()).length + 1).replace(/-/g, '.');
+				objectPushByPath(objKeyPath, attr.value, param, '.');
 			}
 		});
 		return param;

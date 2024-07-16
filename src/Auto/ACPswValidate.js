@@ -1,5 +1,5 @@
 class ACPswValidate {
-	static init(node, param){
+	static init(node, params){
 
 	}
 }
