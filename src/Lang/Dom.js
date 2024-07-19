@@ -80,6 +80,25 @@ export const findAll = (selector, parent = document) => {
 }
 
 /**
+ * 修正给定选择器或节点，返回节点数组
+ * @param {String|String[]|Node|Node[]} mix
+ * @return {Node[]}
+ */
+export const fitNodes = (mix)=>{
+	if(typeof mix === 'string'){
+		return findAll(mix);
+	} else if(Array.isArray(mix)){
+		let ns = [];
+		mix.forEach(sel=>{
+			ns.push(...fitNodes(sel));
+		});
+		return ns;
+	} else {
+		return [mix];
+	}
+}
+
+/**
  * 获取节点相对于文档顶部定位
  * @param target
  * @return {{top: number, left: number}}
@@ -150,18 +169,13 @@ export const matchParent = (dom, selector) => {
 
 /**
  * 检测child节点是否在container节点列表里面
- * @param {HTMLElement|HTMLElement[]|String} contains
+ * @param {Node|Node[]|String|String[]} nodes
  * @param {HTMLElement} child
  * @param {Boolean} includeEqual 是否包括等于关系
  * @returns {boolean}
  */
-export const domContained = (contains, child, includeEqual = false) => {
-	if(typeof contains === 'string'){
-		contains = findAll(contains);
-	}else if(Array.isArray(contains)){
-	}else if(typeof contains === 'object'){
-		contains = [contains];
-	}
+export const domContained = (nodes, child, includeEqual = false) => {
+	let contains = fitNodes(nodes);
 	for(let i = 0; i < contains.length; i++){
 		if((includeEqual ? contains[i] === child : false) ||
 			contains[i].compareDocumentPosition(child) & 16){

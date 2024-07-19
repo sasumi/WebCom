@@ -1,3 +1,5 @@
+import {fitNodes} from "./Dom.js";
+
 export class BizEvent {
 	events = [];
 	breakOnFalseReturn = false;
@@ -55,47 +57,53 @@ const EVENT_ACTIVE = 'active';
 
 /**
  * hover event
- * @param {HTMLElement} node
+ * @param {Node|Node[]|String|String[]} nodes
  * @param {Function} hoverIn
  * @param {Function} hoverOut
  */
-export const onHover = (node, hoverIn, hoverOut)=>{
-	node.addEventListener('mouseover', hoverIn);
-	node.addEventListener('mouseout', hoverOut);
+export const onHover = (nodes, hoverIn, hoverOut)=>{
+	fitNodes(nodes).forEach(node=>{
+		node.addEventListener('mouseover', hoverIn);
+		node.addEventListener('mouseout', hoverOut);
+	});
 }
 
 /**
  * 主动触发事件
- * @param {HTMLElement} el
+ * @param {Node|Node[]|String|String[]} nodes
  * @param event
  */
-export const fireEvent = (el, event) => {
-	if("createEvent" in document){
-		let evo = document.createEvent("HTMLEvents");
-		evo.initEvent(event, false, true);
-		el.dispatchEvent(evo);
-	}else{
-		el.fireEvent("on" + event);
-	}
+export const fireEvent = (nodes, event) => {
+	fitNodes(nodes).forEach(node=>{
+		if("createEvent" in document){
+			let evo = document.createEvent("HTMLEvents");
+			evo.initEvent(event, false, true);
+			node.dispatchEvent(evo);
+		}else{
+			node.fireEvent("on" + event);
+		}
+	});
 }
 
 /**
  * 绑定节点交互触发时间（包括鼠标点击、键盘回车、键盘空格）
- * @param {Node} node
+ * @param {Node|Node[]|String|String[]} nodes
  * @param {CallableFunction} payload
  * @param {Boolean} cancelBubble
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
-export const bindNodeActive = (node, payload, cancelBubble = false, triggerAtOnce = false) => {
-	node.addEventListener('click', payload, cancelBubble);
-	node.addEventListener('keyup', e => {
-		if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-			payload.call(node, e);
+export const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = false) => {
+	fitNodes(nodes).forEach(node=>{
+		node.addEventListener('click', payload, cancelBubble);
+		node.addEventListener('keyup', e => {
+			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
+				payload.call(node, e);
+			}
+		}, cancelBubble);
+		if(triggerAtOnce){
+			payload.call(node, null);
 		}
-	}, cancelBubble);
-	if(triggerAtOnce){
-		payload.call(node, null);
-	}
+	});
 }
 
 /**
@@ -127,24 +135,26 @@ export const triggerDomEvent = (node, event) => {
 
 /**
  * 批量绑定事件，支持active自定义事件
- * @param {Node} node
+ * @param {Node|Node[]|String|String[]} nodes
  * @param {String|String[]} event 事件名称或事件名称列表
  * @param {Function} payload
  * @param {*} option
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
-export const bindNodeEvents = (node, event, payload, option = null, triggerAtOnce = false) => {
-	let evs = Array.isArray(event) ? event : [event];
-	evs.forEach(ev => {
-		if(ev === EVENT_ACTIVE){
-			bindNodeActive(node, payload, option);
-		}else{
-			node.addEventListener(ev, payload, option);
+export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOnce = false) => {
+	fitNodes(nodes).forEach(node=>{
+		let evs = Array.isArray(event) ? event : [event];
+		evs.forEach(ev => {
+			if(ev === EVENT_ACTIVE){
+				bindNodeActive(node, payload, option);
+			}else{
+				node.addEventListener(ev, payload, option);
+			}
+		});
+		if(triggerAtOnce){
+			payload.call(node, null);
 		}
 	});
-	if(triggerAtOnce){
-		payload.call(node, null);
-	}
 }
 
 /**

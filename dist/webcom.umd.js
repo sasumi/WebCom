@@ -900,6 +900,19 @@
 		}
 		return Array.from(parent.querySelectorAll(selector));
 	};
+	const fitNodes = (mix)=>{
+		if(typeof mix === 'string'){
+			return findAll(mix);
+		} else if(Array.isArray(mix)){
+			let ns = [];
+			mix.forEach(sel=>{
+				ns.push(...fitNodes(sel));
+			});
+			return ns;
+		} else {
+			return [mix];
+		}
+	};
 	const getDomOffset = (target) => {
 		let rect = target.getBoundingClientRect();
 		return {
@@ -938,12 +951,8 @@
 	const matchParent = (dom, selector) => {
 		return dom.closest(selector);
 	};
-	const domContained = (contains, child, includeEqual = false) => {
-		if(typeof contains === 'string'){
-			contains = findAll(contains);
-		}else if(Array.isArray(contains));else if(typeof contains === 'object'){
-			contains = [contains];
-		}
+	const domContained = (nodes, child, includeEqual = false) => {
+		let contains = fitNodes(nodes);
 		for(let i = 0; i < contains.length; i++){
 			if((includeEqual ? contains[i] === child : false) ||
 				contains[i].compareDocumentPosition(child) & 16){
@@ -1312,29 +1321,35 @@
 		}
 	}
 	const EVENT_ACTIVE = 'active';
-	const onHover = (node, hoverIn, hoverOut)=>{
-		node.addEventListener('mouseover', hoverIn);
-		node.addEventListener('mouseout', hoverOut);
+	const onHover = (nodes, hoverIn, hoverOut)=>{
+		fitNodes(nodes).forEach(node=>{
+			node.addEventListener('mouseover', hoverIn);
+			node.addEventListener('mouseout', hoverOut);
+		});
 	};
-	const fireEvent = (el, event) => {
-		if("createEvent" in document){
-			let evo = document.createEvent("HTMLEvents");
-			evo.initEvent(event, false, true);
-			el.dispatchEvent(evo);
-		}else {
-			el.fireEvent("on" + event);
-		}
-	};
-	const bindNodeActive = (node, payload, cancelBubble = false, triggerAtOnce = false) => {
-		node.addEventListener('click', payload, cancelBubble);
-		node.addEventListener('keyup', e => {
-			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-				payload.call(node, e);
+	const fireEvent = (nodes, event) => {
+		fitNodes(nodes).forEach(node=>{
+			if("createEvent" in document){
+				let evo = document.createEvent("HTMLEvents");
+				evo.initEvent(event, false, true);
+				node.dispatchEvent(evo);
+			}else {
+				node.fireEvent("on" + event);
 			}
-		}, cancelBubble);
-		if(triggerAtOnce){
-			payload.call(node, null);
-		}
+		});
+	};
+	const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = false) => {
+		fitNodes(nodes).forEach(node=>{
+			node.addEventListener('click', payload, cancelBubble);
+			node.addEventListener('keyup', e => {
+				if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
+					payload.call(node, e);
+				}
+			}, cancelBubble);
+			if(triggerAtOnce){
+				payload.call(node, null);
+			}
+		});
 	};
 	const onDocReady = (callback)=>{
 		if (document.readyState === 'complete') {
@@ -1352,18 +1367,20 @@
 			node.fireEvent("on"+event.toLowerCase());
 		}
 	};
-	const bindNodeEvents = (node, event, payload, option = null, triggerAtOnce = false) => {
-		let evs = Array.isArray(event) ? event : [event];
-		evs.forEach(ev => {
-			if(ev === EVENT_ACTIVE){
-				bindNodeActive(node, payload, option);
-			}else {
-				node.addEventListener(ev, payload, option);
+	const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOnce = false) => {
+		fitNodes(nodes).forEach(node=>{
+			let evs = Array.isArray(event) ? event : [event];
+			evs.forEach(ev => {
+				if(ev === EVENT_ACTIVE){
+					bindNodeActive(node, payload, option);
+				}else {
+					node.addEventListener(ev, payload, option);
+				}
+			});
+			if(triggerAtOnce){
+				payload.call(node, null);
 			}
 		});
-		if(triggerAtOnce){
-			payload.call(node, null);
-		}
 	};
 	const eventDelegate = (container, selector, eventName, payload)=>{
 		container.addEventListener(eventName, ev=>{
@@ -7086,6 +7103,7 @@
 	exports.findAll = findAll;
 	exports.findOne = findOne;
 	exports.fireEvent = fireEvent;
+	exports.fitNodes = fitNodes;
 	exports.fixGetFormAction = fixGetFormAction;
 	exports.formSerializeJSON = formSerializeJSON;
 	exports.formSerializeString = formSerializeString;
