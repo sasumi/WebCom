@@ -212,6 +212,12 @@ export class Uploader {
 	 * @param {HTMLFormElement} inputEl
 	 * @param {Object} initData
 	 * @param {Object} option
+	 * @param {String} option.uploadUrl
+	 * @param {String} option.uploadFileFieldName
+	 * @param {Boolean} option.required
+	 * @param {String} option.allowFileTypes
+	 * @param {Number} option.fileSizeLimit
+	 * @param {CallableFunction} option.requestHandle
 	 * @return {Uploader}
 	 */
 	static bindFileInput(inputEl, initData = {}, option = {}){
@@ -289,8 +295,8 @@ export class Uploader {
 			</div>
 			<div class="${NS}-content"></div>
 			<div class="${NS}-handle">
-				<span role="button" tabindex="0" class="${NS}-btn ${NS}-btn-cancel" title="取消上传"></span>
-				<span role="button" tabindex="0" class="${NS}-btn ${NS}-btn-clean" title="清除"></span>
+				<span tabindex="0" class="${NS}-btn ${NS}-btn-cancel" title="取消上传"></span>
+				<span tabindex="0" class="${NS}-btn ${NS}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 		this.dom = createDomByHtml(html, container);

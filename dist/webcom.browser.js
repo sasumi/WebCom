@@ -87,6 +87,17 @@ var WebCom = (function (exports) {
 		}
 		return cursor[segments[i]] = value;
 	};
+	const objectKeyMapping = (obj, mapping)=>{
+		let ret = {};
+		for(let key in obj){
+			if(mapping[key] !== undefined){
+				ret[mapping[key]] = obj[key];
+			} else {
+				ret[key] = obj[key];
+			}
+		}
+		return ret;
+	};
 	const objectGetByPath = (obj, path, glue = '.') => {
 		let ps = path.split(glue);
 		for(let i = 0, len = ps.length; i < len; i++){
@@ -5908,8 +5919,8 @@ var WebCom = (function (exports) {
 			</div>
 			<div class="${NS$3}-content"></div>
 			<div class="${NS$3}-handle">
-				<span role="button" tabindex="0" class="${NS$3}-btn ${NS$3}-btn-cancel" title="取消上传"></span>
-				<span role="button" tabindex="0" class="${NS$3}-btn ${NS$3}-btn-clean" title="清除"></span>
+				<span tabindex="0" class="${NS$3}-btn ${NS$3}-btn-cancel" title="取消上传"></span>
+				<span tabindex="0" class="${NS$3}-btn ${NS$3}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 			this.dom = createDomByHtml(html, container);
@@ -6610,6 +6621,15 @@ var WebCom = (function (exports) {
 	class ACUploader {
 		static init(node, params){
 			return new Promise(resolve => {
+				params = objectKeyMapping(params, {
+					'uploadurl': 'uploadUrl',
+					'uploadfilefieldname': 'uploadFileFieldName',
+					'allowfiletypes': 'allowFileTypes',
+					'filesizelimit': 'fileSizeLimit',
+				});
+				if(node.accept){
+					params.allowFileTypes = node.accept;
+				}
 				Uploader.bindFileInput(node, params, params);
 				resolve();
 			});
@@ -7131,6 +7151,7 @@ var WebCom = (function (exports) {
 	exports.nodeHighlight = nodeHighlight;
 	exports.nodeIndex = nodeIndex;
 	exports.objectGetByPath = objectGetByPath;
+	exports.objectKeyMapping = objectKeyMapping;
 	exports.objectPushByPath = objectPushByPath;
 	exports.onDocReady = onDocReady;
 	exports.onDomTreeChange = onDomTreeChange;

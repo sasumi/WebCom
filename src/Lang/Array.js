@@ -142,6 +142,24 @@ export const objectPushByPath = (path, value, srcObj = {}, glue = '.') => {
 }
 
 /**
+ * 对象属性名转换
+ * @param {Object} obj
+ * @param {Object} mapping
+ * @return {{}}
+ */
+export const objectKeyMapping = (obj, mapping)=>{
+	let ret = {};
+	for(let key in obj){
+		if(mapping[key] !== undefined){
+			ret[mapping[key]] = obj[key];
+		} else {
+			ret[key] = obj[key];
+		}
+	}
+	return ret;
+}
+
+/**
  * @param {Object} obj
  * @param {String} path
  * @param {String} glue
