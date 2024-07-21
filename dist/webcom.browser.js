@@ -5142,7 +5142,7 @@ var WebCom = (function (exports) {
 				}
 			}else if(node.tagName === 'OPTGROUP'){
 				let opt_group = new Option({
-					text: node.label,
+					text: node.label || '',
 					title: node.title,
 					type: OPTION_TYPE_GROUP
 				});
@@ -5354,7 +5354,7 @@ var WebCom = (function (exports) {
 			let firstMatchedItem = null;
 			liEls.forEach(li => {
 				this.config.hideNoMatchItems && hide(li);
-				let text = li.querySelector('label').dataset.text;
+				let text = li.querySelector('label').dataset.text || '';
 				li.blur();
 				li.querySelector('.ti').innerHTML = highlightText(text, kw);
 				if(!kw || text.toLowerCase().indexOf(kw.trim().toLowerCase()) >= 0){
@@ -5401,7 +5401,7 @@ var WebCom = (function (exports) {
 				if(chk.checked){
 					options.push(new Option({
 						type: OPTION_TYPE_OPTION,
-						text: findOne('.ti', chk.closest('label')).dataset.text,
+						text: findOne('.ti', chk.closest('label')).dataset.text || '',
 						value: chk.value,
 						selected: true,
 						index: idx,
@@ -5544,7 +5544,7 @@ var WebCom = (function (exports) {
 					chk.checked = false;
 				});
 				if(matchSelItem){
-					let lbl = findOne('label', matchSelItem).dataset.text;
+					let lbl = findOne('label', matchSelItem).dataset.text || '';
 					if(lbl.trim() === inputEl.value.trim()){
 						findOne('input', matchSelItem).checked = true;
 					}
