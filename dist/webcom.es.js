@@ -5204,7 +5204,7 @@ const createPanel = (config) => {
 	let list_html = `<ul class="${CLASS_PREFIX$1}-list">`;
 	config.initOptions.forEach(option => {
 		if(option.options && option.options.length){
-			list_html += `<li data-group-title="${escapeAttr(option.title)}" class="sel-group"><ul>`;
+			list_html += `<li data-group-title="${escapeAttr(option.text)}" class="sel-group"><ul>`;
 			option.options.forEach(childOption => {
 				list_html +=
 					`<li class="sel-item" tabindex="0">
@@ -5398,7 +5398,7 @@ class Select {
 			if(chk.checked){
 				options.push(new Option({
 					type: OPTION_TYPE_OPTION,
-					text: findOne('.ti', chk.closest('label')).dataset.text || '',
+					text: chk.closest('label').dataset.text || '',
 					value: chk.value,
 					selected: true,
 					index: idx,
