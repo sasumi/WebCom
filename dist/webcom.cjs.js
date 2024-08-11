@@ -1695,6 +1695,9 @@ class Toast {
 			}, this.timeout);
 		}
 	}
+	update(html){
+		findOne('.ctn', this.dom).innerHTML = html;
+	}
 	hide(fadeOut = false){
 		if(!this.dom || !document.body.contains(this.dom)){
 			return;
@@ -1962,6 +1965,12 @@ const QueryString = {
 			retObj[decodeURIComponent(k)] = decodeURIComponent(v);
 		});
 		return retObj;
+	},
+	replace(queryString, key, newValue){
+		if(!new RegExp('[?&]' + regQuote(key) + '=').test(queryString)){
+			return queryString + (queryString.indexOf('?') >= 0 ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(newValue);
+		}
+		return queryString.replace(new RegExp('([?&])(' + encodeURIComponent(key) + '=)[^\\&]+'), '$1$2' + encodeURIComponent(newValue));
 	},
 	stringify(data){
 		if(typeof (data) === 'undefined' || typeof (data) !== 'object'){

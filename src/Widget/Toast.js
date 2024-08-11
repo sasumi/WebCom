@@ -1,4 +1,4 @@
-import {createDomByHtml, getContextWindow, hide, insertStyleSheet, remove, show} from "./../Lang/Dom.js"
+import {createDomByHtml, findOne, getContextWindow, hide, insertStyleSheet, remove, show} from "./../Lang/Dom.js"
 import {Theme} from "./Theme.js";
 
 const COM_ID = Theme.Namespace + 'toast';
@@ -180,6 +180,14 @@ class Toast {
 				onTimeoutClose && onTimeoutClose();
 			}, this.timeout);
 		}
+	}
+
+	/**
+	 * 更新内容
+	 * @param html
+	 */
+	update(html){
+		findOne('.ctn', this.dom).innerHTML = html;
 	}
 
 	/**
