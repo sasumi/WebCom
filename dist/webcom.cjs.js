@@ -3198,7 +3198,6 @@ const autoResizeIframeHeight = (iframe) => {
 					let cs = iframe.contentWindow.getComputedStyle(bdy);
 					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
 					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-					console.log(bdy.scrollHeight, bdy.clientHeight, bdy.offsetHeight, margin_height, h);
 					iframe.style.height = dimension2Style(h);
 				}, 10);
 			}
