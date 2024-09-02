@@ -97,7 +97,8 @@ export const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOn
 		node.addEventListener('click', payload, cancelBubble);
 		node.addEventListener('keyup', e => {
 			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-				payload.call(node, e);
+				node.click(); //keyup同时触发一个 PointerEvent事件，这里做修正
+				e.preventDefault();
 			}
 		}, cancelBubble);
 		if(triggerAtOnce){

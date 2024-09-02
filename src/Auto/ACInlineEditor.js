@@ -1,7 +1,6 @@
 import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
 import {createDomByHtml, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {escapeAttr, escapeHtml} from "../Lang/Html.js";
-import {Toast} from "../Widget/Toast.js";
 import {Theme} from "../Widget/Theme.js";
 
 const NS = Theme.Namespace + 'ac-ie-';
@@ -21,7 +20,7 @@ const patchCss = ()=>{
 		.${NS}editor-wrap {
 		    display:inline-flex;
 		    align-items:center;
-		    gap:0.5em;
+		    gap:0.25em;
 		}
 		.${NS}save-btn,
 		.${NS}cancel-btn {
@@ -53,13 +52,17 @@ const patchCss = ()=>{
  * a[title] | node[text] 对话框标题
  */
 export class ACInlineEditor {
-	/** @var {Promise} **/
+	/** @var {Function} **/
 	static transmitter;
 
 	/** @var BizEvent onUpdate fire(name, new_text, node) **/
 	static onUpdate = new BizEvent();
 
 	static init(node, params){
+		if(!ACInlineEditor.transmitter){
+			throw "ACInlineEditor.transmitter 未配置";
+		}
+		patchCss();
 		node.tabIndex = 0;
 		let name = params.name;
 		let multiple = params.multiple === '1';
@@ -75,9 +78,8 @@ export class ACInlineEditor {
 				throw "QKEditor required action or in form context";
 			}
 			action = form.action;
-			method = form.method.toLocaleUpperCase() || 'get';
+			method = method || form.method.toLocaleUpperCase();
 		}
-		patchCss();
 
 		node.classList.add(NS+'editor');
 		let input_wrap;
@@ -103,17 +105,11 @@ export class ACInlineEditor {
 						let new_text = input_el.value;
 						let data = {};
 						data[name] = new_text;
-						if(!ACInlineEditor.transmitter){
-							throw "ACInlineEditor.transmitter 未配置";
-						}
 						ACInlineEditor.transmitter(action, data, method).then(()=>{
 							node.innerText = new_text;
 							text = new_text;
-							Toast.showSuccess('保存成功');
 							switchState(false);
 							ACInlineEditor.onUpdate.fire(name, new_text, node);
-						}, err=>{
-							Toast.showError(err);
 						});
 					}
 

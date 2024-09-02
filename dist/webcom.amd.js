@@ -1356,7 +1356,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			node.addEventListener('click', payload, cancelBubble);
 			node.addEventListener('keyup', e => {
 				if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
-					payload.call(node, e);
+					node.click();
+					e.preventDefault();
 				}
 			}, cancelBubble);
 			if(triggerAtOnce){
@@ -3145,8 +3146,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px;}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important; max-height:inherit}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px; max-height:calc(100vh - 6em)}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID$3 + '-style');
 	let _bind_esc_ = false;
@@ -6339,7 +6340,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		.${NS}editor-wrap {
 		    display:inline-flex;
 		    align-items:center;
-		    gap:0.5em;
+		    gap:0.25em;
 		}
 		.${NS}save-btn,
 		.${NS}cancel-btn {
@@ -6366,6 +6367,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static transmitter;
 		static onUpdate = new BizEvent();
 		static init(node, params){
+			if(!ACInlineEditor.transmitter){
+				throw "ACInlineEditor.transmitter 未配置";
+			}
+			patchCss();
 			node.tabIndex = 0;
 			let name = params.name;
 			let multiple = params.multiple === '1';
@@ -6379,9 +6384,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					throw "QKEditor required action or in form context";
 				}
 				action = form.action;
-				method = form.method.toLocaleUpperCase() || 'get';
+				method = method || form.method.toLocaleUpperCase();
 			}
-			patchCss();
 			node.classList.add(NS+'editor');
 			let input_wrap;
 			let input_el;
@@ -6404,17 +6408,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 							let new_text = input_el.value;
 							let data = {};
 							data[name] = new_text;
-							if(!ACInlineEditor.transmitter){
-								throw "ACInlineEditor.transmitter 未配置";
-							}
 							ACInlineEditor.transmitter(action, data, method).then(()=>{
 								node.innerText = new_text;
 								text = new_text;
-								ToastClass.showSuccess('保存成功');
 								switchState(false);
 								ACInlineEditor.onUpdate.fire(name, new_text, node);
-							}, err=>{
-								ToastClass.showError(err);
 							});
 						};
 						input_el.addEventListener('input', ()=>{
