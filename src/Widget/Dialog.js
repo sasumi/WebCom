@@ -9,7 +9,10 @@ const DLG_CLS_PREF = COM_ID;
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
-const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
+const DLG_CLS_TOP_BUTTON_ZONE = DLG_CLS_PREF + '-top-button-zone';
+const DLG_CLS_TOP_BUTTON = DLG_CLS_PREF + '-top-btn';
+const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close-btn';
+const DLG_CLS_TOP_SCREEN_TOGGLE = DLG_CLS_PREF + '-screen-toggle-btn';
 export const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
 export const DLG_CLS_WEAK_BTN = DLG_CLS_PREF + '-weak-btn';
 
@@ -37,9 +40,14 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
 	.${DLG_CLS_PREF} .${DLG_CLS_TI} {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON_ZONE} {position:absolute; right:0; top:0; display:flex; gap:0.5em; }
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON} {display:flex; align-items:center; justify-content: center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; box-sizing:border-box}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON}:after {content:""; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON}:hover {opacity:1;}
+	
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_SCREEN_TOGGLE}:after {content:"\\e629"; font-size:1.4em;}
+	 
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; max-height:calc(100vh - 6em)}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
@@ -224,7 +232,11 @@ const domConstruct = (dlg) => {
 		});
 		html += '</div>';
 	}
-	html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
+	html += `<div class="${DLG_CLS_TOP_BUTTON_ZONE}">`+
+		(dlg.config.showTopFullscreenToggleButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_SCREEN_TOGGLE}" title="切换全屏" tabindex="0"></span>` : '')+
+		(dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '')+
+		'</div>';
+
 	html += `</dialog>`;
 	dlg.dom = createDomByHtml(html, document.body);
 
@@ -492,6 +504,7 @@ class Dialog {
 		height: null, //高度，缺省为自动高度
 		buttons: [/** {title:'', default:true, callback }**/], //对话框配置按钮列表
 		showTopCloseButton: true, //是否显示顶部关闭窗口
+		showTopFullscreenToggleButton: false, //是否显示顶部切换全屏按钮
 	};
 
 	/**

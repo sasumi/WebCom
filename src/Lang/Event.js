@@ -1,4 +1,4 @@
-import {fitNodes} from "./Dom.js";
+import {findOne, fitNodes} from "./Dom.js";
 
 export class BizEvent {
 	events = [];
@@ -156,6 +156,51 @@ export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOn
 			payload.call(node, null);
 		}
 	});
+}
+
+/**
+ * 绑定组合键
+ * @param {String} keyStr
+ * @param {Function} payload
+ * @param {Object} option
+ * @param {String} option.event 事件类型，默认为keydown
+ * @param {String|Node} option.scope 事件绑定范围，默认为document
+ * @param {Boolean} option.preventDefault 是否阻止默认事件，默认为阻止
+ */
+export const bindHotKeys = (keyStr, payload, option = {}) => {
+	let keys = keyStr.replace(/\s/ig, '').toLowerCase().split('+');
+	let {scope, event, preventDefault} = option;
+	preventDefault = preventDefault === undefined ? true : !!preventDefault;
+	event = event || 'keydown';
+	scope = findOne(scope || document);
+	scope.addEventListener(event, e => {
+		if((keys.includes('shift') ^ e.shiftKey) ||
+			(keys.includes('ctrl') ^ e.ctrlKey) ||
+			(keys.includes('alt') ^ e.altKey)
+		){
+			return true;
+		}
+
+		//去除单纯按快捷键方式
+		let pressKeyCode = [KEYS.Alt, KEYS.Control, KEYS.Shift].includes(e.keyCode) ? null : e.keyCode;
+
+		//剩下单个key
+		let singleKeys = keys.filter(k => {
+			return !['shift', 'ctrl', 'alt', 'meta'].includes(k);
+		});
+		if(singleKeys.length > 1){
+			console.error('bindHotKeys no support pattern:', keyStr);
+			return;
+		}
+		if((!singleKeys.length && !pressKeyCode) || (singleKeys[0] === e.key)){
+			payload.call(e.target, e);
+			if(preventDefault){
+				e.preventDefault();
+				return false;
+			}
+		}
+		return true;
+	})
 }
 
 /**

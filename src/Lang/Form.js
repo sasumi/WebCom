@@ -415,6 +415,8 @@ window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
 	//{msg, target} 窗口、提示语、表单对象或ID（用于数据定位）
 ];
 
+let unload_event_bind = false;
+
 /**
  * 设置窗口跳转时提示语
  * @see 当前模式暂不支持多重设置
@@ -423,7 +425,6 @@ window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
  */
 export const setWindowUnloadMessage = (msg, target) => {
 	let found = false;
-
 	//如果是iframe里面调用，target改为iframe
 	if(top !== window){
 		target = window.frameElement;
@@ -438,6 +439,22 @@ export const setWindowUnloadMessage = (msg, target) => {
 		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({msg, target});
 	}
 	console.debug('set window unload message', JSON.stringify(msg), target);
+
+	//绑定一次 beforeunload 只能一次显示所有的告警
+	if(!unload_event_bind){
+		console.debug('beforeunload bind');
+		window.addEventListener('beforeunload', (e) => {
+			let unload_alert_list = getWindowUnloadAlertList();
+			console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
+			if(unload_alert_list.length){
+				let msg = unload_alert_list.join("\n");
+				e.preventDefault();
+				e.returnValue = msg;
+				return msg;
+			}
+		});
+		unload_event_bind = true;
+	}
 }
 
 /**
@@ -462,22 +479,6 @@ export const getWindowUnloadAlertList = (specify_target = null) => {
 //设置方法到window对象，提供给类似dialog等组件使用
 window['getWindowUnloadAlertList'] = getWindowUnloadAlertList;
 window['setWindowUnloadMessage'] = setWindowUnloadMessage;
-
-/**
- * 采用默认自启绑定方式
- * beforeunload 只能一次显示所有的告警
- */
-console.debug('beforeunload bind');
-window.addEventListener('beforeunload', (e) => {
-	let unload_alert_list = getWindowUnloadAlertList();
-	console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
-	if(unload_alert_list.length){
-		let msg = unload_alert_list.join("\n");
-		e.preventDefault();
-		e.returnValue = msg;
-		return msg;
-	}
-});
 
 let _form_data_cache_init = {};
 let _form_data_cache_new = {};

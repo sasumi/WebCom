@@ -18,6 +18,7 @@ import {guid} from "../Lang/Util.js";
 import {ACUnSaveAlert} from "./ACUnSaveAlert.js";
 import {ACDateRangeSelector} from "./ACDateRangeSelector.js";
 import {ACInlineEditor} from "./ACInlineEditor.js";
+import {ACHotKey} from "./ACHotKey.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
@@ -45,6 +46,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	uploader: ACUploader,
 	batchfiller: ACBatchFiller,
 	daterangeselector: ACDateRangeSelector,
+	hotkey: ACHotKey,
 };
 
 /**

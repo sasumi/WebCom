@@ -1383,6 +1383,37 @@
 			}
 		});
 	};
+	const bindHotKeys = (keyStr, payload, option = {}) => {
+		let keys = keyStr.replace(/\s/ig, '').toLowerCase().split('+');
+		let {scope, event, preventDefault} = option;
+		preventDefault = preventDefault === undefined ? true : !!preventDefault;
+		event = event || 'keydown';
+		scope = findOne(scope || document);
+		scope.addEventListener(event, e => {
+			if((keys.includes('shift') ^ e.shiftKey) ||
+				(keys.includes('ctrl') ^ e.ctrlKey) ||
+				(keys.includes('alt') ^ e.altKey)
+			){
+				return true;
+			}
+			let pressKeyCode = [KEYS.Alt, KEYS.Control, KEYS.Shift].includes(e.keyCode) ? null : e.keyCode;
+			let singleKeys = keys.filter(k => {
+				return !['shift', 'ctrl', 'alt', 'meta'].includes(k);
+			});
+			if(singleKeys.length > 1){
+				console.error('bindHotKeys no support pattern:', keyStr);
+				return;
+			}
+			if((!singleKeys.length && !pressKeyCode) || (singleKeys[0] === e.key)){
+				payload.call(e.target, e);
+				if(preventDefault){
+					e.preventDefault();
+					return false;
+				}
+			}
+			return true;
+		});
+	};
 	const eventDelegate = (container, selector, eventName, payload)=>{
 		container.addEventListener(eventName, ev=>{
 			let target = ev.target;
@@ -1552,9 +1583,9 @@
 	insertStyleSheet(`
 @font-face {
   font-family: '${ICON_FONT}';  /* Project id 3359671 */
-  src: url('//at.alicdn.com/t/c/font_3359671_wejlvzke90f.woff2?t=1717248904257') format('woff2'),
-       url('//at.alicdn.com/t/c/font_3359671_wejlvzke90f.woff?t=1717248904257') format('woff'),
-       url('//at.alicdn.com/t/c/font_3359671_wejlvzke90f.ttf?t=1717248904257') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_3359671_sytvh320ksc.woff2?t=1725530872922') format('woff2'),
+       url('//at.alicdn.com/t/c/font_3359671_sytvh320ksc.woff?t=1725530872922') format('woff'),
+       url('//at.alicdn.com/t/c/font_3359671_sytvh320ksc.ttf?t=1725530872922') format('truetype');
 }
 
 :root {
@@ -2301,6 +2332,7 @@
 	const WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = 'WINDOW_UNLOAD_ALERT_MAP_VAR_KEY';
 	window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
 	];
+	let unload_event_bind = false;
 	const setWindowUnloadMessage = (msg, target) => {
 		let found = false;
 		if(top !== window){
@@ -2316,6 +2348,20 @@
 			top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({msg, target});
 		}
 		console.debug('set window unload message', JSON.stringify(msg), target);
+		if(!unload_event_bind){
+			console.debug('beforeunload bind');
+			window.addEventListener('beforeunload', (e) => {
+				let unload_alert_list = getWindowUnloadAlertList();
+				console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
+				if(unload_alert_list.length){
+					let msg = unload_alert_list.join("\n");
+					e.preventDefault();
+					e.returnValue = msg;
+					return msg;
+				}
+			});
+			unload_event_bind = true;
+		}
 	};
 	const getWindowUnloadAlertList = (specify_target = null) => {
 		let msg_list = [];
@@ -2331,17 +2377,6 @@
 	};
 	window['getWindowUnloadAlertList'] = getWindowUnloadAlertList;
 	window['setWindowUnloadMessage'] = setWindowUnloadMessage;
-	console.debug('beforeunload bind');
-	window.addEventListener('beforeunload', (e) => {
-		let unload_alert_list = getWindowUnloadAlertList();
-		console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
-		if(unload_alert_list.length){
-			let msg = unload_alert_list.join("\n");
-			e.preventDefault();
-			e.returnValue = msg;
-			return msg;
-		}
-	});
 	let _form_data_cache_init = {};
 	let _form_data_cache_new = {};
 	let _form_us_msg = {};
@@ -3094,7 +3129,10 @@
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 	const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 	const DLG_CLS_OP = DLG_CLS_PREF + '-op';
-	const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close';
+	const DLG_CLS_TOP_BUTTON_ZONE = DLG_CLS_PREF + '-top-button-zone';
+	const DLG_CLS_TOP_BUTTON = DLG_CLS_PREF + '-top-btn';
+	const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close-btn';
+	const DLG_CLS_TOP_SCREEN_TOGGLE = DLG_CLS_PREF + '-screen-toggle-btn';
 	const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
 	const DLG_CLS_WEAK_BTN = DLG_CLS_PREF + '-weak-btn';
 	const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
@@ -3113,9 +3151,14 @@
 	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
 	.${DLG_CLS_PREF} .${DLG_CLS_TI} {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE} {position:absolute; display:flex; align-items:center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; right:0; top:0;box-sizing:border-box; text-align:center;}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block; flex:1}
-	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:hover {opacity:1;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON_ZONE} {position:absolute; right:0; top:0; display:flex; gap:0.5em; }
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON} {display:flex; align-items:center; justify-content: center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; box-sizing:border-box}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON}:after {content:""; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block;}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON}:hover {opacity:1;}
+	
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"}
+	.${DLG_CLS_PREF} .${DLG_CLS_TOP_SCREEN_TOGGLE}:after {content:"\\e629"; font-size:1.4em;}
+	 
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; max-height:calc(100vh - 6em)}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
@@ -3240,7 +3283,10 @@
 			});
 			html += '</div>';
 		}
-		html += dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '';
+		html += `<div class="${DLG_CLS_TOP_BUTTON_ZONE}">`+
+			(dlg.config.showTopFullscreenToggleButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_SCREEN_TOGGLE}" title="切换全屏" tabindex="0"></span>` : '')+
+			(dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '')+
+			'</div>';
 		html += `</dialog>`;
 		dlg.dom = createDomByHtml(html, document.body);
 		if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
@@ -3419,6 +3465,7 @@
 			height: null,
 			buttons: [],
 			showTopCloseButton: true,
+			showTopFullscreenToggleButton: false,
 		};
 		constructor(config = {}){
 			this.config = Object.assign(this.config, config);
@@ -6842,6 +6889,90 @@
 		}
 	}
 
+	const HOTKEY_TIP_CLASS = Theme.Namespace + 'hotkey-tip';
+	const HOTKEY_TIP_ATTR_ID = 'data-hotkey-tip-id';
+	let hk_tip_bind = false;
+	let hk_tip_is_hide = true;
+	insertStyleSheet(`
+.${HOTKEY_TIP_CLASS} {
+	position:absolute; 
+	background-color:#ffffffd9; 
+	border:1px solid gray; 
+	user-select:none; 
+	border-radius:4px; 
+	padding:0.1em 0.25em; 
+	box-sizing:border-box; 
+	margin-top:-0.2em; 
+	box-shadow:1px 1px 5px 0px #5c5c5c7a;
+	text-shadow:1px 1px 1px white;
+}
+`);
+	class ACHotKey {
+		static TOGGLE_HOTKEY_TIP = true;
+		static init(node, param = {}){
+			if(!hk_tip_bind && ACHotKey.TOGGLE_HOTKEY_TIP){
+				hk_tip_bind = true;
+				bindHotKeys('alt', e => {
+					if(hk_tip_is_hide){
+						ACHotKey.showAllHotKeyTips();
+					}else {
+						ACHotKey.hideAllHotKeyTips();
+					}
+					hk_tip_is_hide = !hk_tip_is_hide;
+				});
+				document.addEventListener('click', ACHotKey.hideAllHotKeyTips);
+			}
+			return new Promise((resolve, reject) => {
+				if(!param.key){
+					reject('param.key required');
+					return false;
+				}
+				bindHotKeys(param.key, e => {
+					node.focus();
+					node.click();
+				});
+			});
+		}
+		static showAllHotKeyTips(){
+			findAll('[data-hotkey-key]').forEach(node => {
+				ACHotKey.showHotKeyTip(node);
+			});
+		}
+		static hideAllHotKeyTips(){
+			findAll(`.${HOTKEY_TIP_CLASS}`).forEach(tip => {
+				hide(tip);
+			});
+		}
+		static hideHotKeyTip(node){
+			let tip_id = node.getAttribute(HOTKEY_TIP_ATTR_ID);
+			if(tip_id){
+				hide(findOne('#' + tip_id));
+			}
+		}
+		static showHotKeyTip(node){
+			if(node.offsetParent === null){
+				return;
+			}
+			let tip_id = node.getAttribute(HOTKEY_TIP_ATTR_ID);
+			let tip = null;
+			if(tip_id){
+				tip = findOne('#' + tip_id);
+			}else {
+				tip_id = guid('hotkey-tip-');
+				node.setAttribute(HOTKEY_TIP_ATTR_ID, tip_id);
+			}
+			if(!tip){
+				let key = node.getAttribute('data-hotkey-key');
+				tip = createDomByHtml(`<div class="${HOTKEY_TIP_CLASS}" id="${tip_id}">${key}</div>`, document.body);
+			}
+			tip.style.visibility = 'hidden';
+			show(tip);
+			tip.style.top = node.offsetTop - tip.clientHeight + 'px';
+			tip.style.left = node.offsetLeft + 'px';
+			tip.style.visibility = 'visible';
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
@@ -6863,6 +6994,7 @@
 		uploader: ACUploader,
 		batchfiller: ACBatchFiller,
 		daterangeselector: ACDateRangeSelector,
+		hotkey: ACHotKey,
 	};
 	const parseComponents = function(attr){
 		let tmp = attr.split(',');
@@ -7069,6 +7201,7 @@
 	exports.bindConsole = bindConsole;
 	exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
+	exports.bindHotKeys = bindHotKeys;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
 	exports.bindNodeActive = bindNodeActive;
 	exports.bindNodeEvents = bindNodeEvents;

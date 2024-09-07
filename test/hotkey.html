@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		.shk {position:absolute; background-color:#fff; border:1px solid gray; user-select:none; border-radius:4px; padding:0.1em 0.25em; box-sizing:border-box; margin-top:-0.2em; box-shadow:1px 1px 5px 0px #5c5c5c7a}
+	</style>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+<h2>快捷键触发点击</h2>
+<button onclick="alert(11)" data-component="hotkey" data-hotkey-key="alt+k">Hot Key(Alt+K)</button>
+<hr>
+<h2>快捷键触发组件</h2>
+<button id="btn" data-component="hotkey,confirm" data-confirm-message="Confirm" data-hotkey-key="ctrl+k">Hot Key + Component(ctrl+K)</button>
+
+<h2>单个字母快捷键</h2>
+<button data-component="hotkey" data-hotkey-key="n" onclick="alert('N');">N</button>
+
+<h2>显示快捷键</h2>
+<p>
+	按下Alt，显示快捷键设置
+	<br>
+	通过 <code>ACHotKey.TOGGLE_HOTKEY_TIP = true</code> 控制
+</p>
+</body>
+</html>

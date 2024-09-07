@@ -15,6 +15,7 @@ const nav = [
 	'daterange.html',
 	'inlineeditor.html',
 	'confirm.html',
+	'hotkey.html',
 	'console.html',
 	'dialog.html',
 	'fullscreen.html',
@@ -45,7 +46,7 @@ let html = `
 <h1 class="title">${resolveFN(location.href)}</h1>
 <ul class="nav">`;
 
-nav.forEach(file => {
+nav.sort().forEach(file => {
 	html += `<li><a href="${file}">${resolveFN(file)}</a></li>`;
 })
 html += `</ul>`;
