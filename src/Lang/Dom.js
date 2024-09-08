@@ -142,6 +142,41 @@ export const bindTextAutoResize = (textarea, init = true) => {
 }
 
 /**
+ * iframe根据内容自动调整高度
+ * iframe页面host必须和父级页面host同域，或者声明同域名
+ * @param iframe
+ */
+export const bindIframeAutoResize = (iframe)=>{
+	let obs;
+	try{
+		let upd = () => {
+			let bdy = iframe.contentWindow.document.body;
+			if(bdy){
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+				setTimeout(() => {
+					let cs = iframe.contentWindow.getComputedStyle(bdy);
+					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
+					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+					iframe.style.height = dimension2Style(h);
+				}, 10);
+			}
+		}
+		iframe.addEventListener('load', () => {
+			obs = new MutationObserver(upd);
+			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
+			upd();
+		});
+	}catch(err){
+		try{
+			obs && obs.disconnect();
+		}catch(err){
+			console.error('observer disconnect fail', err)
+		}
+		console.warn('iframe content upd', err);
+	}
+}
+
+/**
  * textarea 支持 tab 输入
  * @param {HTMLTextAreaElement} textarea
  * @param {String} tabChar

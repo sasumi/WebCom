@@ -1,6 +1,6 @@
 import {Theme} from "./Theme.js";
 import {createDomByHtml, getDomDimension, insertStyleSheet, remove} from "../Lang/Dom.js";
-import {KEYS} from "../Lang/Event.js";
+import {KEYBOARD_KEY_MAP} from "../Lang/Event.js";
 import {dimension2Style} from "../Lang/Html.js";
 import {guid} from "../Lang/Util.js";
 
@@ -329,7 +329,7 @@ const bindGlobalEvent = () => {
 		hideLastMenu();
 	});
 	document.addEventListener('keyup', e => {
-		if(e.keyCode === KEYS.Esc){
+		if(e.key === KEYBOARD_KEY_MAP.Escape){
 			hideLastMenu();
 		}
 	});

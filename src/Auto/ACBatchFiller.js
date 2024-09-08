@@ -4,7 +4,7 @@ import {escapeAttr, escapeHtml} from "../Lang/Html.js";
 import {Dialog, DLG_CLS_WEAK_BTN} from "../Widget/Dialog.js";
 import {Theme} from "../Widget/Theme.js";
 import {guid} from "../Lang/Util.js";
-import {KEYS, triggerDomEvent} from "../Lang/Event.js";
+import {KEYBOARD_KEY_MAP, triggerDomEvent} from "../Lang/Event.js";
 
 const NS = Theme.Namespace + 'ac-batchfiller';
 
@@ -139,7 +139,7 @@ export class ACBatchFiller {
 			el.focus();
 			if(el.tagName === 'INPUT'){
 				el.addEventListener('keydown', e => {
-					if(e.keyCode === KEYS.Enter){
+					if(e.key === KEYBOARD_KEY_MAP.Enter){
 						doFill();
 					}
 				});

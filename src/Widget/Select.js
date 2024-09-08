@@ -1,7 +1,17 @@
 import {Theme} from "./Theme.js";
-import {createDomByHtml, domContained, findAll, findOne, getDomOffset, hide, insertStyleSheet, remove, show} from "../Lang/Dom.js";
+import {
+	createDomByHtml,
+	domContained,
+	findAll,
+	findOne,
+	getDomOffset,
+	hide,
+	insertStyleSheet,
+	remove,
+	show
+} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
-import {bindNodeActive, bindNodeEvents, BizEvent, KEYS, triggerDomEvent} from "../Lang/Event.js";
+import {bindNodeActive, bindNodeEvents, BizEvent, KEYBOARD_KEY_MAP, triggerDomEvent} from "../Lang/Event.js";
 import {arrayDistinct} from "../Lang/Array.js";
 import {dimension2Style, escapeAttr, escapeHtml, highlightText} from "../Lang/Html.js";
 import {ACSelectAll} from "../Auto/ACSelectAll.js";
@@ -418,9 +428,9 @@ class Select {
 
 		//nav
 		this.searchEl.addEventListener('keydown', e => {
-			if(e.keyCode === KEYS.UpArrow){
+			if(e.key === KEYBOARD_KEY_MAP.ArrowUp){
 				tabNav(liElList, false);
-			}else if(e.keyCode === KEYS.DownArrow){
+			}else if(e.key === KEYBOARD_KEY_MAP.ArrowDown){
 				tabNav(liElList, true);
 			}
 		})
@@ -437,9 +447,9 @@ class Select {
 				!this.config.multiple && this.hidePanel();
 			});
 			li.addEventListener('keydown', e => {
-				if(e.keyCode === KEYS.UpArrow){
+				if(e.key === KEYBOARD_KEY_MAP.ArrowUp){
 					tabNav(liElList, false);
-				}else if(e.keyCode === KEYS.DownArrow){
+				}else if(e.key === KEYBOARD_KEY_MAP.ArrowDown){
 					tabNav(liElList, true);
 				}
 			})
@@ -657,7 +667,7 @@ class Select {
 			}
 		});
 		document.addEventListener('keyup', e => {
-			if(e.keyCode === KEYS.Esc){
+			if(e.key === KEYBOARD_KEY_MAP.Escape){
 				hideSelect();
 			}
 		});
@@ -726,7 +736,7 @@ class Select {
 		});
 
 		document.addEventListener('keyup', e => {
-			if(e.keyCode === KEYS.Esc){
+			if(e.key === KEYBOARD_KEY_MAP.Escape){
 				sel.hidePanel();
 			}
 		});

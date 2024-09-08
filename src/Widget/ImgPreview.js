@@ -1,17 +1,7 @@
-import {
-	createDomByHtml,
-	findAll,
-	findOne,
-	getContextWindow,
-	hide,
-	insertStyleSheet,
-	remove,
-	setStyle,
-	show
-} from "../Lang/Dom.js";
+import {createDomByHtml, findAll, findOne, getContextWindow, hide, insertStyleSheet, remove, setStyle, show} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
-import {bindNodeActive, KEYS} from "../Lang/Event.js";
+import {bindNodeActive, KEYBOARD_KEY_MAP} from "../Lang/Event.js";
 import {downloadFile} from "../Lang/Net.js";
 import {Dialog} from "./Dialog.js";
 import {Toast} from "./Toast.js";
@@ -258,7 +248,7 @@ const listenSelector = (parentNode, selector, event, handler) => {
 const activeSelector = (parentNode, selector, handler) => {
 	listenSelector(parentNode, selector, 'click', handler);
 	listenSelector(parentNode, selector, 'keyup', e => {
-		if(e.keyCode === KEYS.Enter){
+		if(e.key === KEYBOARD_KEY_MAP.Enter){
 			handler(e);
 		}
 	});
@@ -451,15 +441,15 @@ const constructDom = () => {
 };
 
 const bindKeyDown = (e) => {
-	if(e.keyCode === KEYS.LeftArrow){
+	if(e.key === KEYBOARD_KEY_MAP.ArrowLeft){
 		e.stopPropagation();
 		navTo(true);
 	}
-	if(e.keyCode === KEYS.RightArrow){
+	if(e.key === KEYBOARD_KEY_MAP.ArrowRight){
 		e.stopPropagation();
 		navTo(false);
 	}
-	if(e.keyCode === KEYS.Esc){
+	if(e.key === KEYBOARD_KEY_MAP.Escape){
 		if(destroy()){
 			e.stopPropagation();
 		}

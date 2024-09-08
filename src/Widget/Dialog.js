@@ -1,5 +1,12 @@
-import {createDomByHtml, findOne, getContextWindow, insertStyleSheet, remove} from "../Lang/Dom.js";
-import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
+import {
+	bindIframeAutoResize,
+	createDomByHtml,
+	findOne,
+	getContextWindow,
+	insertStyleSheet,
+	remove
+} from "../Lang/Dom.js";
+import {bindNodeActive, BizEvent, KEYBOARD_KEY_MAP, KEYS} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
 import {dimension2Style, escapeAttr} from "../Lang/Html.js";
@@ -81,7 +88,7 @@ const bindGlobalEsc = () => {
 	}
 	_bind_esc_ = true;
 	document.addEventListener('keydown', e => {
-		if(e.keyCode === KEYS.Esc){
+		if(e.key === KEYBOARD_KEY_MAP.Escape){
 			let current = DialogManager.getFrontDialog();
 			if(current && current.config.showTopCloseButton){
 				DialogManager.close(current);
@@ -174,40 +181,6 @@ const resolveContentType = (content) => {
 }
 
 /**
- * 自动调整iframe高度
- * @param iframe
- */
-const autoResizeIframeHeight = (iframe) => {
-	let obs;
-	try{
-		let upd = () => {
-			let bdy = iframe.contentWindow.document.body;
-			if(bdy){
-				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-				setTimeout(() => {
-					let cs = iframe.contentWindow.getComputedStyle(bdy);
-					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
-					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-					iframe.style.height = dimension2Style(h);
-				}, 10);
-			}
-		}
-		iframe.addEventListener('load', () => {
-			obs = new MutationObserver(upd);
-			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-			upd();
-		});
-	}catch(err){
-		try{
-			obs && obs.disconnect();
-		}catch(err){
-			console.error('observer disconnect fail', err)
-		}
-		console.warn('iframe content upd', err);
-	}
-}
-
-/**
  * 构造DOM结构
  * @param {Dialog} dlg
  */
@@ -243,7 +216,7 @@ const domConstruct = (dlg) => {
 	//bind iframe content
 	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
-		autoResizeIframeHeight(iframe);
+		bindIframeAutoResize(iframe);
 
 		//bind window.unload event
 		dlg.onClose.listen(() => {
@@ -709,7 +682,7 @@ class Dialog {
 			p.onShow.listen(() => {
 				input.focus();
 				input.addEventListener('keydown', e => {
-					if(e.keyCode === KEYS.Enter){
+					if(e.key === KEYBOARD_KEY_MAP.Enter){
 						if(resolve(input.value) === false){
 							return false;
 						}

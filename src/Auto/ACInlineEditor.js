@@ -1,4 +1,4 @@
-import {bindNodeActive, BizEvent, KEYS} from "../Lang/Event.js";
+import {bindNodeActive, BizEvent, KEYBOARD_KEY_MAP} from "../Lang/Event.js";
 import {createDomByHtml, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {escapeAttr, escapeHtml} from "../Lang/Html.js";
 import {Theme} from "../Widget/Theme.js";
@@ -122,7 +122,7 @@ export class ACInlineEditor {
 						}
 					});
 					input_el.addEventListener('keydown', e=>{
-						if(!multiple && e.keyCode === KEYS.Enter){
+						if(!multiple && e.key === KEYBOARD_KEY_MAP.Enter){
 							if(input_el.value.trim() !== text){
 								doSave();
 							} else {
@@ -131,7 +131,7 @@ export class ACInlineEditor {
 							e.preventDefault();
 							return false;
 						}
-						if(e.keyCode === KEYS.Esc){
+						if(e.key === KEYBOARD_KEY_MAP.Escape){
 							if(input_el.value.trim() === text){
 								switchState(false);
 								e.preventDefault();
@@ -155,7 +155,7 @@ export class ACInlineEditor {
 			switchState(true);
 		});
 		node.addEventListener('keyup', e => {
-			if(e.keyCode === KEYS.Enter){
+			if(e.key === KEYBOARD_KEY_MAP.Enter){
 				switchState(true);
 			}
 		})

@@ -1,4 +1,49 @@
 import {findOne, fitNodes} from "./Dom.js";
+import {inputAble} from "./Form.js";
+
+/**
+ * KeyboardEvent.key 映射
+ * @var Object{*}
+ */
+let KEY_MAP = {
+	0: 'Digit0', 1: 'Digit1', 2: 'Digit2', 3: 'Digit3', 4: 'Digit4', 5: 'Digit5', 6: 'Digit6', 7: 'Digit7', 8: 'Digit8', 9: 'Digit9',
+	A: 'KeyA', B: 'KeyB', C: 'KeyC', D: 'KeyD', E: 'KeyE', F: 'KeyF', G: 'KeyG', H: 'KeyH', I: 'KeyI', J: 'KeyJ', K: 'KeyK', L: 'KeyL', M: 'KeyM', N: 'KeyN', O: 'KeyO', P: 'KeyP', Q: 'KeyQ', R: 'KeyR', S: 'KeyS', T: 'KeyT', U: 'KeyU', V: 'KeyV', W: 'KeyW', X: 'KeyX', Y: 'KeyY', Z: 'KeyZ',
+	Space: ' ', Enter: 'Enter', Tab: 'Tab',
+	Shift: 'Shift', Control: 'Control', Alt:'Alt',
+	F1: 'F1', F2: 'F2', F3: 'F3', F4: 'F4', F5: 'F5', F6: 'F6', F7: 'F7', F8: 'F8', F9: 'F9', F10: 'F10', F11: 'F11', F12: 'F12', F13: 'F13', F14: 'F14', F15: 'F15', F16: 'F16', F17: 'F17', F19: 'F19', F20: 'F20',
+	ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight',
+	Home: 'Home', End: 'End', PageUp: 'PageUp', PageDown: 'PageDown',
+	Escape: 'Escape', Backspace: 'Backspace', Delete: 'Delete', Insert: 'Insert', Clear: 'Clear', Copy: 'Copy', Paste: 'Paste', Redo: 'Redo', Undo: 'Undo',
+	Meta: 'Meta',  Symbol:'Symbol',
+	CapsLock:'CapsLock', NumLock: 'NumLock', ScrollLock: 'ScrollLock', SymbolLock: 'SymbolLock', FnLock: 'FnLock',
+	ContextMenu: 'ContextMenu',
+};
+
+const SYMBOLS = '~!@#$%^&*()_+{}|:"<>?`-=[]\\;\',./'.split('');
+
+//添加符号
+SYMBOLS.forEach(sym=>{
+	KEY_MAP[sym] = sym;
+});
+
+//字母
+KEY_MAP.Alpla = [KEY_MAP.A, KEY_MAP.B, KEY_MAP.C, KEY_MAP.D, KEY_MAP.E, KEY_MAP.F, KEY_MAP.G, KEY_MAP.H, KEY_MAP.I, KEY_MAP.J, KEY_MAP.K, KEY_MAP.L, KEY_MAP.M, KEY_MAP.N, KEY_MAP.O, KEY_MAP.P, KEY_MAP.Q, KEY_MAP.R, KEY_MAP.S, KEY_MAP.T, KEY_MAP.U, KEY_MAP.V, KEY_MAP.W, KEY_MAP.X, KEY_MAP.Y, KEY_MAP.Z];
+//数字
+KEY_MAP.Number = [KEY_MAP[0], KEY_MAP[1], KEY_MAP[2], KEY_MAP[3], KEY_MAP[4], KEY_MAP[5], KEY_MAP[6], KEY_MAP[7], KEY_MAP[8], KEY_MAP[9]];
+//符号
+KEY_MAP.Symbol = SYMBOLS;
+//空白键
+KEY_MAP.Whitespace = [KEY_MAP.Space, KEY_MAP.Enter, KEY_MAP.Tab];
+//内容按键
+KEY_MAP.Content = [...KEY_MAP.Alpla, ...KEY_MAP.Whitespace, ...KEY_MAP.Number, ];
+//功能键
+KEY_MAP.Fn = [KEY_MAP.F1, KEY_MAP.F2, KEY_MAP.F3, KEY_MAP.F4, KEY_MAP.F5, KEY_MAP.F6, KEY_MAP.F7, KEY_MAP.F8, KEY_MAP.F9, KEY_MAP.F10, KEY_MAP.F11, KEY_MAP.F12, KEY_MAP.F13, KEY_MAP.F14, KEY_MAP.F15, KEY_MAP.F16, KEY_MAP.F17, KEY_MAP.F19, KEY_MAP.F20];
+//方向键
+KEY_MAP.Arrow = [KEY_MAP.ArrowUp, KEY_MAP.ArrowDown, KEY_MAP.ArrowLeft, KEY_MAP.ArrowRight];
+//导航
+KEY_MAP.Navigation = [...KEY_MAP.Arrow, KEY_MAP.Home, KEY_MAP.End, KEY_MAP.PageUp, KEY_MAP.PageDown];
+
+export const KEYBOARD_KEY_MAP = KEY_MAP;
 
 export class BizEvent {
 	events = [];
@@ -181,10 +226,15 @@ export const bindHotKeys = (keyStr, payload, option = {}) => {
 			return true;
 		}
 
-		//去除单纯按快捷键方式
-		let pressKeyCode = [KEYS.Alt, KEYS.Control, KEYS.Shift].includes(e.keyCode) ? null : e.keyCode;
+		//需要考虑避开可输入区域
+		if(e.target !== scope && //如果对象非绑定指定对象，
+			KEYBOARD_KEY_MAP.Content.includes(e.key) && (!e.altKey && !e.ctrlKey) && //输入内容
+			inputAble(e.target) //可输入对象（这里不需要考虑 [contenteditable]，由调用方自己负责
+		){
+			return true;
+		}
 
-		//剩下单个key
+		//移除组合键
 		let singleKeys = keys.filter(k => {
 			return !['shift', 'ctrl', 'alt', 'meta'].includes(k);
 		});
@@ -192,6 +242,10 @@ export const bindHotKeys = (keyStr, payload, option = {}) => {
 			console.error('bindHotKeys no support pattern:', keyStr);
 			return;
 		}
+
+		//去除单纯按快捷键方式
+		let pressKeyCode = [KEYBOARD_KEY_MAP.Shift, KEYBOARD_KEY_MAP.Control, KEYBOARD_KEY_MAP.Alt].includes(e.key) ? null : e.keyCode;
+
 		if((!singleKeys.length && !pressKeyCode) || (singleKeys[0] === e.key)){
 			payload.call(e.target, e);
 			if(preventDefault){
@@ -226,105 +280,13 @@ export const eventDelegate = (container, selector, eventName, payload)=>{
 	});
 }
 
+/**
+ * KeyboardEvent.keyCode 映射
+ * @deprecated 废弃
+ * **/
 export const KEYS = {
-	A: 65,
-	B: 66,
-	C: 67,
-	D: 68,
-	E: 69,
-	F: 70,
-	G: 71,
-	H: 72,
-	I: 73,
-	J: 74,
-	K: 75,
-	L: 76,
-	M: 77,
-	N: 78,
-	O: 79,
-	P: 80,
-	Q: 81,
-	R: 82,
-	S: 83,
-	T: 84,
-	U: 85,
-	V: 86,
-	W: 87,
-	X: 88,
-	Y: 89,
-	Z: 90,
-	0: 48,
-	1: 49,
-	2: 50,
-	3: 51,
-	4: 52,
-	5: 53,
-	6: 54,
-	7: 55,
-	8: 56,
-	9: 57,
-
-	BackSpace: 8,
-	Esc: 27,
-	RightArrow: 39,
-	Tab: 9,
-	Space: 32,
-	DownArrow: 40,
-	Clear: 12,
-	PageUp: 33,
-	Insert: 45,
-	Enter: 13,
-	PageDown: 34,
-	Delete: 46,
-	Shift: 16,
-	End: 35,
-	NumLock: 144,
-	Control: 17,
-	Home: 36,
-	Alt: 18,
-	LeftArrow: 37,
-	CapsLock: 20,
-	UpArrow: 38,
-
-	F1: 112,
-	F2: 113,
-	F3: 114,
-	F4: 115,
-	F5: 116,
-	F6: 117,
-	F7: 118,
-	F8: 119,
-	F9: 120,
-	F10: 121,
-	F11: 122,
-	F12: 123,
-
-	NumPad0: 96,
-	NumPad1: 97,
-	NumPad2: 98,
-	NumPad3: 99,
-	NumPad4: 100,
-	NumPad5: 101,
-	NumPad6: 102,
-	NumPad7: 103,
-	NumPad8: 104,
-	NumPad9: 105,
-	NumPadMultiple: 106,
-	NumPadPlus: 107,
-	NumPadDash: 109,
-	NumPadDot: 110,
-	NumPadSlash: 111,
-	NumPadEnter: 108
-	///?	191
-	//`~	192
-	//	[{	219
-	//:	186
-// \|	220
-	//=+	187
-	//<	188
-// ]}	221
-
-	//-_	189
-//.>	190
-// '"	222
+	A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76, M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88, Y: 89, Z: 90, 0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57,
+	BackSpace: 8, Esc: 27, RightArrow: 39, Tab: 9, Space: 32, DownArrow: 40, Clear: 12, PageUp: 33, Insert: 45, Enter: 13, PageDown: 34, Delete: 46, Shift: 16, End: 35, NumLock: 144, Control: 17, Home: 36, Alt: 18, LeftArrow: 37, CapsLock: 20, UpArrow: 38,
+	F1: 112,F2: 113,F3: 114,F4: 115,F5: 116,F6: 117,F7: 118,F8: 119,F9: 120,F10: 121,F11: 122,F12: 123,
+	NumPad0: 96, NumPad1: 97, NumPad2: 98, NumPad3: 99, NumPad4: 100, NumPad5: 101, NumPad6: 102, NumPad7: 103, NumPad8: 104, NumPad9: 105, NumPadMultiple: 106, NumPadPlus: 107, NumPadDash: 109, NumPadDot: 110, NumPadSlash: 111, NumPadEnter: 108
 };

@@ -1,16 +1,6 @@
-import {
-	createDomByHtml,
-	domContained,
-	getDomOffset,
-	getRegion,
-	hide,
-	insertStyleSheet,
-	rectInLayout,
-	remove,
-	show
-} from "../Lang/Dom.js";
+import {createDomByHtml, domContained, getDomOffset, getRegion, hide, insertStyleSheet, rectInLayout, remove, show} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
-import {BizEvent, KEYS} from "../Lang/Event.js";
+import {BizEvent, KEYBOARD_KEY_MAP} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {dimension2Style} from "../Lang/Html.js";
 
@@ -90,7 +80,7 @@ let bindEvent = (tip)=>{
 		let close_btn = tip.dom.querySelector(`.${NS}-close`);
 		close_btn.addEventListener('click', () => {tip.hide();}, false);
 		document.addEventListener('keyup', (e) => {
-			if(e.keyCode === KEYS.Esc){
+			if(e.key === KEYBOARD_KEY_MAP.Escape){
 				tip.hide();
 			}
 		}, false);
