@@ -1,8 +1,7 @@
-import {findAll, isButton, onDomTreeChange} from "./Dom.js";
-import {guid} from "./Util.js";
+import {findAll, isButton, mutationEffective, onDomTreeChange} from "./Dom.js";
+import {guid, throttleEffect} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
 import {isEquals, objectPushByPath} from "./Array.js";
-import {escapeAttr} from "./Html.js";
 import {requestJSON} from "./Net.js";
 
 /**
@@ -51,40 +50,37 @@ export const getElementValue = (el) => {
  * @param {Node} container 容器，缺省为整个文档
  * @return {String[]|String} 表单元素值，如果是checkbox或者select多选情况，返回类型为数组，其他返回为字符串
  */
-export const getElementValueByName = (name, container = document)=>{
-	let els = findAll(`[name="${name}"]:not([disabled])`, container);
+export const getElementValueByName = (name, container = document) => {
+	let elements = findAll(`[name="${name}"]:not([disabled])`, container);
 	let values = [];
 	let multiple = false;
-	els.forEach(el => {
-		switch(el.type){
+	elements.forEach(element => {
+		switch(element.type){
 			case 'checkbox':
 				multiple = true;
-				if(el.checked){
-					values.push(el.value);
+				if(element.checked){
+					values.push(element.value);
 				}
 				break;
 			case 'radio':
-				if(el.checked){
-					values.push(el.value);
+				if(element.checked){
+					values.push(element.value);
 				}
 				break;
 			case 'select':
-				if(el.multiple){
+				if(element.multiple){
 					multiple = true;
-					Array.from(el.selectedOptions).forEach(opt => {
+					Array.from(element.selectedOptions).forEach(opt => {
 						values.push(opt.value);
 					});
 				}else{
-					values.push(el.value);
+					values.push(element.value);
 				}
 				break;
 			default:
-				values.push(el.value);
+				values.push(element.value);
 		}
 	})
-	if(values.length > 1){
-		return values;
-	}
 	return multiple ? values : values[0];
 }
 
@@ -246,8 +242,7 @@ export const fixGetFormAction = (form) => {
  * @param {Function} onSubmitting
  * @return {Promise}
  */
-export const bindFormSubmitAsJSON = (form, onSubmitting = () => {
-}) => {
+export const bindFormSubmitAsJSON = (form, onSubmitting = () => {}) => {
 	return new Promise((resolve, reject) => {
 		let submitting = false;
 		form.addEventListener('submit', e => {
@@ -266,6 +261,64 @@ export const bindFormSubmitAsJSON = (form, onSubmitting = () => {
 			return false;
 		});
 	});
+}
+
+/**
+ * 自动监听表单，并保存数据
+ * @param {Node} form
+ * @param {Function} savePromise():Promise
+ * @param {Number} minSaveInterval 最小保存间隔，上次保存完成后，至少间隔2s才继续下一次保存
+ */
+export const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
+	let last_saved_data = formSerializeString(form, false);
+	let last_execute_time = 0; //最后一次任务执行后时间
+	let executing = false; //是否正在执行任务或等待中
+	let tasks = []; //任务队列，最多包含两个：item1: 执行中，item2：待执行
+	const PRO_KEY = '_auto_save_listen_' + guid();
+
+	const doSaveAsync = () => {
+		if(executing){
+			return;
+		}
+		executing = true;
+		let doTask = ()=>{
+			let task = tasks.shift();
+			let task_data = formSerializeString(form, false);
+			task().finally(() => {
+				last_saved_data = task_data;
+				last_execute_time = (new Date()).getTime();
+				executing = false;
+				if(!tasks.length){
+				}else{
+					doSaveAsync();
+				}
+			});
+		}
+		let remains = minSaveInterval - (new Date().getTime() - last_execute_time);
+		if(remains > 0){
+			setTimeout(doTask, remains);
+		} else {
+			doTask();
+		}
+	};
+	const queue = ()=>{
+		if(tasks.length > 1){
+			return;
+		}
+		if(last_saved_data === formSerializeString(form, false)){
+			return;
+		}
+		tasks.push(savePromise);
+		doSaveAsync();
+	};
+	mutationEffective(form,  {attributes: false, subtree: true, childList: true}, obs=>{
+		findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`).forEach(el=>{
+			el.setAttribute(PRO_KEY, '1');
+			el.addEventListener('change', queue);
+		});
+		queue();
+	}, 100);
+	findAll('input,textarea,select').forEach(el=>{el.addEventListener('change', queue);});
 }
 
 /**
@@ -394,20 +447,6 @@ export const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => 
 	return ret;
 }
 
-/**
- * 构建 HTML Input:hidden 标签
- * @param {Object} maps {key:value}
- * @return {string}
- */
-export const buildHtmlHidden = (maps) => {
-	let html = '';
-	for(let key in maps){
-		let val = maps[key] === null ? '' : maps[key];
-		html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
-	}
-	return html;
-}
-
 ///////////////////////////  退出窗口未保存表单提示  ///////////////////////////
 export const WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = 'WINDOW_UNLOAD_ALERT_MAP_VAR_KEY';
 
@@ -499,9 +538,9 @@ export const bindFormUnSavedUnloadAlert = (form, alertMsg = '') => {
 	form.setAttribute(_form_us_sid_attr_key, us_sid);
 
 	let upd_tm = null;
-	let upd = ()=>{
+	let upd = () => {
 		upd_tm && clearTimeout(upd_tm);
-		upd_tm = setTimeout(()=>{
+		upd_tm = setTimeout(() => {
 			_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
 			setWindowUnloadMessage(validateFormChanged(form, us_sid), form);
 		}, 100);

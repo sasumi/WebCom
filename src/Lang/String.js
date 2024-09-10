@@ -362,3 +362,66 @@ export const trim = (str, chars = '', dir = TRIM_BOTH) => {
 		return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());
 	}
 }
+
+/**
+ * 清理版本，去除无用字符
+ * @param {String} version
+ * @return {Number[]}
+ */
+const cleanupVersion = (version) => {
+	let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+		pieces = trimmed.split('.'),
+		partsLength,
+		parts = [],
+		value,
+		piece,
+		num,
+		i;
+	for(i = 0; i < pieces.length; i += 1){
+		piece = pieces[i].replace(/\D/g, '');
+		num = parseInt(piece, 10);
+		if(isNaN(num)){
+			num = 0;
+		}
+		parts.push(num);
+	}
+	partsLength = parts.length;
+	for(i = partsLength - 1; i >= 0; i -= 1){
+		value = parts[i];
+		if(value === 0){
+			parts.length -= 1;
+		}else{
+			break;
+		}
+	}
+	return parts;
+};
+
+/**
+ * 版本比较
+ * @param {String} version1
+ * @param {String} version2
+ * @param {Number} index
+ * @return {number|number}
+ */
+export const versionCompare = (version1, version2, index) => {
+	let stringLength = index + 1,
+		v1 = cleanupVersion(version1),
+		v2 = cleanupVersion(version2);
+	if(v1.length > stringLength){
+		v1.length = stringLength;
+	}
+	if(v2.length > stringLength){
+		v2.length = stringLength;
+	}
+	let size = Math.min(v1.length, v2.length), i;
+	for(i = 0; i < size; i += 1){
+		if(v1[i] !== v2[i]){
+			return v1[i] < v2[i] ? -1 : 1;
+		}
+	}
+	if(v1.length === v2.length){
+		return 0;
+	}
+	return (v1.length < v2.length) ? -1 : 1;
+}

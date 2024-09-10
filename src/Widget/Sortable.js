@@ -1,5 +1,5 @@
 import {Theme} from "./Theme.js";
-import {onDomTreeChange} from "../Lang/Dom.js";
+import {findAll, findOne, onDomTreeChange} from "../Lang/Dom.js";
 
 const CLS_ON_DRAG = Theme.Namespace + '-on-drag';
 const CLS_DRAG_PROXY = Theme.Namespace + '-drag-proxy';
@@ -24,70 +24,92 @@ const matchChildren = (container, eventTarget) => {
 
 /**
  * 节点排序
- * @param {Node} listNode 列表父容器（函数自动监听容器子节点变化，重新绑定）
- * @param {Object|Null} option 选项
+ * @param {Node} listContainer 列表父容器（函数自动监听容器子节点变化，重新绑定）
+ * @param {Object} option 选项
  * @param {String} option.ClassOnDrag 占位对象类名
  * @param {String} option.ClassProxy 拖动过程代理对象类名
- * @param {Function} onChange
+ * @param {String} option.triggerSelector 触发拖动推对象选择器
+ * @param {Function} option.onChange
  */
-export const sortable = (listNode, option = null, onChange = () => {
-}) => {
+export const sortable = (listContainer, option = {}) => {
 	let currentNode = null;
 	let currentParent = null; //当前父级，避免多个拖动组件使用出现混淆
-	option = option || {};
-	let ClassOnDrag = option.ClassOnDrag || CLS_ON_DRAG;
-	let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
+	listContainer = findOne(listContainer);
 
-	let set = () => {
-		Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
+	option = Object.assign({
+		ClassOnDrag: CLS_ON_DRAG,
+		ClassProxy: CLS_DRAG_PROXY,
+		triggerSelector: '',
+		onChange: ()=>{}
+	}, option);
+
+	const setDraggable = () => {
+		if(option.triggerSelector){
+			findAll(option.triggerSelector, listContainer).forEach(trigger=>trigger.setAttribute('draggable', 'true'));
+		} else {
+			Array.from(listContainer.children).forEach(child => child.setAttribute('draggable', 'true'));
+		}
 	};
 
-	onDomTreeChange(listNode, set, false);
-	set();
+	onDomTreeChange(listContainer, setDraggable, false);
+	setDraggable();
 
-	listNode.addEventListener('dragover', e=>{
+	listContainer.addEventListener('dragover', e=>{
 		e.preventDefault();
+		return false;
 	});
 
-	listNode.addEventListener('dragstart', e => {
-		if(e.target === listNode){
-			return;
+	listContainer.addEventListener('dragstart', e => {
+		//如果设置了可拖动对象，且点击处不在对象内，禁止拖动
+		if(option.triggerSelector){
+			if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
+				e.preventDefault();
+				return false;
+			}
 		}
-		let tag = matchChildren(listNode, e.target);
-		currentNode = tag;
-		currentParent = listNode;
-		currentNode.classList.add(ClassProxy);
+
+		//点击了父容器，禁止拖动
+		if(e.target === listContainer){
+			e.preventDefault();
+			return false;
+		}
+		let childNode = matchChildren(listContainer, e.target);
+		currentNode = childNode;
+		currentParent = listContainer;
+		currentNode.classList.add(option.ClassProxy);
 		setTimeout(() => {
-			tag.classList.remove(ClassProxy);
-			tag.classList.add(ClassOnDrag);
+			childNode.classList.remove(option.ClassProxy);
+			childNode.classList.add(option.ClassOnDrag);
 		}, 0);
 		return false;
 	});
-	listNode.addEventListener('dragenter', e => {
-		if(e.target === listNode){
+
+	listContainer.addEventListener('dragenter', e => {
+		if(e.target === listContainer){
 			return;
 		}
-		let tag = matchChildren(listNode, e.target);
-		if(!currentNode || currentParent !== listNode || tag === listNode || tag === currentNode){
+		let childNode = matchChildren(listContainer, e.target);
+		if(!currentNode || currentParent !== listContainer || childNode === listContainer || childNode === currentNode){
 			return;
 		}
-		let children = Array.from(listNode.children); //实时从拖动之后的children中拿
+		let children = Array.from(listContainer.children); //实时从拖动之后的children中拿
 		let currentIndex = children.indexOf(currentNode);
-		let targetIndex = children.indexOf(tag);
+		let targetIndex = children.indexOf(childNode);
 		if(currentIndex > targetIndex){
-			listNode.insertBefore(currentNode, tag.previousSibling);
+			listContainer.insertBefore(currentNode, childNode.previousSibling);
 		}else{
-			listNode.insertBefore(currentNode, tag.nextSibling);
+			listContainer.insertBefore(currentNode, childNode.nextSibling);
 		}
-		onChange(currentIndex, targetIndex);
+		option.onChange(currentIndex, targetIndex);
 	});
-	listNode.addEventListener('dragend', e => {
-		if(e.target === listNode){
+
+	listContainer.addEventListener('dragend', e => {
+		if(e.target === listContainer){
 			return;
 		}
-		let tag = matchChildren(listNode, e.target);
+		let childNode = matchChildren(listContainer, e.target);
 		currentNode = null;
 		currentParent = null;
-		tag.classList.remove(ClassOnDrag);
+		childNode.classList.remove(option.ClassOnDrag);
 	});
 }

@@ -28,8 +28,8 @@ export const getCurrentScript = function(){
 /**
  * 节流
  * 规定在一个单位时间内，只能触发一次函数。如果这个函数单位时间内触发多次函数，只有一次生效。
- * @param fn
- * @param intervalMiSec
+ * @param {Function} fn
+ * @param {Number} intervalMiSec
  * @return {(function(): void)|*}
  */
 export const throttle = (fn, intervalMiSec) => {
@@ -43,13 +43,46 @@ export const throttle = (fn, intervalMiSec) => {
 			fn.apply(context, args);
 			previous = now;
 		}
-	}
+	}();
+}
+
+/**
+ * 更有效果的节流函数
+ * 区别：如果函数执行间隔还没到期，放入下一个时间周期执行，如果已经有下一周期未执行，当前触发作废。
+ * 这种效果在 **Change 类型函数场景中更有效果，可以确保最后一次变更能够有效执行
+ * @param {Function} fn
+ * @param {Number} intervalMiSec
+ */
+export const throttleEffect = (fn, intervalMiSec) => {
+	let context, args;
+	let lastExecuteTime = 0;
+	let queuing = false;
+	return function(){
+		if(queuing){
+			return;
+		}
+		let now = +new Date();
+		context = this;
+		args = arguments;
+		let remaining = intervalMiSec - (now - lastExecuteTime);
+		if(remaining <= 0){
+			fn.apply(context, args);
+			lastExecuteTime = now;
+		}else{
+			queuing = true;
+			setTimeout(() => {
+				fn.apply(context, args);
+				queuing = false;
+				lastExecuteTime = now;
+			}, remaining)
+		}
+	};
 }
 
 /**
  * 在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
- * @param fn
- * @param intervalMiSec
+ * @param {Function} fn
+ * @param {Number} intervalMiSec
  * @return {(function(): void)|*}
  */
 export const debounce = (fn, intervalMiSec) => {
@@ -104,69 +137,6 @@ export const getLibModuleTop = (() => {
 	}
 	throw "No WebCom library script loaded detected.";
 })();
-
-/**
- * 清理版本，去除无用字符
- * @param {String} version
- * @return {Number[]}
- */
-const normalizeVersion = (version) => {
-	let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
-		pieces = trimmed.split('.'),
-		partsLength,
-		parts = [],
-		value,
-		piece,
-		num,
-		i;
-	for(i = 0; i < pieces.length; i += 1){
-		piece = pieces[i].replace(/\D/g, '');
-		num = parseInt(piece, 10);
-		if(isNaN(num)){
-			num = 0;
-		}
-		parts.push(num);
-	}
-	partsLength = parts.length;
-	for(i = partsLength - 1; i >= 0; i -= 1){
-		value = parts[i];
-		if(value === 0){
-			parts.length -= 1;
-		}else{
-			break;
-		}
-	}
-	return parts;
-};
-
-/**
- * 版本比较
- * @param {String} version1
- * @param {String} version2
- * @param {Number} index
- * @return {number|number}
- */
-export const versionCompare = (version1, version2, index) => {
-	let stringLength = index + 1,
-		v1 = normalizeVersion(version1),
-		v2 = normalizeVersion(version2);
-	if(v1.length > stringLength){
-		v1.length = stringLength;
-	}
-	if(v2.length > stringLength){
-		v2.length = stringLength;
-	}
-	let size = Math.min(v1.length, v2.length), i;
-	for(i = 0; i < size; i += 1){
-		if(v1[i] !== v2[i]){
-			return v1[i] < v2[i] ? -1 : 1;
-		}
-	}
-	if(v1.length === v2.length){
-		return 0;
-	}
-	return (v1.length < v2.length) ? -1 : 1;
-}
 
 /**
  * 客户端一次性动作

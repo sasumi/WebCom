@@ -17,7 +17,11 @@
 		.list2 li.WebCom--on-drag {opacity:0.5}
 		.list2 li.WebCom--drag-proxy {box-shadow:1px 1px 10px #ccc;}
 
-		.list3 img {float:left; padding:1em; background:#000000; margin:0.5em; width:100px; height:100px;}
+		.list3 {display:flex; gap:1em; margin:2em;}
+		.list3 li {width:50px; height:50px; border:1px solid #ccc;}
+		.list3 li .mv {cursor:move; user-select:none; border:1px solid black;}
+
+		.list4 img {float:left; padding:1em; background:#000000; margin:0.5em; width:100px; height:100px;}
 	</style>
 </head>
 <body>
@@ -38,7 +42,30 @@
 	<li>item5</li>
 </ul>
 
-<div class="list3">
+<ul class="list3">
+	<li>
+		<span class="n">item1</span>
+		<span class="mv">M</span>
+	</li>
+	<li>
+		<span class="n">item2</span>
+		<span class="mv">M</span>
+	</li>
+	<li>
+		<span class="n">item3</span>
+		<span class="mv">M</span>
+	</li>
+	<li>
+		<span class="n">item4</span>
+		<span class="mv">M</span>
+	</li>
+	<li>
+		<span class="n">item5</span>
+		<span class="mv">M</span>
+	</li>
+</ul>
+
+<div class="list4">
 	<img src="https://www.w3schools.com/html/img_w3slogo.gif" alt="">
 	<img src="https://www.w3schools.com/images/img_spaces_up_generic_html_300.png" alt="">
 	<img src="https://ns-strategy.cdn.bcebos.com/ns-strategy/upload/fc_big_pic/part-00747-2220.jpg" alt="">
@@ -48,11 +75,16 @@
 <script type="module">
 	import {findOne, sortable} from "../src/index.js";
 
-	sortable(findOne('.list'));
-	sortable(findOne('.list2'), null, (curIdx, tagIdx)=>{
-		console.log('current index', curIdx, tagIdx);
+	sortable('.list');
+	sortable('.list2', {
+		onChange: (curIdx, tagIdx) => {
+			console.log('current index', curIdx, tagIdx);
+		}
 	});
-	sortable(findOne('.list3'));
+
+	sortable('.list3', {triggerSelector:'.mv'})
+
+	sortable('.list4');
 </script>
 </body>
 </html>

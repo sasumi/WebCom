@@ -372,6 +372,55 @@ var WebCom = (function (exports) {
 			return dir === TRIM_BOTH ? str.trim() : (dir === TRIM_LEFT ? str.trimStart() : dir === str.trimEnd());
 		}
 	};
+	const cleanupVersion = (version) => {
+		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
+			pieces = trimmed.split('.'),
+			partsLength,
+			parts = [],
+			value,
+			piece,
+			num,
+			i;
+		for(i = 0; i < pieces.length; i += 1){
+			piece = pieces[i].replace(/\D/g, '');
+			num = parseInt(piece, 10);
+			if(isNaN(num)){
+				num = 0;
+			}
+			parts.push(num);
+		}
+		partsLength = parts.length;
+		for(i = partsLength - 1; i >= 0; i -= 1){
+			value = parts[i];
+			if(value === 0){
+				parts.length -= 1;
+			}else {
+				break;
+			}
+		}
+		return parts;
+	};
+	const versionCompare = (version1, version2, index) => {
+		let stringLength = index + 1,
+			v1 = cleanupVersion(version1),
+			v2 = cleanupVersion(version2);
+		if(v1.length > stringLength){
+			v1.length = stringLength;
+		}
+		if(v2.length > stringLength){
+			v2.length = stringLength;
+		}
+		let size = Math.min(v1.length, v2.length), i;
+		for(i = 0; i < size; i += 1){
+			if(v1[i] !== v2[i]){
+				return v1[i] < v2[i] ? -1 : 1;
+			}
+		}
+		if(v1.length === v2.length){
+			return 0;
+		}
+		return (v1.length < v2.length) ? -1 : 1;
+	};
 
 	const BASE64_KEY_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 	const base64Decode = (text) => {
@@ -527,6 +576,14 @@ var WebCom = (function (exports) {
 		_helper_div.textContent = '';
 		return str;
 	};
+	const buildHtmlHidden = (maps) => {
+		let html = '';
+		for(let key in maps){
+			let val = maps[key] === null ? '' : maps[key];
+			html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
+		}
+		return html;
+	};
 	const escapeHtml = str => {
 		return String(str)
 			.replace(/&/g, "&amp;")
@@ -602,7 +659,32 @@ var WebCom = (function (exports) {
 				fn.apply(context, args);
 				previous = now;
 			}
-		}
+		}();
+	};
+	const throttleEffect = (fn, intervalMiSec) => {
+		let context, args;
+		let lastExecuteTime = 0;
+		let queuing = false;
+		return function(){
+			if(queuing){
+				return;
+			}
+			let now = +new Date();
+			context = this;
+			args = arguments;
+			let remaining = intervalMiSec - (now - lastExecuteTime);
+			if(remaining <= 0){
+				fn.apply(context, args);
+				lastExecuteTime = now;
+			}else {
+				queuing = true;
+				setTimeout(() => {
+					fn.apply(context, args);
+					queuing = false;
+					lastExecuteTime = now;
+				}, remaining);
+			}
+		};
 	};
 	const debounce = (fn, intervalMiSec) => {
 		let timeout;
@@ -640,55 +722,6 @@ var WebCom = (function (exports) {
 		}
 		throw "No WebCom library script loaded detected.";
 	})();
-	const normalizeVersion = (version) => {
-		let trimmed = version ? version.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1") : '',
-			pieces = trimmed.split('.'),
-			partsLength,
-			parts = [],
-			value,
-			piece,
-			num,
-			i;
-		for(i = 0; i < pieces.length; i += 1){
-			piece = pieces[i].replace(/\D/g, '');
-			num = parseInt(piece, 10);
-			if(isNaN(num)){
-				num = 0;
-			}
-			parts.push(num);
-		}
-		partsLength = parts.length;
-		for(i = partsLength - 1; i >= 0; i -= 1){
-			value = parts[i];
-			if(value === 0){
-				parts.length -= 1;
-			}else {
-				break;
-			}
-		}
-		return parts;
-	};
-	const versionCompare = (version1, version2, index) => {
-		let stringLength = index + 1,
-			v1 = normalizeVersion(version1),
-			v2 = normalizeVersion(version2);
-		if(v1.length > stringLength){
-			v1.length = stringLength;
-		}
-		if(v2.length > stringLength){
-			v2.length = stringLength;
-		}
-		let size = Math.min(v1.length, v2.length), i;
-		for(i = 0; i < size; i += 1){
-			if(v1[i] !== v2[i]){
-				return v1[i] < v2[i] ? -1 : 1;
-			}
-		}
-		if(v1.length === v2.length){
-			return 0;
-		}
-		return (v1.length < v2.length) ? -1 : 1;
-	};
 	const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
 		const MARKUP_STR_VAL = 'TRUE';
 		let getMarkState = (key) => {
@@ -997,30 +1030,40 @@ var WebCom = (function (exports) {
 		return node.offsetParent === null;
 	};
 	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
-		let tm = null;
 		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
-		const payload = () => {
-			tm && clearTimeout(tm);
-			tm = setTimeout(callback, 0);
-		};
-		const watchEls = (els) => {
-			if(!els || !els.length){
-				return;
-			}
-			els.forEach(el => {
+		let watchEl = ()=>{
+			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el=>{
 				el.setAttribute(PRO_KEY, '1');
-				el.addEventListener('change', payload);
+				el.addEventListener('change', callback);
 			});
 		};
+		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, ()=>{
+			includeElementChanged && watchEl();
+			callback();
+		}, 10);
+		includeElementChanged && watchEl();
+	};
+	const mutationEffective = (dom, option, payload, minInterval = 10) => {
+		let last_queue_time = 0;
+		let callback_queueing = false;
 		let obs = new MutationObserver(() => {
-			if(includeElementChanged){
-				let els = dom.querySelectorAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`);
-				watchEls(els);
+			if(callback_queueing){
+				return;
 			}
-			payload();
+			let r = minInterval - (new Date().getTime() - last_queue_time);
+			if(r > 0){
+				callback_queueing = true;
+				setTimeout(() => {
+					callback_queueing = false;
+					last_queue_time = new Date().getTime();
+					payload(obs);
+				}, r);
+			}else {
+				last_queue_time = new Date().getTime();
+				payload(obs);
+			}
 		});
-		obs.observe(dom, {attributes: true, subtree: true, childList: true});
-		includeElementChanged && watchEls(dom.querySelectorAll('input,textarea,select'));
+		obs.observe(dom, option);
 	};
 	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
 		onDomTreeChange(container, () => {
@@ -1865,40 +1908,37 @@ var WebCom = (function (exports) {
 		}
 		return el.value;
 	};
-	const getElementValueByName = (name, container = document)=>{
-		let els = findAll(`[name="${name}"]:not([disabled])`, container);
+	const getElementValueByName = (name, container = document) => {
+		let elements = findAll(`[name="${name}"]:not([disabled])`, container);
 		let values = [];
 		let multiple = false;
-		els.forEach(el => {
-			switch(el.type){
+		elements.forEach(element => {
+			switch(element.type){
 				case 'checkbox':
 					multiple = true;
-					if(el.checked){
-						values.push(el.value);
+					if(element.checked){
+						values.push(element.value);
 					}
 					break;
 				case 'radio':
-					if(el.checked){
-						values.push(el.value);
+					if(element.checked){
+						values.push(element.value);
 					}
 					break;
 				case 'select':
-					if(el.multiple){
+					if(element.multiple){
 						multiple = true;
-						Array.from(el.selectedOptions).forEach(opt => {
+						Array.from(element.selectedOptions).forEach(opt => {
 							values.push(opt.value);
 						});
 					}else {
-						values.push(el.value);
+						values.push(element.value);
 					}
 					break;
 				default:
-					values.push(el.value);
+					values.push(element.value);
 			}
 		});
-		if(values.length > 1){
-			return values;
-		}
 		return multiple ? values : values[0];
 	};
 	const formSync = (dom, getter, setter) => {
@@ -2009,8 +2049,7 @@ var WebCom = (function (exports) {
 			form.appendChild(ipt);
 		});
 	};
-	const bindFormSubmitAsJSON = (form, onSubmitting = () => {
-	}) => {
+	const bindFormSubmitAsJSON = (form, onSubmitting = () => {}) => {
 		return new Promise((resolve, reject) => {
 			let submitting = false;
 			form.addEventListener('submit', e => {
@@ -2029,6 +2068,55 @@ var WebCom = (function (exports) {
 				return false;
 			});
 		});
+	};
+	const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
+		let last_saved_data = formSerializeString(form, false);
+		let last_execute_time = 0;
+		let executing = false;
+		let tasks = [];
+		const PRO_KEY = '_auto_save_listen_' + guid();
+		const doSaveAsync = () => {
+			if(executing){
+				return;
+			}
+			executing = true;
+			let doTask = ()=>{
+				let task = tasks.shift();
+				let task_data = formSerializeString(form, false);
+				task().finally(() => {
+					last_saved_data = task_data;
+					last_execute_time = (new Date()).getTime();
+					executing = false;
+					if(!tasks.length);else {
+						doSaveAsync();
+					}
+				});
+			};
+			let remains = minSaveInterval - (new Date().getTime() - last_execute_time);
+			if(remains > 0){
+				setTimeout(doTask, remains);
+			} else {
+				doTask();
+			}
+		};
+		const queue = ()=>{
+			if(tasks.length > 1){
+				return;
+			}
+			if(last_saved_data === formSerializeString(form, false)){
+				return;
+			}
+			tasks.push(savePromise);
+			doSaveAsync();
+		};
+		mutationEffective(form,  {attributes: false, subtree: true, childList: true}, obs=>{
+			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`).forEach(el=>{
+				el.setAttribute(PRO_KEY, '1');
+				el.addEventListener('change', queue);
+			});
+			queue();
+		}, 100);
+		findAll('input,textarea,select').forEach(el=>{el.addEventListener('change', queue);});
 	};
 	const getFormDataAvailable = (dom, validate = true) => {
 		if(validate && !formValidate(dom)){
@@ -2123,14 +2211,6 @@ var WebCom = (function (exports) {
 		}
 		return ret;
 	};
-	const buildHtmlHidden = (maps) => {
-		let html = '';
-		for(let key in maps){
-			let val = maps[key] === null ? '' : maps[key];
-			html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
-		}
-		return html;
-	};
 	const WINDOW_UNLOAD_ALERT_MAP_VAR_KEY = 'WINDOW_UNLOAD_ALERT_MAP_VAR_KEY';
 	window[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY] = [
 	];
@@ -2191,9 +2271,9 @@ var WebCom = (function (exports) {
 		_form_us_msg[us_sid] = alertMsg || '表单尚未保存，是否确认离开？';
 		form.setAttribute(_form_us_sid_attr_key, us_sid);
 		let upd_tm = null;
-		let upd = ()=>{
+		let upd = () => {
 			upd_tm && clearTimeout(upd_tm);
-			upd_tm = setTimeout(()=>{
+			upd_tm = setTimeout(() => {
 				_form_data_cache_new[us_sid] = formSerializeJSON(form, false);
 				setWindowUnloadMessage(validateFormChanged(form, us_sid), form);
 			}, 100);
@@ -5583,61 +5663,76 @@ var WebCom = (function (exports) {
 		}
 		throw "event target no in container";
 	};
-	const sortable = (listNode, option = null, onChange = () => {
-	}) => {
+	const sortable = (listContainer, option = {}) => {
 		let currentNode = null;
 		let currentParent = null;
-		option = option || {};
-		let ClassOnDrag = option.ClassOnDrag || CLS_ON_DRAG;
-		let ClassProxy = option.ClassProxy || CLS_DRAG_PROXY;
-		let set = () => {
-			Array.from(listNode.children).forEach(child => child.setAttribute('draggable', 'true'));
-		};
-		onDomTreeChange(listNode, set, false);
-		set();
-		listNode.addEventListener('dragover', e=>{
-			e.preventDefault();
-		});
-		listNode.addEventListener('dragstart', e => {
-			if(e.target === listNode){
-				return;
+		listContainer = findOne(listContainer);
+		option = Object.assign({
+			ClassOnDrag: CLS_ON_DRAG,
+			ClassProxy: CLS_DRAG_PROXY,
+			triggerSelector: '',
+			onChange: ()=>{}
+		}, option);
+		const setDraggable = () => {
+			if(option.triggerSelector){
+				findAll(option.triggerSelector, listContainer).forEach(trigger=>trigger.setAttribute('draggable', 'true'));
+			} else {
+				Array.from(listContainer.children).forEach(child => child.setAttribute('draggable', 'true'));
 			}
-			let tag = matchChildren(listNode, e.target);
-			currentNode = tag;
-			currentParent = listNode;
-			currentNode.classList.add(ClassProxy);
+		};
+		onDomTreeChange(listContainer, setDraggable, false);
+		setDraggable();
+		listContainer.addEventListener('dragover', e=>{
+			e.preventDefault();
+			return false;
+		});
+		listContainer.addEventListener('dragstart', e => {
+			if(option.triggerSelector){
+				if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
+					e.preventDefault();
+					return false;
+				}
+			}
+			if(e.target === listContainer){
+				e.preventDefault();
+				return false;
+			}
+			let childNode = matchChildren(listContainer, e.target);
+			currentNode = childNode;
+			currentParent = listContainer;
+			currentNode.classList.add(option.ClassProxy);
 			setTimeout(() => {
-				tag.classList.remove(ClassProxy);
-				tag.classList.add(ClassOnDrag);
+				childNode.classList.remove(option.ClassProxy);
+				childNode.classList.add(option.ClassOnDrag);
 			}, 0);
 			return false;
 		});
-		listNode.addEventListener('dragenter', e => {
-			if(e.target === listNode){
+		listContainer.addEventListener('dragenter', e => {
+			if(e.target === listContainer){
 				return;
 			}
-			let tag = matchChildren(listNode, e.target);
-			if(!currentNode || currentParent !== listNode || tag === listNode || tag === currentNode){
+			let childNode = matchChildren(listContainer, e.target);
+			if(!currentNode || currentParent !== listContainer || childNode === listContainer || childNode === currentNode){
 				return;
 			}
-			let children = Array.from(listNode.children);
+			let children = Array.from(listContainer.children);
 			let currentIndex = children.indexOf(currentNode);
-			let targetIndex = children.indexOf(tag);
+			let targetIndex = children.indexOf(childNode);
 			if(currentIndex > targetIndex){
-				listNode.insertBefore(currentNode, tag.previousSibling);
+				listContainer.insertBefore(currentNode, childNode.previousSibling);
 			}else {
-				listNode.insertBefore(currentNode, tag.nextSibling);
+				listContainer.insertBefore(currentNode, childNode.nextSibling);
 			}
-			onChange(currentIndex, targetIndex);
+			option.onChange(currentIndex, targetIndex);
 		});
-		listNode.addEventListener('dragend', e => {
-			if(e.target === listNode){
+		listContainer.addEventListener('dragend', e => {
+			if(e.target === listContainer){
 				return;
 			}
-			let tag = matchChildren(listNode, e.target);
+			let childNode = matchChildren(listContainer, e.target);
 			currentNode = null;
 			currentParent = null;
-			tag.classList.remove(ClassOnDrag);
+			childNode.classList.remove(option.ClassOnDrag);
 		});
 	};
 
@@ -7148,6 +7243,7 @@ var WebCom = (function (exports) {
 	exports.base64UrlSafeEncode = base64UrlSafeEncode;
 	exports.between = between;
 	exports.bindConsole = bindConsole;
+	exports.bindFormAutoSave = bindFormAutoSave;
 	exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 	exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
 	exports.bindHotKeys = bindHotKeys;
@@ -7258,6 +7354,7 @@ var WebCom = (function (exports) {
 	exports.mergeDeep = mergeDeep;
 	exports.mergerUriParam = mergerUriParam;
 	exports.monthsOffsetCalc = monthsOffsetCalc;
+	exports.mutationEffective = mutationEffective;
 	exports.nodeHighlight = nodeHighlight;
 	exports.nodeIndex = nodeIndex;
 	exports.objectGetByPath = objectGetByPath;
@@ -7305,6 +7402,7 @@ var WebCom = (function (exports) {
 	exports.stripSlashes = stripSlashes;
 	exports.tabConnect = tabConnect;
 	exports.throttle = throttle;
+	exports.throttleEffect = throttleEffect;
 	exports.toHtmlEntities = toHtmlEntities;
 	exports.toggle = toggle;
 	exports.toggleFullScreen = toggleFullScreen;

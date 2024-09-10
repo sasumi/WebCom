@@ -241,7 +241,6 @@ export const isNodeHidden = (node) => {
 	return node.offsetParent === null;
 }
 
-
 /**
  * 监听节点树变更
  * @param {Node} dom
@@ -249,30 +248,51 @@ export const isNodeHidden = (node) => {
  * @param {Boolean} includeElementChanged 是否包含表单元素的值变更
  */
 export const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
-	let tm = null;
 	const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
-	const payload = () => {
-		tm && clearTimeout(tm);
-		tm = setTimeout(callback, 0);
-	}
-	const watchEls = (els) => {
-		if(!els || !els.length){
-			return;
-		}
-		els.forEach(el => {
+	let watchEl = ()=>{
+		findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el=>{
 			el.setAttribute(PRO_KEY, '1');
-			el.addEventListener('change', payload);
+			el.addEventListener('change', callback);
 		});
 	}
+	mutationEffective(dom, {attributes: true, subtree: true, childList: true}, ()=>{
+		includeElementChanged && watchEl();
+		callback();
+	}, 10);
+	includeElementChanged && watchEl();
+}
+
+/**
+ * 更低占用执行mutation监听
+ * @param {Node} dom
+ * @param {Object} option
+ * @param {Boolean} option.attributes
+ * @param {Boolean} option.subtree
+ * @param {Boolean} option.childList
+ * @param {Function} payload
+ * @param {Number} minInterval 执行回调最小间隔时间（毫秒）
+ */
+export const mutationEffective = (dom, option, payload, minInterval = 10) => {
+	let last_queue_time = 0;
+	let callback_queueing = false;
 	let obs = new MutationObserver(() => {
-		if(includeElementChanged){
-			let els = dom.querySelectorAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`);
-			watchEls(els);
+		if(callback_queueing){
+			return;
 		}
-		payload();
+		let r = minInterval - (new Date().getTime() - last_queue_time);
+		if(r > 0){
+			callback_queueing = true;
+			setTimeout(() => {
+				callback_queueing = false;
+				last_queue_time = new Date().getTime();
+				payload(obs);
+			}, r);
+		}else{
+			last_queue_time = new Date().getTime();
+			payload(obs);
+		}
 	});
-	obs.observe(dom, {attributes: true, subtree: true, childList: true});
-	includeElementChanged && watchEls(dom.querySelectorAll('input,textarea,select'));
+	obs.observe(dom, option);
 }
 
 /**

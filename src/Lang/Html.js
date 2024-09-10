@@ -119,6 +119,20 @@ export const decodeHTMLEntities = (str) => {
 }
 
 /**
+ * 构建 HTML Input:hidden 标签
+ * @param {Object} maps {key:value}
+ * @return {string}
+ */
+export const buildHtmlHidden = (maps) => {
+	let html = '';
+	for(let key in maps){
+		let val = maps[key] === null ? '' : maps[key];
+		html += `<input type="hidden" name="${escapeAttr(key)}" value="${escapeAttr(val)}"/>`;
+	}
+	return html;
+}
+
+/**
  * 转义HTML
  * @param {string} str
  * @returns {string}
