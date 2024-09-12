@@ -288,8 +288,7 @@ export const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
 				last_saved_data = task_data;
 				last_execute_time = (new Date()).getTime();
 				executing = false;
-				if(!tasks.length){
-				}else{
+				if(tasks.length){
 					doSaveAsync();
 				}
 			});

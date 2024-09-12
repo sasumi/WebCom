@@ -503,6 +503,11 @@ class Dialog {
 		DialogManager.register(this);
 	}
 
+	setWidth(width){
+		this.config.width = width;
+		this.dom.style.width = dimension2Style(width);
+	}
+
 	setTitle(title){
 		this.config.title = title;
 		findOne('.' + DLG_CLS_TI, this.dom).innerText = title;

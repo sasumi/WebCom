@@ -263,7 +263,7 @@ export const onDomTreeChange = (dom, callback, includeElementChanged = true) => 
 }
 
 /**
- * 更低占用执行mutation监听
+ * 更低占用执行mutation监听，支持指定最小间隔时间执行回调
  * @param {Node} dom
  * @param {Object} option
  * @param {Boolean} option.attributes

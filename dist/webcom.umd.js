@@ -2090,7 +2090,7 @@
 					last_saved_data = task_data;
 					last_execute_time = (new Date()).getTime();
 					executing = false;
-					if(!tasks.length);else {
+					if(tasks.length){
 						doSaveAsync();
 					}
 				});
@@ -3504,6 +3504,10 @@
 			domConstruct(this);
 			eventBind(this);
 			DialogManager.register(this);
+		}
+		setWidth(width){
+			this.config.width = width;
+			this.dom.style.width = dimension2Style(width);
 		}
 		setTitle(title){
 			this.config.title = title;
