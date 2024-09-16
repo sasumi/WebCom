@@ -96,9 +96,10 @@ export class ACHotKey {
 			tip = createDomByHtml(`<div class="${HOTKEY_TIP_CLASS}" id="${tip_id}">${key}</div>`, document.body);
 		}
 		tip.style.visibility = 'hidden';
-		show(tip);
-		tip.style.top = node.offsetTop - tip.clientHeight + 'px';
-		tip.style.left = node.offsetLeft + 'px';
+		let rect = node.getBoundingClientRect();
+		tip.style.top = rect.top - tip.clientHeight + 'px';
+		tip.style.left = rect.left + rect.width/2 - tip.clientWidth/2 + 'px';
 		tip.style.visibility = 'visible';
+		show(tip);
 	}
 }

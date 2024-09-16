@@ -149,22 +149,34 @@ export const bindTextAutoResize = (textarea, init = true) => {
 export const bindIframeAutoResize = (iframe)=>{
 	let obs;
 	try{
-		let upd = () => {
+		let loaded = false;
+		let resizeIframe = () => {
 			let bdy = iframe.contentWindow.document.body;
-			if(bdy){
-				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-				setTimeout(() => {
-					let cs = iframe.contentWindow.getComputedStyle(bdy);
-					let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
-					let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-					iframe.style.height = dimension2Style(h);
-				}, 10);
+			if(!bdy){
+				console.debug('body no ready yet.');
+				return;
 			}
+			iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+			let cs = iframe.contentWindow.getComputedStyle(bdy);
+			let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
+			let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+			iframe.style.height = dimension2Style(h);
 		}
+
+		let watch = ()=>{
+			if(loaded){
+				return;
+			}
+			resizeIframe();
+			setTimeout(watch, 50);
+		};
+		watch();
+
+		//成功加载后，只监听节点变化才调整高度，避免性能消耗
 		iframe.addEventListener('load', () => {
-			obs = new MutationObserver(upd);
-			obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-			upd();
+			console.log('iframe loaded', iframe.src);
+			loaded = true;
+			mutationEffective(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true}, resizeIframe);
 		});
 	}catch(err){
 		try{
@@ -277,18 +289,22 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	let callback_queueing = false;
 	let obs = new MutationObserver(() => {
 		if(callback_queueing){
+			console.log('callback queueing');
 			return;
 		}
 		let r = minInterval - (new Date().getTime() - last_queue_time);
 		if(r > 0){
+			console.log('wait');
 			callback_queueing = true;
 			setTimeout(() => {
 				callback_queueing = false;
 				last_queue_time = new Date().getTime();
+				console.log('call after wait');
 				payload(obs);
 			}, r);
 		}else{
 			last_queue_time = new Date().getTime();
+			console.log('call');
 			payload(obs);
 		}
 	});

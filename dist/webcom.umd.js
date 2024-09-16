@@ -975,22 +975,31 @@
 	const bindIframeAutoResize = (iframe)=>{
 		let obs;
 		try{
-			let upd = () => {
+			let loaded = false;
+			let resizeIframe = () => {
 				let bdy = iframe.contentWindow.document.body;
-				if(bdy){
-					iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-					setTimeout(() => {
-						let cs = iframe.contentWindow.getComputedStyle(bdy);
-						let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
-						let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-						iframe.style.height = dimension2Style(h);
-					}, 10);
+				if(!bdy){
+					console.debug('body no ready yet.');
+					return;
 				}
+				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
+				let cs = iframe.contentWindow.getComputedStyle(bdy);
+				let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+				let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
+				iframe.style.height = dimension2Style(h);
 			};
+			let watch = ()=>{
+				if(loaded){
+					return;
+				}
+				resizeIframe();
+				setTimeout(watch, 50);
+			};
+			watch();
 			iframe.addEventListener('load', () => {
-				obs = new MutationObserver(upd);
-				obs.observe(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true});
-				upd();
+				console.log('iframe loaded', iframe.src);
+				loaded = true;
+				mutationEffective(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true}, resizeIframe);
 			});
 		}catch(err){
 			try{
@@ -1051,18 +1060,22 @@
 		let callback_queueing = false;
 		let obs = new MutationObserver(() => {
 			if(callback_queueing){
+				console.log('callback queueing');
 				return;
 			}
 			let r = minInterval - (new Date().getTime() - last_queue_time);
 			if(r > 0){
+				console.log('wait');
 				callback_queueing = true;
 				setTimeout(() => {
 					callback_queueing = false;
 					last_queue_time = new Date().getTime();
+					console.log('call after wait');
 					payload(obs);
 				}, r);
 			}else {
 				last_queue_time = new Date().getTime();
+				console.log('call');
 				payload(obs);
 			}
 		});
@@ -7016,10 +7029,11 @@
 				tip = createDomByHtml(`<div class="${HOTKEY_TIP_CLASS}" id="${tip_id}">${key}</div>`, document.body);
 			}
 			tip.style.visibility = 'hidden';
-			show(tip);
-			tip.style.top = node.offsetTop - tip.clientHeight + 'px';
-			tip.style.left = node.offsetLeft + 'px';
+			let rect = node.getBoundingClientRect();
+			tip.style.top = rect.top - tip.clientHeight + 'px';
+			tip.style.left = rect.left + rect.width/2 - tip.clientWidth/2 + 'px';
 			tip.style.visibility = 'visible';
+			show(tip);
 		}
 	}
 

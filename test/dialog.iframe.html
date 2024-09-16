@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		.test-case-list {list-style:none; display:flex; flex-wrap:wrap; gap:1em; margin-top:2em;}
+		.test-case-list>li {border:1px solid #ddd; border-radius:5px; padding:0 2em 2em;}
+		.test-case-list h3 {font-size:1.1rem;}
+	</style>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+
+<script type="module">
+	import {Dialog} from "../src/index.js";
+	let dlg = Dialog.show('iframe', {src:"http://localhost/tthk/xet/public/?r=article/info&id=3443"});
+	dlg.show();
+</script>
+
+</body>
+</html>
