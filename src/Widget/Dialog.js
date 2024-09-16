@@ -6,7 +6,7 @@ import {
 	insertStyleSheet,
 	remove
 } from "../Lang/Dom.js";
-import {bindNodeActive, BizEvent, KEYBOARD_KEY_MAP, KEYS} from "../Lang/Event.js";
+import {bindNodeActive, BizEvent, KEYBOARD_KEY_MAP} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
 import {guid} from "../Lang/Util.js";
 import {dimension2Style, escapeAttr} from "../Lang/Html.js";
@@ -220,18 +220,23 @@ const domConstruct = (dlg) => {
 
 		//bind window.unload event
 		dlg.onClose.listen(() => {
-			let win = iframe.contentWindow;
-			if(win.getWindowUnloadAlertList){
-				let alert_list = win.getWindowUnloadAlertList(iframe);
-				if(alert_list.length){
-					let unload_alert = alert_list.join("\n");
-					//兼容使用原生弹窗效果
-					if(!window.confirm(unload_alert)){
-						return false;
+			//避免跨域，try
+			try{
+				let win = iframe.contentWindow;
+				if(win.getWindowUnloadAlertList){
+					let alert_list = win.getWindowUnloadAlertList(iframe);
+					if(alert_list.length){
+						let unload_alert = alert_list.join("\n");
+						//兼容使用原生弹窗效果
+						if(!window.confirm(unload_alert)){
+							return false;
+						}
+						win.setWindowUnloadMessage('', iframe);
+						return true;
 					}
-					win.setWindowUnloadMessage('', iframe);
-					return true;
 				}
+			}catch(err){
+				console.warn(err);
 			}
 		})
 	}

@@ -3334,17 +3334,21 @@ var WebCom = (function (exports) {
 			let iframe = dlg.dom.querySelector('iframe');
 			bindIframeAutoResize(iframe);
 			dlg.onClose.listen(() => {
-				let win = iframe.contentWindow;
-				if(win.getWindowUnloadAlertList){
-					let alert_list = win.getWindowUnloadAlertList(iframe);
-					if(alert_list.length){
-						let unload_alert = alert_list.join("\n");
-						if(!window.confirm(unload_alert)){
-							return false;
+				try{
+					let win = iframe.contentWindow;
+					if(win.getWindowUnloadAlertList){
+						let alert_list = win.getWindowUnloadAlertList(iframe);
+						if(alert_list.length){
+							let unload_alert = alert_list.join("\n");
+							if(!window.confirm(unload_alert)){
+								return false;
+							}
+							win.setWindowUnloadMessage('', iframe);
+							return true;
 						}
-						win.setWindowUnloadMessage('', iframe);
-						return true;
 					}
+				}catch(err){
+					console.warn(err);
 				}
 			});
 		}
