@@ -1006,7 +1006,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					return;
 				}
 				resizeIframe();
-				setTimeout(watch, 50);
+				setTimeout(watch, 0);
 			};
 			watch();
 			iframe.addEventListener('load', () => {
@@ -1593,7 +1593,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		show(onTimeoutClose = null){
 			let wrapper = getWrapper();
-			wrapper.showPopover();
+			if(wrapper.showPopover){
+				wrapper.showPopover();
+			} else {
+				show(wrapper);
+			}
 			this.dom = createDomByHtml(
 				`<span class="${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-${this.type}">
 				<span class="ctn">${this.message}</span><div></div>
@@ -1623,7 +1627,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
-				wrapper.hidePopover();
+				if(wrapper.hidePopover){
+					wrapper.hidePopover();
+				} else {
+					hide(wrapper);
+				}
 			}
 		}
 	}

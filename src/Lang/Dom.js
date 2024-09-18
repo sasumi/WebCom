@@ -168,7 +168,7 @@ export const bindIframeAutoResize = (iframe)=>{
 				return;
 			}
 			resizeIframe();
-			setTimeout(watch, 50);
+			setTimeout(watch, 0);
 		};
 		watch();
 

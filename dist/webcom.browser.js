@@ -990,7 +990,7 @@ var WebCom = (function (exports) {
 					return;
 				}
 				resizeIframe();
-				setTimeout(watch, 50);
+				setTimeout(watch, 0);
 			};
 			watch();
 			iframe.addEventListener('load', () => {
@@ -1577,7 +1577,11 @@ var WebCom = (function (exports) {
 		}
 		show(onTimeoutClose = null){
 			let wrapper = getWrapper();
-			wrapper.showPopover();
+			if(wrapper.showPopover){
+				wrapper.showPopover();
+			} else {
+				show(wrapper);
+			}
 			this.dom = createDomByHtml(
 				`<span class="${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-${this.type}">
 				<span class="ctn">${this.message}</span><div></div>
@@ -1607,7 +1611,11 @@ var WebCom = (function (exports) {
 			this.dom = null;
 			let wrapper = getWrapper();
 			if(!wrapper.childNodes.length){
-				wrapper.hidePopover();
+				if(wrapper.hidePopover){
+					wrapper.hidePopover();
+				} else {
+					hide(wrapper);
+				}
 			}
 		}
 	}
