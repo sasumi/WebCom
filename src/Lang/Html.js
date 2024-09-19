@@ -2,17 +2,22 @@ import {isNum, regQuote} from "./String.js";
 
 /**
  * 块元素
+ * 用大写定义，方便直接匹配 node.tagName
  * @type {string[]}
  */
 export const BLOCK_TAGS = [
-	'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'address', 'pre', 'form',
-	'table', 'li', 'ol', 'ul', 'tr', 'td', 'caption', 'blockquote', 'center','legend',
-	'dl', 'dt', 'dd', 'dir', 'fieldset', 'noscript', 'noframes', 'menu', 'isindex', 'samp',
-	'nav','header', 'aside', 'dialog','section', 'footer','article'
+	'BODY', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'P', 'DIV', 'SPAN', 'ADDRESS', 'PRE', 'FORM',
+	'TABLE', 'LI', 'OL', 'UL', 'TR', 'TD', 'CAPTION', 'BLOCKQUOTE', 'CENTER','LEGEND',
+	'DL', 'DT', 'DD', 'DIR', 'FIELDSET', 'NOSCRIPT', 'NOFRAMES', 'MENU', 'ISINDEX', 'SAMP',
+	'NAV','HEADER', 'ASIDE', 'DIALOG','SECTION', 'FOOTER','ARTICLE'
 ];
 
+/**
+ * 非内容可清理标签
+ * @type {string[]}
+ */
 export const REMOVABLE_TAGS = [
-	'style', 'comment', 'select', 'option', 'script', 'title', 'head', 'button',
+	'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON',
 ];
 
 /**

@@ -508,13 +508,13 @@ const deleteCookie = (name) => {
 };
 
 const BLOCK_TAGS = [
-	'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'address', 'pre', 'form',
-	'table', 'li', 'ol', 'ul', 'tr', 'td', 'caption', 'blockquote', 'center','legend',
-	'dl', 'dt', 'dd', 'dir', 'fieldset', 'noscript', 'noframes', 'menu', 'isindex', 'samp',
-	'nav','header', 'aside', 'dialog','section', 'footer','article'
+	'BODY', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'P', 'DIV', 'SPAN', 'ADDRESS', 'PRE', 'FORM',
+	'TABLE', 'LI', 'OL', 'UL', 'TR', 'TD', 'CAPTION', 'BLOCKQUOTE', 'CENTER','LEGEND',
+	'DL', 'DT', 'DD', 'DIR', 'FIELDSET', 'NOSCRIPT', 'NOFRAMES', 'MENU', 'ISINDEX', 'SAMP',
+	'NAV','HEADER', 'ASIDE', 'DIALOG','SECTION', 'FOOTER','ARTICLE'
 ];
 const REMOVABLE_TAGS = [
-	'style', 'comment', 'select', 'option', 'script', 'title', 'head', 'button',
+	'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON',
 ];
 const html2Text = (html)=>{
 	REMOVABLE_TAGS.forEach(tag=>{
@@ -6372,17 +6372,10 @@ insertStyleSheet(`
 class ACCopy {
 	static COPY_CLASS = NS$1;
 	static init(node, params = {}){
-		if(params.content){
-			bindNodeActive(node, e=>{
-				let content = params.content || node.innerText;
-				copy(content, true);
-				e.preventDefault();
-				e.stopPropagation();
-				return false;
-			});
-			return;
+		let trigger = node;
+		if(BLOCK_TAGS.includes(node.tagName)){
+			trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		}
-		let trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		bindNodeActive(trigger, e => {
 			let content = params.content || node.innerText;
 			copy(content, true);
