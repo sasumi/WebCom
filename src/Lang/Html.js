@@ -5,12 +5,22 @@ import {isNum, regQuote} from "./String.js";
  * 用大写定义，方便直接匹配 node.tagName
  * @type {string[]}
  */
-export const BLOCK_TAGS = [
-	'BODY', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'P', 'DIV', 'SPAN', 'ADDRESS', 'PRE', 'FORM',
-	'TABLE', 'LI', 'OL', 'UL', 'TR', 'TD', 'CAPTION', 'BLOCKQUOTE', 'CENTER','LEGEND',
-	'DL', 'DT', 'DD', 'DIR', 'FIELDSET', 'NOSCRIPT', 'NOFRAMES', 'MENU', 'ISINDEX', 'SAMP',
-	'NAV','HEADER', 'ASIDE', 'DIALOG','SECTION', 'FOOTER','ARTICLE'
-];
+export const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT', 'OL', 'P', 'PRE', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'];
+
+/**
+ * 非自关闭标签
+ * https://www.w3schools.com/html/html_blocks.asp
+ * @type {*[]}
+ */
+export const PAIR_TAGS = [
+	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'VAR',
+].concat(...BLOCK_TAGS);
+
+/**
+ * 自关闭标签
+ * @type {string[]}
+ */
+export const SELF_CLOSING_TAGS = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
 
 /**
  * 非内容可清理标签

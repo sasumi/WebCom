@@ -508,12 +508,11 @@ var WebCom = (function (exports) {
 		document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 	};
 
-	const BLOCK_TAGS = [
-		'BODY', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'P', 'DIV', 'SPAN', 'ADDRESS', 'PRE', 'FORM',
-		'TABLE', 'LI', 'OL', 'UL', 'TR', 'TD', 'CAPTION', 'BLOCKQUOTE', 'CENTER','LEGEND',
-		'DL', 'DT', 'DD', 'DIR', 'FIELDSET', 'NOSCRIPT', 'NOFRAMES', 'MENU', 'ISINDEX', 'SAMP',
-		'NAV','HEADER', 'ASIDE', 'DIALOG','SECTION', 'FOOTER','ARTICLE'
-	];
+	const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT', 'OL', 'P', 'PRE', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'];
+	const PAIR_TAGS = [
+		'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'VAR',
+	].concat(...BLOCK_TAGS);
+	const SELF_CLOSING_TAGS = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
 	const REMOVABLE_TAGS = [
 		'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON',
 	];
@@ -6374,7 +6373,7 @@ var WebCom = (function (exports) {
 		static COPY_CLASS = NS$1;
 		static init(node, params = {}){
 			let trigger = node;
-			if(BLOCK_TAGS.includes(node.tagName)){
+			if(PAIR_TAGS.includes(node.tagName)){
 				trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 			}
 			bindNodeActive(trigger, e => {
@@ -7233,6 +7232,7 @@ var WebCom = (function (exports) {
 	exports.ONE_MONTH_31 = ONE_MONTH_31;
 	exports.ONE_WEEK = ONE_WEEK;
 	exports.ONE_YEAR_365 = ONE_YEAR_365;
+	exports.PAIR_TAGS = PAIR_TAGS;
 	exports.PROMISE_STATE_FULFILLED = PROMISE_STATE_FULFILLED;
 	exports.PROMISE_STATE_PENDING = PROMISE_STATE_PENDING;
 	exports.PROMISE_STATE_REJECTED = PROMISE_STATE_REJECTED;
@@ -7241,6 +7241,7 @@ var WebCom = (function (exports) {
 	exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 	exports.REQUEST_FORMAT = REQUEST_FORMAT;
 	exports.RESPONSE_FORMAT = RESPONSE_FORMAT;
+	exports.SELF_CLOSING_TAGS = SELF_CLOSING_TAGS;
 	exports.Select = Select;
 	exports.TRIM_BOTH = TRIM_BOTH;
 	exports.TRIM_LEFT = TRIM_LEFT;

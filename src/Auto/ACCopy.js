@@ -2,7 +2,7 @@ import {copy} from "../Widget/Copy.js";
 import {Theme} from "../Widget/Theme.js";
 import {createDomByHtml, insertStyleSheet} from "../Lang/Dom.js";
 import {bindNodeActive} from "../Lang/Event.js";
-import {BLOCK_TAGS} from "../Lang/Html.js";
+import {PAIR_TAGS} from "../Lang/Html.js";
 
 const NS = Theme.Namespace + 'ac-copy';
 insertStyleSheet(`
@@ -26,7 +26,7 @@ export class ACCopy {
 
 	static init(node, params = {}){
 		let trigger = node;
-		if(BLOCK_TAGS.includes(node.tagName)){
+		if(PAIR_TAGS.includes(node.tagName)){
 			trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		}
 		bindNodeActive(trigger, e => {
