@@ -1693,6 +1693,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		[RESPONSE_FORMAT.TEXT]: 'text/plain',
 	};
 	const mergerUriParam = (uri, data) => {
+		if(data === null ||
+			data === undefined ||
+			(Array.isArray(data) && data.length === 0) ||
+			(typeof(data) === 'string' && data.length === 0)
+		){
+			return uri;
+		}
 		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
 	};
 	const setHash = data => {
@@ -1834,7 +1841,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			option.responseFormat = RESPONSE_FORMAT.JSON;
 			return Net.get(cgi, data, option);
 		}
-		static getJSONP(url, callback_name = 'callback', timeout = 3000){
+		static getJSONP(url, data, callback_name = 'callback', timeout = 3000){
 			return new Promise((resolve, reject) => {
 				let tm = window.setTimeout(function(){
 					window[callback_name] = function(){};
@@ -1847,7 +1854,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				let script = document.createElement('script');
 				script.type = 'text/javascript';
 				script.async = true;
-				script.src = url;
+				script.src = mergerUriParam(url, data);
 				document.getElementsByTagName('head')[0].appendChild(script);
 			});
 		}

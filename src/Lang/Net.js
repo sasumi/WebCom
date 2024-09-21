@@ -96,6 +96,13 @@ const RESPONSE_ACCEPT_TYPE_MAP = {
  * @returns {*}
  */
 export const mergerUriParam = (uri, data) => {
+	if(data === null ||
+		data === undefined ||
+		(Array.isArray(data) && data.length === 0) ||
+		(typeof(data) === 'string' && data.length === 0)
+	){
+		return uri;
+	}
 	return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
 }
 
@@ -302,11 +309,12 @@ export class Net {
 	/**
 	 * 请求JSONP
 	 * @param {String} url 请求URL
+	 * @param {String|Object} data 请求参数
 	 * @param {String} callback_name 回调函数名称，建议固定避免CSRF
 	 * @param {Number} timeout 超时时间（毫秒）
 	 * @return {Promise<unknown>}
 	 */
-	static getJSONP(url, callback_name = 'callback', timeout = 3000){
+	static getJSONP(url, data, callback_name = 'callback', timeout = 3000){
 		return new Promise((resolve, reject) => {
 			let tm = window.setTimeout(function(){
 				window[callback_name] = function(){};
@@ -321,7 +329,7 @@ export class Net {
 			let script = document.createElement('script');
 			script.type = 'text/javascript';
 			script.async = true;
-			script.src = url;
+			script.src = mergerUriParam(url, data);
 			document.getElementsByTagName('head')[0].appendChild(script);
 		});
 	}
