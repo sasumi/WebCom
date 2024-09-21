@@ -299,6 +299,33 @@ export class Net {
 		return Net.get(cgi, data, option);
 	}
 
+	/**
+	 * 请求JSONP
+	 * @param {String} url 请求URL
+	 * @param {String} callback_name 回调函数名称，建议固定避免CSRF
+	 * @param {Number} timeout 超时时间（毫秒）
+	 * @return {Promise<unknown>}
+	 */
+	static getJSONP(url, callback_name = 'callback', timeout = 3000){
+		return new Promise((resolve, reject) => {
+			let tm = window.setTimeout(function(){
+				window[callback_name] = function(){};
+				reject(`timeout in ${timeout}ms`);
+			}, timeout);
+
+			window[callback_name] = function(data){
+				window.clearTimeout(tm);
+				resolve(data);
+			}
+
+			let script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.async = true;
+			script.src = url;
+			document.getElementsByTagName('head')[0].appendChild(script);
+		});
+	}
+
 	static post(cgi, data, option = {}){
 		option.method = option.method || HTTP_METHOD.POST;
 		return Net.request(cgi, data, option);

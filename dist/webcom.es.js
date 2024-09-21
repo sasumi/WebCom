@@ -1815,6 +1815,23 @@ class Net {
 		option.responseFormat = RESPONSE_FORMAT.JSON;
 		return Net.get(cgi, data, option);
 	}
+	static getJSONP(url, callback_name = 'callback', timeout = 3000){
+		return new Promise((resolve, reject) => {
+			let tm = window.setTimeout(function(){
+				window[callback_name] = function(){};
+				reject(`timeout in ${timeout}ms`);
+			}, timeout);
+			window[callback_name] = function(data){
+				window.clearTimeout(tm);
+				resolve(data);
+			};
+			let script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.async = true;
+			script.src = url;
+			document.getElementsByTagName('head')[0].appendChild(script);
+		});
+	}
 	static post(cgi, data, option = {}){
 		option.method = option.method || HTTP_METHOD.POST;
 		return Net.request(cgi, data, option);
