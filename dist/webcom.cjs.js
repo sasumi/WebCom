@@ -521,7 +521,7 @@ const html2Text = (html)=>{
 	});
 	html = html.replace(/[\r|\n]/g, '');
 	html = html.replace(/<(\w+)([^>]*)>/g, function(ms, tag, tail){
-		if(BLOCK_TAGS.includes(tag.toLowerCase())){
+		if(BLOCK_TAGS.includes(tag.toUpperCase())){
 			return "\n";
 		}
 		return "";

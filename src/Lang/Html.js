@@ -46,7 +46,7 @@ export const html2Text = (html)=>{
 
 	//convert block tags to line break
 	html = html.replace(/<(\w+)([^>]*)>/g, function(ms, tag, tail){
-		if(BLOCK_TAGS.includes(tag.toLowerCase())){
+		if(BLOCK_TAGS.includes(tag.toUpperCase())){
 			return "\n";
 		}
 		return "";
