@@ -5946,7 +5946,15 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const DEFAULT_REQUEST_HANDLE = (url, fileMap, callbacks) => {
 		return uploadFile(url, fileMap, {
 			onSuccess: (rspJson) => {
-				let rspObj = JSON.parse(rspJson);
+				let rspObj;
+				try {
+					rspObj = JSON.parse(rspJson);
+					if(rspObj.code === undefined || rspObj.message === undefined){
+						throw "{code, message} 字段必须提供（code=0表示成功）";
+					}
+				} catch(err){
+					throw `JSON格式解析失败${err}，返回格式必须是：{code, message, data:{name,value,thumb,error}}`;
+				}
 				if(rspObj.code !== 0){
 					return {error: rspObj.message};
 				}
@@ -5954,7 +5962,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					value: rspObj.data.value,
 					thumb: rspObj.data.thumb,
 					name: rspObj.data.name,
-					error: null
+					error:null
 				});
 			},
 			onError: callbacks.onError,
