@@ -13,7 +13,7 @@ export const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS'
  * @type {*[]}
  */
 export const PAIR_TAGS = [
-	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'VAR',
+	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR',
 ].concat(...BLOCK_TAGS);
 
 /**
@@ -27,7 +27,7 @@ export const SELF_CLOSING_TAGS = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'I
  * @type {string[]}
  */
 export const REMOVABLE_TAGS = [
-	'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON',
+	'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON', 'META', 'LINK', 'PARAM', 'SOURCE'
 ];
 
 /**

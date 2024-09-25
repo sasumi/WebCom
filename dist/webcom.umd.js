@@ -513,11 +513,11 @@
 
 	const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT', 'OL', 'P', 'PRE', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'];
 	const PAIR_TAGS = [
-		'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'VAR',
+		'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR',
 	].concat(...BLOCK_TAGS);
 	const SELF_CLOSING_TAGS = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
 	const REMOVABLE_TAGS = [
-		'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON',
+		'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON', 'META', 'LINK', 'PARAM', 'SOURCE'
 	];
 	const html2Text = (html)=>{
 		REMOVABLE_TAGS.forEach(tag=>{
@@ -1059,22 +1059,18 @@
 		let callback_queueing = false;
 		let obs = new MutationObserver(() => {
 			if(callback_queueing){
-				console.log('callback queueing');
 				return;
 			}
 			let r = minInterval - (new Date().getTime() - last_queue_time);
 			if(r > 0){
-				console.log('wait');
 				callback_queueing = true;
 				setTimeout(() => {
 					callback_queueing = false;
 					last_queue_time = new Date().getTime();
-					console.log('call after wait');
 					payload(obs);
 				}, r);
 			}else {
 				last_queue_time = new Date().getTime();
-				console.log('call');
 				payload(obs);
 			}
 		});

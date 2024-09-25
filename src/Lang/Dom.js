@@ -289,22 +289,18 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	let callback_queueing = false;
 	let obs = new MutationObserver(() => {
 		if(callback_queueing){
-			console.log('callback queueing');
 			return;
 		}
 		let r = minInterval - (new Date().getTime() - last_queue_time);
 		if(r > 0){
-			console.log('wait');
 			callback_queueing = true;
 			setTimeout(() => {
 				callback_queueing = false;
 				last_queue_time = new Date().getTime();
-				console.log('call after wait');
 				payload(obs);
 			}, r);
 		}else{
 			last_queue_time = new Date().getTime();
-			console.log('call');
 			payload(obs);
 		}
 	});
