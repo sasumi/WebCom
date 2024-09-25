@@ -142,24 +142,24 @@ const updateState = (up, state, data = null) => {
 	switch(state){
 		case UPLOAD_STATE_EMPTY:
 			fileEl.value = '';
+			fileEl.required = !!fileEl.dataset.required;
 			contentCtn.innerHTML = '';
 			up.onClean.fire();
 			break;
-
 		case UPLOAD_STATE_PENDING:
 			up.onUploading.fire();
 			break;
-
 		case UPLOAD_STATE_NORMAL:
-			fileEl.value = '';
+			fileEl.required = false;
+			up.dom.title = up.name;
 			up.dom.title = up.name;
 			contentCtn.innerHTML = `<img alt="" src="${up.thumb}">`;
 			up.onSuccess.fire({name: up.name, value: up.value, thumb: up.thumb});
 			break;
-
 		case UPLOAD_STATE_ERROR:
 			fileEl.value = '';
-			updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY); //出现错误还原上一个状态
+			fileEl.required = !!fileEl.dataset.required;
+			updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			console.error('Uploader Error:', data);
 			up.onError.fire(data);
 			break;
@@ -228,7 +228,7 @@ export class Uploader {
 	 * @param {CallableFunction} option.requestHandle
 	 * @return {Uploader}
 	 */
-	static bindFileInput(inputEl, initData = {}, option = {}){
+	static bindInput(inputEl, initData = {}, option = {}){
 		let name = initData.name || inputEl.name;
 		let value = initData.value || inputEl.value;
 		let accepts = inputEl.accept.split(',');
@@ -295,7 +295,7 @@ export class Uploader {
 		const html =
 			`<div class="${NS}" data-state="${this.state}">
 			<label class="${NS}-file">
-				<input type="file" tabindex="0" accept="${acceptStr}" value="${this.value}" ${this.option.required ? 'required' : ''}>
+				<input type="file" tabindex="0" accept="${acceptStr}" data-required="${this.option.required ? 'required' : ''}">
 			</label>
 			<div class="${NS}-progress">
 				<progress max="100" value="0">0%</progress>

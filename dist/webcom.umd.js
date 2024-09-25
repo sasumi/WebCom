@@ -5983,6 +5983,7 @@
 		switch(state){
 			case UPLOAD_STATE_EMPTY:
 				fileEl.value = '';
+				fileEl.required = !!fileEl.dataset.required;
 				contentCtn.innerHTML = '';
 				up.onClean.fire();
 				break;
@@ -5990,13 +5991,15 @@
 				up.onUploading.fire();
 				break;
 			case UPLOAD_STATE_NORMAL:
-				fileEl.value = '';
+				fileEl.required = false;
+				up.dom.title = up.name;
 				up.dom.title = up.name;
 				contentCtn.innerHTML = `<img alt="" src="${up.thumb}">`;
 				up.onSuccess.fire({name: up.name, value: up.value, thumb: up.thumb});
 				break;
 			case UPLOAD_STATE_ERROR:
 				fileEl.value = '';
+				fileEl.required = !!fileEl.dataset.required;
 				updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 				console.error('Uploader Error:', data);
 				up.onError.fire(data);
@@ -6039,7 +6042,7 @@
 			fileSizeLimit: 0,
 			requestHandle: null,
 		};
-		static bindFileInput(inputEl, initData = {}, option = {}){
+		static bindInput(inputEl, initData = {}, option = {}){
 			let name = initData.name || inputEl.name;
 			let value = initData.value || inputEl.value;
 			let accepts = inputEl.accept.split(',');
@@ -6089,7 +6092,7 @@
 			const html =
 				`<div class="${NS$3}" data-state="${this.state}">
 			<label class="${NS$3}-file">
-				<input type="file" tabindex="0" accept="${acceptStr}" value="${this.value}" ${this.option.required ? 'required' : ''}>
+				<input type="file" tabindex="0" accept="${acceptStr}" data-required="${this.option.required ? 'required' : ''}">
 			</label>
 			<div class="${NS$3}-progress">
 				<progress max="100" value="0">0%</progress>
@@ -6798,7 +6801,7 @@
 				if(node.accept){
 					params.allowFileTypes = node.accept;
 				}
-				Uploader.bindFileInput(node, params, params);
+				Uploader.bindInput(node, params, params);
 				resolve();
 			});
 		}

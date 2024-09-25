@@ -24,7 +24,7 @@ export class ACUploader {
 			if(node.accept){
 				params.allowFileTypes = node.accept;
 			}
-			Uploader.bindFileInput(node, params, params);
+			Uploader.bindInput(node, params, params);
 			resolve();
 		});
 	}
