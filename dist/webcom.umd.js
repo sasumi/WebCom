@@ -6390,7 +6390,7 @@
 		static active(node, param = {}){
 			return new Promise((resolve, reject) => {
 				let title = param.title;
-				let message = param.message;
+				let message = param.message || '确认进行该项操作？';
 				console.log('confirm dialog');
 				DialogClass.confirm(title || '确认', message).then(resolve, reject);
 			});
