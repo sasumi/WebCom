@@ -46,7 +46,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	textcounter: ACTextCounter,
 	uploader: ACUploader,
 	batchfiller: ACBatchFiller,
-	colunnfiller: ACColumnFiller,
+	columnfiller: ACColumnFiller,
 	daterangeselector: ACDateRangeSelector,
 	hotkey: ACHotKey,
 };

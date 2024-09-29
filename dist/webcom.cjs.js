@@ -7072,6 +7072,17 @@ const NS = Theme.Namespace + 'ac-column-filler';
 insertStyleSheet(`
 	.${NS} {padding:2em 2em 1em 2em; text-align:center;}
 `);
+const resetEl = el => {
+	if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
+		el.checked = false;
+	}else if(el.tagName === 'SELECT'){
+		Array.from(el.options).forEach(opt => {
+			opt.selected = false;
+		});
+	}else {
+		el.value = '';
+	}
+};
 const syncValue = (fromEl, toEl) => {
 	if(fromEl.tagName === 'INPUT' && (fromEl.type === 'checkbox' || fromEl.type === 'radio')){
 		toEl.checked = fromEl.checked;
@@ -7145,6 +7156,7 @@ class ACColumnFiller {
 			form = dlg.dom.querySelector('form');
 			form.addEventListener('submit', doFill);
 			let els = getAvailableElements(form, true);
+			els.forEach(el=>{resetEl(el);});
 			els[0].focus();
 			resolve();
 		});
@@ -7171,7 +7183,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	textcounter: ACTextCounter,
 	uploader: ACUploader,
 	batchfiller: ACBatchFiller,
-	colunnfiller: ACColumnFiller,
+	columnfiller: ACColumnFiller,
 	daterangeselector: ACDateRangeSelector,
 	hotkey: ACHotKey,
 };
