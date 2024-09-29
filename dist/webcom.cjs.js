@@ -1369,9 +1369,9 @@ const getContextWindow = () => {
 	return win || window;
 };
 
-const NS$5 = 'WebCom-';
-const VAR_PREFIX = '--' + NS$5;
-const ICON_FONT = NS$5 + 'iconfont';
+const NS$6 = 'WebCom-';
+const VAR_PREFIX = '--' + NS$6;
+const ICON_FONT = NS$6 + 'iconfont';
 const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1403,9 +1403,9 @@ insertStyleSheet(`
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$5+'style');
+}`, NS$6+'style');
 const Theme = {
-	Namespace: NS$5,
+	Namespace: NS$6,
 	CssVarPrefix: VAR_PREFIX,
 	CssVar: {
 		'COLOR': CSS_VAR_COLOR,
@@ -4659,73 +4659,73 @@ const bindGlobalEvent = () => {
 };
 
 const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-const NS$4 = Theme.Namespace + 'tip';
+const NS$5 = Theme.Namespace + 'tip';
 const DEFAULT_DIR = 11;
 const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let TIP_COLLECTION = {};
 insertStyleSheet(`
-	.${NS$4}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$4}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$4}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$4}-close:hover {opacity:1}
-	.${NS$4}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$5}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$5}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$5}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$5}-close:hover {opacity:1}
+	.${NS$5}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$4}-container-wrap[data-tip-dir="11"],
-	.${NS$4}-container-wrap[data-tip-dir="0"],
-	.${NS$4}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$4}-container-wrap[data-tip-dir="11"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="0"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="1"] .${NS$4}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$4}-container-wrap[data-tip-dir="11"] .${NS$4}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$4}-container-wrap[data-tip-dir="0"] .${NS$4}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$4}-container-wrap[data-tip-dir="1"] .${NS$4}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="11"],
+	.${NS$5}-container-wrap[data-tip-dir="0"],
+	.${NS$5}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$4}-container-wrap[data-tip-dir="8"],
-	.${NS$4}-container-wrap[data-tip-dir="9"],
-	.${NS$4}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$4}-container-wrap[data-tip-dir="8"] .${NS$4}-close,
-	.${NS$4}-container-wrap[data-tip-dir="9"] .${NS$4}-close,
-	.${NS$4}-container-wrap[data-tip-dir="10"] .${NS$4}-close{top:3px;}
-	.${NS$4}-container-wrap[data-tip-dir="8"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="9"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="10"] .${NS$4}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$4}-container-wrap[data-tip-dir="8"] .${NS$4}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$4}-container-wrap[data-tip-dir="9"] .${NS$4}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$4}-container-wrap[data-tip-dir="10"] .${NS$4}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="8"],
+	.${NS$5}-container-wrap[data-tip-dir="9"],
+	.${NS$5}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-close{top:3px;}
+	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$4}-container-wrap[data-tip-dir="5"],
-	.${NS$4}-container-wrap[data-tip-dir="6"],
-	.${NS$4}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$4}-container-wrap[data-tip-dir="5"] .${NS$4}-close,
-	.${NS$4}-container-wrap[data-tip-dir="6"] .${NS$4}-close,
-	.${NS$4}-container-wrap[data-tip-dir="7"] .${NS$4}-close{top:3px;}
-	.${NS$4}-container-wrap[data-tip-dir="5"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="6"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="7"] .${NS$4}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$4}-container-wrap[data-tip-dir="5"] .${NS$4}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$4}-container-wrap[data-tip-dir="6"] .${NS$4}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$4}-container-wrap[data-tip-dir="7"] .${NS$4}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="5"],
+	.${NS$5}-container-wrap[data-tip-dir="6"],
+	.${NS$5}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-close{top:3px;}
+	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$4}-container-wrap[data-tip-dir="2"],
-	.${NS$4}-container-wrap[data-tip-dir="3"],
-	.${NS$4}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$4}-container-wrap[data-tip-dir="2"] .${NS$4}-close,
-	.${NS$4}-container-wrap[data-tip-dir="3"] .${NS$4}-close,
-	.${NS$4}-container-wrap[data-tip-dir="4"] .${NS$4}-close{right:13px;top:3px;}
-	.${NS$4}-container-wrap[data-tip-dir="2"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="3"] .${NS$4}-arrow,
-	.${NS$4}-container-wrap[data-tip-dir="4"] .${NS$4}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$4}-container-wrap[data-tip-dir="2"] .${NS$4}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$4}-container-wrap[data-tip-dir="3"] .${NS$4}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$4}-container-wrap[data-tip-dir="4"] .${NS$4}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$5}-container-wrap[data-tip-dir="2"],
+	.${NS$5}-container-wrap[data-tip-dir="3"],
+	.${NS$5}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-close{right:13px;top:3px;}
+	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap))}
 `, Theme.Namespace + 'tip-style');
 let bindEvent = (tip)=>{
 	if(tip.option.showCloseButton){
-		let close_btn = tip.dom.querySelector(`.${NS$4}-close`);
+		let close_btn = tip.dom.querySelector(`.${NS$5}-close`);
 		close_btn.addEventListener('click', () => {tip.hide();}, false);
 		document.addEventListener('keyup', (e) => {
 			if(e.key === KEYBOARD_KEY_MAP.Escape){
@@ -4810,16 +4810,16 @@ class Tip {
 		this.relateNode = relateNode;
 		this.option = Object.assign(this.option, opt);
 		this.dom = createDomByHtml(
-			`<div class="${NS$4}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$4}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$4}-close">&#10005;</span>` : ''}
-				<div class="${NS$4}-content">${content}</div>
+			`<div class="${NS$5}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$5}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$5}-close">&#10005;</span>` : ''}
+				<div class="${NS$5}-content">${content}</div>
 			</div>`);
 		bindEvent(this);
 		TIP_COLLECTION[this.id] = this;
 	}
 	setContent(html){
-		this.dom.querySelector(`.${NS$4}-content`).innerHTML = html;
+		this.dom.querySelector(`.${NS$5}-content`).innerHTML = html;
 		updatePosition(this);
 	}
 	show(){
@@ -5881,40 +5881,40 @@ class Toc {
 	}
 }
 
-const NS$3 = Theme.Namespace + 'uploader';
+const NS$4 = Theme.Namespace + 'uploader';
 insertStyleSheet(`
-	.${NS$3}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$4}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS$3}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS$3}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS$3}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$4}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$4}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$4}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS$3}[data-state="empty"]{opacity:0.5}
-	.${NS$3}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$4}[data-state="empty"]{opacity:0.5}
+	.${NS$4}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS$3}[data-state="empty"] :is(.${NS$3}-handle,.${NS$3}-progress),
-	.${NS$3}[data-state="pending"] :is(.${NS$3}-btn-clean, .${NS$3}-file, .${NS$3}-content),
-	.${NS$3}[data-state="error"] :is(.${NS$3}-progress,.${NS$3}-btn-clean),
-	.${NS$3}[data-state="normal"] :is(.${NS$3}-progress,.${NS$3}-btn-cancel),
-	.${NS$3}[data-state="normal"] .${NS$3}-file:before{
+	.${NS$4}[data-state="empty"] :is(.${NS$4}-handle,.${NS$4}-progress),
+	.${NS$4}[data-state="pending"] :is(.${NS$4}-btn-clean, .${NS$4}-file, .${NS$4}-content),
+	.${NS$4}[data-state="error"] :is(.${NS$4}-progress,.${NS$4}-btn-clean),
+	.${NS$4}[data-state="normal"] :is(.${NS$4}-progress,.${NS$4}-btn-cancel),
+	.${NS$4}[data-state="normal"] .${NS$4}-file:before{
 		display:none;
 	}
 	
-	.${NS$3}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS$3}-content{width:100%;height:100%;}
-	.${NS$3}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$4}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$4}-content{width:100%;height:100%;}
+	.${NS$4}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS$3}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS$3}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$4}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$4}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS$3}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS$3}-btn:hover{opacity:1;}
-	.${NS$3}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS$3}-btn-cancel:before{content:"\\e61a"}
-	.${NS$3}-btn-clean:before{content:"\\e61b"}
+	.${NS$4}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$4}-btn:hover{opacity:1;}
+	.${NS$4}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$4}-btn-cancel:before{content:"\\e61a"}
+	.${NS$4}-btn-clean:before{content:"\\e61b"}
 `);
-const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$3}-image`;
-const UPLOADER_FILE_DEFAULT_CLASS = `${NS$3}-file`;
+const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$4}-image`;
+const UPLOADER_FILE_DEFAULT_CLASS = `${NS$4}-file`;
 const UPLOAD_STATE_EMPTY = 'empty';
 const UPLOAD_STATE_PENDING = 'pending';
 const UPLOAD_STATE_ERROR = 'error';
@@ -5973,7 +5973,7 @@ const abortUpload = up => {
 };
 const updateState = (up, state, data = null) => {
 	const fileEl = findOne('input[type=file]', up.dom);
-	const contentCtn = findOne(`.${NS$3}-content`, up.dom);
+	const contentCtn = findOne(`.${NS$4}-content`, up.dom);
 	up.dom.setAttribute('data-state', state);
 	up.dom.title = '';
 	switch(state){
@@ -6086,24 +6086,24 @@ class Uploader {
 		});
 		let acceptStr = this.option.allowFileTypes.join(',');
 		const html =
-			`<div class="${NS$3}" data-state="${this.state}">
-			<label class="${NS$3}-file">
+			`<div class="${NS$4}" data-state="${this.state}">
+			<label class="${NS$4}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" data-required="${this.option.required ? 'required' : ''}">
 			</label>
-			<div class="${NS$3}-progress">
+			<div class="${NS$4}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS$3}-content"></div>
-			<div class="${NS$3}-handle">
-				<span tabindex="0" class="${NS$3}-btn ${NS$3}-btn-cancel" title="取消上传"></span>
-				<span tabindex="0" class="${NS$3}-btn ${NS$3}-btn-clean" title="清除"></span>
+			<div class="${NS$4}-content"></div>
+			<div class="${NS$4}-handle">
+				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-cancel" title="取消上传"></span>
+				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 		this.dom = createDomByHtml(html, container);
 		const fileEl = findOne('input[type=file]', this.dom);
-		bindNodeActive(findOne(`.${NS$3}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		bindNodeActive(findOne(`.${NS$3}-btn-cancel`, this.dom), () => {abortUpload(this);});
+		bindNodeActive(findOne(`.${NS$4}-btn-clean`, this.dom), () => {cleanUpload(this);});
+		bindNodeActive(findOne(`.${NS$4}-btn-cancel`, this.dom), () => {abortUpload(this);});
 		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {
 			let file = fileEl.files[0];
@@ -6132,7 +6132,7 @@ class Uploader {
 					},
 					onProgress: (percent, total) => {
 						const progressEl = findOne('progress', this.dom);
-						const progressPnt = findOne(`.${NS$3}-progress span`, this.dom);
+						const progressPnt = findOne(`.${NS$4}-progress span`, this.dom);
 						progressEl.value = percent;
 						progressEl.max = total;
 						progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
@@ -6254,14 +6254,14 @@ class ACAsync {
 	}
 }
 
-const NS$2 = Theme.Namespace + 'ac-batchfiller';
+const NS$3 = Theme.Namespace + 'ac-batchfiller';
 insertStyleSheet(`
-	.${NS$2} {padding:2em 2em 1em 2em}
-	.${NS$2} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-	.${NS$2} input,
-	.${NS$2} textarea,
-	.${NS$2} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS$2} textarea {min-height:5em; resize:vertical}
+	.${NS$3} {padding:2em 2em 1em 2em}
+	.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+	.${NS$3} input,
+	.${NS$3} textarea,
+	.${NS$3} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+	.${NS$3} textarea {min-height:5em; resize:vertical}
 `);
 const SUPPORT_INPUT_TYPES = [
 	'color',
@@ -6320,7 +6320,7 @@ class ACBatchFiller {
 				ToastClass.showInfo("没有可以填写的输入框");
 				return;
 			}
-			let id = guid(NS$2);
+			let id = guid(NS$3);
 			let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 			let el, dlg;
 			let label_html = param.title || '批量设置';
@@ -6352,7 +6352,7 @@ class ACBatchFiller {
 				dlg.close();
 			};
 			dlg = DialogClass.show('',
-				`<div class="${NS$2}">
+				`<div class="${NS$3}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </div>`, {
@@ -6393,14 +6393,14 @@ class ACConfirm {
 	}
 }
 
-const NS$1 = Theme.Namespace + 'ac-copy';
+const NS$2 = Theme.Namespace + 'ac-copy';
 insertStyleSheet(`
-	.${NS$1} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-	.${NS$1}:hover {opacity:1}
-	.${NS$1}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+	.${NS$2} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+	.${NS$2}:hover {opacity:1}
+	.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
 `);
 class ACCopy {
-	static COPY_CLASS = NS$1;
+	static COPY_CLASS = NS$2;
 	static init(node, params = {}){
 		let trigger = node;
 		if(PAIR_TAGS.includes(node.tagName)){
@@ -6452,7 +6452,7 @@ class ACHighlight {
 	}
 }
 
-const NS = Theme.Namespace + 'ac-ie-';
+const NS$1 = Theme.Namespace + 'ac-ie-';
 let _patch_flag = false;
 const patchCss = ()=>{
 	if(_patch_flag){
@@ -6460,17 +6460,17 @@ const patchCss = ()=>{
 	}
 	_patch_flag = true;
 	insertStyleSheet(`
-		.${NS}editor {cursor:pointer}
-		.${NS}editor:hover:after {opacity:1; color:var(--color-link)}
-		.${NS}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS$1}editor {cursor:pointer}
+		.${NS$1}editor:hover:after {opacity:1; color:var(--color-link)}
+		.${NS$1}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
 		
-		.${NS}editor-wrap {
+		.${NS$1}editor-wrap {
 		    display:inline-flex;
 		    align-items:center;
 		    gap:0.25em;
 		}
-		.${NS}save-btn,
-		.${NS}cancel-btn {
+		.${NS$1}save-btn,
+		.${NS$1}cancel-btn {
 		    display: inline-flex;
 		    border: 1px solid gray;
 		    align-items: center;
@@ -6484,11 +6484,11 @@ const patchCss = ()=>{
 		    cursor: pointer;
 		}
 		
-		.${NS}save-btn[disabled],
-		.${NS}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
-		.${NS}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
-		.${NS}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
-	`, NS+'style');
+		.${NS$1}save-btn[disabled],
+		.${NS$1}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
+		.${NS$1}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
+		.${NS$1}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
+	`, NS$1+'style');
 };
 class ACInlineEditor {
 	static transmitter;
@@ -6513,23 +6513,23 @@ class ACInlineEditor {
 			action = form.action;
 			method = method || form.method.toLocaleUpperCase();
 		}
-		node.classList.add(NS+'editor');
+		node.classList.add(NS$1+'editor');
 		let input_wrap;
 		let input_el;
 		let switchState = (edit) => {
 			if(edit){
 				if(!input_wrap){
 					input_wrap = createDomByHtml(`
-						<span class="${NS}editor-wrap">
+						<span class="${NS$1}editor-wrap">
 							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
 						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
-							<span disabled class="${NS}save-btn" tabindex="0"></span>
-							<span class="${NS}cancel-btn" tabindex="0"></span>
+							<span disabled class="${NS$1}save-btn" tabindex="0"></span>
+							<span class="${NS$1}cancel-btn" tabindex="0"></span>
 						</span>
 					`);
 					node.parentNode.insertBefore(input_wrap, node);
-					let save_btn = input_wrap.querySelector(`.${NS}save-btn`);
-					let cancel_btn = input_wrap.querySelector(`.${NS}cancel-btn`);
+					let save_btn = input_wrap.querySelector(`.${NS$1}save-btn`);
+					let cancel_btn = input_wrap.querySelector(`.${NS$1}cancel-btn`);
 					input_el = input_wrap.querySelector('input,textarea');
 					const doSave = ()=>{
 						let new_text = input_el.value;
@@ -7068,6 +7068,89 @@ class ACHotKey {
 	}
 }
 
+const NS = Theme.Namespace + 'ac-column-filler';
+insertStyleSheet(`
+	.${NS} {padding:2em 2em 1em 2em; text-align:center;}
+`);
+const syncValue = (fromEl, toEl) => {
+	if(fromEl.tagName === 'INPUT' && (fromEl.type === 'checkbox' || fromEl.type === 'radio')){
+		toEl.checked = fromEl.checked;
+	}else if(fromEl.tagName === 'SELECT' && fromEl.multiple){
+		Array.from(toEl.options).forEach(opt => {
+			opt.selected = false;
+		});
+		Array.from(fromEl.selectedOptions).forEach(opt => {
+			Array.from(toEl.options)[opt.index].selected = true;
+		});
+	}else {
+		toEl.value = fromEl.value;
+	}
+};
+class ACColumnFiller {
+	static active(node, param = {}){
+		const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
+		if(!TABLE){
+			throw "no table found";
+		}
+		const _current_tr = node.closest('tr');
+		let COL_IDX = 0;
+		if(node.closest('th')){
+			COL_IDX = nodeIndex(node.closest('th'));
+		}else if(node.closest('td')){
+			COL_IDX = nodeIndex(node.closest('td'));
+		}else {
+			throw "column index no detected";
+		}
+		let trs = findAll('tr', TABLE);
+		let AVAILABLE_ROWS = trs.filter(t => {
+			return t !== _current_tr;
+		});
+		if(!AVAILABLE_ROWS.length){
+			throw "no form row find";
+		}
+		let tmpl_cell = Array.from(AVAILABLE_ROWS[0].children)[COL_IDX];
+		if(!tmpl_cell){
+			throw "no cell found by IDX:" + COL_IDX;
+		}
+		if(!getAvailableElements(tmpl_cell, true).length){
+			throw "no form element found";
+		}
+		let form_html = tmpl_cell.innerHTML;
+		let form, dlg;
+		return new Promise((resolve, reject) => {
+			let doFill = () => {
+				let els = getAvailableElements(form, true);
+				AVAILABLE_ROWS.forEach(row => {
+					let _els = getAvailableElements(Array.from(row.children)[COL_IDX], true);
+					els.forEach((e, idx) => {
+						syncValue(e, _els[idx]);
+					});
+				});
+				dlg.close();
+			};
+			dlg = DialogClass.show('批量设置',
+				`<form class="${NS}">${form_html}</form>`, {
+					width: 350,
+					buttons: [
+						{
+							default: true,
+							title: '确定', callback: () => {
+								doFill();
+								dlg.close();
+							}
+						},
+						{title: '关闭', className: DLG_CLS_WEAK_BTN}
+					]
+				});
+			form = dlg.dom.querySelector('form');
+			form.addEventListener('submit', doFill);
+			let els = getAvailableElements(form, true);
+			els[0].focus();
+			resolve();
+		});
+	}
+}
+
 const DEFAULT_ATTR_COM_FLAG = 'data-component';
 const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
 let AC_COMPONENT_NAME_MAPPING = {
@@ -7088,6 +7171,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	textcounter: ACTextCounter,
 	uploader: ACUploader,
 	batchfiller: ACBatchFiller,
+	colunnfiller: ACColumnFiller,
 	daterangeselector: ACDateRangeSelector,
 	hotkey: ACHotKey,
 };
