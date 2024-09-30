@@ -2921,6 +2921,17 @@
 	const getNextMonth = (year, month) => {
 		return month === 12 ? [year + 1, 1] : [year, month + 1];
 	};
+	const countDown = (timeout, tickFunc, onFinish) => {
+		let loop = () => {
+			tickFunc(timeout);
+			if(timeout-- > 0){
+				setTimeout(loop, 1000);
+				return;
+			}
+			onFinish();
+		};
+		loop();
+	};
 	const prettyTime = (micSec, delimiter = '') => {
 		let d = 0, h = 0, m = 0, s = 0;
 		if(micSec > ONE_DAY){
@@ -7418,6 +7429,7 @@
 	exports.convertObjectToFormData = convertObjectToFormData;
 	exports.copy = copy;
 	exports.copyFormatted = copyFormatted;
+	exports.countDown = countDown;
 	exports.createDomByHtml = createDomByHtml;
 	exports.createMenu = createMenu;
 	exports.cssSelectorEscape = cssSelectorEscape;

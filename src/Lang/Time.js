@@ -53,6 +53,24 @@ export const getNextMonth = (year, month) => {
 }
 
 /**
+ * 计时
+ * @param {Number} timeout
+ * @param {Function} tickFunc
+ * @param {Function} onFinish
+ */
+export const countDown = (timeout, tickFunc, onFinish) => {
+	let loop = () => {
+		tickFunc(timeout);
+		if(timeout-- > 0){
+			setTimeout(loop, 1000);
+			return;
+		}
+		onFinish();
+	};
+	loop();
+}
+
+/**
  * 格式化时间长度
  * @param {Number} micSec 毫秒
  * @param {String} delimiter 单位之间的间隔文本
