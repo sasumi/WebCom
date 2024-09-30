@@ -53,19 +53,19 @@ export const getNextMonth = (year, month) => {
 }
 
 /**
- * 计时
+ * 计时（该方法采用timeout方式，不够精准
  * @param {Number} timeout
  * @param {Function} tickFunc
  * @param {Function} onFinish
  */
 export const countDown = (timeout, tickFunc, onFinish) => {
 	let loop = () => {
-		tickFunc(timeout);
+		tickFunc && tickFunc(timeout);
 		if(timeout-- > 0){
 			setTimeout(loop, 1000);
 			return;
 		}
-		onFinish();
+		onFinish && onFinish();
 	};
 	loop();
 }
