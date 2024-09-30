@@ -2923,12 +2923,12 @@
 	};
 	const countDown = (timeout, tickFunc, onFinish) => {
 		let loop = () => {
-			tickFunc(timeout);
+			tickFunc && tickFunc(timeout);
 			if(timeout-- > 0){
 				setTimeout(loop, 1000);
 				return;
 			}
-			onFinish();
+			onFinish && onFinish();
 		};
 		loop();
 	};
