@@ -45,6 +45,7 @@ export class ACSelectAll {
 		let checks = [];
 		let updateTrigger = () => {
 			let checkedCount = 0;
+			checks = checks.filter(chk=>!chk.disabled);
 			checks.forEach(chk => {
 				checkedCount += chk.checked ? 1 : 0;
 			});
@@ -84,6 +85,7 @@ export class ACSelectAll {
 				console.warn('Select All no support this type');
 				return;
 			}
+			checks = checks.filter(chk=>!chk.disabled);
 			checks.forEach(chk => {
 				chk.checked = toCheck;
 				triggerDomEvent(chk, 'change');

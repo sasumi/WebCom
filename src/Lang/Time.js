@@ -53,6 +53,24 @@ export const getNextMonth = (year, month) => {
 }
 
 /**
+ * @param startTime
+ * @param index
+ * @param total
+ * @param pretty
+ * @return {string|number}
+ */
+export const getETA = (startTime, index, total, pretty = true)=>{
+	if(!index){
+		return '';
+	}
+	let sec = ((new Date().getTime()) - startTime) * (total - index)/index;
+	if(!pretty){
+		return sec;
+	}
+	return prettyTime(sec*1000);
+}
+
+/**
  * 计时（该方法采用timeout方式，不够精准
  * @param {Number} timeout
  * @param {Function} tickFunc
