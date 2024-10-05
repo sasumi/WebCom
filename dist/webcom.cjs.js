@@ -3266,7 +3266,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_CLOSE}:after {content:"\\e61a"}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_SCREEN_TOGGLE}:after {content:"\\e629"; font-size:1.4em;}
 	 
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; max-height:calc(100vh - 6em)}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; max-height:calc(100vh - 5em)}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
 	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
@@ -3284,7 +3284,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF}[${DIALOG_TYPE_ATTR_KEY}="${TYPE_PROMPT}"] .${DLG_CLS_CTN} input[type=text] {width:100%; box-sizing:border-box;}
 	
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important; max-height:inherit}
-	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px; max-height:calc(100vh - 6em)}
+	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px; max-height:calc(100vh - 5em)}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
 `, COM_ID$3 + '-style');
 let _bind_esc_ = false;
