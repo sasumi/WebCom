@@ -101,15 +101,26 @@ export class BizEvent {
 const EVENT_ACTIVE = 'active';
 
 /**
- * hover event
+ * hover 事件，兼容移动端
  * @param {Node|Node[]|String|String[]} nodes
- * @param {Function} hoverIn
- * @param {Function} hoverOut
+ * @param {Function|Null} hoverIn
+ * @param {Function|Null} hoverOut
+ * @param {String} hoverClass 额外添加hover类名
  */
-export const onHover = (nodes, hoverIn, hoverOut)=>{
-	fitNodes(nodes).forEach(node=>{
-		node.addEventListener('mouseover', hoverIn);
-		node.addEventListener('mouseout', hoverOut);
+export const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '') => {
+	const _in = (e, node) => {
+		hoverClass && node.classList.add(hoverClass);
+		return hoverIn ? hoverIn(e) : null;
+	}
+	const _out = (e, node) => {
+		hoverClass && node.classList.remove(hoverClass);
+		return hoverOut ? hoverOut(e) : null;
+	}
+	fitNodes(nodes).forEach(node => {
+		node.addEventListener('touchstart', e => {return _in(e, node);});
+		node.addEventListener('touchend', e => {return _out(e, node);});
+		node.addEventListener('mouseover', e => {return _in(e, node);});
+		node.addEventListener('mouseout', e => {return _out(e, node);});
 	});
 }
 

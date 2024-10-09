@@ -2403,10 +2403,20 @@ class BizEvent {
 	}
 }
 const EVENT_ACTIVE = 'active';
-const onHover = (nodes, hoverIn, hoverOut)=>{
-	fitNodes(nodes).forEach(node=>{
-		node.addEventListener('mouseover', hoverIn);
-		node.addEventListener('mouseout', hoverOut);
+const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '') => {
+	const _in = (e, node) => {
+		hoverClass && node.classList.add(hoverClass);
+		return hoverIn ? hoverIn(e) : null;
+	};
+	const _out = (e, node) => {
+		hoverClass && node.classList.remove(hoverClass);
+		return hoverOut ? hoverOut(e) : null;
+	};
+	fitNodes(nodes).forEach(node => {
+		node.addEventListener('touchstart', e => {return _in(e, node);});
+		node.addEventListener('touchend', e => {return _out(e, node);});
+		node.addEventListener('mouseover', e => {return _in(e, node);});
+		node.addEventListener('mouseout', e => {return _out(e, node);});
 	});
 };
 const fireEvent = (nodes, event) => {
@@ -2914,6 +2924,16 @@ const getLastMonth = (year, month) => {
 };
 const getNextMonth = (year, month) => {
 	return month === 12 ? [year + 1, 1] : [year, month + 1];
+};
+const getETA = (startTime, index, total, pretty = true)=>{
+	if(!index){
+		return '';
+	}
+	let sec = ((new Date().getTime()) - startTime) * (total - index)/index;
+	if(!pretty){
+		return sec;
+	}
+	return prettyTime(sec*1000);
 };
 const countDown = (timeout, tickFunc, onFinish) => {
 	let loop = () => {
@@ -7316,5 +7336,5 @@ const ACComponent = {
 	}
 };
 
-export { ACAsync, ACBatchFiller, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACInlineEditor, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTextCounter, ACTip, ACToast, ACUnSaveAlert, ACUploader, ASYNC_SUBMITTING_FLAG, BLOCK_TAGS, Base64Encode, BizEvent, CONSOLE_COLOR, DLG_CLS_BTN, DLG_CLS_WEAK_BTN, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_STATIC_IMAGE, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYBOARD_KEY_MAP, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PAIR_TAGS, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, SELF_CLOSING_TAGS, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, WINDOW_UNLOAD_ALERT_MAP_VAR_KEY, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindConsole, bindFormAutoSave, bindFormSubmitAsJSON, bindFormUnSavedUnloadAlert, bindHotKeys, bindIframeAutoResize, bindImgPreviewViaSelector, bindNodeActive, bindNodeEvents, bindTargetClickMenu, bindTargetContextMenu, bindTargetMenu, bindTextAutoResize, bindTextSupportTab, buildHtmlHidden, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, countDown, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, explodeBy, extract, fillForm, findAll, findOne, fireEvent, fitNodes, fixGetFormAction, formSerializeJSON, formSerializeString, formSync, formValidate, formatDate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getElementValue, getElementValueByName, getFocusableElements, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, getWindowUnloadAlertList, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNodeHidden, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, mutationEffective, nodeHighlight, nodeIndex, objectGetByPath, objectKeyMapping, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, remove, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, setWindowUnloadMessage, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, sortable, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, throttleEffect, toHtmlEntities, toggle, toggleFullScreen, toggleStickyClass, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACBatchFiller, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACInlineEditor, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTextCounter, ACTip, ACToast, ACUnSaveAlert, ACUploader, ASYNC_SUBMITTING_FLAG, BLOCK_TAGS, Base64Encode, BizEvent, CONSOLE_COLOR, DLG_CLS_BTN, DLG_CLS_WEAK_BTN, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_STATIC_IMAGE, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYBOARD_KEY_MAP, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PAIR_TAGS, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, SELF_CLOSING_TAGS, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, WINDOW_UNLOAD_ALERT_MAP_VAR_KEY, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindConsole, bindFormAutoSave, bindFormSubmitAsJSON, bindFormUnSavedUnloadAlert, bindHotKeys, bindIframeAutoResize, bindImgPreviewViaSelector, bindNodeActive, bindNodeEvents, bindTargetClickMenu, bindTargetContextMenu, bindTargetMenu, bindTextAutoResize, bindTextSupportTab, buildHtmlHidden, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, countDown, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, explodeBy, extract, fillForm, findAll, findOne, fireEvent, fitNodes, fixGetFormAction, formSerializeJSON, formSerializeString, formSync, formValidate, formatDate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getETA, getElementValue, getElementValueByName, getFocusableElements, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, getWindowUnloadAlertList, guid, hide, highlightText, html2Text, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isInFullScreen, isJSON, isNodeHidden, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, mutationEffective, nodeHighlight, nodeIndex, objectGetByPath, objectKeyMapping, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, remove, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, setWindowUnloadMessage, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, sortable, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, throttleEffect, toHtmlEntities, toggle, toggleFullScreen, toggleStickyClass, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
 //# sourceMappingURL=webcom.es.js.map

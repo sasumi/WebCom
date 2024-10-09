@@ -2406,10 +2406,20 @@ var WebCom = (function (exports) {
 		}
 	}
 	const EVENT_ACTIVE = 'active';
-	const onHover = (nodes, hoverIn, hoverOut)=>{
-		fitNodes(nodes).forEach(node=>{
-			node.addEventListener('mouseover', hoverIn);
-			node.addEventListener('mouseout', hoverOut);
+	const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '') => {
+		const _in = (e, node) => {
+			hoverClass && node.classList.add(hoverClass);
+			return hoverIn ? hoverIn(e) : null;
+		};
+		const _out = (e, node) => {
+			hoverClass && node.classList.remove(hoverClass);
+			return hoverOut ? hoverOut(e) : null;
+		};
+		fitNodes(nodes).forEach(node => {
+			node.addEventListener('touchstart', e => {return _in(e, node);});
+			node.addEventListener('touchend', e => {return _out(e, node);});
+			node.addEventListener('mouseover', e => {return _in(e, node);});
+			node.addEventListener('mouseout', e => {return _out(e, node);});
 		});
 	};
 	const fireEvent = (nodes, event) => {
@@ -2917,6 +2927,16 @@ var WebCom = (function (exports) {
 	};
 	const getNextMonth = (year, month) => {
 		return month === 12 ? [year + 1, 1] : [year, month + 1];
+	};
+	const getETA = (startTime, index, total, pretty = true)=>{
+		if(!index){
+			return '';
+		}
+		let sec = ((new Date().getTime()) - startTime) * (total - index)/index;
+		if(!pretty){
+			return sec;
+		}
+		return prettyTime(sec*1000);
 	};
 	const countDown = (timeout, tickFunc, onFinish) => {
 		let loop = () => {
@@ -7474,6 +7494,7 @@ var WebCom = (function (exports) {
 	exports.getCurrentScript = getCurrentScript;
 	exports.getDomDimension = getDomDimension;
 	exports.getDomOffset = getDomOffset;
+	exports.getETA = getETA;
 	exports.getElementValue = getElementValue;
 	exports.getElementValueByName = getElementValueByName;
 	exports.getFocusableElements = getFocusableElements;
