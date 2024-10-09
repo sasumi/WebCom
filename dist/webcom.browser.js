@@ -1037,6 +1037,36 @@ var WebCom = (function (exports) {
 	const isNodeHidden = (node) => {
 		return node.offsetParent === null;
 	};
+	const getNodeXPath = (el) => {
+		let allNodes = document.getElementsByTagName('*');
+		let seg_list = [];
+		for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
+			if(el.hasAttribute('id')){
+				let uniqueIdCount = 0;
+				for(let n = 0; n < allNodes.length; n++){
+					if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
+					if(uniqueIdCount > 1) break;
+				}
+				if(uniqueIdCount === 1){
+					seg_list.unshift('id("' + el.getAttribute('id') + '")');
+					return seg_list.join('/');
+				}else {
+					seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
+				}
+			}else if(el.hasAttribute('class')){
+				seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
+			}else {
+				let i, sib;
+				for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
+					if(sib.localName === el.localName){
+						i++;
+					}
+				}
+				seg_list.unshift(el.localName.toLowerCase() + '[' + i + ']');
+			}
+		}
+		return seg_list.length ? '/' + seg_list.join('/') : null;
+	};
 	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
 		let watchEl = ()=>{
@@ -7507,6 +7537,7 @@ var WebCom = (function (exports) {
 	exports.getLibModuleTop = getLibModuleTop;
 	exports.getMonthLastDay = getMonthLastDay;
 	exports.getNextMonth = getNextMonth;
+	exports.getNodeXPath = getNodeXPath;
 	exports.getPromiseState = getPromiseState;
 	exports.getRegion = getRegion;
 	exports.getUTF8StrLen = getUTF8StrLen;

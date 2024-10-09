@@ -254,6 +254,42 @@ export const isNodeHidden = (node) => {
 }
 
 /**
+ * get node xpath
+ * @param el
+ * @return {String}
+ */
+export const getNodeXPath = (el) => {
+	let allNodes = document.getElementsByTagName('*');
+	let seg_list = [];
+	for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
+		if(el.hasAttribute('id')){
+			let uniqueIdCount = 0;
+			for(let n = 0; n < allNodes.length; n++){
+				if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
+				if(uniqueIdCount > 1) break;
+			}
+			if(uniqueIdCount === 1){
+				seg_list.unshift('id("' + el.getAttribute('id') + '")');
+				return seg_list.join('/');
+			}else{
+				seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
+			}
+		}else if(el.hasAttribute('class')){
+			seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
+		}else{
+			let i, sib;
+			for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
+				if(sib.localName === el.localName){
+					i++;
+				}
+			}
+			seg_list.unshift(el.localName.toLowerCase() + '[' + i + ']');
+		}
+	}
+	return seg_list.length ? '/' + seg_list.join('/') : null;
+}
+
+/**
  * 监听节点树变更
  * @param {Node} dom
  * @param {Function} callback
