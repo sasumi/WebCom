@@ -275,6 +275,10 @@ export const isObject = (item) => {
 	return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
+export const isFunction = (value) => {
+	return value ? (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function) : false;
+}
+
 /**
  * 对象深度拷贝（合并）
  * @param {Object} target

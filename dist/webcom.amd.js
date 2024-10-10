@@ -822,6 +822,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const isObject = (item) => {
 		return (item && typeof item === 'object' && !Array.isArray(item));
 	};
+	const isFunction = (value) => {
+		return value ? (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function) : false;
+	};
 	const mergeDeep = (target, ...sources) => {
 		if(!sources.length) return target;
 		const source = sources.shift();
@@ -7570,6 +7573,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.isButton = isButton;
 	exports.isElement = isElement;
 	exports.isEquals = isEquals;
+	exports.isFunction = isFunction;
 	exports.isInFullScreen = isInFullScreen;
 	exports.isJSON = isJSON;
 	exports.isNodeHidden = isNodeHidden;
