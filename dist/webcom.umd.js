@@ -2453,8 +2453,8 @@
 		fitNodes(nodes).forEach(node => {
 			node.addEventListener('touchstart', e => {return _in(e, node);});
 			node.addEventListener('touchend', e => {return _out(e, node);});
-			node.addEventListener('mouseover', e => {return _in(e, node);});
-			node.addEventListener('mouseout', e => {return _out(e, node);});
+			node.addEventListener('mouseenter', e => {return _in(e, node);});
+			node.addEventListener('mouseleave', e => {return _out(e, node);});
 		});
 	};
 	const fireEvent = (nodes, event) => {

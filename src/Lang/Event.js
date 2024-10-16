@@ -103,7 +103,7 @@ const EVENT_ACTIVE = 'active';
 /**
  * hover 事件，兼容移动端
  * @param {Node|Node[]|String|String[]} nodes
- * @param {Function|Null} hoverIn
+ * @param {Function|Null} hoverIn 
  * @param {Function|Null} hoverOut
  * @param {String} hoverClass 额外添加hover类名
  */
@@ -119,8 +119,8 @@ export const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '')
 	fitNodes(nodes).forEach(node => {
 		node.addEventListener('touchstart', e => {return _in(e, node);});
 		node.addEventListener('touchend', e => {return _out(e, node);});
-		node.addEventListener('mouseover', e => {return _in(e, node);});
-		node.addEventListener('mouseout', e => {return _out(e, node);});
+		node.addEventListener('mouseenter', e => {return _in(e, node);});
+		node.addEventListener('mouseleave', e => {return _out(e, node);});
 	});
 }
 
