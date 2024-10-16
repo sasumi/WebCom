@@ -790,7 +790,6 @@ class ParallelPromise {
 		}
 	}
 	addPromiseFn(promiseFn, ...args){
-		console.log('并发任务添加：', args);
 		return new Promise((resolve, reject) => {
 			this.task_stack.push({
 				promiseFn: promiseFn,
