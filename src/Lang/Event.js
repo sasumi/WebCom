@@ -103,7 +103,7 @@ const EVENT_ACTIVE = 'active';
 /**
  * hover 事件，兼容移动端
  * @param {Node|Node[]|String|String[]} nodes
- * @param {Function|Null} hoverIn 
+ * @param {Function|Null} hoverIn
  * @param {Function|Null} hoverOut
  * @param {String} hoverClass 额外添加hover类名
  */

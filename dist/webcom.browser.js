@@ -1531,7 +1531,7 @@ var WebCom = (function (exports) {
 		0% { opacity:1;}
 		100% { opacity: 0} 
 	}
-	.${TOAST_CLS_MAIN}-wrap{position:absolute; margin:0; padding:0; top:5px; pointer-events:none; background-color:transparent; width:100%; border:none; text-align:center; z-index:${Theme.ToastIndex};}
+	.${TOAST_CLS_MAIN}-wrap{position:fixed; margin:0; padding:0; top:5px; pointer-events:none; background-color:transparent; width:100%; border:none; text-align:center; z-index:${Theme.ToastIndex};}
 	.${TOAST_CLS_MAIN} {pointer-events:auto}
 	.${TOAST_CLS_MAIN}>span {margin-bottom:0.5rem;}
 	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:.5rem 1rem .5rem 2.8rem; text-align:left; line-height:1.5rem; background-color:var(${Theme.CssVar.BACKGROUND_COLOR});color:var(${Theme.CssVar.COLOR});box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); animation:${fadeIn_animate} ${FADEIN_TIME}ms}
