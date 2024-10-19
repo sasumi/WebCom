@@ -580,16 +580,21 @@ const buildHtmlHidden = (maps) => {
 	}
 	return html;
 };
-const escapeHtml = str => {
-	return String(str)
+const escapeHtml = (str, tabSize = 2, allowLineBreaker = true) => {
+	let s = String(str)
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;")
-		.replace(/[\r\n]/g, '<br/>')
-		.replace(/\t/g, '&nbsp;&nbsp;')
-		.replace(/\s/g, "&nbsp;");
+		.replace(/'/g, "&#039;");
+	if(allowLineBreaker){
+		s = s.replace(/[\r\n]/g, '<br/>');
+	}
+	if(tabSize){
+		s = s.replace(/\t/g, '&nbsp;'.repeat(tabSize));
+	}
+	s = s.replace(/\s/g, "&nbsp;");
+	return s;
 };
 const unescapeHtml = (html)=>{
 	return String(html)
