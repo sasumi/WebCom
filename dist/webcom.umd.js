@@ -593,8 +593,9 @@
 			.replace(/>/g, "&gt;")
 			.replace(/"/g, "&quot;")
 			.replace(/'/g, "&#039;")
-			.replace(/\s/g, "&nbsp;")
-			.replace(/[\r\n]/g, '<br/>');
+			.replace(/[\r\n]/g, '<br/>')
+			.replace(/\t/g, '&nbsp;&nbsp;')
+			.replace(/\s/g, "&nbsp;");
 	};
 	const unescapeHtml = (html)=>{
 		return String(html)
@@ -1525,7 +1526,7 @@
 	@keyframes ${rotate_animate} {
 	    0% {transform:scale(1.4) rotate(0deg);}
 	    100% {transform:scale(1.4) rotate(360deg);}
-	}
+	} 
 	@keyframes ${fadeIn_animate} {
 		0% { opacity: 0; }
 		100% { opacity: 1; } 

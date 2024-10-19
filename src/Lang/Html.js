@@ -159,8 +159,9 @@ export const escapeHtml = str => {
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;")
-		.replace(/\s/g, "&nbsp;")
-		.replace(/[\r\n]/g, '<br/>');
+		.replace(/[\r\n]/g, '<br/>')
+		.replace(/\t/g, '&nbsp;&nbsp;')
+		.replace(/\s/g, "&nbsp;");
 }
 
 /**
