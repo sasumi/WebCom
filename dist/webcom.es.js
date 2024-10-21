@@ -6789,13 +6789,12 @@ class ACTextCounter {
 			let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
 			let trim = params.trim;
 			if(!maxlength){
-				console.log('no maxlength set');
+				console.debug('no maxlength set');
 			}
 			const trigger = createDomByHtml(`<span class="${MAIN_CLASS}" data-state="${STATE_NORMAL}" data-ui-state="${UI_STATE_INACTIVE}">0/${maxlength}</span>`);
 			const updState = () => {
 				let len = trim ? input.value.trim().length : input.value.length;
 				let state = (maxlength && len > maxlength) ? STATE_OVERLOAD : STATE_NORMAL;
-				console.log(state);
 				trigger.setAttribute('data-state', state);
 				trigger.innerHTML = maxlength ? (len + '/' + maxlength) : len;
 			};
