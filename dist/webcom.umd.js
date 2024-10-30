@@ -3431,7 +3431,12 @@
 		dlg.dom = createDomByHtml(html, document.body);
 		if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 			let iframe = dlg.dom.querySelector('iframe');
-			bindIframeAutoResize(iframe);
+			if(dlg.config.height){
+				iframe.style.height = '100%';
+			}
+			else {
+				bindIframeAutoResize(iframe);
+			}
 			dlg.onClose.listen(() => {
 				try{
 					let win = iframe.contentWindow;

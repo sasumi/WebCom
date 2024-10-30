@@ -216,7 +216,13 @@ const domConstruct = (dlg) => {
 	//bind iframe content
 	if(resolveContentType(dlg.config.content) === DLG_CTN_TYPE_IFRAME){
 		let iframe = dlg.dom.querySelector('iframe');
-		bindIframeAutoResize(iframe);
+		//如果设定高度，iframe调整为100%
+		if(dlg.config.height){
+			iframe.style.height = '100%';
+		}
+		else {
+			bindIframeAutoResize(iframe);
+		}
 
 		//bind window.unload event
 		dlg.onClose.listen(() => {
