@@ -914,7 +914,7 @@
 	const hide = (dom) => {
 		dom.style.display = 'none';
 	};
-	const remove = (dom)=>{
+	const remove = (dom) => {
 		if(dom && dom.parentNode){
 			dom.parentNode.removeChild(dom);
 			return true;
@@ -927,31 +927,35 @@
 	const toggle = (dom, toShow) => {
 		toShow ? show(dom) : hide(dom);
 	};
-	const nodeIndex = (node)=>{
+	const nodeIndex = (node) => {
 		return Array.prototype.indexOf.call(node.parentNode.children, node);
 	};
 	const findOne = (selector, parent = document) => {
 		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
 	};
 	const findAll = (selector, parent = document) => {
-		selector = selector.trim();
-		if(selector.indexOf(':scope') !== 0){
-			selector = ':scope ' + selector;
-		}
-		return Array.from(parent.querySelectorAll(selector));
-	};
-	const fitNodes = (mix)=>{
-		if(typeof mix === 'string'){
-			return findAll(mix);
-		} else if(Array.isArray(mix)){
+		if(typeof selector === 'string'){
+			selector = selector.trim();
+			if(selector.indexOf(':scope') !== 0){
+				selector = ':scope ' + selector;
+			}
+			return Array.from(parent.querySelectorAll(selector));
+		}else if(Array.isArray(selector)){
 			let ns = [];
-			mix.forEach(sel=>{
-				ns.push(...fitNodes(sel));
+			selector.forEach(sel => {
+				ns.push(...findAll(sel));
 			});
 			return ns;
-		} else {
-			return [mix];
+		}else {
+			return [selector];
 		}
+	};
+	const findAllOrFail = (selector, parent = document) => {
+		let ls = findAll(selector, parent);
+		if(!ls.length){
+			throw "no nodes found:" + selector;
+		}
+		return ls;
 	};
 	const getDomOffset = (target) => {
 		let rect = target.getBoundingClientRect();
@@ -972,18 +976,17 @@
 	};
 	const bindTextAutoResize = (textarea, init = true) => {
 		textarea.style.height = 'auto';
-		textarea.addEventListener('input',()=>{
+		textarea.addEventListener('input', () => {
 			textarea.style.height = textarea.scrollHeight + 'px';
 		});
 		if(init){
 			textarea.style.height = textarea.scrollHeight + 'px';
 		}
 	};
-	const bindIframeAutoResize = (iframe)=>{
+	const bindIframeAutoResize = (iframe) => {
 		let obs;
 		try{
-			let loaded = false;
-			let resizeIframe = () => {
+			const resizeIframe = () => {
 				let bdy = iframe.contentWindow.document.body;
 				if(!bdy){
 					console.debug('body no ready yet.');
@@ -995,18 +998,14 @@
 				let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
 				iframe.style.height = dimension2Style(h);
 			};
-			let watch = ()=>{
-				if(loaded){
-					return;
-				}
-				resizeIframe();
-				setTimeout(watch, 0);
-			};
-			watch();
 			iframe.addEventListener('load', () => {
 				console.log('iframe loaded', iframe.src);
-				loaded = true;
-				mutationEffective(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true}, resizeIframe);
+				resizeIframe();
+				mutationEffective(iframe.contentWindow.document.body, {
+					attributes: true,
+					subtree: true,
+					childList: true
+				}, resizeIframe);
 			});
 		}catch(err){
 			try{
@@ -1030,7 +1029,7 @@
 		return dom.closest(selector);
 	};
 	const domContained = (nodes, child, includeEqual = false) => {
-		let contains = fitNodes(nodes);
+		let contains = findAll(nodes);
 		for(let i = 0; i < contains.length; i++){
 			if((includeEqual ? contains[i] === child : false) ||
 				contains[i].compareDocumentPosition(child) & 16){
@@ -1039,9 +1038,9 @@
 		}
 		return false;
 	};
-	const getFocusableElements = (dom = document)=>{
+	const getFocusableElements = (dom = document) => {
 		let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
-		return els.filter(el=>{
+		return els.filter(el => {
 			return !isNodeHidden(el);
 		});
 	};
@@ -1080,13 +1079,13 @@
 	};
 	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
-		let watchEl = ()=>{
-			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el=>{
+		let watchEl = () => {
+			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el => {
 				el.setAttribute(PRO_KEY, '1');
 				el.addEventListener('change', callback);
 			});
 		};
-		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, ()=>{
+		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
 			includeElementChanged && watchEl();
 			callback();
 		}, 10);
@@ -2456,7 +2455,7 @@
 			hoverClass && node.classList.remove(hoverClass);
 			return hoverOut ? hoverOut(e) : null;
 		};
-		fitNodes(nodes).forEach(node => {
+		findAll(nodes).forEach(node => {
 			node.addEventListener('touchstart', e => {return _in(e, node);});
 			node.addEventListener('touchend', e => {return _out(e, node);});
 			node.addEventListener('mouseenter', e => {return _in(e, node);});
@@ -2464,7 +2463,7 @@
 		});
 	};
 	const fireEvent = (nodes, event) => {
-		fitNodes(nodes).forEach(node=>{
+		findAll(nodes).forEach(node=>{
 			if("createEvent" in document){
 				let evo = document.createEvent("HTMLEvents");
 				evo.initEvent(event, false, true);
@@ -2475,7 +2474,7 @@
 		});
 	};
 	const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = false) => {
-		fitNodes(nodes).forEach(node=>{
+		findAll(nodes).forEach(node=>{
 			node.addEventListener('click', payload, cancelBubble);
 			node.addEventListener('keyup', e => {
 				if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
@@ -2505,7 +2504,7 @@
 		}
 	};
 	const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOnce = false) => {
-		fitNodes(nodes).forEach(node=>{
+		findAll(nodes).forEach(node=>{
 			let evs = Array.isArray(event) ? event : [event];
 			evs.forEach(ev => {
 				if(ev === EVENT_ACTIVE){
@@ -2557,18 +2556,20 @@
 		});
 	};
 	const eventDelegate = (container, selector, eventName, payload)=>{
-		container.addEventListener(eventName, ev=>{
-			let target = ev.target;
-			while(target){
-				if(target.matches(selector)){
-					payload.call(target, ev, target);
-					return;
+		findAllOrFail(container).forEach(ctn=>{
+			ctn.addEventListener(eventName, ev=>{
+				let target = ev.target;
+				while(target){
+					if(target.matches(selector)){
+						payload.call(target, ev, target);
+						return;
+					}
+					if(target === ctn){
+						return;
+					}
+					target = target.parentNode;
 				}
-				if(target === container){
-					return;
-				}
-				target = target.parentNode;
-			}
+			});
 		});
 	};
 	const KEYS = {
@@ -7560,9 +7561,9 @@
 	exports.extract = extract;
 	exports.fillForm = fillForm;
 	exports.findAll = findAll;
+	exports.findAllOrFail = findAllOrFail;
 	exports.findOne = findOne;
 	exports.fireEvent = fireEvent;
-	exports.fitNodes = fitNodes;
 	exports.fixGetFormAction = fixGetFormAction;
 	exports.formSerializeJSON = formSerializeJSON;
 	exports.formSerializeString = formSerializeString;

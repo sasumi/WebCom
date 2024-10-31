@@ -23,7 +23,7 @@ export const hide = (dom) => {
  * @param {Node} dom
  * @return {boolean}
  */
-export const remove = (dom)=>{
+export const remove = (dom) => {
 	if(dom && dom.parentNode){
 		dom.parentNode.removeChild(dom);
 		return true;
@@ -52,7 +52,7 @@ export const toggle = (dom, toShow) => {
  * @param node
  * @return {number}
  */
-export const nodeIndex = (node)=>{
+export const nodeIndex = (node) => {
 	return Array.prototype.indexOf.call(node.parentNode.children, node);
 }
 
@@ -72,30 +72,29 @@ export const findOne = (selector, parent = document) => {
  * @return {Node[]}
  */
 export const findAll = (selector, parent = document) => {
-	selector = selector.trim();
-	if(selector.indexOf(':scope') !== 0){
-		selector = ':scope ' + selector;
-	}
-	return Array.from(parent.querySelectorAll(selector));
-}
-
-/**
- * 修正给定选择器或节点，返回节点数组
- * @param {String|String[]|Node|Node[]} mix
- * @return {Node[]}
- */
-export const fitNodes = (mix)=>{
-	if(typeof mix === 'string'){
-		return findAll(mix);
-	} else if(Array.isArray(mix)){
+	if(typeof selector === 'string'){
+		selector = selector.trim();
+		if(selector.indexOf(':scope') !== 0){
+			selector = ':scope ' + selector;
+		}
+		return Array.from(parent.querySelectorAll(selector));
+	}else if(Array.isArray(selector)){
 		let ns = [];
-		mix.forEach(sel=>{
-			ns.push(...fitNodes(sel));
+		selector.forEach(sel => {
+			ns.push(...findAll(sel));
 		});
 		return ns;
-	} else {
-		return [mix];
+	}else{
+		return [selector];
 	}
+}
+
+export const findAllOrFail = (selector, parent = document) => {
+	let ls = findAll(selector, parent);
+	if(!ls.length){
+		throw "no nodes found:" + selector;
+	}
+	return ls;
 }
 
 /**
@@ -133,7 +132,7 @@ export const isButton = (el) => {
  */
 export const bindTextAutoResize = (textarea, init = true) => {
 	textarea.style.height = 'auto';
-	textarea.addEventListener('input',()=>{
+	textarea.addEventListener('input', () => {
 		textarea.style.height = textarea.scrollHeight + 'px';
 	});
 	if(init){
@@ -146,11 +145,10 @@ export const bindTextAutoResize = (textarea, init = true) => {
  * iframe页面host必须和父级页面host同域，或者声明同域名
  * @param iframe
  */
-export const bindIframeAutoResize = (iframe)=>{
+export const bindIframeAutoResize = (iframe) => {
 	let obs;
 	try{
-		let loaded = false;
-		let resizeIframe = () => {
+		const resizeIframe = () => {
 			let bdy = iframe.contentWindow.document.body;
 			if(!bdy){
 				console.debug('body no ready yet.');
@@ -163,20 +161,17 @@ export const bindIframeAutoResize = (iframe)=>{
 			iframe.style.height = dimension2Style(h);
 		}
 
-		let watch = ()=>{
-			if(loaded){
-				return;
-			}
-			resizeIframe();
-			setTimeout(watch, 0);
-		};
-		watch();
+		//改回onload后缩放，避免开始css没有加载，高度过高出现空白窗口
 
 		//成功加载后，只监听节点变化才调整高度，避免性能消耗
 		iframe.addEventListener('load', () => {
 			console.log('iframe loaded', iframe.src);
-			loaded = true;
-			mutationEffective(iframe.contentWindow.document.body, {attributes: true, subtree: true, childList: true}, resizeIframe);
+			resizeIframe();
+			mutationEffective(iframe.contentWindow.document.body, {
+				attributes: true,
+				subtree: true,
+				childList: true
+			}, resizeIframe);
 		});
 	}catch(err){
 		try{
@@ -222,7 +217,7 @@ export const matchParent = (dom, selector) => {
  * @returns {boolean}
  */
 export const domContained = (nodes, child, includeEqual = false) => {
-	let contains = fitNodes(nodes);
+	let contains = findAll(nodes);
 	for(let i = 0; i < contains.length; i++){
 		if((includeEqual ? contains[i] === child : false) ||
 			contains[i].compareDocumentPosition(child) & 16){
@@ -237,9 +232,9 @@ export const domContained = (nodes, child, includeEqual = false) => {
  * @param {Node} dom
  * @return {Node[]}
  */
-export const getFocusableElements = (dom = document)=>{
+export const getFocusableElements = (dom = document) => {
 	let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
-	return els.filter(el=>{
+	return els.filter(el => {
 		return !isNodeHidden(el);
 	});
 }
@@ -297,13 +292,13 @@ export const getNodeXPath = (el) => {
  */
 export const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
 	const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
-	let watchEl = ()=>{
-		findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el=>{
+	let watchEl = () => {
+		findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el => {
 			el.setAttribute(PRO_KEY, '1');
 			el.addEventListener('change', callback);
 		});
 	}
-	mutationEffective(dom, {attributes: true, subtree: true, childList: true}, ()=>{
+	mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
 		includeElementChanged && watchEl();
 		callback();
 	}, 10);

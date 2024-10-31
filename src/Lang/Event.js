@@ -1,4 +1,4 @@
-import {findOne, fitNodes} from "./Dom.js";
+import {findAll, findAllOrFail, findOne} from "./Dom.js";
 import {inputAble} from "./Form.js";
 
 /**
@@ -116,7 +116,7 @@ export const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '')
 		hoverClass && node.classList.remove(hoverClass);
 		return hoverOut ? hoverOut(e) : null;
 	}
-	fitNodes(nodes).forEach(node => {
+	findAll(nodes).forEach(node => {
 		node.addEventListener('touchstart', e => {return _in(e, node);});
 		node.addEventListener('touchend', e => {return _out(e, node);});
 		node.addEventListener('mouseenter', e => {return _in(e, node);});
@@ -130,7 +130,7 @@ export const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '')
  * @param event
  */
 export const fireEvent = (nodes, event) => {
-	fitNodes(nodes).forEach(node=>{
+	findAll(nodes).forEach(node=>{
 		if("createEvent" in document){
 			let evo = document.createEvent("HTMLEvents");
 			evo.initEvent(event, false, true);
@@ -149,7 +149,7 @@ export const fireEvent = (nodes, event) => {
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
 export const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = false) => {
-	fitNodes(nodes).forEach(node=>{
+	findAll(nodes).forEach(node=>{
 		node.addEventListener('click', payload, cancelBubble);
 		node.addEventListener('keyup', e => {
 			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
@@ -199,7 +199,7 @@ export const triggerDomEvent = (node, event) => {
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
 export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOnce = false) => {
-	fitNodes(nodes).forEach(node=>{
+	findAll(nodes).forEach(node=>{
 		let evs = Array.isArray(event) ? event : [event];
 		evs.forEach(ev => {
 			if(ev === EVENT_ACTIVE){
@@ -270,24 +270,26 @@ export const bindHotKeys = (keyStr, payload, option = {}) => {
 
 /**
  * 事件代理
- * @param {HTMLElement} container
+ * @param {HTMLElement|HTMLElement[]|String} container
  * @param {String} selector
  * @param {String} eventName
  * @param {Function} payload(event, matchedTarget) 回调，第二个参数为匹配的对象节点
  */
 export const eventDelegate = (container, selector, eventName, payload)=>{
-	container.addEventListener(eventName, ev=>{
-		let target = ev.target;
-		while(target){
-			if(target.matches(selector)){
-				payload.call(target, ev, target);
-				return;
+	findAllOrFail(container).forEach(ctn=>{
+		ctn.addEventListener(eventName, ev=>{
+			let target = ev.target;
+			while(target){
+				if(target.matches(selector)){
+					payload.call(target, ev, target);
+					return;
+				}
+				if(target === ctn){
+					return;
+				}
+				target = target.parentNode;
 			}
-			if(target === container){
-				return;
-			}
-			target = target.parentNode;
-		}
+		});
 	});
 }
 
