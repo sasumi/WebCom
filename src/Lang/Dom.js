@@ -141,6 +141,38 @@ export const bindTextAutoResize = (textarea, init = true) => {
 }
 
 /**
+ * 使用插入临时节点方式计算节点占用高度
+ * 优点：避免过多子节点margin等布局影响计算复杂度
+ * @param node
+ */
+let __divs = {};
+const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
+const getNodeHeightWithMargin = (node) => {
+	let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
+	if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+		return __divs[tmp_div_id].offsetTop;
+	}
+	tmp_div_id = guid('tmp_div_id');
+	node.setAttribute(NODE_HEIGHT_TMP_ATTR_KEY, tmp_div_id);
+	let tmp_div = document.createElement('div');
+	tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
+	node.appendChild(tmp_div);
+	__divs[tmp_div_id] = tmp_div;
+	return tmp_div.offsetTop;
+}
+
+const resizeIframe = (iframe) => {
+	console.debug('dialog iframe resize');
+	let bdy = iframe.contentWindow.document.body;
+	if(!bdy){
+		console.debug('body no ready yet.');
+		return;
+	}
+	let h = getNodeHeightWithMargin(bdy);
+	iframe.style.height = dimension2Style(h);
+}
+
+/**
  * iframe根据内容自动调整高度
  * iframe页面host必须和父级页面host同域，或者声明同域名
  * @param iframe
@@ -148,30 +180,17 @@ export const bindTextAutoResize = (textarea, init = true) => {
 export const bindIframeAutoResize = (iframe) => {
 	let obs;
 	try{
-		const resizeIframe = () => {
-			let bdy = iframe.contentWindow.document.body;
-			if(!bdy){
-				console.debug('body no ready yet.');
-				return;
-			}
-			iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-			let cs = iframe.contentWindow.getComputedStyle(bdy);
-			let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); //预防body有时候有margin
-			let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-			iframe.style.height = dimension2Style(h);
-		}
-
-		//改回onload后缩放，避免开始css没有加载，高度过高出现空白窗口
-
 		//成功加载后，只监听节点变化才调整高度，避免性能消耗
 		iframe.addEventListener('load', () => {
-			console.log('iframe loaded', iframe.src);
-			resizeIframe();
+			console.debug('iframe loaded', iframe.src);
+			resizeIframe(iframe);
 			mutationEffective(iframe.contentWindow.document.body, {
 				attributes: true,
 				subtree: true,
 				childList: true
-			}, resizeIframe);
+			}, ()=>{
+				resizeIframe(iframe);
+			});
 		});
 	}catch(err){
 		try{

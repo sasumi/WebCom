@@ -983,29 +983,44 @@
 			textarea.style.height = textarea.scrollHeight + 'px';
 		}
 	};
+	let __divs = {};
+	const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
+	const getNodeHeightWithMargin = (node) => {
+		let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
+		if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+			return __divs[tmp_div_id].offsetTop;
+		}
+		tmp_div_id = guid('tmp_div_id');
+		node.setAttribute(NODE_HEIGHT_TMP_ATTR_KEY, tmp_div_id);
+		let tmp_div = document.createElement('div');
+		tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
+		node.appendChild(tmp_div);
+		__divs[tmp_div_id] = tmp_div;
+		return tmp_div.offsetTop;
+	};
+	const resizeIframe = (iframe) => {
+		console.debug('dialog iframe resize');
+		let bdy = iframe.contentWindow.document.body;
+		if(!bdy){
+			console.debug('body no ready yet.');
+			return;
+		}
+		let h = getNodeHeightWithMargin(bdy);
+		iframe.style.height = dimension2Style(h);
+	};
 	const bindIframeAutoResize = (iframe) => {
 		let obs;
 		try{
-			const resizeIframe = () => {
-				let bdy = iframe.contentWindow.document.body;
-				if(!bdy){
-					console.debug('body no ready yet.');
-					return;
-				}
-				iframe.style.height = dimension2Style(bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight);
-				let cs = iframe.contentWindow.getComputedStyle(bdy);
-				let margin_height = parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
-				let h = (bdy.scrollHeight || bdy.clientHeight || bdy.offsetHeight) + margin_height;
-				iframe.style.height = dimension2Style(h);
-			};
 			iframe.addEventListener('load', () => {
-				console.log('iframe loaded', iframe.src);
-				resizeIframe();
+				console.debug('iframe loaded', iframe.src);
+				resizeIframe(iframe);
 				mutationEffective(iframe.contentWindow.document.body, {
 					attributes: true,
 					subtree: true,
 					childList: true
-				}, resizeIframe);
+				}, ()=>{
+					resizeIframe(iframe);
+				});
 			});
 		}catch(err){
 			try{

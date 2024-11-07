@@ -21,6 +21,11 @@ const resetEl = el => {
 	}
 }
 
+/**
+ * 同步两个元素值
+ * @param fromEl
+ * @param toEl
+ */
 const syncValue = (fromEl, toEl) => {
 	if(fromEl.tagName === 'INPUT' && (fromEl.type === 'checkbox' || fromEl.type === 'radio')){
 		toEl.checked = fromEl.checked;
