@@ -186,7 +186,8 @@ const resolveContentType = (content) => {
  */
 const domConstruct = (dlg) => {
 	let html = `
-		<dialog class="${DLG_CLS_PREF}" 
+		<dialog 
+			class="${DLG_CLS_PREF} ${dlg.config.cssClass || ''}" 
 			id="${dlg.id}" 
 			data-dialog-type="${TYPE_NORMAL}"
 			${dlg.config.transparent ? 'data-transparent' : ''}
@@ -482,6 +483,7 @@ class Dialog {
 	config = {
 		title: '', //对话框标题，为 null 或者空字符串时不显示标题行
 		content: '',
+		cssClass: '', //额外css类名
 		modal: true, //是否为模态窗口
 		transparent: false, //是否透明
 		width: Dialog.DEFAULT_WIDTH,

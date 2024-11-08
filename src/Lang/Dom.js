@@ -150,6 +150,7 @@ const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
 const getNodeHeightWithMargin = (node) => {
 	let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
 	if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+		console.log('tmp div already exists');
 		return __divs[tmp_div_id].offsetTop;
 	}
 	tmp_div_id = guid('tmp_div_id');
@@ -158,14 +159,15 @@ const getNodeHeightWithMargin = (node) => {
 	tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
 	node.appendChild(tmp_div);
 	__divs[tmp_div_id] = tmp_div;
+	console.log('tmp div offsetTop', tmp_div.offsetTop);
 	return tmp_div.offsetTop;
 }
 
 const resizeIframe = (iframe) => {
-	console.debug('dialog iframe resize');
+	console.log('dialog iframe resize');
 	let bdy = iframe.contentWindow.document.body;
 	if(!bdy){
-		console.debug('body no ready yet.');
+		console.warn('body no ready yet.');
 		return;
 	}
 	let h = getNodeHeightWithMargin(bdy);
@@ -182,7 +184,7 @@ export const bindIframeAutoResize = (iframe) => {
 	try{
 		//成功加载后，只监听节点变化才调整高度，避免性能消耗
 		iframe.addEventListener('load', () => {
-			console.debug('iframe loaded', iframe.src);
+			console.log('iframe loaded', iframe.src);
 			resizeIframe(iframe);
 			mutationEffective(iframe.contentWindow.document.body, {
 				attributes: true,
