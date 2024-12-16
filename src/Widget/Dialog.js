@@ -498,6 +498,7 @@ class Dialog {
 	 * @param {String|Null} config.id 为对话框指定ID
 	 * @param {String} config.title 对话框标题
 	 * @param {String} config.content 对话框内容，允许提交 {src:"http://"} 格式，渲染为iframe
+	 * @param {String} config.cssClass 对话框额外添加样式类名
 	 * @param {Boolean} config.modal 是否为模态对话框
 	 * @param {Boolean} config.transparent 是否透明
 	 * @param {Number} config.width 宽度
