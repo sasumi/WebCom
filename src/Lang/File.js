@@ -89,7 +89,7 @@ export const readFileInLine = (file, linePayload, onFinish = null, onError = nul
  * @param {String} dragOverClass 文件拖入时，容器添加class
  * @param {String} accept 指定文件过滤协议
  */
-export const bindFileDragDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
+export const bindFileDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
 	container = findOne(container);
 	['dragenter', 'dragover'].forEach(ev => {
 		container.addEventListener(ev, e => {

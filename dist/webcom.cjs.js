@@ -1542,7 +1542,7 @@ const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
 	};
 	seek();
 };
-const bindFileDragDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
+const bindFileDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
 	container = findOne(container);
 	['dragenter', 'dragover'].forEach(ev => {
 		container.addEventListener(ev, e => {
@@ -7595,7 +7595,7 @@ exports.base64Decode = base64Decode;
 exports.base64UrlSafeEncode = base64UrlSafeEncode;
 exports.between = between;
 exports.bindConsole = bindConsole;
-exports.bindFileDragDrop = bindFileDragDrop;
+exports.bindFileDrop = bindFileDrop;
 exports.bindFormAutoSave = bindFormAutoSave;
 exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
