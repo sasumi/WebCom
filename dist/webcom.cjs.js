@@ -1489,13 +1489,13 @@ const Theme = {
 };
 
 const resolveFileExtension = fileName => {
-	if(fileName.indexOf('.')<0){
+	if(fileName.indexOf('.') < 0){
 		return '';
 	}
 	let segList = fileName.split('.');
-	return segList[segList.length-1];
+	return segList[segList.length - 1];
 };
-const resolveFileName = (fileName)=>{
+const resolveFileName = (fileName) => {
 	fileName = fileName.replace(/.*?[/|\\]/ig, '');
 	return fileName.replace(/\.[^.]*$/g, "");
 };
@@ -1509,7 +1509,7 @@ const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
 			let slice = file.slice(offset, offset + CHUNK_SIZE);
 			reader.readAsArrayBuffer(slice);
 			offset += CHUNK_SIZE;
-		} else {
+		}else {
 			onFinish();
 		}
 	};
@@ -1536,6 +1536,56 @@ const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
 		onError(err);
 	};
 	seek();
+};
+const bindFileDragDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
+	container = findOne(container);
+	['dragenter', 'dragover'].forEach(ev => {
+		container.addEventListener(ev, e => {
+			dragOverClass && container.classList.add(dragOverClass);
+			e.preventDefault();
+			return false;
+		}, false);
+	});
+	['dragleave', 'drop'].forEach(ev => {
+		container.addEventListener(ev, e => {
+			dragOverClass && container.classList.remove(dragOverClass);
+			e.preventDefault();
+			return false;
+		}, false);
+	});
+	container.addEventListener('drop', async e => {
+		transferItemsToFiles(e.dataTransfer.items, (file, path) => {
+			if(!accept || (new RegExp(accept.replace('*', '.\*'))).test(file.type)){
+				fileHandler(file, path);
+			}
+		});
+	}, false);
+};
+const transferItemsToFiles = (dataTransferItemList, fileHandler) => {
+	for(let i = 0; i < dataTransferItemList.length; i++){
+		let entry = dataTransferItemList[i].webkitGetAsEntry();
+		if(entry){
+			traverseFileEntry(entry, fileHandler);
+		}
+	}
+};
+const traverseFileEntry = (entry, fileHandler, path = '/') => {
+	if(entry.isFile){
+		entry.file(file => {
+			fileHandler(file, path);
+		});
+		return;
+	}
+	if(entry.isDirectory){
+		path += (path === '/' ? '' : '/') + entry.name;
+		entry.createReader().readEntries((entries) => {
+			for(let entry of entries){
+				traverseFileEntry(entry, fileHandler, path);
+			}
+		}, err => {
+			console.error('directory read fail', err);
+		});
+	}
 };
 
 const COM_ID$4 = Theme.Namespace + 'toast';
@@ -7538,6 +7588,7 @@ exports.base64Decode = base64Decode;
 exports.base64UrlSafeEncode = base64UrlSafeEncode;
 exports.between = between;
 exports.bindConsole = bindConsole;
+exports.bindFileDragDrop = bindFileDragDrop;
 exports.bindFormAutoSave = bindFormAutoSave;
 exports.bindFormSubmitAsJSON = bindFormSubmitAsJSON;
 exports.bindFormUnSavedUnloadAlert = bindFormUnSavedUnloadAlert;
@@ -7709,6 +7760,7 @@ exports.toggle = toggle;
 exports.toggleFullScreen = toggleFullScreen;
 exports.toggleStickyClass = toggleStickyClass;
 exports.trans = trans;
+exports.transferItemsToFiles = transferItemsToFiles;
 exports.triggerDomEvent = triggerDomEvent;
 exports.trim = trim;
 exports.unescapeHtml = unescapeHtml;

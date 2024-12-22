@@ -3,12 +3,14 @@
  * @param {string} fileName
  * @return {string}
  */
+import {findOne} from "./Dom.js";
+
 export const resolveFileExtension = fileName => {
-	if(fileName.indexOf('.')<0){
+	if(fileName.indexOf('.') < 0){
 		return '';
 	}
 	let segList = fileName.split('.');
-	return segList[segList.length-1];
+	return segList[segList.length - 1];
 }
 
 /**
@@ -16,7 +18,7 @@ export const resolveFileExtension = fileName => {
  * @param {string} fileName
  * @return {string}
  */
-export const resolveFileName = (fileName)=>{
+export const resolveFileName = (fileName) => {
 	fileName = fileName.replace(/.*?[/|\\]/ig, '');
 	return fileName.replace(/\.[^.]*$/g, "");
 };
@@ -39,7 +41,7 @@ export const readFileInLine = (file, linePayload, onFinish = null, onError = nul
 			let slice = file.slice(offset, offset + CHUNK_SIZE);
 			reader.readAsArrayBuffer(slice);
 			offset += CHUNK_SIZE;
-		} else {
+		}else{
 			onFinish();
 		}
 	}
@@ -66,4 +68,75 @@ export const readFileInLine = (file, linePayload, onFinish = null, onError = nul
 		onError(err);
 	}
 	seek();
+}
+
+/**
+ * 绑定文件拖放区域
+ * @param {String|Node} container 容器
+ * @param {Function} fileHandler 文件处理函数，参数为：[File, path]
+ * @param {String} dragOverClass 文件拖入时，容器添加class
+ * @param {String} accept 指定文件过滤协议
+ */
+export const bindFileDragDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
+	container = findOne(container);
+	['dragenter', 'dragover'].forEach(ev => {
+		container.addEventListener(ev, e => {
+			dragOverClass && container.classList.add(dragOverClass);
+			e.preventDefault();
+			return false;
+		}, false);
+	});
+	['dragleave', 'drop'].forEach(ev => {
+		container.addEventListener(ev, e => {
+			dragOverClass && container.classList.remove(dragOverClass);
+			e.preventDefault();
+			return false;
+		}, false);
+	})
+	container.addEventListener('drop', async e => {
+		transferItemsToFiles(e.dataTransfer.items, (file, path) => {
+			if(!accept || (new RegExp(accept.replace('*', '.\*'))).test(file.type)){
+				fileHandler(file, path);
+			}
+		});
+	}, false);
+}
+
+/**
+ * 提取 e.dataTransfer.items 中的文件（忽略目录）
+ * @param dataTransferItemList
+ * @param fileHandler
+ */
+export const transferItemsToFiles = (dataTransferItemList, fileHandler) => {
+	for(let i = 0; i < dataTransferItemList.length; i++){
+		let entry = dataTransferItemList[i].webkitGetAsEntry();
+		if(entry){
+			traverseFileEntry(entry, fileHandler);
+		}
+	}
+}
+
+/**
+ * 遍历文件入口
+ * @param entry
+ * @param {Function} fileHandler
+ * @param {String} path relative path
+ */
+const traverseFileEntry = (entry, fileHandler, path = '/') => {
+	if(entry.isFile){
+		entry.file(file => {
+			fileHandler(file, path);
+		});
+		return;
+	}
+	if(entry.isDirectory){
+		path += (path === '/' ? '' : '/') + entry.name;
+		entry.createReader().readEntries((entries) => {
+			for(let entry of entries){
+				traverseFileEntry(entry, fileHandler, path);
+			}
+		}, err => {
+			console.error('directory read fail', err);
+		});
+	}
 }
