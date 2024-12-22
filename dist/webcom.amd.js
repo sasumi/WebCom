@@ -1516,6 +1516,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
 		return fileName.replace(/\.[^.]*$/g, "");
 	};
+	const fileAcceptMath = (fileType, accept)=>{
+		return !!(accept.replace(/\s/g, '').split(',').filter(ac=>{
+			return new RegExp(ac.replace('*', '.*')).test(fileType);
+		}).length);
+	};
 	const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
 		const CHUNK_SIZE = 1024;
 		const reader = new FileReader();
@@ -1572,8 +1577,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 		container.addEventListener('drop', async e => {
 			transferItemsToFiles(e.dataTransfer.items, (file, path) => {
-				if(!accept || (new RegExp(accept.replace('*', '.\*'))).test(file.type)){
+				if(!accept || fileAcceptMath(file.type, accept)){
 					fileHandler(file, path);
+				}else {
+					console.debug(`文件类型：${file.type} 不符合 ${accept}，已被忽略`);
 				}
 			});
 		}, false);

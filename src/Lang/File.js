@@ -24,6 +24,18 @@ export const resolveFileName = (fileName) => {
 };
 
 /**
+ * 检测文件类型是否匹配指定 accept
+ * @param {String} fileType 文件类型（格式如：image/png）
+ * @param {String} accept accept字符串，支持逗号分隔，如 image/*,image/png
+ * @return {Boolean}
+ */
+const fileAcceptMath = (fileType, accept)=>{
+	return !!(accept.replace(/\s/g, '').split(',').filter(ac=>{
+		return new RegExp(ac.replace('*', '.*')).test(fileType);
+	}).length);
+}
+
+/**
  * 逐行读取文件
  * @param {File} file
  * @param {Function} linePayload 参数(string) 逐行处理函数，返回 false 表示中断读取
@@ -95,8 +107,10 @@ export const bindFileDragDrop = (container, fileHandler, dragOverClass = 'drag-o
 	})
 	container.addEventListener('drop', async e => {
 		transferItemsToFiles(e.dataTransfer.items, (file, path) => {
-			if(!accept || (new RegExp(accept.replace('*', '.\*'))).test(file.type)){
+			if(!accept || fileAcceptMath(file.type, accept)){
 				fileHandler(file, path);
+			}else{
+				console.debug(`文件类型：${file.type} 不符合 ${accept}，已被忽略`);
 			}
 		});
 	}, false);
