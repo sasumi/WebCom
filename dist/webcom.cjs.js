@@ -990,7 +990,6 @@ const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
 const getNodeHeightWithMargin = (node) => {
 	let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
 	if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
-		console.log('tmp div already exists');
 		return __divs[tmp_div_id].offsetTop;
 	}
 	tmp_div_id = guid('tmp_div_id');
@@ -999,14 +998,11 @@ const getNodeHeightWithMargin = (node) => {
 	tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
 	node.appendChild(tmp_div);
 	__divs[tmp_div_id] = tmp_div;
-	console.log('tmp div offsetTop', tmp_div.offsetTop);
 	return tmp_div.offsetTop;
 };
 const resizeIframe = (iframe) => {
-	console.log('dialog iframe resize');
 	let bdy = iframe.contentWindow.document.body;
 	if(!bdy){
-		console.warn('body no ready yet.');
 		return;
 	}
 	let h = getNodeHeightWithMargin(bdy);
@@ -1016,7 +1012,6 @@ const bindIframeAutoResize = (iframe) => {
 	let obs;
 	try{
 		iframe.addEventListener('load', () => {
-			console.log('iframe loaded', iframe.src);
 			resizeIframe(iframe);
 			mutationEffective(iframe.contentWindow.document.body, {
 				attributes: true,
