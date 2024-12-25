@@ -3,8 +3,6 @@
  * @param {string} fileName
  * @return {string}
  */
-import {findOne} from "./Dom.js";
-
 export const resolveFileExtension = fileName => {
 	if(fileName.indexOf('.') < 0){
 		return '';
@@ -24,16 +22,16 @@ export const resolveFileName = (fileName) => {
 };
 
 /**
- * 检测文件类型是否匹配指定 accept
- * @param {String} fileType 文件类型（格式如：image/png）
- * @param {String} accept accept字符串，支持逗号分隔，如 image/*,image/png
+ * 检测文件mime是否匹配定义的accept字符串
+ * @param {String} fileMime 文件类型（格式如：image/png）
+ * @param {String} acceptStr accept字符串，支持逗号分隔，如 image/*,image/png
  * @return {Boolean}
  */
-const fileAcceptMath = (fileType, accept)=>{
-	return !!(accept.replace(/\s/g, '').split(',').filter(ac=>{
-		return new RegExp(ac.replace('*', '.*')).test(fileType);
+export const fileAcceptMath = (fileMime, acceptStr)=>{
+	return !!(acceptStr.replace(/\s/g, '').split(',').filter(ac=>{
+		return new RegExp(ac.replace('*', '.*')).test(fileMime);
 	}).length);
-}
+};
 
 /**
  * 逐行读取文件
@@ -83,74 +81,52 @@ export const readFileInLine = (file, linePayload, onFinish = null, onError = nul
 }
 
 /**
- * 绑定文件拖放区域
- * @param {String|Node} container 容器
- * @param {Function} fileHandler 文件处理函数，参数为：[File, path]
- * @param {String} dragOverClass 文件拖入时，容器添加class
- * @param {String} accept 指定文件过滤协议
+ * 图片对象转换成文件对象
+ * @param {Image} img
+ * @param {Object} fileAttr 额外文件属性
+ * @return {Promise<File>}
  */
-export const bindFileDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
-	container = findOne(container);
-	['dragenter', 'dragover'].forEach(ev => {
-		container.addEventListener(ev, e => {
-			dragOverClass && container.classList.add(dragOverClass);
-			e.preventDefault();
-			return false;
-		}, false);
-	});
-	['dragleave', 'drop'].forEach(ev => {
-		container.addEventListener(ev, e => {
-			dragOverClass && container.classList.remove(dragOverClass);
-			e.preventDefault();
-			return false;
-		}, false);
+export const imgToFile = (img, fileAttr = {}) => {
+	const name = fileAttr.name || img.alt || 'image';
+	return new Promise(resolve => {
+		fetch(img.src).then(res => res.blob()).then(blob => {
+			resolve(blobToFile(blob, {name, lastModified: fileAttr.lastModified}));
+		})
 	})
-	container.addEventListener('drop', async e => {
-		transferItemsToFiles(e.dataTransfer.items, (file, path) => {
-			if(!accept || fileAcceptMath(file.type, accept)){
-				fileHandler(file, path);
-			}else{
-				console.debug(`文件类型：${file.type} 不符合 ${accept}，已被忽略`);
-			}
-		});
-	}, false);
 }
 
 /**
- * 提取 e.dataTransfer.items 中的文件（忽略目录）
- * @param dataTransferItemList
- * @param fileHandler
+ * 文件对象转换成Image对象
+ * @param {File} file
+ * @return {Promise<Image>}
  */
-export const transferItemsToFiles = (dataTransferItemList, fileHandler) => {
-	for(let i = 0; i < dataTransferItemList.length; i++){
-		let entry = dataTransferItemList[i].webkitGetAsEntry();
-		if(entry){
-			traverseFileEntry(entry, fileHandler);
+export const fileToImg = (file) => {
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.src = URL.createObjectURL(file);
+		img.onload = () => {
+			if(file.name){
+				img.alt = file.name;
+			}
+			resolve(img);
+			URL.revokeObjectURL(file);
 		}
-	}
+	});
 }
 
 /**
- * 遍历文件入口
- * @param entry
- * @param {Function} fileHandler
- * @param {String} path relative path
+ * 转换blob为文件对象
+ * @param {Blob} blob
+ * @param {Object} fileAttr 文件属性信息(如name,lastModified)
+ * @return {File}
  */
-const traverseFileEntry = (entry, fileHandler, path = '/') => {
-	if(entry.isFile){
-		entry.file(file => {
-			fileHandler(file, path);
-		});
-		return;
-	}
-	if(entry.isDirectory){
-		path += (path === '/' ? '' : '/') + entry.name;
-		entry.createReader().readEntries((entries) => {
-			for(let entry of entries){
-				traverseFileEntry(entry, fileHandler, path);
-			}
-		}, err => {
-			console.error('directory read fail', err);
-		});
-	}
+export const blobToFile = (blob, fileAttr = {}) => {
+	fileAttr = Object.assign({
+		name: 'file',
+		lastModified: Date.now()
+	}, fileAttr)
+	return new File([blob], fileAttr.name, {
+		lastModified: fileAttr.lastModified,
+		type: fileAttr.type || blob.type
+	});
 }

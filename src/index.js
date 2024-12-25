@@ -24,6 +24,7 @@ export * from "./I18N/Lang.js";
 export * from "./Widget/Autofill.js";
 export * from "./Widget/Copy.js";
 export * from "./Widget/Dialog.js";
+export * from "./Widget/FileDrop.js";
 export * from "./Widget/ImgPreview.js";
 export * from "./Widget/LocalStorageSetting.js";
 export * from "./Widget/Masker.js";

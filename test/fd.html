@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Drop Demo</title>
+    <style>
+        #dropZone {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #ccc;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="dropZone">拖放文件到此处</div>
+    <ul id="fileList"></ul>
+
+    <script>
+        async function traverseFileTree(items) {
+            let files = [];
+
+            async function traverseDirectory(item) {
+                if (item.isFile) {
+                    files.push(await getFile(item));
+                } else if (item.isDirectory) {
+                    let dirReader = item.createReader();
+                    let entries = await readAllEntries(dirReader);
+                    for (let entry of entries) {
+                        await traverseDirectory(entry);
+                    }
+                }
+            }
+
+            async function getFile(item) {
+                return new Promise((resolve, reject) => {
+                    item.file(file => resolve(file), reject);
+                });
+            }
+
+            async function readAllEntries(dirReader) {
+                let entries = [];
+                let readEntries = () => {
+                    return new Promise((resolve, reject) => {
+                        dirReader.readEntries(results => {
+                            if (results.length) {
+                                entries = entries.concat(Array.from(results));
+                                readEntries().then(resolve).catch(reject);
+                            } else {
+                                resolve(entries);
+                            }
+                        }, reject);
+                    });
+                };
+                await readEntries();
+                return entries;
+            }
+
+            for (let i = 0; i < items.length; i++) {
+                let entry = items[i].webkitGetAsEntry();
+                if (entry) {
+                    await traverseDirectory(entry);
+                } else {
+                    // 如果是文件而不是目录
+                    files.push(items[i].getAsFile());
+                }
+            }
+
+            return files;
+        }
+
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            let items = e.dataTransfer.items;
+            let files = await traverseFileTree(items);
+            displayFiles(files);
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        function displayFiles(files) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            files.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = file.name;
+                fileList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1495,9 +1495,9 @@ var WebCom = (function (exports) {
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
 		return fileName.replace(/\.[^.]*$/g, "");
 	};
-	const fileAcceptMath = (fileType, accept)=>{
-		return !!(accept.replace(/\s/g, '').split(',').filter(ac=>{
-			return new RegExp(ac.replace('*', '.*')).test(fileType);
+	const fileAcceptMath = (fileMime, acceptStr)=>{
+		return !!(acceptStr.replace(/\s/g, '').split(',').filter(ac=>{
+			return new RegExp(ac.replace('*', '.*')).test(fileMime);
 		}).length);
 	};
 	const readFileInLine = (file, linePayload, onFinish = null, onError = null) => {
@@ -1538,57 +1538,36 @@ var WebCom = (function (exports) {
 		};
 		seek();
 	};
-	const bindFileDrop = (container, fileHandler, dragOverClass = 'drag-over', accept = '') => {
-		container = findOne(container);
-		['dragenter', 'dragover'].forEach(ev => {
-			container.addEventListener(ev, e => {
-				dragOverClass && container.classList.add(dragOverClass);
-				e.preventDefault();
-				return false;
-			}, false);
-		});
-		['dragleave', 'drop'].forEach(ev => {
-			container.addEventListener(ev, e => {
-				dragOverClass && container.classList.remove(dragOverClass);
-				e.preventDefault();
-				return false;
-			}, false);
-		});
-		container.addEventListener('drop', async e => {
-			transferItemsToFiles(e.dataTransfer.items, (file, path) => {
-				if(!accept || fileAcceptMath(file.type, accept)){
-					fileHandler(file, path);
-				}else {
-					console.debug(`文件类型：${file.type} 不符合 ${accept}，已被忽略`);
-				}
+	const imgToFile = (img, fileAttr = {}) => {
+		const name = fileAttr.name || img.alt || 'image';
+		return new Promise(resolve => {
+			fetch(img.src).then(res => res.blob()).then(blob => {
+				resolve(blobToFile(blob, {name, lastModified: fileAttr.lastModified}));
 			});
-		}, false);
+		})
 	};
-	const transferItemsToFiles = (dataTransferItemList, fileHandler) => {
-		for(let i = 0; i < dataTransferItemList.length; i++){
-			let entry = dataTransferItemList[i].webkitGetAsEntry();
-			if(entry){
-				traverseFileEntry(entry, fileHandler);
-			}
-		}
-	};
-	const traverseFileEntry = (entry, fileHandler, path = '/') => {
-		if(entry.isFile){
-			entry.file(file => {
-				fileHandler(file, path);
-			});
-			return;
-		}
-		if(entry.isDirectory){
-			path += (path === '/' ? '' : '/') + entry.name;
-			entry.createReader().readEntries((entries) => {
-				for(let entry of entries){
-					traverseFileEntry(entry, fileHandler, path);
+	const fileToImg = (file) => {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.src = URL.createObjectURL(file);
+			img.onload = () => {
+				if(file.name){
+					img.alt = file.name;
 				}
-			}, err => {
-				console.error('directory read fail', err);
-			});
-		}
+				resolve(img);
+				URL.revokeObjectURL(file);
+			};
+		});
+	};
+	const blobToFile = (blob, fileAttr = {}) => {
+		fileAttr = Object.assign({
+			name: 'file',
+			lastModified: Date.now()
+		}, fileAttr);
+		return new File([blob], fileAttr.name, {
+			lastModified: fileAttr.lastModified,
+			type: fileAttr.type || blob.type
+		});
 	};
 
 	const COM_ID$4 = Theme.Namespace + 'toast';
@@ -3879,6 +3858,103 @@ var WebCom = (function (exports) {
 		}
 		document.body.removeChild(container);
 		!silent && ToastClass.showSuccess(trans('复制成功'));
+	};
+
+	const bindFileDrop = (container, Option = {}) => {
+		Option = Object.assign({
+			onFinish: (files)=>{},
+			onInput: ()=>{},
+			onFile: (file)=>{},
+			dragOverClass: 'drag-over',
+			accept: ''
+		}, Option);
+		let accept = Option.accept;
+		container = findOne(container);
+		const fileInput = findOne('input[type=file]', container);
+		const processFile = file => {
+			if(!accept || fileAcceptMath(file.type, accept)){
+				Option.onFile(file);
+				return true;
+			}
+			console.debug(`文件 ${file.fullName} 类型：${file.type} 不符合 ${accept}，已被忽略`);
+			return false;
+		};
+		if(fileInput){
+			if(fileInput.accept){
+				accept += (accept ? ',' : '') + fileInput.accept;
+			}
+			fileInput.addEventListener('change', e => {
+				Option.onInput();
+				let fs = [];
+				Array.from(e.target.files).forEach(file => {
+					file.fullName = '/' + file.name;
+					processFile(file) && fs.push(file);
+				});
+				fileInput.value = '';
+				Option.onFinish(fs);
+			});
+		}
+		['dragenter', 'dragover'].forEach(ev => {
+			container.addEventListener(ev, e => {
+				Option.dragOverClass && container.classList.add(Option.dragOverClass);
+				e.preventDefault();
+				return false;
+			}, false);
+		});
+		['dragleave', 'drop'].forEach(ev => {
+			container.addEventListener(ev, e => {
+				Option.dragOverClass && container.classList.remove(Option.dragOverClass);
+				e.preventDefault();
+				return false;
+			}, false);
+		});
+		container.addEventListener('drop', event => {
+			event.preventDefault();
+			let items = event.dataTransfer.items;
+			let total_item_length = items.length;
+			let files = [];
+			let find_cnt = 0;
+			for(let i = 0; i < items.length; i++){
+				let item = items[i].webkitGetAsEntry();
+				if(item){
+					traverseFileTree(item, file => {
+						processFile(file) && files.push(file);
+					}, () => {
+						find_cnt++;
+						if(find_cnt === total_item_length){
+							Option.onFinish(files);
+						}
+					});
+				}
+			}
+		}, false);
+	};
+	const traverseFileTree = (item, itemCallback, totalCallback, path = '/') => {
+		if(item.isFile){
+			item.file(function(file){
+				file.fullName = path + file.name;
+				itemCallback(file);
+				totalCallback();
+			});
+		}else if(item.isDirectory){
+			let dirReader = item.createReader();
+			dirReader.readEntries(function(entries){
+				let fin_count = 0;
+				let entry_count = entries.length;
+				console.log('entry_count', entries, entry_count);
+				for(let i = 0; i < entry_count; i++){
+					traverseFileTree(entries[i], itemCallback, () => {
+						fin_count++;
+						if(fin_count === entry_count){
+							totalCallback();
+						}
+					}, path + item.name + "/");
+				}
+			});
+		}else {
+			console.warn('err', item);
+			totalCallback();
+		}
 	};
 
 	const json_decode = (v) => {
@@ -7605,6 +7681,7 @@ var WebCom = (function (exports) {
 	exports.bindTargetMenu = bindTargetMenu;
 	exports.bindTextAutoResize = bindTextAutoResize;
 	exports.bindTextSupportTab = bindTextSupportTab;
+	exports.blobToFile = blobToFile;
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.capitalize = capitalize;
 	exports.chunk = chunk;
@@ -7634,6 +7711,8 @@ var WebCom = (function (exports) {
 	exports.exitFullScreen = exitFullScreen;
 	exports.explodeBy = explodeBy;
 	exports.extract = extract;
+	exports.fileAcceptMath = fileAcceptMath;
+	exports.fileToImg = fileToImg;
 	exports.fillForm = fillForm;
 	exports.findAll = findAll;
 	exports.findAllOrFail = findAllOrFail;
@@ -7683,6 +7762,7 @@ var WebCom = (function (exports) {
 	exports.hide = hide;
 	exports.highlightText = highlightText;
 	exports.html2Text = html2Text;
+	exports.imgToFile = imgToFile;
 	exports.inMobile = inMobile;
 	exports.initAutofillButton = initAutofillButton;
 	exports.inputAble = inputAble;
@@ -7763,7 +7843,6 @@ var WebCom = (function (exports) {
 	exports.toggleFullScreen = toggleFullScreen;
 	exports.toggleStickyClass = toggleStickyClass;
 	exports.trans = trans;
-	exports.transferItemsToFiles = transferItemsToFiles;
 	exports.triggerDomEvent = triggerDomEvent;
 	exports.trim = trim;
 	exports.unescapeHtml = unescapeHtml;
