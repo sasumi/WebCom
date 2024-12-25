@@ -6,7 +6,7 @@ import {findOne} from "../Lang/Dom.js";
  * @param {String|Node} container 容器内如果有 input[type=file]，其onChange事件同时绑定，同时读取 input[type=file]{accept} 属性对文件列表进行过滤
  * @param {Object} Option
  * @param {Function} Option.onFile 单个文件处理回调（参数为文件）
- * @param {Function} Option.onFinish 所有文件处理回调（如果是拖动目录，需要等待目录所有文件读取完毕）参数为文件列表，此处文件包含fullName目录信息
+ * @param {Function} Option.onFinish 所有文件处理回调（如果是拖动目录，需要等待目录所有文件读取完毕）参数为文件列表，此处文件包含fullPath目录信息
  * @param {Function} Option.onInput 开始处理文件
  * @param {String} Option.dragOverClass 拖入时类名
  * @param {String} Option.accept 额外限制文件类型
@@ -29,7 +29,7 @@ export const bindFileDrop = (container, Option = {}) => {
 			Option.onFile(file);
 			return true;
 		}
-		console.debug(`文件 ${file.fullName} 类型：${file.type} 不符合 ${accept}，已被忽略`);
+		console.debug(`文件 ${file.fullPath} 类型：${file.type} 不符合 ${accept}，已被忽略`);
 		return false;
 	}
 	if(fileInput){
@@ -40,7 +40,7 @@ export const bindFileDrop = (container, Option = {}) => {
 			Option.onInput();
 			let fs = [];
 			Array.from(e.target.files).forEach(file => {
-				file.fullName = '/' + file.name;
+				file.fullPath = '/' + file.name;
 				processFile(file) && fs.push(file);
 			});
 			fileInput.value = '';
@@ -94,7 +94,7 @@ export const bindFileDrop = (container, Option = {}) => {
 const traverseFileTree = (item, itemCallback, totalCallback, path = '/') => {
 	if(item.isFile){
 		item.file(function(file){
-			file.fullName = path + file.name;
+			file.fullPath = path + file.name;
 			itemCallback(file);
 			totalCallback();
 		});

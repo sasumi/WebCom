@@ -3875,7 +3875,7 @@ const bindFileDrop = (container, Option = {}) => {
 			Option.onFile(file);
 			return true;
 		}
-		console.debug(`文件 ${file.fullName} 类型：${file.type} 不符合 ${accept}，已被忽略`);
+		console.debug(`文件 ${file.fullPath} 类型：${file.type} 不符合 ${accept}，已被忽略`);
 		return false;
 	};
 	if(fileInput){
@@ -3886,7 +3886,7 @@ const bindFileDrop = (container, Option = {}) => {
 			Option.onInput();
 			let fs = [];
 			Array.from(e.target.files).forEach(file => {
-				file.fullName = '/' + file.name;
+				file.fullPath = '/' + file.name;
 				processFile(file) && fs.push(file);
 			});
 			fileInput.value = '';
@@ -3931,7 +3931,7 @@ const bindFileDrop = (container, Option = {}) => {
 const traverseFileTree = (item, itemCallback, totalCallback, path = '/') => {
 	if(item.isFile){
 		item.file(function(file){
-			file.fullName = path + file.name;
+			file.fullPath = path + file.name;
 			itemCallback(file);
 			totalCallback();
 		});

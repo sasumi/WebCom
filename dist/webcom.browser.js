@@ -3876,7 +3876,7 @@ var WebCom = (function (exports) {
 				Option.onFile(file);
 				return true;
 			}
-			console.debug(`文件 ${file.fullName} 类型：${file.type} 不符合 ${accept}，已被忽略`);
+			console.debug(`文件 ${file.fullPath} 类型：${file.type} 不符合 ${accept}，已被忽略`);
 			return false;
 		};
 		if(fileInput){
@@ -3887,7 +3887,7 @@ var WebCom = (function (exports) {
 				Option.onInput();
 				let fs = [];
 				Array.from(e.target.files).forEach(file => {
-					file.fullName = '/' + file.name;
+					file.fullPath = '/' + file.name;
 					processFile(file) && fs.push(file);
 				});
 				fileInput.value = '';
@@ -3932,7 +3932,7 @@ var WebCom = (function (exports) {
 	const traverseFileTree = (item, itemCallback, totalCallback, path = '/') => {
 		if(item.isFile){
 			item.file(function(file){
-				file.fullName = path + file.name;
+				file.fullPath = path + file.name;
 				itemCallback(file);
 				totalCallback();
 			});
