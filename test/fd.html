@@ -3,99 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Drop Demo</title>
+    <title>CSS Hearts and Airplane</title>
     <style>
-        #dropZone {
-            width: 300px;
-            height: 200px;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #ccc;
-            font-size: 16px;
+        .heart {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            transform: rotate(-45deg);
+            margin: 50px;
         }
+
+        .heart::before,
+        .heart::after {
+            content: "";
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            border-radius: 50%;
+        }
+
+        .heart::before {
+            top: -50px;
+            left: 0;
+        }
+
+        .heart::after {
+            left: 50px;
+            top: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sky {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: #87CEEB;
+            overflow: hidden;
+        }
+
+        .sun {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: yellow;
+            border-radius: 50%;
+        }
+
+        .cloud {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .cloud1 {
+            width: 60px;
+            height: 60px;
+            top: 50px;
+            left: 50px;
+        }
+
+        .cloud2 {
+            width: 80px;
+            height: 80px;
+            top: 100px;
+            left: 150px;
+        }
+
+        .airplane {
+            position: absolute;
+            width: 200px;
+            height: 60px;
+            background-color: white;
+            border-radius: 30px;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .airplane::before {
+            content: "";
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            border-radius: 50%;
+            top: -30px;
+            left: 70px;
+        }
+
+        .airplane::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            top: 20px;
+            left: -10px;
+        }
+
+        .window {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: blue;
+            border-radius: 50%;
+            top: 20px;
+        }
+
+        .window1 { left: 30px; }
+        .window2 { left: 60px; }
+        .window3 { left: 90px; }
+        .window4 { left: 120px; }
+        .window5 { left: 150px; }
     </style>
 </head>
 <body>
-    <div id="dropZone">拖放文件到此处</div>
-    <ul id="fileList"></ul>
-
-    <script>
-        async function traverseFileTree(items) {
-            let files = [];
-
-            async function traverseDirectory(item) {
-                if (item.isFile) {
-                    files.push(await getFile(item));
-                } else if (item.isDirectory) {
-                    let dirReader = item.createReader();
-                    let entries = await readAllEntries(dirReader);
-                    for (let entry of entries) {
-                        await traverseDirectory(entry);
-                    }
-                }
-            }
-
-            async function getFile(item) {
-                return new Promise((resolve, reject) => {
-                    item.file(file => resolve(file), reject);
-                });
-            }
-
-            async function readAllEntries(dirReader) {
-                let entries = [];
-                let readEntries = () => {
-                    return new Promise((resolve, reject) => {
-                        dirReader.readEntries(results => {
-                            if (results.length) {
-                                entries = entries.concat(Array.from(results));
-                                readEntries().then(resolve).catch(reject);
-                            } else {
-                                resolve(entries);
-                            }
-                        }, reject);
-                    });
-                };
-                await readEntries();
-                return entries;
-            }
-
-            for (let i = 0; i < items.length; i++) {
-                let entry = items[i].webkitGetAsEntry();
-                if (entry) {
-                    await traverseDirectory(entry);
-                } else {
-                    // 如果是文件而不是目录
-                    files.push(items[i].getAsFile());
-                }
-            }
-
-            return files;
-        }
-
-        document.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            let items = e.dataTransfer.items;
-            let files = await traverseFileTree(items);
-            displayFiles(files);
-        });
-
-        document.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
-        function displayFiles(files) {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            files.forEach(file => {
-                const li = document.createElement('li');
-                li.textContent = file.name;
-                fileList.appendChild(li);
-            });
-        }
-    </script>
+    <div class="container">
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+    </div>
+    <div class="sky">
+        <div class="sun"></div>
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+        <div class="airplane">
+            <div class="window window1"></div>
+            <div class="window window2"></div>
+            <div class="window window3"></div>
+            <div class="window window4"></div>
+            <div class="window window5"></div>
+        </div>
+    </div>
 </body>
 </html>

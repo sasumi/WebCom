@@ -3944,7 +3944,10 @@
 			dirReader.readEntries(function(entries){
 				let fin_count = 0;
 				let entry_count = entries.length;
-				console.log('entry_count', entries, entry_count);
+				if(!entry_count){
+					totalCallback();
+					return;
+				}
 				for(let i = 0; i < entry_count; i++){
 					traverseFileTree(entries[i], itemCallback, () => {
 						fin_count++;
