@@ -31,6 +31,7 @@ export * from "./Widget/Masker.js";
 export * from "./Widget/Menu.js";
 export * from "./Widget/NoviceGuide.js";
 export * from "./Widget/Paginate.js";
+export * from "./Widget/ParallelPromise.js";
 export * from "./Widget/Select.js";
 export * from "./Widget/Sortable.js";
 export * from "./Widget/Theme.js";
