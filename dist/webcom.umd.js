@@ -638,796 +638,6 @@
 		});
 	};
 
-	let _guid = 0;
-	const guid = (prefix = '') => {
-		return 'guid_' + (prefix || randomString(6)) + (++_guid);
-	};
-	const getCurrentScript = function(){
-		let error = new Error()
-			, source
-			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
-			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
-		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
-			return source[1];
-		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
-			return source[1];
-		}else if(error['fileName'] !== undefined){
-			return error['fileName'];
-		}
-		return null;
-	};
-	const inMobile = ()=>{
-		const useragent = window.navigator.userAgent;
-		const regex = /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i;
-		const regex2 = /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i;
-		return regex.test(useragent) || regex2.test(useragent.substr(0, 4));
-	};
-	const throttle = (fn, intervalMiSec) => {
-		let context, args;
-		let previous = 0;
-		return function(){
-			let now = +new Date();
-			context = this;
-			args = arguments;
-			if(now - previous > intervalMiSec){
-				fn.apply(context, args);
-				previous = now;
-			}
-		}();
-	};
-	const throttleEffect = (fn, intervalMiSec) => {
-		let context, args;
-		let lastExecuteTime = 0;
-		let queuing = false;
-		return function(){
-			if(queuing){
-				return;
-			}
-			let now = +new Date();
-			context = this;
-			args = arguments;
-			let remaining = intervalMiSec - (now - lastExecuteTime);
-			if(remaining <= 0){
-				fn.apply(context, args);
-				lastExecuteTime = now;
-			}else {
-				queuing = true;
-				setTimeout(() => {
-					fn.apply(context, args);
-					queuing = false;
-					lastExecuteTime = now;
-				}, remaining);
-			}
-		};
-	};
-	const debounce = (fn, intervalMiSec) => {
-		let timeout;
-		return function(){
-			let context = this;
-			let args = arguments;
-			clearTimeout(timeout);
-			timeout = setTimeout(function(){
-				fn.apply(context, args);
-			}, intervalMiSec);
-		}
-	};
-	const CURRENT_FILE = '/Lang/Util.js';
-	const ENTRY_FILE = '/index.js';
-	const getLibEntryScript = () => {
-		let script = getCurrentScript();
-		if(!script){
-			throw "Get script failed";
-		}
-		if(script.indexOf(CURRENT_FILE) >= 0){
-			return script.replace(CURRENT_FILE, ENTRY_FILE);
-		}
-		return script;
-	};
-	const getLibModule = async () => {
-		let script = getLibEntryScript();
-		return await import(script);
-	};
-	const getLibModuleTop = (() => {
-		if(top === window){
-			return getLibModule;
-		}
-		if(top.WEBCOM_GET_LIB_MODULE){
-			return top.WEBCOM_GET_LIB_MODULE;
-		}
-		throw "No WebCom library script loaded detected.";
-	})();
-	const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
-		const MARKUP_STR_VAL = 'TRUE';
-		let getMarkState = (key) => {
-			switch(storageType.toLowerCase()){
-				case 'cookie':
-					return getCookie(key) === MARKUP_STR_VAL;
-				case 'storage':
-					return window.localStorage.getItem(key) === MARKUP_STR_VAL;
-				case 'session':
-					return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
-				default:
-					throw "no support:" + storageType;
-			}
-		};
-		let markUp = (key) => {
-			switch(storageType.toLowerCase()){
-				case 'cookie':
-					return setCookie(key, MARKUP_STR_VAL);
-				case 'storage':
-					return window.localStorage.setItem(key, MARKUP_STR_VAL);
-				case 'session':
-					return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
-				default:
-					throw "no support:" + storageType;
-			}
-		};
-		return new Promise((onHit, noHit) => {
-			if(!getMarkState(markKey)){
-				if(typeof (dataFetcher) === 'function'){
-					dataFetcher().then(() => {
-						markUp(markKey);
-						onHit();
-					}, () => {
-						markUp(markKey);
-						noHit();
-					});
-				}else {
-					markUp(markKey);
-					onHit();
-				}
-			}else {
-				noHit();
-			}
-		});
-	};
-	class ParallelPromise {
-		parallel_limit = 0;
-		current_running_count = 0;
-		task_stack = [
-		];
-		constructor(parallelLimit){
-			if(parallelLimit < 1){
-				throw "最大并发数量必须大于0";
-			}
-			this.parallel_limit = parallelLimit;
-		}
-		loop(){
-			for(let i = 0; i < (this.parallel_limit - this.current_running_count); i++){
-				if(!this.task_stack.length){
-					return;
-				}
-				this.current_running_count++;
-				let {promiseFn, args, resolve, reject} = this.task_stack.shift();
-				promiseFn(...args).then(resolve, reject).finally(() => {
-					this.current_running_count--;
-					this.loop();
-				});
-			}
-		}
-		addPromiseFn(promiseFn, ...args){
-			return new Promise((resolve, reject) => {
-				this.task_stack.push({
-					promiseFn: promiseFn,
-					args: args,
-					resolve,
-					reject
-				});
-				this.loop();
-			});
-		}
-	}
-	const isObject = (item) => {
-		return (item && typeof item === 'object' && !Array.isArray(item));
-	};
-	const isFunction = (value) => {
-		return value ? (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function) : false;
-	};
-	const mergeDeep = (target, ...sources) => {
-		if(!sources.length) return target;
-		const source = sources.shift();
-		if(isObject(target) && isObject(source)){
-			for(const key in source){
-				if(isObject(source[key])){
-					if(!target[key]){
-						Object.assign(target, {[key]: {}});
-					}else {
-						target[key] = Object.assign({}, target[key]);
-					}
-					mergeDeep(target[key], source[key]);
-				}else {
-					Object.assign(target, {[key]: source[key]});
-				}
-			}
-		}
-		return mergeDeep(target, ...sources);
-	};
-	const CONSOLE_COLOR = {
-		RESET: "\x1b[0m",
-		BRIGHT: "\x1b[1m",
-		DIM: "\x1b[2m",
-		UNDERSCORE: "\x1b[4m",
-		BLINK: "\x1b[5m",
-		REVERSE: "\x1b[7m",
-		HIDDEN: "\x1b[8m",
-		FG: {
-			BLACK: "\x1b[30m",
-			RED: "\x1b[31m",
-			GREEN: "\x1b[32m",
-			YELLOW: "\x1b[33m",
-			BLUE: "\x1b[34m",
-			MAGENTA: "\x1b[35m",
-			CYAN: "\x1b[36m",
-			WHITE: "\x1b[37m",
-			GRAY: "\x1b[90m",
-		},
-		BG: {
-			BLACK: "\x1b[40m",
-			RED: "\x1b[41m",
-			GREEN: "\x1b[42m",
-			YELLOW: "\x1b[43m",
-			BLUE: "\x1b[44m",
-			MAGENTA: "\x1b[45m",
-			CYAN: "\x1b[46m",
-			WHITE: "\x1b[47m",
-			GRAY: "\x1b[100m",
-		}
-	};
-	const CONSOLE_METHODS = ['debug', 'info', 'log', 'warn', 'error'];
-	let org_console_methods = {};
-	const bindConsole = (method, payload)=>{
-		if(method === '*'){
-			method = CONSOLE_METHODS;
-		}
-		if(Array.isArray(method)){
-			method.forEach(method=>{
-				bindConsole(method, payload);
-			});
-			return;
-		}
-		if(!org_console_methods[method]){
-			org_console_methods[method] = console[method];
-		}
-		console[method] = function(...args){
-			let ret = payload.apply(console, [method, Array.from(args)]);
-			if(!Array.isArray(ret)){
-				return;
-			}
-			org_console_methods[method].apply(console, ret);
-		};
-	};
-	const isPromise = (obj)=>{
-		return obj && typeof(obj) === 'object' && obj.then && typeof(obj.then) === 'function';
-	};
-	const PROMISE_STATE_PENDING = 'pending';
-	const PROMISE_STATE_FULFILLED = 'fulfilled';
-	const PROMISE_STATE_REJECTED = 'rejected';
-	const getPromiseState = (promise)=>{
-		const t = {};
-		return Promise.race([promise, t])
-			.then(v => (v === t) ? PROMISE_STATE_PENDING : PROMISE_STATE_FULFILLED)
-			.catch(() => PROMISE_STATE_REJECTED);
-	};
-	window.WEBCOM_GET_LIB_MODULE = getLibModule;
-	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
-
-	const getViewWidth = () => {
-		return window.innerWidth;
-	};
-	const getViewHeight = () => {
-		return window.innerHeight;
-	};
-	const hide = (dom) => {
-		dom.style.display = 'none';
-	};
-	const remove = (dom) => {
-		if(dom && dom.parentNode){
-			dom.parentNode.removeChild(dom);
-			return true;
-		}
-		return false;
-	};
-	const show = (dom) => {
-		dom.style.display = '';
-	};
-	const toggle = (dom, toShow) => {
-		toShow ? show(dom) : hide(dom);
-	};
-	const nodeIndex = (node) => {
-		return Array.prototype.indexOf.call(node.parentNode.children, node);
-	};
-	const findOne = (selector, parent = document) => {
-		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
-	};
-	const findAll = (selector, parent = document) => {
-		if(typeof selector === 'string'){
-			selector = selector.trim();
-			if(selector.indexOf(':scope') !== 0){
-				selector = ':scope ' + selector;
-			}
-			return Array.from(parent.querySelectorAll(selector));
-		}else if(Array.isArray(selector)){
-			let ns = [];
-			selector.forEach(sel => {
-				ns.push(...findAll(sel));
-			});
-			return ns;
-		}else {
-			return [selector];
-		}
-	};
-	const findAllOrFail = (selector, parent = document) => {
-		let ls = findAll(selector, parent);
-		if(!ls.length){
-			throw "no nodes found:" + selector;
-		}
-		return ls;
-	};
-	const getDomOffset = (target) => {
-		let rect = target.getBoundingClientRect();
-		return {
-			width: rect.width,
-			height: rect.height,
-			top: rect.top,
-			bottom: rect.bottom,
-			left: rect.left,
-			right: rect.right,
-			x: rect.x,
-			y: rect.y,
-		}
-	};
-	const isButton = (el) => {
-		return el.tagName === 'BUTTON' ||
-			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
-	};
-	const bindTextAutoResize = (textarea, init = true) => {
-		textarea.style.height = 'auto';
-		textarea.addEventListener('input', () => {
-			textarea.style.height = textarea.scrollHeight + 'px';
-		});
-		if(init){
-			textarea.style.height = textarea.scrollHeight + 'px';
-		}
-	};
-	let __divs = {};
-	const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
-	const getNodeHeightWithMargin = (node) => {
-		let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
-		if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
-			return __divs[tmp_div_id].offsetTop;
-		}
-		tmp_div_id = guid('tmp_div_id');
-		node.setAttribute(NODE_HEIGHT_TMP_ATTR_KEY, tmp_div_id);
-		let tmp_div = document.createElement('div');
-		tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
-		node.appendChild(tmp_div);
-		__divs[tmp_div_id] = tmp_div;
-		return tmp_div.offsetTop;
-	};
-	const resizeIframe = (iframe) => {
-		let bdy = iframe.contentWindow.document.body;
-		if(!bdy){
-			return;
-		}
-		let h = getNodeHeightWithMargin(bdy);
-		iframe.style.height = dimension2Style(h);
-	};
-	const bindIframeAutoResize = (iframe) => {
-		let obs;
-		try{
-			iframe.addEventListener('load', () => {
-				resizeIframe(iframe);
-				mutationEffective(iframe.contentWindow.document.body, {
-					attributes: true,
-					subtree: true,
-					childList: true
-				}, ()=>{
-					resizeIframe(iframe);
-				});
-			});
-		}catch(err){
-			try{
-				obs && obs.disconnect();
-			}catch(err){
-				console.error('observer disconnect fail', err);
-			}
-			console.warn('iframe content upd', err);
-		}
-	};
-	const bindTextSupportTab = (textarea, tabChar = "\t") => {
-		textarea.addEventListener('keydown', function(e){
-			if(e.key !== 'Tab'){
-				return;
-			}
-			e.preventDefault();
-			document.execCommand('insertText', false, tabChar);
-		});
-	};
-	const matchParent = (dom, selector) => {
-		return dom.closest(selector);
-	};
-	const domContained = (nodes, child, includeEqual = false) => {
-		let contains = findAll(nodes);
-		for(let i = 0; i < contains.length; i++){
-			if((includeEqual ? contains[i] === child : false) ||
-				contains[i].compareDocumentPosition(child) & 16){
-				return true;
-			}
-		}
-		return false;
-	};
-	const getFocusableElements = (dom = document) => {
-		let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
-		return els.filter(el => {
-			return !isNodeHidden(el);
-		});
-	};
-	const isNodeHidden = (node) => {
-		return node.offsetParent === null;
-	};
-	const getNodeXPath = (el) => {
-		let allNodes = document.getElementsByTagName('*');
-		let seg_list = [];
-		for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
-			if(el.hasAttribute('id')){
-				let uniqueIdCount = 0;
-				for(let n = 0; n < allNodes.length; n++){
-					if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
-					if(uniqueIdCount > 1) break;
-				}
-				if(uniqueIdCount === 1){
-					seg_list.unshift('id("' + el.getAttribute('id') + '")');
-					return seg_list.join('/');
-				}else {
-					seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
-				}
-			}else if(el.hasAttribute('class')){
-				seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
-			}else {
-				let i, sib;
-				for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
-					if(sib.localName === el.localName){
-						i++;
-					}
-				}
-				seg_list.unshift(el.localName.toLowerCase() + '[' + i + ']');
-			}
-		}
-		return seg_list.length ? '/' + seg_list.join('/') : null;
-	};
-	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
-		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
-		let watchEl = () => {
-			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el => {
-				el.setAttribute(PRO_KEY, '1');
-				el.addEventListener('change', callback);
-			});
-		};
-		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
-			includeElementChanged && watchEl();
-			callback();
-		}, 10);
-		includeElementChanged && watchEl();
-	};
-	const mutationEffective = (dom, option, payload, minInterval = 10) => {
-		let last_queue_time = 0;
-		let callback_queueing = false;
-		let obs = new MutationObserver(() => {
-			if(callback_queueing){
-				return;
-			}
-			let r = minInterval - (new Date().getTime() - last_queue_time);
-			if(r > 0){
-				callback_queueing = true;
-				setTimeout(() => {
-					callback_queueing = false;
-					last_queue_time = new Date().getTime();
-					payload(obs);
-				}, r);
-			}else {
-				last_queue_time = new Date().getTime();
-				payload(obs);
-			}
-		});
-		obs.observe(dom, option);
-	};
-	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
-		onDomTreeChange(container, () => {
-			notification(findAll(matchedSelector, container));
-		});
-		if(executionFirst){
-			notification(findAll(matchedSelector, container));
-		}
-	};
-	const keepRectCenter = (width, height, containerDimension = {
-		left: 0,
-		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight
-	}) => {
-		return [
-			Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
-			Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
-		];
-	};
-	const keepDomInContainer = (target, container = document.body) => {
-		keepRectInContainer({
-			left: target.left,
-			top: target.top,
-			width: target.clientWidth,
-			height: target.clientHeight,
-		});
-	};
-	const keepRectInContainer = (objDim, ctnDim = {
-		left: 0,
-		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight
-	}) => {
-		let ret = {left: objDim.left, top: objDim.top};
-		if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
-			return ret;
-		}
-		if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
-			ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
-		}
-		if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
-			ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
-		}
-		if(objDim.left < ctnDim.left){
-			ret.left = ctnDim.left;
-		}
-		if(objDim.top < ctnDim.top){
-			ret.top = ctnDim.top;
-		}
-		return ret;
-	};
-	const getDomDimension = (dom) => {
-		let org_visibility = dom.style.visibility;
-		let org_display = dom.style.display;
-		let width, height;
-		dom.style.visibility = 'hidden';
-		dom.style.display = 'block';
-		width = dom.clientWidth;
-		height = dom.clientHeight;
-		dom.style.visibility = org_visibility;
-		dom.style.display = org_display;
-		return {width, height};
-	};
-	const rectAssoc = (rect1, rect2) => {
-		if(rect1.left <= rect2.left){
-			return (rect1.left + rect1.width) >= rect2.left && (
-				between(rect2.top, rect1.top, rect1.top + rect1.height) ||
-				between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
-				rect2.top >= rect1.top && rect2.height >= rect1.height
-			);
-		}else {
-			return (rect2.left + rect2.width) >= rect1.left && (
-				between(rect1.top, rect2.top, rect2.top + rect2.height) ||
-				between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
-				rect1.top >= rect2.top && rect1.height >= rect2.height
-			);
-		}
-	};
-	const isElement = (obj) => {
-		try{
-			return obj instanceof HTMLElement;
-		}catch(e){
-			return (typeof obj === "object") &&
-				(obj.nodeType === 1) && (typeof obj.style === "object") &&
-				(typeof obj.ownerDocument === "object");
-		}
-	};
-	let _c = {};
-	const loadCss = (file, forceReload = false) => {
-		if(!forceReload && _c[file]){
-			return _c[file];
-		}
-		_c[file] = new Promise((resolve, reject) => {
-			let link = document.createElement('link');
-			link.rel = "stylesheet";
-			link.href = file;
-			link.onload = () => {
-				resolve();
-			};
-			link.onerror = () => {
-				reject();
-			};
-			document.head.append(link);
-		});
-		return _c[file];
-	};
-	const loadScript = (src, forceReload = false) => {
-		if(!forceReload && _c[src]){
-			return _c[src];
-		}
-		_c[src] = new Promise((resolve, reject) => {
-			let script = document.createElement('script');
-			script.src = src;
-			script.onload = () => {
-				resolve();
-			};
-			script.onerror = () => {
-				reject();
-			};
-			document.head.append(script);
-		});
-		return _c[src];
-	};
-	const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
-		let style = doc.createElement('style');
-		doc.head.appendChild(style);
-		style.innerHTML = styleSheetStr;
-		if(id){
-			style.id = id;
-		}
-		return style;
-	};
-	const getRegion = (win = window) => {
-		let info = {};
-		let doc = win.document;
-		info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
-		info.screenTop = win.screenTop ? win.screenTop : win.screenY;
-		if(win.innerWidth){
-			info.visibleWidth = win.innerWidth;
-			info.visibleHeight = win.innerHeight;
-			info.horizenScroll = win.pageXOffset;
-			info.verticalScroll = win.pageYOffset;
-		}else {
-			let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
-				doc.documentElement : doc.body;
-			info.visibleWidth = tmp.clientWidth;
-			info.visibleHeight = tmp.clientHeight;
-			info.horizenScroll = tmp.scrollLeft;
-			info.verticalScroll = tmp.scrollTop;
-		}
-		let tag = (doc.documentElement && doc.documentElement.scrollWidth) ?
-			doc.documentElement : doc.body;
-		info.documentWidth = Math.max(tag.scrollWidth, info.visibleWidth);
-		info.documentHeight = Math.max(tag.scrollHeight, info.visibleHeight);
-		return info;
-	};
-	const rectInLayout = (rect, layout) => {
-		return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width)
-			&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width);
-	};
-	const setStyle = (dom, style = {}) => {
-		for(let key in style){
-			key = strToPascalCase(key);
-			dom.style[key] = dimension2Style(style[key]);
-		}
-	};
-	const nodeHighlight = (node, pattern, hlClass) => {
-		let skip = 0;
-		if(node.nodeType === 3){
-			pattern = new RegExp(pattern, 'i');
-			let pos = node.data.search(pattern);
-			if(pos >= 0 && node.data.length > 0){
-				let match = node.data.match(pattern);
-				let spanNode = document.createElement('span');
-				spanNode.className = hlClass;
-				let middleBit = node.splitText(pos);
-				middleBit.splitText(match[0].length);
-				let middleClone = middleBit.cloneNode(true);
-				spanNode.appendChild(middleClone);
-				middleBit.parentNode.replaceChild(spanNode, middleBit);
-				skip = 1;
-			}
-		}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
-			for(let i = 0; i < node.childNodes.length; ++i){
-				i += nodeHighlight(node.childNodes[i], pattern, hlClass);
-			}
-		}
-		return skip;
-	};
-	const tabConnect = (tabs, contents, option = {}) => {
-		let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
-		if(typeof (tabs) === 'string'){
-			tabs = findAll(tabs);
-		}
-		if(typeof (contents) === 'string'){
-			contents = findAll(contents);
-		}
-		tabs.forEach((tab, idx) => {
-			tab.addEventListener(triggerEvent, e => {
-				contents.forEach(ctn => {
-					ctn.classList.remove(contentActiveClass);
-				});
-				contents[idx].classList.add(contentActiveClass);
-				tabs.forEach(t => {
-					t.classList.remove(tabActiveClass);
-				});
-				tab.classList.add(tabActiveClass);
-			});
-		});
-	};
-	const createDomByHtml = (html, parentNode = null) => {
-		let tpl = document.createElement('template');
-		html = html.trim();
-		tpl.innerHTML = html;
-		let nodes = [];
-		if(parentNode){
-			tpl.content.childNodes.forEach(node => {
-				nodes.push(parentNode.appendChild(node));
-			});
-		}else {
-			nodes = tpl.content.childNodes;
-		}
-		return nodes.length === 1 ? nodes[0] : nodes;
-	};
-	function repaint(element, delay = 0){
-		setTimeout(() => {
-			try{
-				element.hidden = true;
-				element.offsetHeight;
-				element.hidden = false;
-			}catch(_){
-			}
-		}, delay);
-	}
-	const enterFullScreen = (element) => {
-		if(element.requestFullscreen){
-			return element.requestFullscreen();
-		}
-		if(element.webkitRequestFullScreen){
-			return element.webkitRequestFullScreen();
-		}
-		if(element.mozRequestFullScreen){
-			element.mozRequestFullScreen();
-		}
-		if(element.msRequestFullScreen){
-			element.msRequestFullScreen();
-		}
-		throw "Browser no allow full screen";
-	};
-	const exitFullScreen = () => {
-		return document.exitFullscreen();
-	};
-	const toggleFullScreen = (element) => {
-		return new Promise((resolve, reject) => {
-			if(!isInFullScreen()){
-				enterFullScreen(element).then(resolve).catch(reject);
-			}else {
-				exitFullScreen().then(resolve).catch(reject);
-			}
-		})
-	};
-	const toggleStickyClass = (node, className) => {
-		const observer = new IntersectionObserver(([e]) => {
-			e.target.classList.toggle(className, e.intersectionRatio < 1);
-		}, {
-			rootMargin: '-1px 0px 0px 0px',
-			threshold: [1],
-		});
-		observer.observe(node);
-	};
-	const isInFullScreen = () => {
-		return !!document.fullscreenElement;
-	};
-	let CURRENT_WINDOW;
-	const setContextWindow = (win) => {
-		CURRENT_WINDOW = win;
-	};
-	const getContextDocument = () => {
-		let win = getContextWindow();
-		return win.document;
-	};
-	const getContextWindow = () => {
-		if(CURRENT_WINDOW){
-			return CURRENT_WINDOW;
-		}
-		let win;
-		try{
-			win = window;
-			while(win !== win.parent){
-				win = win.parent;
-			}
-		}catch(err){
-			console.warn('context window assign fail:', err);
-		}
-		return win || window;
-	};
-
 	const NS$6 = 'WebCom-';
 	const VAR_PREFIX = '--' + NS$6;
 	const ICON_FONT = NS$6 + 'iconfont';
@@ -2631,6 +1841,827 @@
 		BackSpace: 8, Esc: 27, RightArrow: 39, Tab: 9, Space: 32, DownArrow: 40, Clear: 12, PageUp: 33, Insert: 45, Enter: 13, PageDown: 34, Delete: 46, Shift: 16, End: 35, NumLock: 144, Control: 17, Home: 36, Alt: 18, LeftArrow: 37, CapsLock: 20, UpArrow: 38,
 		F1: 112,F2: 113,F3: 114,F4: 115,F5: 116,F6: 117,F7: 118,F8: 119,F9: 120,F10: 121,F11: 122,F12: 123,
 		NumPad0: 96, NumPad1: 97, NumPad2: 98, NumPad3: 99, NumPad4: 100, NumPad5: 101, NumPad6: 102, NumPad7: 103, NumPad8: 104, NumPad9: 105, NumPadMultiple: 106, NumPadPlus: 107, NumPadDash: 109, NumPadDot: 110, NumPadSlash: 111, NumPadEnter: 108
+	};
+
+	let _guid = 0;
+	const guid = (prefix = '') => {
+		return 'guid_' + (prefix || randomString(6)) + (++_guid);
+	};
+	const getCurrentScript = function(){
+		let error = new Error()
+			, source
+			, currentStackFrameRegex = new RegExp(getCurrentScript.name + "\\s*\\((.*):\\d+:\\d+\\)")
+			, lastStackFrameRegex = new RegExp(/.+\/(.*?):\d+(:\d+)*$/);
+		if((source = currentStackFrameRegex.exec(error.stack.trim()))){
+			return source[1];
+		}else if((source = lastStackFrameRegex.exec(error.stack.trim())) && source[1] !== ""){
+			return source[1];
+		}else if(error['fileName'] !== undefined){
+			return error['fileName'];
+		}
+		return null;
+	};
+	const inMobile = () => {
+		const useragent = window.navigator.userAgent;
+		const regex = /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i;
+		const regex2 = /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i;
+		return regex.test(useragent) || regex2.test(useragent.substr(0, 4));
+	};
+	const throttle = (fn, intervalMiSec) => {
+		let context, args;
+		let previous = 0;
+		return function(){
+			let now = +new Date();
+			context = this;
+			args = arguments;
+			if(now - previous > intervalMiSec){
+				fn.apply(context, args);
+				previous = now;
+			}
+		}();
+	};
+	const throttleEffect = (fn, intervalMiSec) => {
+		let context, args;
+		let lastExecuteTime = 0;
+		let queuing = false;
+		return function(){
+			if(queuing){
+				return;
+			}
+			let now = +new Date();
+			context = this;
+			args = arguments;
+			let remaining = intervalMiSec - (now - lastExecuteTime);
+			if(remaining <= 0){
+				fn.apply(context, args);
+				lastExecuteTime = now;
+			}else {
+				queuing = true;
+				setTimeout(() => {
+					fn.apply(context, args);
+					queuing = false;
+					lastExecuteTime = now;
+				}, remaining);
+			}
+		};
+	};
+	const debounce = (fn, intervalMiSec) => {
+		let timeout;
+		return function(){
+			let context = this;
+			let args = arguments;
+			clearTimeout(timeout);
+			timeout = setTimeout(function(){
+				fn.apply(context, args);
+			}, intervalMiSec);
+		}
+	};
+	const CURRENT_FILE = '/Lang/Util.js';
+	const ENTRY_FILE = '/index.js';
+	const getLibEntryScript = () => {
+		let script = getCurrentScript();
+		if(!script){
+			throw "Get script failed";
+		}
+		if(script.indexOf(CURRENT_FILE) >= 0){
+			return script.replace(CURRENT_FILE, ENTRY_FILE);
+		}
+		return script;
+	};
+	const getLibModule = async () => {
+		let script = getLibEntryScript();
+		return await import(script);
+	};
+	const getLibModuleTop = (() => {
+		if(top === window){
+			return getLibModule;
+		}
+		if(top.WEBCOM_GET_LIB_MODULE){
+			return top.WEBCOM_GET_LIB_MODULE;
+		}
+		throw "No WebCom library script loaded detected.";
+	})();
+	const doOnce = (markKey, dataFetcher = null, storageType = 'storage') => {
+		const MARKUP_STR_VAL = 'TRUE';
+		let getMarkState = (key) => {
+			switch(storageType.toLowerCase()){
+				case 'cookie':
+					return getCookie(key) === MARKUP_STR_VAL;
+				case 'storage':
+					return window.localStorage.getItem(key) === MARKUP_STR_VAL;
+				case 'session':
+					return window.sessionStorage.getItem(key) === MARKUP_STR_VAL;
+				default:
+					throw "no support:" + storageType;
+			}
+		};
+		let markUp = (key) => {
+			switch(storageType.toLowerCase()){
+				case 'cookie':
+					return setCookie(key, MARKUP_STR_VAL);
+				case 'storage':
+					return window.localStorage.setItem(key, MARKUP_STR_VAL);
+				case 'session':
+					return window.sessionStorage.setItem(key, MARKUP_STR_VAL);
+				default:
+					throw "no support:" + storageType;
+			}
+		};
+		return new Promise((onHit, noHit) => {
+			if(!getMarkState(markKey)){
+				if(typeof (dataFetcher) === 'function'){
+					dataFetcher().then(() => {
+						markUp(markKey);
+						onHit();
+					}, () => {
+						markUp(markKey);
+						noHit();
+					});
+				}else {
+					markUp(markKey);
+					onHit();
+				}
+			}else {
+				noHit();
+			}
+		});
+	};
+	class ParallelPromise {
+		option = {
+			parallelLimit: 5,
+			timeout: 60000,
+			continueOnError: true,
+		}
+		stopFlag = false;
+		currentRunningCount = 0;
+		taskStack = [];
+		onFinish = new BizEvent();
+		successResults = [];
+		failResults = [];
+		constructor(option = {}){
+			this.option = Object.assign(this.option, option);
+			if(this.option.parallelLimit < 1){
+				throw "最大并发数量必须大于0";
+			}
+		}
+		_loop(){
+			let finCount = 0;
+			let orgTaskCount = this.taskStack.length;
+			for(let i = 0; i < (this.option.parallelLimit - this.currentRunningCount); i++){
+				if(finCount === orgTaskCount){
+					this.onFinish.fire(this.successResults, this.failResults);
+					return;
+				}
+				if(this.stopFlag || !this.taskStack.length){
+					return;
+				}
+				this.currentRunningCount++;
+				let payload = this.taskStack.shift();
+				new Promise((resolve, reject) => {
+					let tm = null;
+					if(this.option.timeout){
+						tm = setTimeout(() => {
+							reject('task timeout');
+						}, this.option.timeout);
+					}
+					payload((rst) => {
+						tm && clearTimeout(tm);
+						this.successResults.push(rst);
+						resolve();
+					}, err => {
+						tm && clearTimeout(tm);
+						if(!this.option.continueOnError){
+							this.stopFlag = true;
+						}
+						this.failResults.push(err);
+						reject(err);
+					});
+				}).finally(() => {
+					this.currentRunningCount--;
+					finCount++;
+					this._loop();
+				});
+			}
+		}
+		stop(){
+			this.stopFlag = true;
+		}
+		start(){
+			this._loop();
+		}
+		addTask(payload){
+			this.taskStack.push(payload);
+		}
+	}
+	const isObject = (item) => {
+		return (item && typeof item === 'object' && !Array.isArray(item));
+	};
+	const isFunction = (value) => {
+		return value ? (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function) : false;
+	};
+	const mergeDeep = (target, ...sources) => {
+		if(!sources.length) return target;
+		const source = sources.shift();
+		if(isObject(target) && isObject(source)){
+			for(const key in source){
+				if(isObject(source[key])){
+					if(!target[key]){
+						Object.assign(target, {[key]: {}});
+					}else {
+						target[key] = Object.assign({}, target[key]);
+					}
+					mergeDeep(target[key], source[key]);
+				}else {
+					Object.assign(target, {[key]: source[key]});
+				}
+			}
+		}
+		return mergeDeep(target, ...sources);
+	};
+	const CONSOLE_COLOR = {
+		RESET: "\x1b[0m",
+		BRIGHT: "\x1b[1m",
+		DIM: "\x1b[2m",
+		UNDERSCORE: "\x1b[4m",
+		BLINK: "\x1b[5m",
+		REVERSE: "\x1b[7m",
+		HIDDEN: "\x1b[8m",
+		FG: {
+			BLACK: "\x1b[30m",
+			RED: "\x1b[31m",
+			GREEN: "\x1b[32m",
+			YELLOW: "\x1b[33m",
+			BLUE: "\x1b[34m",
+			MAGENTA: "\x1b[35m",
+			CYAN: "\x1b[36m",
+			WHITE: "\x1b[37m",
+			GRAY: "\x1b[90m",
+		},
+		BG: {
+			BLACK: "\x1b[40m",
+			RED: "\x1b[41m",
+			GREEN: "\x1b[42m",
+			YELLOW: "\x1b[43m",
+			BLUE: "\x1b[44m",
+			MAGENTA: "\x1b[45m",
+			CYAN: "\x1b[46m",
+			WHITE: "\x1b[47m",
+			GRAY: "\x1b[100m",
+		}
+	};
+	const CONSOLE_METHODS = ['debug', 'info', 'log', 'warn', 'error'];
+	let org_console_methods = {};
+	const bindConsole = (method, payload) => {
+		if(method === '*'){
+			method = CONSOLE_METHODS;
+		}
+		if(Array.isArray(method)){
+			method.forEach(method => {
+				bindConsole(method, payload);
+			});
+			return;
+		}
+		if(!org_console_methods[method]){
+			org_console_methods[method] = console[method];
+		}
+		console[method] = function(...args){
+			let ret = payload.apply(console, [method, Array.from(args)]);
+			if(!Array.isArray(ret)){
+				return;
+			}
+			org_console_methods[method].apply(console, ret);
+		};
+	};
+	const isPromise = (obj) => {
+		return obj && typeof (obj) === 'object' && obj.then && typeof (obj.then) === 'function';
+	};
+	const PROMISE_STATE_PENDING = 'pending';
+	const PROMISE_STATE_FULFILLED = 'fulfilled';
+	const PROMISE_STATE_REJECTED = 'rejected';
+	const getPromiseState = (promise) => {
+		const t = {};
+		return Promise.race([promise, t])
+			.then(v => (v === t) ? PROMISE_STATE_PENDING : PROMISE_STATE_FULFILLED)
+			.catch(() => PROMISE_STATE_REJECTED);
+	};
+	window.WEBCOM_GET_LIB_MODULE = getLibModule;
+	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
+
+	const getViewWidth = () => {
+		return window.innerWidth;
+	};
+	const getViewHeight = () => {
+		return window.innerHeight;
+	};
+	const hide = (dom) => {
+		dom.style.display = 'none';
+	};
+	const remove = (dom) => {
+		if(dom && dom.parentNode){
+			dom.parentNode.removeChild(dom);
+			return true;
+		}
+		return false;
+	};
+	const show = (dom) => {
+		dom.style.display = '';
+	};
+	const toggle = (dom, toShow) => {
+		toShow ? show(dom) : hide(dom);
+	};
+	const nodeIndex = (node) => {
+		return Array.prototype.indexOf.call(node.parentNode.children, node);
+	};
+	const findOne = (selector, parent = document) => {
+		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
+	};
+	const findAll = (selector, parent = document) => {
+		if(typeof selector === 'string'){
+			selector = selector.trim();
+			if(selector.indexOf(':scope') !== 0){
+				selector = ':scope ' + selector;
+			}
+			return Array.from(parent.querySelectorAll(selector));
+		}else if(Array.isArray(selector)){
+			let ns = [];
+			selector.forEach(sel => {
+				ns.push(...findAll(sel));
+			});
+			return ns;
+		}else {
+			return [selector];
+		}
+	};
+	const findAllOrFail = (selector, parent = document) => {
+		let ls = findAll(selector, parent);
+		if(!ls.length){
+			throw "no nodes found:" + selector;
+		}
+		return ls;
+	};
+	const getDomOffset = (target) => {
+		let rect = target.getBoundingClientRect();
+		return {
+			width: rect.width,
+			height: rect.height,
+			top: rect.top,
+			bottom: rect.bottom,
+			left: rect.left,
+			right: rect.right,
+			x: rect.x,
+			y: rect.y,
+		}
+	};
+	const isButton = (el) => {
+		return el.tagName === 'BUTTON' ||
+			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
+	};
+	const bindTextAutoResize = (textarea, init = true) => {
+		textarea.style.height = 'auto';
+		textarea.addEventListener('input', () => {
+			textarea.style.height = textarea.scrollHeight + 'px';
+		});
+		if(init){
+			textarea.style.height = textarea.scrollHeight + 'px';
+		}
+	};
+	let __divs = {};
+	const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
+	const getNodeHeightWithMargin = (node) => {
+		let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
+		if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+			return __divs[tmp_div_id].offsetTop;
+		}
+		tmp_div_id = guid('tmp_div_id');
+		node.setAttribute(NODE_HEIGHT_TMP_ATTR_KEY, tmp_div_id);
+		let tmp_div = document.createElement('div');
+		tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
+		node.appendChild(tmp_div);
+		__divs[tmp_div_id] = tmp_div;
+		return tmp_div.offsetTop;
+	};
+	const resizeIframe = (iframe) => {
+		let bdy = iframe.contentWindow.document.body;
+		if(!bdy){
+			return;
+		}
+		let h = getNodeHeightWithMargin(bdy);
+		iframe.style.height = dimension2Style(h);
+	};
+	const bindIframeAutoResize = (iframe) => {
+		let obs;
+		try{
+			iframe.addEventListener('load', () => {
+				resizeIframe(iframe);
+				mutationEffective(iframe.contentWindow.document.body, {
+					attributes: true,
+					subtree: true,
+					childList: true
+				}, ()=>{
+					resizeIframe(iframe);
+				});
+			});
+		}catch(err){
+			try{
+				obs && obs.disconnect();
+			}catch(err){
+				console.error('observer disconnect fail', err);
+			}
+			console.warn('iframe content upd', err);
+		}
+	};
+	const bindTextSupportTab = (textarea, tabChar = "\t") => {
+		textarea.addEventListener('keydown', function(e){
+			if(e.key !== 'Tab'){
+				return;
+			}
+			e.preventDefault();
+			document.execCommand('insertText', false, tabChar);
+		});
+	};
+	const matchParent = (dom, selector) => {
+		return dom.closest(selector);
+	};
+	const domContained = (nodes, child, includeEqual = false) => {
+		let contains = findAll(nodes);
+		for(let i = 0; i < contains.length; i++){
+			if((includeEqual ? contains[i] === child : false) ||
+				contains[i].compareDocumentPosition(child) & 16){
+				return true;
+			}
+		}
+		return false;
+	};
+	const getFocusableElements = (dom = document) => {
+		let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
+		return els.filter(el => {
+			return !isNodeHidden(el);
+		});
+	};
+	const isNodeHidden = (node) => {
+		return node.offsetParent === null;
+	};
+	const getNodeXPath = (el) => {
+		let allNodes = document.getElementsByTagName('*');
+		let seg_list = [];
+		for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
+			if(el.hasAttribute('id')){
+				let uniqueIdCount = 0;
+				for(let n = 0; n < allNodes.length; n++){
+					if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
+					if(uniqueIdCount > 1) break;
+				}
+				if(uniqueIdCount === 1){
+					seg_list.unshift('id("' + el.getAttribute('id') + '")');
+					return seg_list.join('/');
+				}else {
+					seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
+				}
+			}else if(el.hasAttribute('class')){
+				seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
+			}else {
+				let i, sib;
+				for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
+					if(sib.localName === el.localName){
+						i++;
+					}
+				}
+				seg_list.unshift(el.localName.toLowerCase() + '[' + i + ']');
+			}
+		}
+		return seg_list.length ? '/' + seg_list.join('/') : null;
+	};
+	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
+		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
+		let watchEl = () => {
+			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el => {
+				el.setAttribute(PRO_KEY, '1');
+				el.addEventListener('change', callback);
+			});
+		};
+		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
+			includeElementChanged && watchEl();
+			callback();
+		}, 10);
+		includeElementChanged && watchEl();
+	};
+	const mutationEffective = (dom, option, payload, minInterval = 10) => {
+		let last_queue_time = 0;
+		let callback_queueing = false;
+		let obs = new MutationObserver(() => {
+			if(callback_queueing){
+				return;
+			}
+			let r = minInterval - (new Date().getTime() - last_queue_time);
+			if(r > 0){
+				callback_queueing = true;
+				setTimeout(() => {
+					callback_queueing = false;
+					last_queue_time = new Date().getTime();
+					payload(obs);
+				}, r);
+			}else {
+				last_queue_time = new Date().getTime();
+				payload(obs);
+			}
+		});
+		obs.observe(dom, option);
+	};
+	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
+		onDomTreeChange(container, () => {
+			notification(findAll(matchedSelector, container));
+		});
+		if(executionFirst){
+			notification(findAll(matchedSelector, container));
+		}
+	};
+	const keepRectCenter = (width, height, containerDimension = {
+		left: 0,
+		top: 0,
+		width: window.innerWidth,
+		height: window.innerHeight
+	}) => {
+		return [
+			Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
+			Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
+		];
+	};
+	const keepDomInContainer = (target, container = document.body) => {
+		keepRectInContainer({
+			left: target.left,
+			top: target.top,
+			width: target.clientWidth,
+			height: target.clientHeight,
+		});
+	};
+	const keepRectInContainer = (objDim, ctnDim = {
+		left: 0,
+		top: 0,
+		width: window.innerWidth,
+		height: window.innerHeight
+	}) => {
+		let ret = {left: objDim.left, top: objDim.top};
+		if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
+			return ret;
+		}
+		if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
+			ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
+		}
+		if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
+			ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
+		}
+		if(objDim.left < ctnDim.left){
+			ret.left = ctnDim.left;
+		}
+		if(objDim.top < ctnDim.top){
+			ret.top = ctnDim.top;
+		}
+		return ret;
+	};
+	const getDomDimension = (dom) => {
+		let org_visibility = dom.style.visibility;
+		let org_display = dom.style.display;
+		let width, height;
+		dom.style.visibility = 'hidden';
+		dom.style.display = 'block';
+		width = dom.clientWidth;
+		height = dom.clientHeight;
+		dom.style.visibility = org_visibility;
+		dom.style.display = org_display;
+		return {width, height};
+	};
+	const rectAssoc = (rect1, rect2) => {
+		if(rect1.left <= rect2.left){
+			return (rect1.left + rect1.width) >= rect2.left && (
+				between(rect2.top, rect1.top, rect1.top + rect1.height) ||
+				between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
+				rect2.top >= rect1.top && rect2.height >= rect1.height
+			);
+		}else {
+			return (rect2.left + rect2.width) >= rect1.left && (
+				between(rect1.top, rect2.top, rect2.top + rect2.height) ||
+				between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
+				rect1.top >= rect2.top && rect1.height >= rect2.height
+			);
+		}
+	};
+	const isElement = (obj) => {
+		try{
+			return obj instanceof HTMLElement;
+		}catch(e){
+			return (typeof obj === "object") &&
+				(obj.nodeType === 1) && (typeof obj.style === "object") &&
+				(typeof obj.ownerDocument === "object");
+		}
+	};
+	let _c = {};
+	const loadCss = (file, forceReload = false) => {
+		if(!forceReload && _c[file]){
+			return _c[file];
+		}
+		_c[file] = new Promise((resolve, reject) => {
+			let link = document.createElement('link');
+			link.rel = "stylesheet";
+			link.href = file;
+			link.onload = () => {
+				resolve();
+			};
+			link.onerror = () => {
+				reject();
+			};
+			document.head.append(link);
+		});
+		return _c[file];
+	};
+	const loadScript = (src, forceReload = false) => {
+		if(!forceReload && _c[src]){
+			return _c[src];
+		}
+		_c[src] = new Promise((resolve, reject) => {
+			let script = document.createElement('script');
+			script.src = src;
+			script.onload = () => {
+				resolve();
+			};
+			script.onerror = () => {
+				reject();
+			};
+			document.head.append(script);
+		});
+		return _c[src];
+	};
+	const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
+		let style = doc.createElement('style');
+		doc.head.appendChild(style);
+		style.innerHTML = styleSheetStr;
+		if(id){
+			style.id = id;
+		}
+		return style;
+	};
+	const getRegion = (win = window) => {
+		let info = {};
+		let doc = win.document;
+		info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
+		info.screenTop = win.screenTop ? win.screenTop : win.screenY;
+		if(win.innerWidth){
+			info.visibleWidth = win.innerWidth;
+			info.visibleHeight = win.innerHeight;
+			info.horizenScroll = win.pageXOffset;
+			info.verticalScroll = win.pageYOffset;
+		}else {
+			let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
+				doc.documentElement : doc.body;
+			info.visibleWidth = tmp.clientWidth;
+			info.visibleHeight = tmp.clientHeight;
+			info.horizenScroll = tmp.scrollLeft;
+			info.verticalScroll = tmp.scrollTop;
+		}
+		let tag = (doc.documentElement && doc.documentElement.scrollWidth) ?
+			doc.documentElement : doc.body;
+		info.documentWidth = Math.max(tag.scrollWidth, info.visibleWidth);
+		info.documentHeight = Math.max(tag.scrollHeight, info.visibleHeight);
+		return info;
+	};
+	const rectInLayout = (rect, layout) => {
+		return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width)
+			&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width);
+	};
+	const setStyle = (dom, style = {}) => {
+		for(let key in style){
+			key = strToPascalCase(key);
+			dom.style[key] = dimension2Style(style[key]);
+		}
+	};
+	const nodeHighlight = (node, pattern, hlClass) => {
+		let skip = 0;
+		if(node.nodeType === 3){
+			pattern = new RegExp(pattern, 'i');
+			let pos = node.data.search(pattern);
+			if(pos >= 0 && node.data.length > 0){
+				let match = node.data.match(pattern);
+				let spanNode = document.createElement('span');
+				spanNode.className = hlClass;
+				let middleBit = node.splitText(pos);
+				middleBit.splitText(match[0].length);
+				let middleClone = middleBit.cloneNode(true);
+				spanNode.appendChild(middleClone);
+				middleBit.parentNode.replaceChild(spanNode, middleBit);
+				skip = 1;
+			}
+		}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
+			for(let i = 0; i < node.childNodes.length; ++i){
+				i += nodeHighlight(node.childNodes[i], pattern, hlClass);
+			}
+		}
+		return skip;
+	};
+	const tabConnect = (tabs, contents, option = {}) => {
+		let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
+		if(typeof (tabs) === 'string'){
+			tabs = findAll(tabs);
+		}
+		if(typeof (contents) === 'string'){
+			contents = findAll(contents);
+		}
+		tabs.forEach((tab, idx) => {
+			tab.addEventListener(triggerEvent, e => {
+				contents.forEach(ctn => {
+					ctn.classList.remove(contentActiveClass);
+				});
+				contents[idx].classList.add(contentActiveClass);
+				tabs.forEach(t => {
+					t.classList.remove(tabActiveClass);
+				});
+				tab.classList.add(tabActiveClass);
+			});
+		});
+	};
+	const createDomByHtml = (html, parentNode = null) => {
+		let tpl = document.createElement('template');
+		html = html.trim();
+		tpl.innerHTML = html;
+		let nodes = [];
+		if(parentNode){
+			tpl.content.childNodes.forEach(node => {
+				nodes.push(parentNode.appendChild(node));
+			});
+		}else {
+			nodes = tpl.content.childNodes;
+		}
+		return nodes.length === 1 ? nodes[0] : nodes;
+	};
+	function repaint(element, delay = 0){
+		setTimeout(() => {
+			try{
+				element.hidden = true;
+				element.offsetHeight;
+				element.hidden = false;
+			}catch(_){
+			}
+		}, delay);
+	}
+	const enterFullScreen = (element) => {
+		if(element.requestFullscreen){
+			return element.requestFullscreen();
+		}
+		if(element.webkitRequestFullScreen){
+			return element.webkitRequestFullScreen();
+		}
+		if(element.mozRequestFullScreen){
+			element.mozRequestFullScreen();
+		}
+		if(element.msRequestFullScreen){
+			element.msRequestFullScreen();
+		}
+		throw "Browser no allow full screen";
+	};
+	const exitFullScreen = () => {
+		return document.exitFullscreen();
+	};
+	const toggleFullScreen = (element) => {
+		return new Promise((resolve, reject) => {
+			if(!isInFullScreen()){
+				enterFullScreen(element).then(resolve).catch(reject);
+			}else {
+				exitFullScreen().then(resolve).catch(reject);
+			}
+		})
+	};
+	const toggleStickyClass = (node, className) => {
+		const observer = new IntersectionObserver(([e]) => {
+			e.target.classList.toggle(className, e.intersectionRatio < 1);
+		}, {
+			rootMargin: '-1px 0px 0px 0px',
+			threshold: [1],
+		});
+		observer.observe(node);
+	};
+	const isInFullScreen = () => {
+		return !!document.fullscreenElement;
+	};
+	let CURRENT_WINDOW;
+	const setContextWindow = (win) => {
+		CURRENT_WINDOW = win;
+	};
+	const getContextDocument = () => {
+		let win = getContextWindow();
+		return win.document;
+	};
+	const getContextWindow = () => {
+		if(CURRENT_WINDOW){
+			return CURRENT_WINDOW;
+		}
+		let win;
+		try{
+			win = window;
+			while(win !== win.parent){
+				win = win.parent;
+			}
+		}catch(err){
+			console.warn('context window assign fail:', err);
+		}
+		return win || window;
 	};
 
 	const loadImgBySrc = (src)=>{
