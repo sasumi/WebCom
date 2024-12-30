@@ -22,7 +22,7 @@ export class ParallelPromise {
 	}
 
 	stopFlag = false;
-	currentRunningCount = 0;
+	running = 0;
 	taskStack = [];
 
 	//完成事件，fire(successResults, failResults)
@@ -46,28 +46,21 @@ export class ParallelPromise {
 	}
 
 	_loop(){
-		let finCount = 0;
-		let orgTaskCount = this.taskStack.length;
-		for(let i = 0; i < (this.option.parallelLimit - this.currentRunningCount); i++){
-			if(finCount === orgTaskCount){
-				this.onFinish.fire(this.successResults, this.failResults);
-				return;
-			}
-			if(this.stopFlag || !this.taskStack.length){
-				return;
-			}
-			this.currentRunningCount++;
+		if((!this.taskStack.length && !this.running) || this.stopFlag){
+			this.onFinish.fire(this.successResults, this.failResults);
+			return;
+		}
+		while(!this.stopFlag && this.taskStack.length && this.option.parallelLimit > this.running){
+			this.running++;
 			let payload = this.taskStack.shift();
 			new Promise((resolve, reject) => {
 				let tm = null;
 				if(this.option.timeout){
-					tm = setTimeout(() => {
-						reject('task timeout');
-					}, this.option.timeout);
+					tm = setTimeout(() => {reject('task timeout');}, this.option.timeout);
 				}
-				payload((rst) => {
+				payload(successResult => {
 					tm && clearTimeout(tm);
-					this.successResults.push(rst);
+					this.successResults.push(successResult);
 					resolve();
 				}, err => {
 					tm && clearTimeout(tm);
@@ -78,8 +71,7 @@ export class ParallelPromise {
 					reject(err);
 				});
 			}).finally(() => {
-				this.currentRunningCount--;
-				finCount++;
+				this.running--;
 				this._loop();
 			});
 		}
