@@ -100,5 +100,3 @@ export class Hello {
 <button data-component="hello">Hello</button>
 
 ```
-
-hello
