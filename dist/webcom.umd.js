@@ -3321,6 +3321,8 @@
 	const DLG_CLS_TOP_BUTTON = DLG_CLS_PREF + '-top-btn';
 	const DLG_CLS_TOP_CLOSE = DLG_CLS_PREF + '-close-btn';
 	const DLG_CLS_TOP_SCREEN_TOGGLE = DLG_CLS_PREF + '-screen-toggle-btn';
+	const ARIA_LABEL_CONFIRM = 'Confirm';
+	const ARIA_LABEL_CLOSE = 'Close';
 	const DLG_CLS_BTN = DLG_CLS_PREF + '-btn';
 	const DLG_CLS_WEAK_BTN = DLG_CLS_PREF + '-weak-btn';
 	const IFRAME_ID_ATTR_FLAG = 'data-dialog-flag';
@@ -3350,8 +3352,8 @@
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN} {overflow-y:auto; max-height:calc(100vh - 5em)}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}:focus {outline:none !important;}
 	.${DLG_CLS_PREF} .${DLG_CLS_OP} {padding:.75em; text-align:right;}
-	.${DLG_CLS_PREF} .${DLG_CLS_BTN}:first-child {margin-left:0;}
-	.${DLG_CLS_PREF} .${DLG_CLS_BTN} {margin-left:0.5em;}
+	.${DLG_CLS_PREF} .${DLG_CLS_OP} [role="button"]:first-child {margin-left:0;}
+	.${DLG_CLS_PREF} .${DLG_CLS_OP} [role="button"] {margin-left:0.5em;}
 	.${DLG_CLS_PREF}.full-dialog .${DLG_CLS_CTN} {max-height:calc(100vh - 100px); overflow-y:auto}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] {box-shadow:1px 1px 60px 1px #44444457}
 	.${DLG_CLS_PREF}[data-dialog-state="${STATE_ACTIVE}"] .${DLG_CLS_TI} {color:#333}
@@ -3439,13 +3441,18 @@
 		if(dlg.config.buttons.length){
 			html += `<div class="${DLG_CLS_OP}">`;
 			dlg.config.buttons.forEach(button => {
-				html += `<input type="button" class="${DLG_CLS_BTN} ${button.className || ''}" ${button.default ? 'autofocus' : ''} tabindex="0" value="${escapeAttr(button.title)}">`;
+				html += `<input type="button" class="${button.className || ''}" 
+				${button.default ? 'autofocus' : ''} 
+				tabindex="0" 
+				role="button"
+				${button.ariaLabel ? 'aria-label="' + button.ariaLabel + '"' : ''}
+				value="${escapeAttr(button.title)}">`;
 			});
 			html += '</div>';
 		}
-		html += `<div class="${DLG_CLS_TOP_BUTTON_ZONE}">`+
-			(dlg.config.showTopFullscreenToggleButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_SCREEN_TOGGLE}" title="切换全屏" tabindex="0"></span>` : '')+
-			(dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '')+
+		html += `<div class="${DLG_CLS_TOP_BUTTON_ZONE}">` +
+			(dlg.config.showTopFullscreenToggleButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_SCREEN_TOGGLE}" title="切换全屏" tabindex="0"></span>` : '') +
+			(dlg.config.showTopCloseButton ? `<span class="${DLG_CLS_TOP_BUTTON} ${DLG_CLS_TOP_CLOSE}" title="关闭" tabindex="0"></span>` : '') +
 			'</div>';
 		html += `</dialog>`;
 		dlg.dom = createDomByHtml(html, document.body);
@@ -3453,8 +3460,7 @@
 			let iframe = dlg.dom.querySelector('iframe');
 			if(dlg.config.height){
 				iframe.style.height = '100%';
-			}
-			else {
+			}else {
 				bindIframeAutoResize(iframe);
 			}
 			dlg.onClose.listen(() => {
@@ -3486,7 +3492,7 @@
 		});
 		for(let i in dlg.config.buttons){
 			let cb = dlg.config.buttons[i].callback || dlg.close;
-			let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} .${DLG_CLS_BTN}`)[i];
+			let btn = dlg.dom.querySelectorAll(`.${DLG_CLS_OP} [role="button"]`)[i];
 			btn.addEventListener('click', cb.bind(dlg), false);
 		}
 		if(dlg.config.showTopCloseButton){
@@ -3689,13 +3695,13 @@
 						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 					buttons: [
 						{
-							title: '确定', default: true, callback: () => {
+							title: '确定', default: true, ariaLabel: ARIA_LABEL_CONFIRM, callback: () => {
 								p.close();
 								resolve();
 							}
 						},
 						{
-							title: '取消', className: DLG_CLS_WEAK_BTN, callback: () => {
+							title: '取消', ariaLabel: ARIA_LABEL_CLOSE, callback: () => {
 								p.close();
 								reject && reject();
 							}
@@ -3716,7 +3722,7 @@
 					content: `<div class="${DLG_CLS_PREF}-confirm-ti">${title}</div>
 						<div class="${DLG_CLS_PREF}-confirm-ctn">${content}</div>`,
 					buttons: [{
-						title: '确定', default: true, callback: () => {
+						title: '确定', default: true, ariaLabel: ARIA_LABEL_CONFIRM, callback: () => {
 							p.close();
 							resolve();
 						}
@@ -3741,14 +3747,14 @@
 					content: `<label for="${input_id}">${title}</label><input type="text" id="${input_id}" value="${escapeAttr(option.initValue || '')}"/>`,
 					buttons: [
 						{
-							title: '确定', default: true, callback: () => {
+							title: '确定', default: true, ariaLabel: ARIA_LABEL_CONFIRM, callback: () => {
 								if(resolve(input.value) === false){
 									return false;
 								}
 								p.close();
 							}
 						},
-						{title: '取消', className: DLG_CLS_WEAK_BTN}
+						{title: '取消', ariaLabel: ARIA_LABEL_CLOSE}
 					],
 					width: 400,
 					modal: true,
