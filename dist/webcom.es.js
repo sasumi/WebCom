@@ -3829,27 +3829,33 @@ const copyFormatted = (html, silent = false) => {
 
 const bindFileDrop = (container, Option = {}) => {
 	Option = Object.assign({
-		onFinish: (files)=>{},
-		onInput: ()=>{},
-		onFile: (file)=>{},
+		onInput: () => {
+		},
+		onFile: (file) => {
+			return true;
+		},
+		onFinish: (files) => {
+		},
+		onError: (err, file) => {
+			ToastClass.showError(err);
+		},
 		dragOverClass: 'drag-over',
 		accept: ''
 	}, Option);
-	let accept = Option.accept;
 	container = findOne(container);
 	const fileInput = findOne('input[type=file]', container);
+	let accept = Option.accept;
+	if(fileInput && fileInput.accept){
+		accept += (accept ? ',' : '') + fileInput.accept;
+	}
 	const processFile = file => {
-		if(!accept || fileAcceptMath(file.type, accept)){
-			Option.onFile(file);
-			return true;
+		if(accept && !fileAcceptMath(file.type, accept)){
+			Option.onError(`文件 ${file.name} 类型（${file.type}）不符合，已被忽略。`, file);
+			return false;
 		}
-		console.debug(`文件 ${file.fullPath} 类型：${file.type} 不符合 ${accept}，已被忽略`);
-		return false;
+		return !!Option.onFile(file);
 	};
 	if(fileInput){
-		if(fileInput.accept){
-			accept += (accept ? ',' : '') + fileInput.accept;
-		}
 		fileInput.addEventListener('change', e => {
 			Option.onInput();
 			let fs = [];
@@ -3877,6 +3883,7 @@ const bindFileDrop = (container, Option = {}) => {
 	});
 	container.addEventListener('drop', event => {
 		event.preventDefault();
+		Option.onInput();
 		let items = event.dataTransfer.items;
 		let total_item_length = items.length;
 		let files = [];
