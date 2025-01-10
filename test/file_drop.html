@@ -6,16 +6,15 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
 	<style>
-		#console div {background-color:#eee; margin-bottom:2px;}
 		.drag-over {background-color:blue;}
 	</style>
 </head>
 <body>
 <script src="assets/nav.js"></script>
 
-<div id="file-drop" style="padding:2em; border:2px dotted gray;">
+<label id="file-drop" style="display:block; padding:2em; border:2px dotted gray;">
 	<input type="file" name="" id="" multiple accept="image/*">
-</div>
+</label>
 
 <div id="result"></div>
 
@@ -23,24 +22,16 @@
 <script type="module">
 	import {bindFileDrop, createDomByHtml, findOne} from "../src/index.js";
 	const result_dom = findOne('#result');
-
-	let option = {
+	bindFileDrop('#file-drop', {
 		onInput: ()=>{
 			result_dom.innerHTML = '';
 		},
 		onFinish:files=>{
-			console.log(files);
-			files = files.sort((f1, f2)=>{
-				return f1.name.localeCompare(f2.name);
-			})
-
 			files.forEach(file=>{
-				console.log(file.name);
-				createDomByHtml(`<div>${file.fullName}</div>`, findOne('#console'));
+				createDomByHtml(`<div>${file.fullPath}</div>`, findOne('#console'));
 			});
 		}
-	}
-	bindFileDrop('#file-drop', option);
+	});
 </script>
 </body>
 </html>

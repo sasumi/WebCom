@@ -3842,7 +3842,7 @@
 			},
 			onFinish: (files) => {
 			},
-			onError: (err, file) => {
+			onError: (err, file = null) => {
 				ToastClass.showError(err);
 			},
 			dragOverClass: 'drag-over',
@@ -3856,7 +3856,8 @@
 		}
 		const processFile = file => {
 			if(accept && !fileAcceptMath(file.type, accept)){
-				Option.onError(`文件 ${file.name} 类型（${file.type}）不符合，已被忽略。`, file);
+				console.warn('request accept:', accept, file);
+				Option.onError(`文件 <b>${file.name}</b> 不符合，已被忽略。`, file);
 				return false;
 			}
 			return !!Option.onFile(file);
