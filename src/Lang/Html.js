@@ -13,7 +13,7 @@ export const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS'
  * @type {*[]}
  */
 export const PAIR_TAGS = [
-	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR',
+	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR',
 ].concat(...BLOCK_TAGS);
 
 /**
