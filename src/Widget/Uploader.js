@@ -5,7 +5,7 @@ import {Toast} from "./Toast.js";
 import {uploadFile} from "../Lang/Net.js";
 
 const NS = Theme.Namespace + 'uploader';
-insertStyleSheet(`
+const STYLE_STR = `
 	.${NS}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
 	.${NS}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
@@ -35,7 +35,7 @@ insertStyleSheet(`
 	.${NS}-btn:before{content:""; font-family:WebCom-iconfont, serif}
 	.${NS}-btn-cancel:before{content:"\\e61a"}
 	.${NS}-btn-clean:before{content:"\\e61b"}
-`);
+`;
 
 export const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS}-image`;
 export const UPLOADER_FILE_DEFAULT_CLASS = `${NS}-file`;
@@ -273,6 +273,7 @@ export class Uploader {
 		fileSizeLimit: null,
 		allowFileTypes: null,
 	}){
+		insertStyleSheet(STYLE_STR, Theme.Namespace + 'uploader');
 		this.value = initData.value || '';
 		this.thumb = initData.thumb || '';
 		this.name = initData.name || '';

@@ -5,10 +5,6 @@ import {getAvailableElements} from "../Lang/Form.js";
 
 const NS = Theme.Namespace + 'ac-column-filler';
 
-insertStyleSheet(`
-	.${NS} {padding:2em 2em 1em 2em; text-align:center;}
-`)
-
 const resetEl = el => {
 	if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
 		el.checked = false;
@@ -45,6 +41,11 @@ const syncValue = (fromEl, toEl) => {
  * 批量填充功能
  */
 export class ACColumnFiller {
+	static init(){
+		insertStyleSheet(`
+			.${NS} {padding:2em 2em 1em 2em; text-align:center;}
+		`)
+	}
 	static active(node, param = {}){
 		const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
 		if(!TABLE){

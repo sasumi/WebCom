@@ -6,8 +6,7 @@ import {guid} from "../Lang/Util.js";
 
 let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
 let CTX_Z_INDEX = Theme.ContextIndex;
-
-insertStyleSheet(`
+const STYLE_STR = `
 	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
 	.${CTX_CLASS_PREFIX},
 	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; max-height:20em; overflow:auto; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
@@ -24,7 +23,7 @@ insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} .caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
 	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
 	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
-`);
+`;
 
 /**
  * 创建菜单
@@ -33,6 +32,7 @@ insertStyleSheet(`
  * @return {HTMLElement}
  */
 export const createMenu = (commands, onExecute = null) => {
+	insertStyleSheet(STYLE_STR, Theme.Namespace+'context-menu-style');
 	bindGlobalEvent();
 	let html = `<ul class="${CTX_CLASS_PREFIX}">`;
 	let payload_map = {};

@@ -125,7 +125,7 @@ const srcSetResolve = srcSet => {
 	};
 }
 
-insertStyleSheet(`
+const STYLE_STR = `
 	 @keyframes ${Theme.Namespace}spin{
 		100%{transform:rotate(360deg);}
 	}
@@ -200,7 +200,7 @@ insertStyleSheet(`
 
 	.${DOM_CLASS}[show_thumb_list="false"] .civ-nav-wrap,
 	.${DOM_CLASS}[show_toolbar="false"] .civ-view-option {display:none;}
-`, Theme.Namespace + 'img-preview-style');
+`;
 
 /**
  * 销毁组件
@@ -685,6 +685,7 @@ const init = ({
 	              showThumbList = null,
 	              preloadSrcList = null,
               }) => {
+	insertStyleSheet(STYLE_STR, Theme.Namespace + 'img-preview-style');
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;

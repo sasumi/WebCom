@@ -1089,6 +1089,13 @@ const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	});
 	obs.observe(dom, option);
 };
+const lockElementInteraction = (el, payload)=>{
+	const LOCK_CLASS = '__element-lock__';
+	el = findOne(el);
+	el.disabled = 'disabled';
+	el.setAttribute('data-disabled', 'disabled');
+	el.classList.add(LOCK_CLASS);
+};
 const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
 	onDomTreeChange(container, () => {
 		notification(findAll(matchedSelector, container));
@@ -1213,6 +1220,9 @@ const loadScript = (src, forceReload = false) => {
 	return _c[src];
 };
 const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
+	if(id && doc.querySelector(`#${id}`)){
+		return doc.querySelector(`#${id}`);
+	}
 	let style = doc.createElement('style');
 	doc.head.appendChild(style);
 	style.innerHTML = styleSheetStr;
@@ -1420,7 +1430,7 @@ insertStyleSheet(`
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$6+'style');
+}`, NS$6+'theme');
 const Theme = {
 	Namespace: NS$6,
 	CssVarPrefix: VAR_PREFIX,
@@ -1531,14 +1541,14 @@ const blobToFile = (blob, fileAttr = {}) => {
 	});
 };
 
-const COM_ID$4 = Theme.Namespace + 'toast';
+const COM_ID$5 = Theme.Namespace + 'toast';
 const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
 const rotate_animate = Theme.Namespace + '-toast-rotate';
 const fadeIn_animate = Theme.Namespace + '-toast-fadein';
 const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
 const FADEIN_TIME = 200;
 const FADEOUT_TIME = 500;
-insertStyleSheet(`
+const STYLE_STR$a = `
 	@keyframes ${rotate_animate} {
 	    0% {transform:scale(1.4) rotate(0deg);}
 	    100% {transform:scale(1.4) rotate(360deg);}
@@ -1562,7 +1572,7 @@ insertStyleSheet(`
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
 	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
-`, COM_ID$4 + '-style');
+`;
 let toastWrap = null;
 const getWrapper = () => {
 	if(!toastWrap){
@@ -1588,6 +1598,7 @@ class Toast {
 	timeout = Toast.DEFAULT_TIME_MAP[this.type];
 	dom = null;
 	constructor(message, type = null, timeout = null){
+		insertStyleSheet(STYLE_STR$a, COM_ID$5 + '-style');
 		this.message = message;
 		this.type = type || Toast.TYPE_SUCCESS;
 		this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;
@@ -1666,9 +1677,9 @@ class Toast {
 		}
 	}
 }
-window[COM_ID$4] = Toast;
+window[COM_ID$5] = Toast;
 let CONTEXT_WINDOW$2 = getContextWindow();
-let ToastClass = CONTEXT_WINDOW$2[COM_ID$4] || Toast;
+let ToastClass = CONTEXT_WINDOW$2[COM_ID$5] || Toast;
 
 const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
@@ -3234,10 +3245,10 @@ const initAutofillButton = (scopeSelector = 'body') => {
 	}
 	button_init = true;
 	insertStyleSheet(`
-	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; border:1px solid #aaa; --size:2em; border-radius:5px; width:var(--size); height:var(--size); line-height:var(--size); text-align:center; cursor:pointer; background-color:#fff;}
-	#auto-fill-form-btn:hover {opacity:1}
-	#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}}
-`);
+		#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; border:1px solid #aaa; --size:2em; border-radius:5px; width:var(--size); height:var(--size); line-height:var(--size); text-align:center; cursor:pointer; background-color:#fff;}
+		#auto-fill-form-btn:hover {opacity:1}
+		#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}}
+	`, Theme.Namespace+'-autofill');
 	let button = createDomByHtml('<span id="auto-fill-form-btn" title="自动填充"></span>', document.body);
 	button.addEventListener('click', e => {
 		findAll(`${scopeSelector} form`).forEach(fillForm);
@@ -3306,8 +3317,8 @@ const fillForm = (formOrContainer) => {
 	});
 };
 
-const COM_ID$3 = Theme.Namespace + 'dialog';
-const DLG_CLS_PREF = COM_ID$3;
+const COM_ID$4 = Theme.Namespace + 'dialog';
+const DLG_CLS_PREF = COM_ID$4;
 const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
 const DLG_CLS_CTN = DLG_CLS_PREF + '-ctn';
 const DLG_CLS_OP = DLG_CLS_PREF + '-op';
@@ -3329,7 +3340,7 @@ const TYPE_PROMPT = 'prompt';
 const TYPE_CONFIRM = 'confirm';
 const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
 const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
-insertStyleSheet(`
+const STYLE_STR$9 = `
 	.${DLG_CLS_PREF} {border:none; margin:auto !important; padding:0 !important; /** 原生浏览器有1em内边距 **/ border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:auto; min-width:1em; box-sizing:border-box; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR});}
 	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;}
 	.${DLG_CLS_PREF}:focus {outline:none}
@@ -3363,7 +3374,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important; max-height:inherit}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px; max-height:calc(100vh - 5em)}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
-`, COM_ID$3 + '-style');
+`;
 let _bind_esc_ = false;
 const bindGlobalEsc = () => {
 	if(_bind_esc_){
@@ -3512,7 +3523,7 @@ const getCurrentFrameDialog = () => {
 			reject('no in iframe');
 			return;
 		}
-		if(!parent[COM_ID$3].DialogManager){
+		if(!parent[COM_ID$4].DialogManager){
 			reject('No dialog manager found.');
 			return;
 		}
@@ -3520,7 +3531,7 @@ const getCurrentFrameDialog = () => {
 		if(!id){
 			reject("ID no found in iframe element");
 		}
-		let dlg = parent[COM_ID$3].DialogManager.findById(id);
+		let dlg = parent[COM_ID$4].DialogManager.findById(id);
 		if(dlg){
 			resolve(dlg);
 		}else {
@@ -3638,6 +3649,7 @@ class Dialog {
 		showTopFullscreenToggleButton: false,
 	};
 	constructor(config = {}){
+		insertStyleSheet(STYLE_STR$9, COM_ID$4 + '-style');
 		this.config = Object.assign(this.config, config);
 		this.id = this.id || 'dialog-' + Math.random();
 		domConstruct(this);
@@ -3773,14 +3785,14 @@ class Dialog {
 		});
 	}
 }
-if(!window[COM_ID$3]){
-	window[COM_ID$3] = {};
+if(!window[COM_ID$4]){
+	window[COM_ID$4] = {};
 }
-window[COM_ID$3].Dialog = Dialog;
-window[COM_ID$3].DialogManager = DialogManager;
+window[COM_ID$4].Dialog = Dialog;
+window[COM_ID$4].DialogManager = DialogManager;
 let CONTEXT_WINDOW$1 = getContextWindow();
-let DialogClass = CONTEXT_WINDOW$1[COM_ID$3].Dialog || Dialog;
-let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$3].DialogManager || DialogManager;
+let DialogClass = CONTEXT_WINDOW$1[COM_ID$4].Dialog || Dialog;
+let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$4].DialogManager || DialogManager;
 
 const copy = (text, show_msg = false) => {
 	let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
@@ -4004,12 +4016,12 @@ class LocalStorageSetting {
 	}
 }
 
-const COM_ID$2 = Theme.Namespace + 'com-image-viewer';
+const COM_ID$3 = Theme.Namespace + 'com-image-viewer';
 const CONTEXT_WINDOW = getContextWindow();
-if(!CONTEXT_WINDOW[COM_ID$2]){
-	CONTEXT_WINDOW[COM_ID$2] = {};
+if(!CONTEXT_WINDOW[COM_ID$3]){
+	CONTEXT_WINDOW[COM_ID$3] = {};
 }
-const DOM_CLASS = COM_ID$2;
+const DOM_CLASS = COM_ID$3;
 const DEFAULT_VIEW_PADDING = 20;
 const MAX_ZOOM_IN_RATIO = 2;
 const MIN_ZOOM_OUT_SIZE = 50;
@@ -4092,7 +4104,7 @@ const srcSetResolve = srcSet => {
 		original: srcSet[2] || srcSet[1] || srcSet[0]
 	};
 };
-insertStyleSheet(`
+const STYLE_STR$8 = `
 	 @keyframes ${Theme.Namespace}spin{
 		100%{transform:rotate(360deg);}
 	}
@@ -4167,7 +4179,7 @@ insertStyleSheet(`
 
 	.${DOM_CLASS}[show_thumb_list="false"] .civ-nav-wrap,
 	.${DOM_CLASS}[show_toolbar="false"] .civ-view-option {display:none;}
-`, Theme.Namespace + 'img-preview-style');
+`;
 const destroy = () => {
 	if(!PREVIEW_DOM){
 		return false;
@@ -4544,6 +4556,7 @@ const init = ({
 	              showThumbList = null,
 	              preloadSrcList = null,
               }) => {
+	insertStyleSheet(STYLE_STR$8, Theme.Namespace + 'img-preview-style');
 	destroy();
 	CURRENT_MODE = mode;
 	IMG_SRC_LIST = srcList;
@@ -4563,10 +4576,10 @@ const init = ({
 		setTimeout(updateNavState, 100);
 	}
 };
-const showImgPreview = CONTEXT_WINDOW[COM_ID$2]['showImgPreview'] || function(imgSrc, option = {}){
+const showImgPreview = CONTEXT_WINDOW[COM_ID$3]['showImgPreview'] || function(imgSrc, option = {}){
 	init({mode: IMG_PREVIEW_MODE_SINGLE, srcList: [imgSrc], ...option});
 };
-const showImgListPreview = CONTEXT_WINDOW[COM_ID$2]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
+const showImgListPreview = CONTEXT_WINDOW[COM_ID$3]['showImgListPreview'] || function(imgSrcList, startIndex = 0, option = {}){
 	init({mode: IMG_PREVIEW_MODE_MULTIPLE, srcList: imgSrcList, startIndex, ...option});
 };
 const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click', srcFetcher = 'src', option = {}) => {
@@ -4596,18 +4609,28 @@ const bindImgPreviewViaSelector = (nodeSelector = 'img', triggerEvent = 'click',
 		});
 	});
 };
-window[COM_ID$2] = {
+window[COM_ID$3] = {
 	showImgPreview,
 	showImgListPreview,
 	bindImgPreviewViaSelector,
 };
-let showImgPreviewFn = CONTEXT_WINDOW[COM_ID$2]['showImgPreview'] || showImgPreview;
-let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID$2]['showImgListPreview'] || showImgListPreview;
+let showImgPreviewFn = CONTEXT_WINDOW[COM_ID$3]['showImgPreview'] || showImgPreview;
+let showImgListPreviewFn = CONTEXT_WINDOW[COM_ID$3]['showImgListPreview'] || showImgListPreview;
 
 let default_masker = null;
 let CSS_CLASS = Theme.Namespace + '-masker';
 const showMasker = (masker) => {
 	if(!masker){
+		insertStyleSheet(`
+			.${CSS_CLASS} {
+				position:fixed;
+				top:0;left:0;
+				right:0;
+				bottom:0;
+				background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
+				backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
+				z-index:${Masker.zIndex}}
+			`, Theme.Namespace + 'masker-style');
 		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
 	}
 	masker.style.display = '';
@@ -4636,20 +4659,10 @@ const Masker = {
 		}
 	}
 };
-insertStyleSheet(`
-.${CSS_CLASS} {
-	position:fixed;
-	top:0;left:0;
-	right:0;
-	bottom:0;
-	background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
-	backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
-	z-index:${Masker.zIndex}}
-`, Theme.Namespace + 'masker-style');
 
 let CTX_CLASS_PREFIX = Theme.Namespace + 'context-menu';
 let CTX_Z_INDEX = Theme.ContextIndex;
-insertStyleSheet(`
+const STYLE_STR$7 = `
 	.${CTX_CLASS_PREFIX} {z-index:${CTX_Z_INDEX}; position:fixed;}
 	.${CTX_CLASS_PREFIX},
 	.${CTX_CLASS_PREFIX} ul {position:absolute; padding: 0.5em 0; max-height:20em; overflow:auto; list-style:none; backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER}); box-shadow:var(${Theme.CssVar.PANEL_SHADOW});border-radius:var(${Theme.CssVar.PANEL_RADIUS});background:var(${Theme.CssVar.BACKGROUND_COLOR});min-width:12em; display:none;}
@@ -4666,8 +4679,9 @@ insertStyleSheet(`
 	.${CTX_CLASS_PREFIX} .caption:after {content:"";flex:1;border-bottom: 1px solid #ccc;margin: 0 0.5em;padding-top: 3px;}
 	.${CTX_CLASS_PREFIX} li i {--size:1.2em; display:block; width:var(--size); height:var(--size); max-width:var(--size); margin-right:0.5em;} /** icon **/
 	.${CTX_CLASS_PREFIX} li i:before {font-size:var(--size)}
-`);
+`;
 const createMenu = (commands, onExecute = null) => {
+	insertStyleSheet(STYLE_STR$7, Theme.Namespace+'context-menu-style');
 	bindGlobalEvent();
 	let html = `<ul class="${CTX_CLASS_PREFIX}">`;
 	let payload_map = {};
@@ -4870,7 +4884,7 @@ const NS$5 = Theme.Namespace + 'tip';
 const DEFAULT_DIR = 11;
 const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let TIP_COLLECTION = {};
-insertStyleSheet(`
+const STYLE_STR$6 = `
 	.${NS$5}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
 	.${NS$5}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
 	.${NS$5}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
@@ -4929,7 +4943,7 @@ insertStyleSheet(`
 	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap))}
 	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
 	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap))}
-`, Theme.Namespace + 'tip-style');
+`;
 let bindEvent = (tip)=>{
 	if(tip.option.showCloseButton){
 		let close_btn = tip.dom.querySelector(`.${NS$5}-close`);
@@ -5013,6 +5027,7 @@ class Tip {
 	onHide = new BizEvent(true);
 	onDestroy = new BizEvent(true);
 	constructor(content, relateNode, opt = {}){
+		insertStyleSheet(STYLE_STR$6, Theme.Namespace + 'tip-style');
 		this.id = guid();
 		this.relateNode = relateNode;
 		this.option = Object.assign(this.option, opt);
@@ -5124,10 +5139,10 @@ class Tip {
 	};
 }
 
-const COM_ID$1 = Theme.Namespace + 'novice-guide';
-const CLASS_PREFIX$2 = COM_ID$1;
+const COM_ID$2 = Theme.Namespace + 'novice-guide';
+const CLASS_PREFIX$2 = COM_ID$2;
 const PADDING_SIZE = '5px';
-insertStyleSheet(`
+const STYLE_STR$5 = `
 	.${CLASS_PREFIX$2}-highlight {
 		position:absolute; 
 		z-index:10000;
@@ -5141,7 +5156,7 @@ insertStyleSheet(`
 	.${CLASS_PREFIX$2}-masker {width:100%; height:100%; position:absolute; left:0; top:0; z-index:10000}
 	.${CLASS_PREFIX$2}-counter {float:left; color:${Theme.CssVar.COLOR}; opacity:0.7} 
 	.${CLASS_PREFIX$2}-next-wrap {text-align:right; margin-top:10px;}
-`, COM_ID$1);
+`;
 let highlightHelperEl,
 	maskerEl;
 const show_highlight_zone = (highlightNode) => {
@@ -5181,6 +5196,7 @@ const showNoviceGuide = (steps, config = {}) => {
 		on_finish: function(){
 		}
 	}, config);
+	insertStyleSheet(STYLE_STR$5, COM_ID$2+'-style');
 	let step_size = steps.length;
 	let show_one = function(){
 		if(!steps.length){
@@ -5443,9 +5459,9 @@ class ACSelectAll {
 	}
 }
 
-const COM_ID = Theme.Namespace + 'select';
-const CLASS_PREFIX$1 = COM_ID;
-insertStyleSheet(`
+const COM_ID$1 = Theme.Namespace + 'select';
+const CLASS_PREFIX$1 = COM_ID$1;
+const STYLE_STR$4 = `
 	.${CLASS_PREFIX$1}-panel{
 		${Theme.CssVarPrefix}sel-panel-max-width:20em;
 		${Theme.CssVarPrefix}sel-list-max-height:15em;
@@ -5550,7 +5566,7 @@ insertStyleSheet(`
 		gap:.25em
 	}
 	
-`, COM_ID + '-style');
+`;
 const resolveSelectPlaceholder = sel =>{
 	let pl = sel.getAttribute('placeholder') || '';
 	if(pl){
@@ -5750,8 +5766,9 @@ class Select {
 	onChange = new BizEvent();
 	static PROXY_INPUT_CLASS = 'multiple-select-proxy-input';
 	constructor(config){
+		insertStyleSheet(STYLE_STR$4, COM_ID$1 + '-style');
 		this.config = Object.assign(this.config, config);
-		this.config.name = this.config.name || COM_ID + guid();
+		this.config.name = this.config.name || COM_ID$1 + guid();
 		this.panelEl = createPanel(this.config);
 		this.searchEl = this.panelEl.querySelector('input[type=search]');
 		this.panelEl.querySelectorAll(`.${CLASS_PREFIX$1}-list input`).forEach(chk => {
@@ -6109,7 +6126,8 @@ const sortable = (listContainer, option = {}) => {
 };
 
 const CLASS_PREFIX = Theme.Namespace + 'toc';
-insertStyleSheet(`
+const COM_ID = Theme.Namespace + 'toc';
+const STYLE_STR$3 = `
 	.${CLASS_PREFIX}-wrap {}
 	.${CLASS_PREFIX}-wrap ul {list-style:none; padding:0; margin:0}
 	.${CLASS_PREFIX}-wrap li {padding-left:calc((var(--toc-item-level) - 1) * 10px)}
@@ -6120,7 +6138,7 @@ insertStyleSheet(`
 	.${CLASS_PREFIX}-collapse>.${CLASS_PREFIX}-toggle {border-top-color:transparent; border-left-color:var(${Theme.CssVar.COLOR}); margin:.75em 0 0 0.5em;}
 	li:hover>.${CLASS_PREFIX}-toggle {opacity:.4}
 	.${CLASS_PREFIX}-wrap .${CLASS_PREFIX}-toggle:hover {opacity:0.8}
-`, Theme.Namespace + 'toc-style');
+`;
 const renderEntriesListHtml = (entries, config) => {
 	console.log(config);
 	let html = '<ul>';
@@ -6157,6 +6175,7 @@ class Toc {
 		collapseAble: true,
 	};
 	constructor(entries, config = {}){
+		insertStyleSheet(STYLE_STR$3, COM_ID + '-style');
 		this.config = Object.assign(this.config, {container:document.body}, config);
 		this.dom = createDomByHtml(`<div class="${CLASS_PREFIX}-wrap">
 				${renderEntriesListHtml(entries, this.config)}
@@ -6207,7 +6226,7 @@ class Toc {
 }
 
 const NS$4 = Theme.Namespace + 'uploader';
-insertStyleSheet(`
+const STYLE_STR$2 = `
 	.${NS$4}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
 	.${NS$4}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
@@ -6237,7 +6256,7 @@ insertStyleSheet(`
 	.${NS$4}-btn:before{content:""; font-family:WebCom-iconfont, serif}
 	.${NS$4}-btn-cancel:before{content:"\\e61a"}
 	.${NS$4}-btn-clean:before{content:"\\e61b"}
-`);
+`;
 const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$4}-image`;
 const UPLOADER_FILE_DEFAULT_CLASS = `${NS$4}-file`;
 const UPLOAD_STATE_EMPTY = 'empty';
@@ -6394,6 +6413,7 @@ class Uploader {
 		fileSizeLimit: null,
 		allowFileTypes: null,
 	}){
+		insertStyleSheet(STYLE_STR$2, Theme.Namespace + 'uploader');
 		this.value = initData.value || '';
 		this.thumb = initData.thumb || '';
 		this.name = initData.name || '';
@@ -6580,14 +6600,6 @@ class ACAsync {
 }
 
 const NS$3 = Theme.Namespace + 'ac-batchfiller';
-insertStyleSheet(`
-	.${NS$3} {padding:2em 2em 1em 2em}
-	.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-	.${NS$3} input,
-	.${NS$3} textarea,
-	.${NS$3} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS$3} textarea {min-height:5em; resize:vertical}
-`);
 const SUPPORT_INPUT_TYPES = [
 	'color',
 	'date',
@@ -6638,6 +6650,16 @@ const cloneElementAsHtml = (el, id = '') => {
 	}
 };
 class ACBatchFiller {
+	static init(){
+		insertStyleSheet(`
+			.${NS$3} {padding:2em 2em 1em 2em}
+			.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+			.${NS$3} input,
+			.${NS$3} textarea,
+			.${NS$3} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+			.${NS$3} textarea {min-height:5em; resize:vertical}
+		`, Theme.Namespace + '-batch-filler');
+	}
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let relative_elements = findAll(param.selector);
@@ -6719,14 +6741,14 @@ class ACConfirm {
 }
 
 const NS$2 = Theme.Namespace + 'ac-copy';
-insertStyleSheet(`
-	.${NS$2} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-	.${NS$2}:hover {opacity:1}
-	.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
-`);
 class ACCopy {
 	static COPY_CLASS = NS$2;
 	static init(node, params = {}){
+		insertStyleSheet(`
+			.${NS$2} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+			.${NS$2}:hover {opacity:1}
+			.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+		`, Theme.Namespace + 'ac-copy');
 		let trigger = node;
 		if(PAIR_TAGS.includes(node.tagName)){
 			trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
@@ -7031,16 +7053,17 @@ const UI_STATE_ACTIVE = 'active';
 const UI_STATE_INACTIVE = 'inactive';
 const STATE_NORMAL = 'normal';
 const STATE_OVERLOAD = 'overload';
-const MAIN_CLASS = Theme.Namespace + '-text-counter';
-insertStyleSheet(`
+const MAIN_CLASS = Theme.Namespace + 'text-counter';
+const STYLE_STR$1 = `
 .${MAIN_CLASS} {pointer-events:none; margin-left:0.5em; user-select:none;}
 .${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.5}
 .${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_ACTIVE}"] {}
 .${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.8; color:red}
 .${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_ACTIVE}"] {color:red}
-`);
+`;
 class ACTextCounter {
 	static init(input, params = {}){
+		insertStyleSheet(STYLE_STR$1, Theme.Namespace+'text-counter');
 		return new Promise((resolve, reject) => {
 			let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
 			let trim = params.trim;
@@ -7311,7 +7334,7 @@ const HOTKEY_TIP_CLASS = Theme.Namespace + 'hotkey-tip';
 const HOTKEY_TIP_ATTR_ID = 'data-hotkey-tip-id';
 let hk_tip_bind = false;
 let hk_tip_is_hide = true;
-insertStyleSheet(`
+const STYLE_STR = `
 .${HOTKEY_TIP_CLASS} {
 	position:absolute; 
 	background-color:#ffffffd9; 
@@ -7323,11 +7346,11 @@ insertStyleSheet(`
 	margin-top:-0.2em; 
 	box-shadow:1px 1px 5px 0px #5c5c5c7a;
 	text-shadow:1px 1px 1px white;
-}
-`);
+}`;
 class ACHotKey {
 	static TOGGLE_HOTKEY_TIP = true;
 	static init(node, param = {}){
+		insertStyleSheet(STYLE_STR, Theme.Namespace+'-hotkey');
 		if(!hk_tip_bind && ACHotKey.TOGGLE_HOTKEY_TIP){
 			hk_tip_bind = true;
 			bindHotKeys('alt', e => {
@@ -7393,9 +7416,6 @@ class ACHotKey {
 }
 
 const NS = Theme.Namespace + 'ac-column-filler';
-insertStyleSheet(`
-	.${NS} {padding:2em 2em 1em 2em; text-align:center;}
-`);
 const resetEl = el => {
 	if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
 		el.checked = false;
@@ -7422,6 +7442,11 @@ const syncValue = (fromEl, toEl) => {
 	}
 };
 class ACColumnFiller {
+	static init(){
+		insertStyleSheet(`
+			.${NS} {padding:2em 2em 1em 2em; text-align:center;}
+		`);
+	}
 	static active(node, param = {}){
 		const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
 		if(!TABLE){
@@ -7629,5 +7654,5 @@ const ACComponent = {
 	}
 };
 
-export { ACAsync, ACBatchFiller, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACInlineEditor, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTextCounter, ACTip, ACToast, ACUnSaveAlert, ACUploader, ASYNC_SUBMITTING_FLAG, BLOCK_TAGS, Base64Encode, BizEvent, CONSOLE_COLOR, DLG_CLS_BTN, DLG_CLS_WEAK_BTN, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_STATIC_IMAGE, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYBOARD_KEY_MAP, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PAIR_TAGS, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, SELF_CLOSING_TAGS, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, WINDOW_UNLOAD_ALERT_MAP_VAR_KEY, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindConsole, bindFileDrop, bindFormAutoSave, bindFormSubmitAsJSON, bindFormUnSavedUnloadAlert, bindHotKeys, bindIframeAutoResize, bindImgPreviewViaSelector, bindNodeActive, bindNodeEvents, bindTargetClickMenu, bindTargetContextMenu, bindTargetMenu, bindTextAutoResize, bindTextSupportTab, blobToFile, buildHtmlHidden, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, countDown, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, explodeBy, extract, fileAcceptMath, fileToImg, fillForm, findAll, findAllOrFail, findOne, fireEvent, fixGetFormAction, formSerializeJSON, formSerializeString, formSync, formValidate, formatDate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getETA, getElementValue, getElementValueByName, getFocusableElements, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getNodeXPath, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, getWindowUnloadAlertList, guid, hide, highlightText, html2Text, imgToFile, inMobile, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isFunction, isInFullScreen, isJSON, isNodeHidden, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, mutationEffective, nodeHighlight, nodeIndex, objectGetByPath, objectKeyMapping, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, remove, renderPaginate, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, setWindowUnloadMessage, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, sortable, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, throttleEffect, toHtmlEntities, toggle, toggleFullScreen, toggleStickyClass, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
+export { ACAsync, ACBatchFiller, ACComponent, ACConfirm, ACCopy, ACDialog, ACHighlight, ACInlineEditor, ACMultiSelectRelate, ACPreview, ACSelect, ACSelectAll, ACTextCounter, ACTip, ACToast, ACUnSaveAlert, ACUploader, ASYNC_SUBMITTING_FLAG, BLOCK_TAGS, Base64Encode, BizEvent, CONSOLE_COLOR, DLG_CLS_BTN, DLG_CLS_WEAK_BTN, DialogClass as Dialog, DialogManagerClass as DialogManager, FILE_TYPE_AUDIO, FILE_TYPE_DOCUMENT, FILE_TYPE_IMAGE, FILE_TYPE_SHEET, FILE_TYPE_STATIC_IMAGE, FILE_TYPE_VIDEO, FILE_TYPE_ZIP, GOLDEN_RATIO, HTTP_METHOD, IMG_PREVIEW_MODE_MULTIPLE, IMG_PREVIEW_MODE_SINGLE, IMG_PREVIEW_MS_SCROLL_TYPE_NAV, IMG_PREVIEW_MS_SCROLL_TYPE_NONE, IMG_PREVIEW_MS_SCROLL_TYPE_SCALE, KEYBOARD_KEY_MAP, KEYS, LocalStorageSetting, MD5, Masker, Net, ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH_30, ONE_MONTH_31, ONE_WEEK, ONE_YEAR_365, PAIR_TAGS, PROMISE_STATE_FULFILLED, PROMISE_STATE_PENDING, PROMISE_STATE_REJECTED, ParallelPromise, QueryString, REMOVABLE_TAGS, REQUEST_FORMAT, RESPONSE_FORMAT, SELF_CLOSING_TAGS, Select, TRIM_BOTH, TRIM_LEFT, TRIM_RIGHT, Theme, Tip, ToastClass as Toast, Toc, UPLOADER_FILE_DEFAULT_CLASS, UPLOADER_IMAGE_DEFAULT_CLASS, UPLOAD_STATE_EMPTY, UPLOAD_STATE_ERROR, UPLOAD_STATE_NORMAL, UPLOAD_STATE_PENDING, Uploader, WINDOW_UNLOAD_ALERT_MAP_VAR_KEY, arrayColumn, arrayDistinct, arrayFilterTree, arrayGroup, arrayIndex, base64Decode, base64UrlSafeEncode, between, bindConsole, bindFileDrop, bindFormAutoSave, bindFormSubmitAsJSON, bindFormUnSavedUnloadAlert, bindHotKeys, bindIframeAutoResize, bindImgPreviewViaSelector, bindNodeActive, bindNodeEvents, bindTargetClickMenu, bindTargetContextMenu, bindTargetMenu, bindTextAutoResize, bindTextSupportTab, blobToFile, buildHtmlHidden, capitalize, chunk, convertBlobToBase64, convertFormDataToObject, convertObjectToFormData, copy, copyFormatted, countDown, createDomByHtml, createMenu, cssSelectorEscape, cutString, debounce, decodeHTMLEntities, deleteCookie, dimension2Style, doOnce, domChangedWatch, domContained, downloadFile, enterFullScreen, entityToString, escapeAttr, escapeHtml, eventDelegate, exitFullScreen, explodeBy, extract, fileAcceptMath, fileToImg, fillForm, findAll, findAllOrFail, findOne, fireEvent, fixGetFormAction, formSerializeJSON, formSerializeString, formSync, formValidate, formatDate, formatSize, frequencyControl, fromHtmlEntities, getAvailableElements, getAverageRGB, getBase64ByImg, getBase64BySrc, getContextDocument, getContextWindow, getCookie, getCurrentFrameDialog, getCurrentScript, getDomDimension, getDomOffset, getETA, getElementValue, getElementValueByName, getFocusableElements, getFormDataAvailable, getHash, getHighestResFromSrcSet, getLastMonth, getLibEntryScript, getLibModule, getLibModuleTop, getMonthLastDay, getNextMonth, getNodeXPath, getPromiseState, getRegion, getUTF8StrLen, getViewHeight, getViewWidth, getWindowUnloadAlertList, guid, hide, highlightText, html2Text, imgToFile, inMobile, initAutofillButton, inputAble, insertStyleSheet, isButton, isElement, isEquals, isFunction, isInFullScreen, isJSON, isNodeHidden, isNum, isObject, isPromise, isValidUrl, keepDomInContainer, keepRectCenter, keepRectInContainer, loadCss, loadImgBySrc, loadScript, lockElementInteraction, matchParent, mergeDeep, mergerUriParam, monthsOffsetCalc, mutationEffective, nodeHighlight, nodeIndex, objectGetByPath, objectKeyMapping, objectPushByPath, onDocReady, onDomTreeChange, onHover, onReportApi, onStateChange, openLinkWithoutReferer, prettyTime, pushState, randomInt, randomSentence, randomString, randomWords, readFileInLine, rectAssoc, rectInLayout, regQuote, remove, renderPaginate, repaint, requestJSON, resetFormChangedState, resolveFileExtension, resolveFileName, round, scaleFixCenter$1 as scaleFixCenter, serializePhpFormToJSON, setContextWindow, setCookie, setHash, setStyle, setWindowUnloadMessage, show, showContextMenu, showImgListPreviewFn as showImgListPreview, showImgPreviewFn as showImgPreview, showNoviceGuide, sortByKey, sortable, strToPascalCase, stringToEntity, stripSlashes, tabConnect, throttle, throttleEffect, toHtmlEntities, toggle, toggleFullScreen, toggleStickyClass, trans, triggerDomEvent, trim, unescapeHtml, uploadFile, utf8Decode, utf8Encode, validateFormChanged, versionCompare };
 //# sourceMappingURL=webcom.es.js.map

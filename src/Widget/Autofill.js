@@ -19,10 +19,10 @@ export const initAutofillButton = (scopeSelector = 'body') => {
 	}
 	button_init = true;
 	insertStyleSheet(`
-	#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; border:1px solid #aaa; --size:2em; border-radius:5px; width:var(--size); height:var(--size); line-height:var(--size); text-align:center; cursor:pointer; background-color:#fff;}
-	#auto-fill-form-btn:hover {opacity:1}
-	#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}}
-`);
+		#auto-fill-form-btn {position: absolute; left:calc(100vw - 200px); top:50px;z-index:99999;user-select:none;opacity:0.4;transition:all 0.1s linear; border-color:#ddd; border:1px solid #aaa; --size:2em; border-radius:5px; width:var(--size); height:var(--size); line-height:var(--size); text-align:center; cursor:pointer; background-color:#fff;}
+		#auto-fill-form-btn:hover {opacity:1}
+		#auto-fill-form-btn:before {content:"\\e75d"; font-family:${Theme.IconFont}}
+	`, Theme.Namespace+'-autofill');
 	let button = createDomByHtml('<span id="auto-fill-form-btn" title="自动填充"></span>', document.body);
 	button.addEventListener('click', e => {
 		findAll(`${scopeSelector} form`).forEach(fillForm);

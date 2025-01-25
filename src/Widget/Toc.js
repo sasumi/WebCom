@@ -5,8 +5,9 @@ import {escapeHtml} from "../Lang/Html.js";
 import {eventDelegate} from "../Lang/Event.js";
 
 const CLASS_PREFIX = Theme.Namespace + 'toc';
+const COM_ID = Theme.Namespace + 'toc';
 
-insertStyleSheet(`
+const STYLE_STR = `
 	.${CLASS_PREFIX}-wrap {}
 	.${CLASS_PREFIX}-wrap ul {list-style:none; padding:0; margin:0}
 	.${CLASS_PREFIX}-wrap li {padding-left:calc((var(--toc-item-level) - 1) * 10px)}
@@ -17,7 +18,7 @@ insertStyleSheet(`
 	.${CLASS_PREFIX}-collapse>.${CLASS_PREFIX}-toggle {border-top-color:transparent; border-left-color:var(${Theme.CssVar.COLOR}); margin:.75em 0 0 0.5em;}
 	li:hover>.${CLASS_PREFIX}-toggle {opacity:.4}
 	.${CLASS_PREFIX}-wrap .${CLASS_PREFIX}-toggle:hover {opacity:0.8}
-`, Theme.Namespace + 'toc-style');
+`;
 
 const renderEntriesListHtml = (entries, config) => {
 	console.log(config);
@@ -58,6 +59,7 @@ class Toc {
 	};
 
 	constructor(entries, config = {}){
+		insertStyleSheet(STYLE_STR, COM_ID + '-style');
 		this.config = Object.assign(this.config, {container:document.body}, config);
 		this.dom = createDomByHtml(`<div class="${CLASS_PREFIX}-wrap">
 				${renderEntriesListHtml(entries, this.config)}

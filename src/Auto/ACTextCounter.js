@@ -6,19 +6,18 @@ const UI_STATE_INACTIVE = 'inactive';
 
 const STATE_NORMAL = 'normal';
 const STATE_OVERLOAD = 'overload';
-
-const MAIN_CLASS = Theme.Namespace + '-text-counter';
-
-insertStyleSheet(`
+const MAIN_CLASS = Theme.Namespace + 'text-counter';
+const STYLE_STR = `
 .${MAIN_CLASS} {pointer-events:none; margin-left:0.5em; user-select:none;}
 .${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.5}
 .${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_ACTIVE}"] {}
 .${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.8; color:red}
 .${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_ACTIVE}"] {color:red}
-`);
+`;
 
 export class ACTextCounter {
 	static init(input, params = {}){
+		insertStyleSheet(STYLE_STR, Theme.Namespace+'text-counter');
 		return new Promise((resolve, reject) => {
 			let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
 			let trim = params.trim;

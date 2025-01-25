@@ -45,7 +45,7 @@ const TYPE_CONFIRM = 'confirm'; //提示对话框（包含【告警】【确认�
 const DLG_CTN_TYPE_IFRAME = DLG_CLS_PREF + '-ctn-iframe';
 const DLG_CTN_TYPE_HTML = DLG_CLS_PREF + '-ctn-html';
 
-insertStyleSheet(`
+const STYLE_STR = `
 	.${DLG_CLS_PREF} {border:none; margin:auto !important; padding:0 !important; /** 原生浏览器有1em内边距 **/ border-radius:var(${Theme.CssVar.PANEL_RADIUS}); overflow:auto; min-width:1em; box-sizing:border-box; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); color:var(${Theme.CssVar.COLOR});}
 	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;}
 	.${DLG_CLS_PREF}:focus {outline:none}
@@ -79,7 +79,7 @@ insertStyleSheet(`
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe {padding:0 !important; max-height:inherit}
 	.${DLG_CLS_PREF} .${DLG_CLS_CTN}-iframe iframe {width:100%; display:block; border:none; min-height:30px; max-height:calc(100vh - 5em)}
 	.${DLG_CLS_PREF}::backdrop {backdrop-filter:brightness(0.65)}
-`, COM_ID + '-style');
+`;
 
 let _bind_esc_ = false
 /**
@@ -518,6 +518,7 @@ class Dialog {
 	 * @param {Boolean} config.showTopCloseButton 是否显示对话框右上角关闭按钮，如果显示按钮则支持ESC关闭对话框
 	 */
 	constructor(config = {}){
+		insertStyleSheet(STYLE_STR, COM_ID + '-style');
 		this.config = Object.assign(this.config, config);
 		this.id = this.id || 'dialog-' + Math.random();
 		domConstruct(this);

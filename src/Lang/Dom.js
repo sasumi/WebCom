@@ -354,6 +354,21 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	obs.observe(dom, option);
 }
 
+export const lockElementInteraction = (el, payload)=>{
+	const LOCK_CLASS = '__element-lock__';
+
+	el = findOne(el);
+	el.disabled = 'disabled';
+	el.setAttribute('data-disabled', 'disabled');
+	el.classList.add(LOCK_CLASS);
+	let reset = ()=>{
+		el.removeAttribute('disabled');
+		el.removeAttribute('data-disabled');
+		el.classList.remove(LOCK_CLASS);
+	};
+
+}
+
 /**
  * 监听指定节点，如果匹配的选择器结果有发生变更，则通知外部
  * @example 用该函数来做状态联动，如指定容器内是否包含 checkbox，来联动按钮是否能够点击
@@ -570,12 +585,16 @@ export const loadScript = (src, forceReload = false) => {
 };
 
 /**
- * insert style sheet in head
- * @param {String} styleSheetStr
- * @param {String} id
+ * 在头部插入样式
+ * @param {String} styleSheetStr 样式代码
+ * @param {String} id 样式ID，如果提供ID，将会检测是否已经插入，可以避免重复插入
+ * @param {Document} doc 文档上下文
  * @return {HTMLStyleElement}
  */
 export const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
+	if(id && doc.querySelector(`#${id}`)){
+		return doc.querySelector(`#${id}`);
+	}
 	let style = doc.createElement('style');
 	doc.head.appendChild(style);
 	style.innerHTML = styleSheetStr;

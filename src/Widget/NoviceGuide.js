@@ -7,7 +7,7 @@ const COM_ID = Theme.Namespace + 'novice-guide';
 const CLASS_PREFIX = COM_ID;
 const PADDING_SIZE = '5px';
 
-insertStyleSheet(`
+const STYLE_STR = `
 	.${CLASS_PREFIX}-highlight {
 		position:absolute; 
 		z-index:10000;
@@ -21,7 +21,7 @@ insertStyleSheet(`
 	.${CLASS_PREFIX}-masker {width:100%; height:100%; position:absolute; left:0; top:0; z-index:10000}
 	.${CLASS_PREFIX}-counter {float:left; color:${Theme.CssVar.COLOR}; opacity:0.7} 
 	.${CLASS_PREFIX}-next-wrap {text-align:right; margin-top:10px;}
-`, COM_ID);
+`;
 
 let highlightHelperEl, //开窗效果
 	maskerEl; //阻隔层，防止点击到下部页面
@@ -70,7 +70,7 @@ const showNoviceGuide = (steps, config = {}) => {
 		on_finish: function(){
 		} //完成显示后的回调(包含顶部关闭操作)
 	}, config);
-
+	insertStyleSheet(STYLE_STR, COM_ID+'-style');
 	let step_size = steps.length;
 	let show_one = function(){
 		if(!steps.length){

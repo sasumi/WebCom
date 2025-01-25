@@ -10,7 +10,7 @@ const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
 const FADEIN_TIME = 200;
 const FADEOUT_TIME = 500;
 
-insertStyleSheet(`
+const STYLE_STR = `
 	@keyframes ${rotate_animate} {
 	    0% {transform:scale(1.4) rotate(0deg);}
 	    100% {transform:scale(1.4) rotate(360deg);}
@@ -34,7 +34,7 @@ insertStyleSheet(`
 	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
 	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
 	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
-`, COM_ID + '-style');
+`;
 
 let toastWrap = null;
 
@@ -75,6 +75,7 @@ class Toast {
 	 * @param {Number} timeout 超时时间，0表示不关闭
 	 */
 	constructor(message, type = null, timeout = null){
+		insertStyleSheet(STYLE_STR, COM_ID + '-style');
 		this.message = message;
 		this.type = type || Toast.TYPE_SUCCESS;
 		this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;

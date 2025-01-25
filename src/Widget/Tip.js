@@ -1,4 +1,14 @@
-import {createDomByHtml, domContained, getDomOffset, getRegion, hide, insertStyleSheet, rectInLayout, remove, show} from "../Lang/Dom.js";
+import {
+	createDomByHtml,
+	domContained,
+	getDomOffset,
+	getRegion,
+	hide,
+	insertStyleSheet,
+	rectInLayout,
+	remove,
+	show
+} from "../Lang/Dom.js";
 import {guid} from "../Lang/Util.js";
 import {BizEvent, KEYBOARD_KEY_MAP} from "../Lang/Event.js";
 import {Theme} from "./Theme.js";
@@ -10,7 +20,7 @@ const DEFAULT_DIR = 11;
 const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let TIP_COLLECTION = {};
 
-insertStyleSheet(`
+const STYLE_STR = `
 	.${NS}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
 	.${NS}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
 	.${NS}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
@@ -69,7 +79,7 @@ insertStyleSheet(`
 	.${NS}-container-wrap[data-tip-dir="2"] .${NS}-arrow{top:calc(25% - var(--tip-gap))}
 	.${NS}-container-wrap[data-tip-dir="3"] .${NS}-arrow{top:calc(50% - var(--tip-gap));}
 	.${NS}-container-wrap[data-tip-dir="4"] .${NS}-arrow{top:calc(75% - var(--tip-gap))}
-`, Theme.Namespace + 'tip-style');
+`;
 
 /**
  * 绑定事件
@@ -186,10 +196,10 @@ export class Tip {
 	onDestroy = new BizEvent(true);
 
 	constructor(content, relateNode, opt = {}){
+		insertStyleSheet(STYLE_STR, Theme.Namespace + 'tip-style');
 		this.id = guid();
 		this.relateNode = relateNode;
 		this.option = Object.assign(this.option, opt);
-
 		this.dom = createDomByHtml(
 			`<div class="${NS}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
 				<s class="${NS}-arrow"></s>

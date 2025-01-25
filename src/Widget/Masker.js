@@ -6,6 +6,16 @@ let CSS_CLASS = Theme.Namespace + '-masker';
 
 const showMasker = (masker) => {
 	if(!masker){
+		insertStyleSheet(`
+			.${CSS_CLASS} {
+				position:fixed;
+				top:0;left:0;
+				right:0;
+				bottom:0;
+				background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
+				backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
+				z-index:${Masker.zIndex}}
+			`, Theme.Namespace + 'masker-style');
 		masker = createDomByHtml(`<div class="${CSS_CLASS}"></div>`, document.body);
 	}
 	masker.style.display = '';
@@ -37,15 +47,5 @@ const Masker = {
 	}
 }
 
-insertStyleSheet(`
-.${CSS_CLASS} {
-	position:fixed;
-	top:0;left:0;
-	right:0;
-	bottom:0;
-	background:var(${Theme.CssVar.FULL_SCREEN_BACKGROUND_COLOR});
-	backdrop-filter:var(${Theme.CssVar.FULL_SCREEN_BACKDROP_FILTER});
-	z-index:${Masker.zIndex}}
-`, Theme.Namespace + 'masker-style');
 export {Masker};
 

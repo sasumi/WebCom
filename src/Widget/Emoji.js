@@ -16,10 +16,9 @@ const SUPPORT_LIST = {
 	],
 };
 
-const PANEL_CLS = Theme.Namespace + 'Emoji';
+const PANEL_CLS = Theme.Namespace + 'emoji';
 const SUB_PANEL_CLS = PANEL_CLS+'-ctn';
-
-insertStyleSheet(`
+const STYLE_STR = `
 	.${PANEL_CLS} {--size:30px;}
 	.${PANEL_CLS}-ctn {display:none; overflow:hidden; max-width:26em;}
 	.${PANEL_CLS}-ctn.active {display:block;}
@@ -28,7 +27,7 @@ insertStyleSheet(`
 	.${PANEL_CLS}-nav {border-top:1px solid #ddd; margin-top:0.5em; padding-top:0.5em;}
 	.${PANEL_CLS}-nav > span {display:inline-block; padding:0.25em 1em; cursor:pointer;}
 	.${PANEL_CLS}-nav > span.active {background-color:#ccc; border-radius:var(${Theme.CssVar.PANEL_RADIUS})}
-`, PANEL_CLS);
+`;
 
 export const getEmojiPanelHtml = (config)=>{
 	let html = ``;
@@ -53,6 +52,7 @@ export const getEmojiPanelHtml = (config)=>{
 }
 
 export const bindEmojiTrigger = (triggerNode, option)=>{
+	insertStyleSheet(STYLE_STR, Theme.Namespace + 'emoji-style');
 	let html = getEmojiPanelHtml();
 	let tip = Tip.bindNode(html, triggerNode, {triggerType:'click'});
 	tabConnect(tip.dom.querySelectorAll(`.${PANEL_CLS}-nav span`), tip.dom.querySelectorAll(`.${PANEL_CLS}-ctn`), 'active');

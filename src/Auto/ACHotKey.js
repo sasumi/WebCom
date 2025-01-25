@@ -14,7 +14,7 @@ const HOTKEY_TIP_ATTR_ID = 'data-hotkey-tip-id';
 let hk_tip_bind = false;
 let hk_tip_is_hide = true;
 
-insertStyleSheet(`
+const STYLE_STR = `
 .${HOTKEY_TIP_CLASS} {
 	position:absolute; 
 	background-color:#ffffffd9; 
@@ -26,14 +26,14 @@ insertStyleSheet(`
 	margin-top:-0.2em; 
 	box-shadow:1px 1px 5px 0px #5c5c5c7a;
 	text-shadow:1px 1px 1px white;
-}
-`)
+}`
 
 export class ACHotKey {
 	//是否自动提示快捷键
 	static TOGGLE_HOTKEY_TIP = true;
 
 	static init(node, param = {}){
+		insertStyleSheet(STYLE_STR, Theme.Namespace+'-hotkey');
 		if(!hk_tip_bind && ACHotKey.TOGGLE_HOTKEY_TIP){
 			hk_tip_bind = true;
 			bindHotKeys('alt', e => {

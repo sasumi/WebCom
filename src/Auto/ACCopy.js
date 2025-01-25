@@ -5,11 +5,6 @@ import {bindNodeActive} from "../Lang/Event.js";
 import {PAIR_TAGS} from "../Lang/Html.js";
 
 const NS = Theme.Namespace + 'ac-copy';
-insertStyleSheet(`
-	.${NS} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-	.${NS}:hover {opacity:1}
-	.${NS}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
-`)
 
 /**
  * 复制内容
@@ -25,6 +20,12 @@ export class ACCopy {
 	static COPY_CLASS = NS;
 
 	static init(node, params = {}){
+		insertStyleSheet(`
+			.${NS} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+			.${NS}:hover {opacity:1}
+			.${NS}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+		`, Theme.Namespace + 'ac-copy');
+
 		let trigger = node;
 		if(PAIR_TAGS.includes(node.tagName)){
 			trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);

@@ -37,7 +37,7 @@ insertStyleSheet(`
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS+'style');
+}`, NS+'theme');
 
 export const Theme = {
 	Namespace: NS,

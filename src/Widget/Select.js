@@ -19,7 +19,7 @@ import {ACSelectAll} from "../Auto/ACSelectAll.js";
 const COM_ID = Theme.Namespace + 'select';
 const CLASS_PREFIX = COM_ID;
 
-insertStyleSheet(`
+const STYLE_STR = `
 	.${CLASS_PREFIX}-panel{
 		${Theme.CssVarPrefix}sel-panel-max-width:20em;
 		${Theme.CssVarPrefix}sel-list-max-height:15em;
@@ -124,7 +124,7 @@ insertStyleSheet(`
 		gap:.25em
 	}
 	
-`, COM_ID + '-style');
+`;
 
 /**
  * 提取select placeholder，优先从[placeholder]属性中提取，其次从option[value=""] text 中提取
@@ -409,6 +409,7 @@ class Select {
 	 * @param {Object[]} config.initOptions
 	 */
 	constructor(config){
+		insertStyleSheet(STYLE_STR, COM_ID + '-style');
 		this.config = Object.assign(this.config, config);
 		this.config.name = this.config.name || COM_ID + guid();
 		this.panelEl = createPanel(this.config);

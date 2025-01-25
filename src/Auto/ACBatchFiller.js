@@ -8,15 +8,6 @@ import {KEYBOARD_KEY_MAP, triggerDomEvent} from "../Lang/Event.js";
 
 const NS = Theme.Namespace + 'ac-batchfiller';
 
-insertStyleSheet(`
-	.${NS} {padding:2em 2em 1em 2em}
-	.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-	.${NS} input,
-	.${NS} textarea,
-	.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-	.${NS} textarea {min-height:5em; resize:vertical}
-`)
-
 const SUPPORT_INPUT_TYPES = [
 	// 'button',
 	// 'checkbox',
@@ -80,6 +71,16 @@ const cloneElementAsHtml = (el, id = '') => {
  * 批量填充功能
  */
 export class ACBatchFiller {
+	static init(){
+		insertStyleSheet(`
+			.${NS} {padding:2em 2em 1em 2em}
+			.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+			.${NS} input,
+			.${NS} textarea,
+			.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+			.${NS} textarea {min-height:5em; resize:vertical}
+		`, Theme.Namespace + '-batch-filler');
+	}
 	static active(node, param = {}){
 		return new Promise((resolve, reject) => {
 			let relative_elements = findAll(param.selector);
