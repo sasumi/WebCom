@@ -77,6 +77,7 @@
 
 	sortable('.list');
 	sortable('.list2', {
+		onStart(){},
 		onChange: (curIdx, tagIdx) => {
 			console.log('current index:', curIdx, 'target index:', tagIdx);
 		}

@@ -29,9 +29,9 @@ const matchChildren = (container, eventTarget) => {
  * @param {String} option.ClassOnDrag 占位对象类名
  * @param {String} option.ClassProxy 拖动过程代理对象类名
  * @param {String} option.triggerSelector 触发拖动推对象选择器
- * @param {Function} option.onStart 开始拖动事件回调
- * @param {Function} option.onInput 拖动过程切换顺序事件回调
- * @param {Function} option.onChange 拖动结束事件回调
+ * @param {Function(child:Node)} option.onStart 开始拖动事件回调，如果返回false终止拖动
+ * @param {Function(currentIndex:Number, targetIndex:Number)} option.onInput 拖动过程切换顺序事件回调
+ * @param {Function(currentIndex:Number, targetIndex:Number)} option.onChange 拖动结束事件回调
  */
 export const sortable = (listContainer, option = {}) => {
 	let currentNode = null;
@@ -46,9 +46,9 @@ export const sortable = (listContainer, option = {}) => {
 		ClassOnDrag: CLS_ON_DRAG,
 		ClassProxy: CLS_DRAG_PROXY,
 		triggerSelector: '',
-		onStart:()=>{},
-		onInput:()=>{},
-		onChange:()=>{}
+		onStart:(child)=>{},
+		onInput:(currentIndex, targetIndex)=>{},
+		onChange:(currentIndex, targetIndex)=>{}
 	}, option);
 
 	const setDraggable = () => {
@@ -69,10 +69,6 @@ export const sortable = (listContainer, option = {}) => {
 
 	listContainer.addEventListener('dragstart', e => {
 		lastDragIndex = lastTargetIndex = null;
-		if(option.onStart() === false){
-			console.debug('drag start canceled');
-			return false;
-		}
 
 		//如果设置了可拖动对象，且点击处不在对象内，禁止拖动
 		if(option.triggerSelector){
@@ -88,7 +84,13 @@ export const sortable = (listContainer, option = {}) => {
 			return false;
 		}
 
+		//开始拖动
 		let childNode = matchChildren(listContainer, e.target);
+		if(option.onStart(childNode) === false){
+			console.debug('drag start canceled');
+			return false;
+		}
+
 		currentNode = childNode;
 		currentParent = listContainer;
 		currentNode.classList.add(option.ClassProxy);

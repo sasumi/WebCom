@@ -6033,9 +6033,9 @@ const sortable = (listContainer, option = {}) => {
 		ClassOnDrag: CLS_ON_DRAG,
 		ClassProxy: CLS_DRAG_PROXY,
 		triggerSelector: '',
-		onStart:()=>{},
-		onInput:()=>{},
-		onChange:()=>{}
+		onStart:(child)=>{},
+		onInput:(currentIndex, targetIndex)=>{},
+		onChange:(currentIndex, targetIndex)=>{}
 	}, option);
 	const setDraggable = () => {
 		if(option.triggerSelector){
@@ -6052,10 +6052,6 @@ const sortable = (listContainer, option = {}) => {
 	});
 	listContainer.addEventListener('dragstart', e => {
 		lastDragIndex = lastTargetIndex = null;
-		if(option.onStart() === false){
-			console.debug('drag start canceled');
-			return false;
-		}
 		if(option.triggerSelector){
 			if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
 				e.preventDefault();
@@ -6067,6 +6063,10 @@ const sortable = (listContainer, option = {}) => {
 			return false;
 		}
 		let childNode = matchChildren(listContainer, e.target);
+		if(option.onStart(childNode) === false){
+			console.debug('drag start canceled');
+			return false;
+		}
 		currentNode = childNode;
 		currentParent = listContainer;
 		currentNode.classList.add(option.ClassProxy);
