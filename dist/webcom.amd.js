@@ -6045,12 +6045,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const sortable = (listContainer, option = {}) => {
 		let currentNode = null;
 		let currentParent = null;
+		let lastDragIndex;
+		let lastTargetIndex;
 		listContainer = findOne(listContainer);
 		option = Object.assign({
 			ClassOnDrag: CLS_ON_DRAG,
 			ClassProxy: CLS_DRAG_PROXY,
 			triggerSelector: '',
-			onChange: ()=>{}
+			onStart:()=>{},
+			onInput:()=>{},
+			onChange:()=>{}
 		}, option);
 		const setDraggable = () => {
 			if(option.triggerSelector){
@@ -6062,10 +6066,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		onDomTreeChange(listContainer, setDraggable, false);
 		setDraggable();
 		listContainer.addEventListener('dragover', e=>{
+			console.log('drag over');
 			e.preventDefault();
 			return false;
 		});
 		listContainer.addEventListener('dragstart', e => {
+			console.log('dragstart');
+			lastDragIndex = lastTargetIndex = null;
 			if(option.triggerSelector){
 				if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
 					e.preventDefault();
@@ -6083,10 +6090,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			setTimeout(() => {
 				childNode.classList.remove(option.ClassProxy);
 				childNode.classList.add(option.ClassOnDrag);
+				option.onStart();
 			}, 0);
 			return false;
 		});
 		listContainer.addEventListener('dragenter', e => {
+			console.log('dragenter');
 			if(e.target === listContainer){
 				return;
 			}
@@ -6102,9 +6111,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}else {
 				listContainer.insertBefore(currentNode, childNode.nextSibling);
 			}
-			option.onChange(currentIndex, targetIndex);
+			lastDragIndex = currentIndex;
+			lastTargetIndex = targetIndex;
+			option.onInput(currentIndex, targetIndex);
 		});
 		listContainer.addEventListener('dragend', e => {
+			console.log('drag end');
 			if(e.target === listContainer){
 				return;
 			}
@@ -6112,6 +6124,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			currentNode = null;
 			currentParent = null;
 			childNode.classList.remove(option.ClassOnDrag);
+			option.onChange(lastDragIndex, lastTargetIndex);
 		});
 	};
 

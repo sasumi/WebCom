@@ -6,22 +6,22 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
 	<style>
-		ul {list-style:none; padding:0; margin:0;}
-		.list {overflow:hidden;}
-		.list li {padding:10px; border:1px solid green; margin:1em; cursor:move; background-color:green; float:left;}
-		.list .WebCom--drag-proxy {color:white; background-color:red;}
-		.list .WebCom--on-drag {background-color:transparent;}
+		ul{list-style:none; padding:0; margin:0;}
+		.list{overflow:hidden;}
+		.list li{padding:10px; border:1px solid green; margin:1em; cursor:move; background-color:green; float:left;}
+		.list .WebCom--drag-proxy{color:white; background-color:red;}
+		.list .WebCom--on-drag{background-color:transparent;}
 
-		.list2 {width:200px;}
-		.list2 li {background:linear-gradient(0deg, #1e41af, #5e5eff); margin:1px; padding:0.5em; color:white; cursor:move;}
-		.list2 li.WebCom--on-drag {opacity:0.5}
-		.list2 li.WebCom--drag-proxy {box-shadow:1px 1px 10px #ccc;}
+		.list2{width:200px;}
+		.list2 li{background:linear-gradient(0deg, #1e41af, #5e5eff); margin:1px; padding:0.5em; color:white; cursor:move;}
+		.list2 li.WebCom--on-drag{opacity:0.5}
+		.list2 li.WebCom--drag-proxy{box-shadow:1px 1px 10px #cccccc;}
 
-		.list3 {display:flex; gap:1em; margin:2em;}
-		.list3 li {width:50px; height:50px; border:1px solid #ccc;}
-		.list3 li .mv {cursor:move; user-select:none; border:1px solid black;}
+		.list3{display:flex; gap:1em; margin:2em;}
+		.list3 li{width:50px; height:50px; border:1px solid #cccccc;}
+		.list3 li .mv{cursor:move; user-select:none; border:1px solid black;}
 
-		.list4 img {float:left; padding:1em; background:#000000; margin:0.5em; width:100px; height:100px;}
+		.list4 img{float:left; padding:1em; background:#000000; margin:0.5em; width:100px; height:100px;}
 	</style>
 </head>
 <body>
@@ -78,11 +78,11 @@
 	sortable('.list');
 	sortable('.list2', {
 		onChange: (curIdx, tagIdx) => {
-			console.log('current index', curIdx, tagIdx);
+			console.log('current index:', curIdx, 'target index:', tagIdx);
 		}
 	});
 
-	sortable('.list3', {triggerSelector:'.mv'})
+	sortable('.list3', {triggerSelector: '.mv'})
 
 	sortable('.list4');
 </script>

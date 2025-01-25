@@ -29,18 +29,26 @@ const matchChildren = (container, eventTarget) => {
  * @param {String} option.ClassOnDrag 占位对象类名
  * @param {String} option.ClassProxy 拖动过程代理对象类名
  * @param {String} option.triggerSelector 触发拖动推对象选择器
- * @param {Function} option.onChange
+ * @param {Function} option.onStart 开始拖动事件回调
+ * @param {Function} option.onInput 拖动过程切换顺序事件回调
+ * @param {Function} option.onChange 拖动结束事件回调
  */
 export const sortable = (listContainer, option = {}) => {
 	let currentNode = null;
 	let currentParent = null; //当前父级，避免多个拖动组件使用出现混淆
+
+	let lastDragIndex;
+	let lastTargetIndex;
+
 	listContainer = findOne(listContainer);
 
 	option = Object.assign({
 		ClassOnDrag: CLS_ON_DRAG,
 		ClassProxy: CLS_DRAG_PROXY,
 		triggerSelector: '',
-		onChange: ()=>{}
+		onStart:()=>{},
+		onInput:()=>{},
+		onChange:()=>{}
 	}, option);
 
 	const setDraggable = () => {
@@ -60,6 +68,7 @@ export const sortable = (listContainer, option = {}) => {
 	});
 
 	listContainer.addEventListener('dragstart', e => {
+		lastDragIndex = lastTargetIndex = null;
 		//如果设置了可拖动对象，且点击处不在对象内，禁止拖动
 		if(option.triggerSelector){
 			if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
@@ -73,6 +82,7 @@ export const sortable = (listContainer, option = {}) => {
 			e.preventDefault();
 			return false;
 		}
+
 		let childNode = matchChildren(listContainer, e.target);
 		currentNode = childNode;
 		currentParent = listContainer;
@@ -80,6 +90,7 @@ export const sortable = (listContainer, option = {}) => {
 		setTimeout(() => {
 			childNode.classList.remove(option.ClassProxy);
 			childNode.classList.add(option.ClassOnDrag);
+			option.onStart();
 		}, 0);
 		return false;
 	});
@@ -100,7 +111,9 @@ export const sortable = (listContainer, option = {}) => {
 		}else{
 			listContainer.insertBefore(currentNode, childNode.nextSibling);
 		}
-		option.onChange(currentIndex, targetIndex);
+		lastDragIndex = currentIndex;
+		lastTargetIndex = targetIndex;
+		option.onInput(currentIndex, targetIndex);
 	});
 
 	listContainer.addEventListener('dragend', e => {
@@ -111,5 +124,6 @@ export const sortable = (listContainer, option = {}) => {
 		currentNode = null;
 		currentParent = null;
 		childNode.classList.remove(option.ClassOnDrag);
+		option.onChange(lastDragIndex, lastTargetIndex);
 	});
 }
