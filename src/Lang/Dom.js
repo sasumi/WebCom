@@ -354,9 +354,16 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	obs.observe(dom, option);
 }
 
+/**
+ * 绑定元素，禁止交互
+ * @param {Node} el
+ * @param {Function} payload 处理函数，参数为 reset
+ */
 export const lockElementInteraction = (el, payload)=>{
 	const LOCK_CLASS = '__element-lock__';
-
+	insertStyleSheet(`
+		.${LOCK_CLASS} {pointer-event:none !important;}
+	`)
 	el = findOne(el);
 	el.disabled = 'disabled';
 	el.setAttribute('data-disabled', 'disabled');
@@ -366,7 +373,7 @@ export const lockElementInteraction = (el, payload)=>{
 		el.removeAttribute('data-disabled');
 		el.classList.remove(LOCK_CLASS);
 	};
-
+	payload(reset);
 }
 
 /**

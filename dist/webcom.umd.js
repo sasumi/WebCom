@@ -1097,10 +1097,19 @@
 	};
 	const lockElementInteraction = (el, payload)=>{
 		const LOCK_CLASS = '__element-lock__';
+		insertStyleSheet(`
+		.${LOCK_CLASS} {pointer-event:none !important;}
+	`);
 		el = findOne(el);
 		el.disabled = 'disabled';
 		el.setAttribute('data-disabled', 'disabled');
 		el.classList.add(LOCK_CLASS);
+		let reset = ()=>{
+			el.removeAttribute('disabled');
+			el.removeAttribute('data-disabled');
+			el.classList.remove(LOCK_CLASS);
+		};
+		payload(reset);
 	};
 	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
 		onDomTreeChange(container, () => {
@@ -1687,9 +1696,6 @@
 	let CONTEXT_WINDOW$2 = getContextWindow();
 	let ToastClass = CONTEXT_WINDOW$2[COM_ID$5] || Toast;
 
-	const CODE_TIMEOUT = 508;
-	const CODE_ABORT = 509;
-	const DEFAULT_TIMEOUT = 0;
 	const HTTP_METHOD = {
 		GET: 'GET',
 		POST: 'POST',
@@ -1704,6 +1710,31 @@
 		JSON: 'JSON',
 		FORM: 'FORM',
 	};
+	const RESPONSE_FORMAT = {
+		JSON: 'JSON',
+		XML: 'XML',
+		HTML: 'HTML',
+		TEXT: 'TEXT',
+	};
+	const mergerUriParam = (uri, data) => {
+		if(data === null ||
+			data === undefined ||
+			(Array.isArray(data) && data.length === 0) ||
+			(typeof(data) === 'string' && data.length === 0)
+		){
+			return uri;
+		}
+		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
+	};
+	const setHash = data => {
+		location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
+	};
+	const getHash = () => {
+		return location.hash ? location.hash.substring(1) : '';
+	};
+	const CODE_TIMEOUT = 508;
+	const CODE_ABORT = 509;
+	const DEFAULT_TIMEOUT = 0;
 	const REQUEST_CONTENT_TYPE_MAP = {
 		[REQUEST_FORMAT.JSON]: 'application/json',
 		[REQUEST_FORMAT.FORM]: 'application/x-www-form-urlencoded',
@@ -1729,33 +1760,11 @@
 			return data instanceof FormData ? data : QueryString.stringify(data);
 		}
 	};
-	const RESPONSE_FORMAT = {
-		JSON: 'JSON',
-		XML: 'XML',
-		HTML: 'HTML',
-		TEXT: 'TEXT',
-	};
 	const RESPONSE_ACCEPT_TYPE_MAP = {
 		[RESPONSE_FORMAT.JSON]: 'application/json',
 		[RESPONSE_FORMAT.XML]: 'text/xml',
 		[RESPONSE_FORMAT.HTML]: 'text/html',
 		[RESPONSE_FORMAT.TEXT]: 'text/plain',
-	};
-	const mergerUriParam = (uri, data) => {
-		if(data === null ||
-			data === undefined ||
-			(Array.isArray(data) && data.length === 0) ||
-			(typeof(data) === 'string' && data.length === 0)
-		){
-			return uri;
-		}
-		return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
-	};
-	const setHash = data => {
-		location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
-	};
-	const getHash = () => {
-		return location.hash ? location.hash.substring(1) : '';
 	};
 	const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
 		return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);

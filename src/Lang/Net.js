@@ -4,10 +4,6 @@ import {Toast} from "../Widget/Toast.js";
 import {remove} from "./Dom.js";
 import {regQuote} from "./String.js";
 
-const CODE_TIMEOUT = 508;
-const CODE_ABORT = 509;
-const DEFAULT_TIMEOUT = 0;
-
 /**
  * HTTP请求方法
  * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
@@ -31,6 +27,46 @@ export const REQUEST_FORMAT = {
 	JSON: 'JSON',
 	FORM: 'FORM',
 }
+
+/**
+ * 响应格式
+ * @type {{XML: string, JSON: string, HTML: string, TEXT: string}}
+ */
+export const RESPONSE_FORMAT = {
+	JSON: 'JSON',
+	XML: 'XML',
+	HTML: 'HTML',
+	TEXT: 'TEXT',
+}
+
+/**
+ * 合并请求参数
+ * @param {String} uri
+ * @param {String|Object} data
+ * @returns {*}
+ */
+export const mergerUriParam = (uri, data) => {
+	if(data === null ||
+		data === undefined ||
+		(Array.isArray(data) && data.length === 0) ||
+		(typeof(data) === 'string' && data.length === 0)
+	){
+		return uri;
+	}
+	return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
+}
+
+export const setHash = data => {
+	location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
+}
+
+export const getHash = () => {
+	return location.hash ? location.hash.substring(1) : '';
+}
+
+const CODE_TIMEOUT = 508;
+const CODE_ABORT = 509;
+const DEFAULT_TIMEOUT = 0;
 
 /**
  * 请求格式对应的 Content-Type
@@ -68,17 +104,6 @@ const REQUEST_DATA_HANDLE_MAP = {
 };
 
 /**
- * 响应格式
- * @type {{XML: string, JSON: string, HTML: string, TEXT: string}}
- */
-export const RESPONSE_FORMAT = {
-	JSON: 'JSON',
-	XML: 'XML',
-	HTML: 'HTML',
-	TEXT: 'TEXT',
-}
-
-/**
  * 响应格式对应的 Accept 头
  * @type {{}}
  */
@@ -88,31 +113,6 @@ const RESPONSE_ACCEPT_TYPE_MAP = {
 	[RESPONSE_FORMAT.HTML]: 'text/html',
 	[RESPONSE_FORMAT.TEXT]: 'text/plain',
 };
-
-/**
- * 合并请求参数
- * @param {String} uri
- * @param {String|Object} data
- * @returns {*}
- */
-export const mergerUriParam = (uri, data) => {
-	if(data === null ||
-		data === undefined ||
-		(Array.isArray(data) && data.length === 0) ||
-		(typeof(data) === 'string' && data.length === 0)
-	){
-		return uri;
-	}
-	return uri + (uri.indexOf('?') >= 0 ? '&' : '?') + QueryString.stringify(data);
-}
-
-export const setHash = data => {
-	location.href = location.href.replace(/#.*$/g, '') + '#' + QueryString.stringify(data);
-}
-
-export const getHash = () => {
-	return location.hash ? location.hash.substring(1) : '';
-}
 
 /**
  * JSON方式请求
