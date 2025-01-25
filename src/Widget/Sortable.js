@@ -69,6 +69,11 @@ export const sortable = (listContainer, option = {}) => {
 
 	listContainer.addEventListener('dragstart', e => {
 		lastDragIndex = lastTargetIndex = null;
+		if(option.onStart() === false){
+			console.debug('drag start canceled');
+			return false;
+		}
+
 		//如果设置了可拖动对象，且点击处不在对象内，禁止拖动
 		if(option.triggerSelector){
 			if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
@@ -90,7 +95,6 @@ export const sortable = (listContainer, option = {}) => {
 		setTimeout(() => {
 			childNode.classList.remove(option.ClassProxy);
 			childNode.classList.add(option.ClassOnDrag);
-			option.onStart();
 		}, 0);
 		return false;
 	});

@@ -6047,13 +6047,15 @@ const sortable = (listContainer, option = {}) => {
 	onDomTreeChange(listContainer, setDraggable, false);
 	setDraggable();
 	listContainer.addEventListener('dragover', e=>{
-		console.log('drag over');
 		e.preventDefault();
 		return false;
 	});
 	listContainer.addEventListener('dragstart', e => {
-		console.log('dragstart');
 		lastDragIndex = lastTargetIndex = null;
+		if(option.onStart() === false){
+			console.debug('drag start canceled');
+			return false;
+		}
 		if(option.triggerSelector){
 			if(!e.target.matches(option.triggerSelector) && !e.target.closest(option.triggerSelector)){
 				e.preventDefault();
@@ -6071,12 +6073,10 @@ const sortable = (listContainer, option = {}) => {
 		setTimeout(() => {
 			childNode.classList.remove(option.ClassProxy);
 			childNode.classList.add(option.ClassOnDrag);
-			option.onStart();
 		}, 0);
 		return false;
 	});
 	listContainer.addEventListener('dragenter', e => {
-		console.log('dragenter');
 		if(e.target === listContainer){
 			return;
 		}
@@ -6097,7 +6097,6 @@ const sortable = (listContainer, option = {}) => {
 		option.onInput(currentIndex, targetIndex);
 	});
 	listContainer.addEventListener('dragend', e => {
-		console.log('drag end');
 		if(e.target === listContainer){
 			return;
 		}
