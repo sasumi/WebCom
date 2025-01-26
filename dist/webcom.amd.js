@@ -1649,14 +1649,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			for(let k in dataMap){
 				fd.append(k, dataMap[k]);
 			}
-		}else if(data.toString.indexOf('FormData') >= 0){
+			return fd;
+		}else if(data.toString().indexOf('FormData') >= 0){
 			data.forEach((val, name) => {
 				fd.append(name, val);
 			});
+			return fd;
 		}else if(typeof (data) === 'object'){
 			for(let k in data){
 				fd.append(k, data[k]);
 			}
+			return fd;
 		}
 		let err = "Convert data to FormData fail";
 		console.error(err, data);
