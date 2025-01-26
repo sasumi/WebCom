@@ -1,5 +1,5 @@
 import {Theme} from "./Theme.js";
-import {findAll, findOne, onDomTreeChange} from "../Lang/Dom.js";
+import {findAll, findOne, nodeIndex, onDomTreeChange} from "../Lang/Dom.js";
 
 const CLS_ON_DRAG = Theme.Namespace + '-on-drag';
 const CLS_DRAG_PROXY = Theme.Namespace + '-drag-proxy';
@@ -34,10 +34,9 @@ const matchChildren = (container, eventTarget) => {
  * @param {Function(currentIndex:Number, targetIndex:Number)} option.onChange 拖动结束事件回调
  */
 export const sortable = (listContainer, option = {}) => {
-	let currentNode = null;
-	let currentParent = null; //当前父级，避免多个拖动组件使用出现混淆
+	let dragNode = null;
 
-	let lastDragIndex;
+	let dragIndex;
 	let lastTargetIndex;
 
 	listContainer = findOne(listContainer);
@@ -46,15 +45,18 @@ export const sortable = (listContainer, option = {}) => {
 		ClassOnDrag: CLS_ON_DRAG,
 		ClassProxy: CLS_DRAG_PROXY,
 		triggerSelector: '',
-		onStart:(child)=>{},
-		onInput:(currentIndex, targetIndex)=>{},
-		onChange:(currentIndex, targetIndex)=>{}
+		onStart: (child) => {
+		},
+		onInput: (currentIndex, targetIndex) => {
+		},
+		onChange: (currentIndex, targetIndex) => {
+		}
 	}, option);
 
 	const setDraggable = () => {
 		if(option.triggerSelector){
-			findAll(option.triggerSelector, listContainer).forEach(trigger=>trigger.setAttribute('draggable', 'true'));
-		} else {
+			findAll(option.triggerSelector, listContainer).forEach(trigger => trigger.setAttribute('draggable', 'true'));
+		}else{
 			Array.from(listContainer.children).forEach(child => child.setAttribute('draggable', 'true'));
 		}
 	};
@@ -62,13 +64,13 @@ export const sortable = (listContainer, option = {}) => {
 	onDomTreeChange(listContainer, setDraggable, false);
 	setDraggable();
 
-	listContainer.addEventListener('dragover', e=>{
+	listContainer.addEventListener('dragover', e => {
 		e.preventDefault();
 		return false;
 	});
 
 	listContainer.addEventListener('dragstart', e => {
-		lastDragIndex = lastTargetIndex = null;
+		dragIndex = lastTargetIndex = null;
 
 		//如果设置了可拖动对象，且点击处不在对象内，禁止拖动
 		if(option.triggerSelector){
@@ -85,18 +87,17 @@ export const sortable = (listContainer, option = {}) => {
 		}
 
 		//开始拖动
-		let childNode = matchChildren(listContainer, e.target);
-		if(option.onStart(childNode) === false){
+		dragNode = matchChildren(listContainer, e.target);
+		dragIndex = nodeIndex(dragNode);
+		if(option.onStart(dragNode) === false){
 			console.debug('drag start canceled');
 			return false;
 		}
 
-		currentNode = childNode;
-		currentParent = listContainer;
-		currentNode.classList.add(option.ClassProxy);
+		dragNode.classList.add(option.ClassProxy);
 		setTimeout(() => {
-			childNode.classList.remove(option.ClassProxy);
-			childNode.classList.add(option.ClassOnDrag);
+			dragNode.classList.remove(option.ClassProxy);
+			dragNode.classList.add(option.ClassOnDrag);
 		}, 0);
 		return false;
 	});
@@ -106,18 +107,17 @@ export const sortable = (listContainer, option = {}) => {
 			return;
 		}
 		let childNode = matchChildren(listContainer, e.target);
-		if(!currentNode || currentParent !== listContainer || childNode === listContainer || childNode === currentNode){
+		if(!dragNode || childNode === listContainer || dragNode === childNode){
 			return;
 		}
 		let children = Array.from(listContainer.children); //实时从拖动之后的children中拿
-		let currentIndex = children.indexOf(currentNode);
+		let currentIndex = children.indexOf(dragNode);
 		let targetIndex = children.indexOf(childNode);
 		if(currentIndex > targetIndex){
-			listContainer.insertBefore(currentNode, childNode.previousSibling);
+			listContainer.insertBefore(dragNode, childNode.previousSibling);
 		}else{
-			listContainer.insertBefore(currentNode, childNode.nextSibling);
+			listContainer.insertBefore(dragNode, childNode.nextSibling);
 		}
-		lastDragIndex = currentIndex;
 		lastTargetIndex = targetIndex;
 		option.onInput(currentIndex, targetIndex);
 	});
@@ -127,9 +127,11 @@ export const sortable = (listContainer, option = {}) => {
 			return;
 		}
 		let childNode = matchChildren(listContainer, e.target);
-		currentNode = null;
-		currentParent = null;
+		dragNode = null;
 		childNode.classList.remove(option.ClassOnDrag);
-		option.onChange(lastDragIndex, lastTargetIndex);
+		if(lastTargetIndex === null || dragIndex === lastTargetIndex){
+			return;
+		}
+		option.onChange(dragIndex, lastTargetIndex);
 	});
 }

@@ -26,58 +26,61 @@
 </head>
 <body>
 <script src="assets/nav.js"></script>
-<ul class="list">
-	<li>item1</li>
-	<li>item2</li>
-	<li>item3</li>
-	<li>item4</li>
-	<li>item5</li>
-</ul>
+<div class="container">
+	<ul class="list">
+		<li>item1</li>
+		<li>item2</li>
+		<li>item3</li>
+		<li>item4</li>
+		<li>item5</li>
+	</ul>
 
-<ul class="list2">
-	<li>item1</li>
-	<li>item2</li>
-	<li>item3</li>
-	<li>item4</li>
-	<li>item5</li>
-</ul>
+	<ul class="list2">
+		<li>item1</li>
+		<li>item2</li>
+		<li>item3</li>
+		<li>item4</li>
+		<li>item5</li>
+	</ul>
 
-<ul class="list3">
-	<li>
-		<span class="n">item1</span>
-		<span class="mv">M</span>
-	</li>
-	<li>
-		<span class="n">item2</span>
-		<span class="mv">M</span>
-	</li>
-	<li>
-		<span class="n">item3</span>
-		<span class="mv">M</span>
-	</li>
-	<li>
-		<span class="n">item4</span>
-		<span class="mv">M</span>
-	</li>
-	<li>
-		<span class="n">item5</span>
-		<span class="mv">M</span>
-	</li>
-</ul>
+	<ul class="list3">
+		<li>
+			<span class="n">item1</span>
+			<span class="mv">M</span>
+		</li>
+		<li>
+			<span class="n">item2</span>
+			<span class="mv">M</span>
+		</li>
+		<li>
+			<span class="n">item3</span>
+			<span class="mv">M</span>
+		</li>
+		<li>
+			<span class="n">item4</span>
+			<span class="mv">M</span>
+		</li>
+		<li>
+			<span class="n">item5</span>
+			<span class="mv">M</span>
+		</li>
+	</ul>
 
-<div class="list4">
-	<img src="https://www.w3schools.com/html/img_w3slogo.gif" alt="">
-	<img src="https://www.w3schools.com/images/img_spaces_up_generic_html_300.png" alt="">
-	<img src="https://ns-strategy.cdn.bcebos.com/ns-strategy/upload/fc_big_pic/part-00747-2220.jpg" alt="">
-	<img src="https://img2.baidu.com/it/u=2047628835,2951002323&fm=253&fmt=auto&app=138&f=JPEG?w=834&h=500" alt="">
+	<div class="list4">
+		<img src="https://www.w3schools.com/html/img_w3slogo.gif" alt="">
+		<img src="https://www.w3schools.com/images/img_spaces_up_generic_html_300.png" alt="">
+		<img src="https://ns-strategy.cdn.bcebos.com/ns-strategy/upload/fc_big_pic/part-00747-2220.jpg" alt="">
+		<img src="https://img2.baidu.com/it/u=2047628835,2951002323&fm=253&fmt=auto&app=138&f=JPEG?w=834&h=500" alt="">
+	</div>
 </div>
 
 <script type="module">
-	import {findOne, sortable} from "../src/index.js";
+	import {sortable} from "../src/index.js";
 
 	sortable('.list');
 	sortable('.list2', {
-		onStart(){},
+		onStart(){
+		},
 		onChange: (curIdx, tagIdx) => {
 			console.log('current index:', curIdx, 'target index:', tagIdx);
 		}
