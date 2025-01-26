@@ -1687,17 +1687,20 @@ var WebCom = (function (exports) {
 			this.xhr.withCredentials = true;
 			this.xhr.open(this.option.method, this.cgi, true);
 			this.xhr.addEventListener("progress", e => {
-				if(e.lengthComputable){
-					this.onProgress.fire(e.loaded / e.total);
-				}
+				e.lengthComputable && this.onProgress.fire(e.loaded, e.total);
 			});
+			if(this.xhr.upload){
+				this.xhr.upload.onprogress = e => {
+					e.lengthComputable && this.onProgress.fire(e.loaded, e.total);
+				};
+			}
 			this.xhr.onreadystatechange = () => {
 				this.onStateChange.fire(this.xhr.status);
 			};
 			this.xhr.addEventListener("load", e => {
 				if(this.xhr.readyState === 4){
 					if(this.xhr.status === 200){
-						this.onProgress.fire(e.total, e.total || e.loaded);
+						this.onProgress.fire(e.loaded || e.total, e.total);
 						let ret;
 						switch(option.responseFormat){
 							case RESPONSE_FORMAT.JSON:
@@ -6524,12 +6527,12 @@ var WebCom = (function (exports) {
 								updateState(this, UPLOAD_STATE_ERROR, err);
 							}
 						},
-						onProgress: (percent, total) => {
+						onProgress: (loaded, total) => {
 							const progressEl = findOne('progress', this.dom);
 							const progressPnt = findOne(`.${NS$4}-progress span`, this.dom);
-							progressEl.value = percent;
+							progressEl.value = loaded;
 							progressEl.max = total;
-							progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
+							progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
 							updateState(this, UPLOAD_STATE_PENDING);
 						},
 						onError: (err) => {

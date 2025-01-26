@@ -335,12 +335,12 @@ export class Uploader {
 							updateState(this, UPLOAD_STATE_ERROR, err);
 						}
 					},
-					onProgress: (percent, total) => {
+					onProgress: (loaded, total) => {
 						const progressEl = findOne('progress', this.dom);
 						const progressPnt = findOne(`.${NS}-progress span`, this.dom);
-						progressEl.value = percent;
+						progressEl.value = loaded;
 						progressEl.max = total;
-						progressPnt.innerHTML = Math.round(100 * percent / total) + '%';
+						progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
 						updateState(this, UPLOAD_STATE_PENDING);
 					},
 					onError: (err) => {

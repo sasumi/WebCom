@@ -177,9 +177,9 @@ export class Net {
 	};
 	xhr = null;
 	onError = new BizEvent(); //(error,code)
-	onResponse = new BizEvent(); //(body)
+	onResponse = new BizEvent(); //(body || object)
 	onStateChange = new BizEvent(); //(state) http 状态码
-	onProgress = new BizEvent(); //(percent)
+	onProgress = new BizEvent(); //(loadedBytes, totalBytes)
 
 	/**
 	 * 构造器
@@ -211,17 +211,20 @@ export class Net {
 		this.xhr.withCredentials = true;
 		this.xhr.open(this.option.method, this.cgi, true);
 		this.xhr.addEventListener("progress", e => {
-			if(e.lengthComputable){
-				this.onProgress.fire(e.loaded / e.total);
-			}
+			e.lengthComputable && this.onProgress.fire(e.loaded, e.total);
 		});
+		if(this.xhr.upload){
+			this.xhr.upload.onprogress = e => {
+				e.lengthComputable && this.onProgress.fire(e.loaded, e.total);
+			}
+		}
 		this.xhr.onreadystatechange = () => {
 			this.onStateChange.fire(this.xhr.status);
 		}
 		this.xhr.addEventListener("load", e => {
 			if(this.xhr.readyState === 4){
 				if(this.xhr.status === 200){
-					this.onProgress.fire(e.total, e.total || e.loaded); //fix loaded == 0 in onload event
+					this.onProgress.fire(e.loaded || e.total, e.total); //fix loaded == 0 in onload event
 					let ret;
 					switch(option.responseFormat){
 						case RESPONSE_FORMAT.JSON:
