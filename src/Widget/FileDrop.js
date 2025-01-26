@@ -3,7 +3,7 @@ import {findOne} from "../Lang/Dom.js";
 import {Toast} from "./Toast.js";
 
 /**
- * 绑定指定容器，使其支持文件（目录拖放）
+ * 绑定指定容器，使其支持文件（目录拖放），建议使用 label>input:file 结构，同时支持点击选择文件
  * @param {String|Node} container 容器内如果有 input[type=file]，其onChange事件同时绑定，同时读取 input[type=file]{accept} 属性对文件列表进行过滤
  * @param {Object} Option
  * @param {Function} Option.onInput 用户出发输入，包括文件拖入、文件选择完成
@@ -76,10 +76,18 @@ export const bindFileDrop = (container, Option = {}) => {
 		event.preventDefault();
 		Option.onInput();
 		let items = event.dataTransfer.items;
-		let total_item_length = items.length; //预先读取，后面items长度会变为空
+		let total_item_length = 0;
+		Array.from(items).forEach(item => {
+			total_item_length += item.kind === 'file';
+		});
+		//预先读取，后面items长度会变为空
 		let files = [];
 		let find_cnt = 0;
 		for(let i = 0; i < items.length; i++){
+			if(items[i].kind !== 'file'){
+				console.warn('item is not file', items[i]);
+				continue;
+			}
 			let item = items[i].webkitGetAsEntry();
 			if(item){
 				traverseFileTree(item, file => {
@@ -90,6 +98,18 @@ export const bindFileDrop = (container, Option = {}) => {
 						Option.onFinish(files);
 					}
 				});
+			}
+			//其他应用容器里面的文件对象
+			else{
+				find_cnt++;
+				let file = items[i].getAsFile();
+				if(file && processFile(file)){
+					file.fullPath = '/' + file.name;
+					files.push(file);
+				}
+				if(find_cnt === total_item_length){
+					Option.onFinish(files);
+				}
 			}
 		}
 	}, false);

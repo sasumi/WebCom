@@ -1569,146 +1569,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
-	const COM_ID$5 = Theme.Namespace + 'toast';
-	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
-	const rotate_animate = Theme.Namespace + '-toast-rotate';
-	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
-	const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
-	const FADEIN_TIME = 200;
-	const FADEOUT_TIME = 500;
-	const STYLE_STR$a = `
-	@keyframes ${rotate_animate} {
-	    0% {transform:scale(1.4) rotate(0deg);}
-	    100% {transform:scale(1.4) rotate(360deg);}
-	} 
-	@keyframes ${fadeIn_animate} {
-		0% { opacity: 0; }
-		100% { opacity: 1; } 
-	}
-	@keyframes ${fadeOut_animate} {
-		0% { opacity:1;}
-		100% { opacity: 0} 
-	}
-	.${TOAST_CLS_MAIN}-wrap{position:fixed; margin:0; padding:0; top:5px; pointer-events:none; background-color:transparent; width:100%; border:none; text-align:center; z-index:${Theme.ToastIndex};}
-	.${TOAST_CLS_MAIN} {pointer-events:auto}
-	.${TOAST_CLS_MAIN}>span {margin-bottom:0.5rem;}
-	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:.5rem 1rem .5rem 2.8rem; text-align:left; line-height:1.5rem; background-color:var(${Theme.CssVar.BACKGROUND_COLOR});color:var(${Theme.CssVar.COLOR});box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); animation:${fadeIn_animate} ${FADEIN_TIME}ms}
-	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; position:absolute; font-size:1.4rem; margin-left:-1.8rem;}
-	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
-	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
-	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
-	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
-	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
-	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
-`;
-	let toastWrap = null;
-	const getWrapper = () => {
-		if(!toastWrap){
-			toastWrap = createDomByHtml(`<div class="${TOAST_CLS_MAIN}-wrap" popover="manual"></div>`, document.body);
-		}
-		return toastWrap;
-	};
-	class Toast {
-		static TYPE_INFO = 'info';
-		static TYPE_SUCCESS = 'success';
-		static TYPE_WARNING = 'warning';
-		static TYPE_ERROR = 'error';
-		static TYPE_LOADING = 'loading';
-		static DEFAULT_TIME_MAP = {
-			[Toast.TYPE_INFO]: 1500,
-			[Toast.TYPE_SUCCESS]: 1500,
-			[Toast.TYPE_WARNING]: 2000,
-			[Toast.TYPE_ERROR]: 2500,
-			[Toast.TYPE_LOADING]: 0,
-		};
-		message = '';
-		type = Toast.TYPE_INFO;
-		timeout = Toast.DEFAULT_TIME_MAP[this.type];
-		dom = null;
-		constructor(message, type = null, timeout = null){
-			insertStyleSheet(STYLE_STR$a, COM_ID$5 + '-style');
-			this.message = message;
-			this.type = type || Toast.TYPE_SUCCESS;
-			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;
-		}
-		static showToast = (message, type = null, timeout = null, timeoutCallback = null) => {
-			let toast = new Toast(message, type, timeout);
-			toast.show(timeoutCallback);
-			return toast;
-		}
-		static showInfo = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO], timeoutCallback);
-		}
-		static showSuccess = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS], timeoutCallback);
-		}
-		static showWarning = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING], timeoutCallback);
-		}
-		static showError = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR], timeoutCallback);
-		}
-		static showLoading = (message, timeoutCallback = null) => {
-			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING], timeoutCallback);
-		}
-		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
-			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
-			let toast = new Toast(message, Toast.TYPE_LOADING, time);
-			toast.show(timeoutCallback);
-			hide(toast.dom);
-			setTimeout(() => {
-				toast.dom && show(toast.dom);
-			}, delayMicroseconds);
-			return toast;
-		}
-		show(onTimeoutClose = null){
-			let wrapper = getWrapper();
-			if(wrapper.showPopover){
-				wrapper.showPopover();
-			} else {
-				show(wrapper);
-			}
-			this.dom = createDomByHtml(
-				`<span class="${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-${this.type}">
-				<span class="ctn">${this.message}</span><div></div>
-			</span>`, wrapper);
-			if(this.timeout){
-				setTimeout(() => {
-					this.hide(true);
-					onTimeoutClose && onTimeoutClose();
-				}, this.timeout);
-			}
-		}
-		update(html){
-			findOne('.ctn', this.dom).innerHTML = html;
-		}
-		hide(fadeOut = false){
-			if(!this.dom || !document.body.contains(this.dom)){
-				return;
-			}
-			if(fadeOut){
-				this.dom.classList.add(TOAST_CLS_MAIN + '-hide');
-				setTimeout(() => {
-					this.hide(false);
-				}, FADEOUT_TIME);
-				return;
-			}
-			remove(this.dom);
-			this.dom = null;
-			let wrapper = getWrapper();
-			if(!wrapper.childNodes.length){
-				if(wrapper.hidePopover){
-					wrapper.hidePopover();
-				} else {
-					hide(wrapper);
-				}
-			}
-		}
-	}
-	window[COM_ID$5] = Toast;
-	let CONTEXT_WINDOW$2 = getContextWindow();
-	let ToastClass = CONTEXT_WINDOW$2[COM_ID$5] || Toast;
-
 	const HTTP_METHOD = {
 		GET: 'GET',
 		POST: 'POST',
@@ -1733,7 +1593,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(data === null ||
 			data === undefined ||
 			(Array.isArray(data) && data.length === 0) ||
-			(typeof(data) === 'string' && data.length === 0)
+			(typeof (data) === 'string' && data.length === 0)
 		){
 			return uri;
 		}
@@ -1759,7 +1619,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 			if(data instanceof FormData){
 				let obj = {};
-				data.forEach((v,k)=>{
+				data.forEach((v, k) => {
 					obj[k] = v;
 				});
 				return JSON.stringify(obj);
@@ -1779,52 +1639,36 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		[RESPONSE_FORMAT.HTML]: 'text/html',
 		[RESPONSE_FORMAT.TEXT]: 'text/plain',
 	};
+	const dataToFormData = (data) => {
+		let fd = new FormData;
+		if(!data){
+			return fd;
+		}
+		if(typeof (undefined.data) === 'string'){
+			let dataMap = QueryString.parse(undefined.data);
+			for(let k in dataMap){
+				fd.append(k, dataMap[k]);
+			}
+		}else if(undefined.data.toString.indexOf('FormData') >= 0){
+			undefined.data.forEach((val, name) => {
+				fd.append(name, val);
+			});
+		}else if(typeof (undefined.data) === 'object'){
+			for(let k in undefined.data){
+				fd.append(k, undefined.data[k]);
+			}
+		}
+		let err = "Convert data to FormData fail";
+		console.error(err, data);
+		throw err;
+	};
 	const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
 		return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);
-	};
-	const uploadFile = (url, fileMap, callbacks, extParam = null) => {
-		let {onSuccess, onProgress, onError, onAbort} = callbacks;
-		onProgress = onProgress || function(){};
-		onError = onError || function(err){ToastClass.showError(err);};
-		onAbort = onAbort || onError;
-		let formData = new FormData();
-		for(let name in fileMap){
-			formData.append(name, fileMap[name]);
-		}
-		if(extParam){
-			for(let k in extParam){
-				formData.append(k, extParam[k]);
-			}
-		}
-		let xhr = new XMLHttpRequest();
-		xhr.withCredentials = true;
-		xhr.upload.addEventListener('progress', e => {
-			onProgress(e.loaded, e.total);
-		}, false);
-		xhr.addEventListener('load', e => {
-			if(xhr.readyState === 4){
-				if(xhr.status === 200){
-					onProgress(e.total, e.total || e.loaded);
-					onSuccess(xhr.responseText);
-				}else {
-					onError(xhr.responseText || xhr.statusText);
-				}
-			}
-		});
-		xhr.addEventListener('error', e => {
-			onError(e);
-		});
-		xhr.addEventListener('abort', () => {
-			onAbort('请求中断');
-		});
-		xhr.open('POST', url);
-		xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[RESPONSE_FORMAT.JSON]);
-		xhr.send(formData);
-		return xhr;
 	};
 	class Net {
 		cgi = null;
 		data = null;
+		fileMap = null;
 		option = {
 			method: HTTP_METHOD.GET,
 			timeout: DEFAULT_TIMEOUT,
@@ -1837,46 +1681,57 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		onResponse = new BizEvent();
 		onStateChange = new BizEvent();
 		onProgress = new BizEvent();
-		constructor(cgi, data, option = {}){
+		constructor(cgi, data, option = {}, fileMap = null){
 			this.cgi = cgi;
 			this.data = data;
+			this.fileMap = fileMap;
 			this.option = {
 				...this.option,
 				...option
 			};
+			if(this.fileMap){
+				this.option.method = HTTP_METHOD.POST;
+				this.option.requestFormat = null;
+			}
 			if(this.option.method === HTTP_METHOD.GET && this.data){
 				this.cgi = mergerUriParam(this.cgi, this.data);
 			}
 			this.xhr = new XMLHttpRequest();
+			this.xhr.withCredentials = true;
 			this.xhr.open(this.option.method, this.cgi, true);
 			this.xhr.addEventListener("progress", e => {
 				if(e.lengthComputable){
 					this.onProgress.fire(e.loaded / e.total);
-				}else {
-					this.onProgress.fire(null);
 				}
 			});
 			this.xhr.onreadystatechange = () => {
 				this.onStateChange.fire(this.xhr.status);
 			};
-			this.xhr.addEventListener("load", () => {
-				let ret;
-				switch(option.responseFormat){
-					case RESPONSE_FORMAT.JSON:
-						try {
-							ret = JSON.parse(this.xhr.responseText);
-						} catch(err){
-							this.onError.fire('JSON解析失败：'+err, this.xhr.status);
+			this.xhr.addEventListener("load", e => {
+				if(this.xhr.readyState === 4){
+					if(this.xhr.status === 200){
+						this.onProgress.fire(e.total, e.total || e.loaded);
+						let ret;
+						switch(option.responseFormat){
+							case RESPONSE_FORMAT.JSON:
+								try{
+									ret = JSON.parse(this.xhr.responseText);
+								}catch(err){
+									this.onError.fire('JSON解析失败：' + err, this.xhr.status);
+								}
+								break;
+							case RESPONSE_FORMAT.XML:
+							case RESPONSE_FORMAT.TEXT:
+							case RESPONSE_FORMAT.HTML:
+							default:
+								ret = this.xhr.responseText;
+								break;
 						}
-						break;
-					case RESPONSE_FORMAT.XML:
-					case RESPONSE_FORMAT.TEXT:
-					case RESPONSE_FORMAT.HTML:
-					default:
-						ret = this.xhr.responseText;
-						break;
+						this.onResponse.fire(ret);
+					}else {
+						this.onError.fire(this.xhr.responseText || this.xhr.statusText);
+					}
 				}
-				this.onResponse.fire(ret);
 			});
 			this.xhr.addEventListener("error", () => {
 				this.onError.fire(this.xhr.statusText, this.xhr.status);
@@ -1884,8 +1739,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			this.xhr.addEventListener("abort", () => {
 				this.onError.fire('Request aborted.', CODE_ABORT);
 			});
-			this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
-			this.xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[this.option.responseFormat]);
+			if(this.option.requestFormat){
+				this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
+			}
+			if(this.option.responseFormat){
+				this.xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[this.option.responseFormat]);
+			}
 			for(let key in this.option.headers){
 				this.xhr.setRequestHeader(key, this.option.headers[key]);
 			}
@@ -1897,8 +1756,22 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 		send(){
-			let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
-			this.xhr.send(data);
+			if(this.fileMap){
+				let data = new FormData();
+				for(let name in this.fileMap){
+					data.append(name, this.fileMap[name]);
+				}
+				if(this.data){
+					let d = dataToFormData(this.data);
+					d.forEach((val, name) => {
+						data.append(name, val);
+					});
+				}
+				this.xhr.send(data);
+			}else {
+				let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
+				this.xhr.send(data);
+			}
 		}
 		abort(){
 			this.xhr.abort();
@@ -1915,7 +1788,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static getJSONP(url, data, callback_name = 'callback', timeout = 3000){
 			return new Promise((resolve, reject) => {
 				let tm = window.setTimeout(function(){
-					window[callback_name] = function(){};
+					window[callback_name] = function(){
+					};
 					reject(`timeout in ${timeout}ms`);
 				}, timeout);
 				window[callback_name] = function(data){
@@ -1938,9 +1812,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			option.responseFormat = RESPONSE_FORMAT.JSON;
 			return Net.post(cgi, data, option);
 		}
-		static request(cgi, data, option = {}){
+		static uploadFile = (url, fileMap, data = null, option = {}) => {
+			let n = new Net(url, data, option, fileMap);
+			setTimeout(() => {
+				n.send();
+			}, 0);
+			return n;
+		}
+		static request(cgi, data, option = {}, fileMap = null){
 			return new Promise((resolve, reject) => {
-				let req = new Net(cgi, data, option);
+				let req = new Net(cgi, data, option, fileMap);
 				req.onResponse.listen(ret => {
 					resolve(ret);
 				});
@@ -3345,6 +3226,146 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
+	const COM_ID$5 = Theme.Namespace + 'toast';
+	const TOAST_CLS_MAIN = Theme.Namespace + 'toast';
+	const rotate_animate = Theme.Namespace + '-toast-rotate';
+	const fadeIn_animate = Theme.Namespace + '-toast-fadein';
+	const fadeOut_animate = Theme.Namespace + '-toast-fadeout';
+	const FADEIN_TIME = 200;
+	const FADEOUT_TIME = 500;
+	const STYLE_STR$a = `
+	@keyframes ${rotate_animate} {
+	    0% {transform:scale(1.4) rotate(0deg);}
+	    100% {transform:scale(1.4) rotate(360deg);}
+	} 
+	@keyframes ${fadeIn_animate} {
+		0% { opacity: 0; }
+		100% { opacity: 1; } 
+	}
+	@keyframes ${fadeOut_animate} {
+		0% { opacity:1;}
+		100% { opacity: 0} 
+	}
+	.${TOAST_CLS_MAIN}-wrap{position:fixed; margin:0; padding:0; top:5px; pointer-events:none; background-color:transparent; width:100%; border:none; text-align:center; z-index:${Theme.ToastIndex};}
+	.${TOAST_CLS_MAIN} {pointer-events:auto}
+	.${TOAST_CLS_MAIN}>span {margin-bottom:0.5rem;}
+	.${TOAST_CLS_MAIN} .ctn{display:inline-block;border-radius:3px;padding:.5rem 1rem .5rem 2.8rem; text-align:left; line-height:1.5rem; background-color:var(${Theme.CssVar.BACKGROUND_COLOR});color:var(${Theme.CssVar.COLOR});box-shadow:var(${Theme.CssVar.PANEL_SHADOW}); animation:${fadeIn_animate} ${FADEIN_TIME}ms}
+	.${TOAST_CLS_MAIN} .ctn:before {content:"";font-family:${Theme.IconFont}; position:absolute; font-size:1.4rem; margin-left:-1.8rem;}
+	.${TOAST_CLS_MAIN}-hide .ctn {animation:${fadeOut_animate} ${FADEOUT_TIME}ms; animation-fill-mode:forwards}
+	.${TOAST_CLS_MAIN}-info .ctn:before {content:"\\e77e";color: gray;}
+	.${TOAST_CLS_MAIN}-warning .ctn:before {content:"\\e673"; color:orange}
+	.${TOAST_CLS_MAIN}-success .ctn:before {content:"\\e78d"; color:#007ffc}
+	.${TOAST_CLS_MAIN}-error .ctn:before {content: "\\e6c6"; color:red;} 
+	.${TOAST_CLS_MAIN}-loading .ctn:before {content:"\\e635";color:gray;animation: 1.5s linear infinite ${rotate_animate};animation-play-state: inherit;transform:scale(1.4);will-change: transform}
+`;
+	let toastWrap = null;
+	const getWrapper = () => {
+		if(!toastWrap){
+			toastWrap = createDomByHtml(`<div class="${TOAST_CLS_MAIN}-wrap" popover="manual"></div>`, document.body);
+		}
+		return toastWrap;
+	};
+	class Toast {
+		static TYPE_INFO = 'info';
+		static TYPE_SUCCESS = 'success';
+		static TYPE_WARNING = 'warning';
+		static TYPE_ERROR = 'error';
+		static TYPE_LOADING = 'loading';
+		static DEFAULT_TIME_MAP = {
+			[Toast.TYPE_INFO]: 1500,
+			[Toast.TYPE_SUCCESS]: 1500,
+			[Toast.TYPE_WARNING]: 2000,
+			[Toast.TYPE_ERROR]: 2500,
+			[Toast.TYPE_LOADING]: 0,
+		};
+		message = '';
+		type = Toast.TYPE_INFO;
+		timeout = Toast.DEFAULT_TIME_MAP[this.type];
+		dom = null;
+		constructor(message, type = null, timeout = null){
+			insertStyleSheet(STYLE_STR$a, COM_ID$5 + '-style');
+			this.message = message;
+			this.type = type || Toast.TYPE_SUCCESS;
+			this.timeout = timeout === null ? Toast.DEFAULT_TIME_MAP[this.type] : timeout;
+		}
+		static showToast = (message, type = null, timeout = null, timeoutCallback = null) => {
+			let toast = new Toast(message, type, timeout);
+			toast.show(timeoutCallback);
+			return toast;
+		}
+		static showInfo = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_INFO, this.DEFAULT_TIME_MAP[Toast.TYPE_INFO], timeoutCallback);
+		}
+		static showSuccess = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_SUCCESS, this.DEFAULT_TIME_MAP[Toast.TYPE_SUCCESS], timeoutCallback);
+		}
+		static showWarning = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_WARNING, this.DEFAULT_TIME_MAP[Toast.TYPE_WARNING], timeoutCallback);
+		}
+		static showError = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_ERROR, this.DEFAULT_TIME_MAP[Toast.TYPE_ERROR], timeoutCallback);
+		}
+		static showLoading = (message, timeoutCallback = null) => {
+			return this.showToast(message, Toast.TYPE_LOADING, this.DEFAULT_TIME_MAP[Toast.TYPE_LOADING], timeoutCallback);
+		}
+		static showLoadingLater = (message, delayMicroseconds = 200, timeoutCallback = null) => {
+			let time = Toast.DEFAULT_TIME_MAP[Toast.TYPE_LOADING];
+			let toast = new Toast(message, Toast.TYPE_LOADING, time);
+			toast.show(timeoutCallback);
+			hide(toast.dom);
+			setTimeout(() => {
+				toast.dom && show(toast.dom);
+			}, delayMicroseconds);
+			return toast;
+		}
+		show(onTimeoutClose = null){
+			let wrapper = getWrapper();
+			if(wrapper.showPopover){
+				wrapper.showPopover();
+			} else {
+				show(wrapper);
+			}
+			this.dom = createDomByHtml(
+				`<span class="${TOAST_CLS_MAIN} ${TOAST_CLS_MAIN}-${this.type}">
+				<span class="ctn">${this.message}</span><div></div>
+			</span>`, wrapper);
+			if(this.timeout){
+				setTimeout(() => {
+					this.hide(true);
+					onTimeoutClose && onTimeoutClose();
+				}, this.timeout);
+			}
+		}
+		update(html){
+			findOne('.ctn', this.dom).innerHTML = html;
+		}
+		hide(fadeOut = false){
+			if(!this.dom || !document.body.contains(this.dom)){
+				return;
+			}
+			if(fadeOut){
+				this.dom.classList.add(TOAST_CLS_MAIN + '-hide');
+				setTimeout(() => {
+					this.hide(false);
+				}, FADEOUT_TIME);
+				return;
+			}
+			remove(this.dom);
+			this.dom = null;
+			let wrapper = getWrapper();
+			if(!wrapper.childNodes.length){
+				if(wrapper.hidePopover){
+					wrapper.hidePopover();
+				} else {
+					hide(wrapper);
+				}
+			}
+		}
+	}
+	window[COM_ID$5] = Toast;
+	let CONTEXT_WINDOW$2 = getContextWindow();
+	let ToastClass = CONTEXT_WINDOW$2[COM_ID$5] || Toast;
+
 	const COM_ID$4 = Theme.Namespace + 'dialog';
 	const DLG_CLS_PREF = COM_ID$4;
 	const DLG_CLS_TI = DLG_CLS_PREF + '-ti';
@@ -3926,10 +3947,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			event.preventDefault();
 			Option.onInput();
 			let items = event.dataTransfer.items;
-			let total_item_length = items.length;
+			let total_item_length = 0;
+			Array.from(items).forEach(item => {
+				total_item_length += item.kind === 'file';
+			});
 			let files = [];
 			let find_cnt = 0;
 			for(let i = 0; i < items.length; i++){
+				if(items[i].kind !== 'file'){
+					console.warn('item is not file', items[i]);
+					continue;
+				}
 				let item = items[i].webkitGetAsEntry();
 				if(item){
 					traverseFileTree(item, file => {
@@ -3940,6 +3968,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 							Option.onFinish(files);
 						}
 					});
+				}
+				else {
+					find_cnt++;
+					let file = items[i].getAsFile();
+					if(file && processFile(file)){
+						file.fullPath = '/' + file.name;
+						files.push(file);
+					}
+					if(find_cnt === total_item_length){
+						Option.onFinish(files);
+					}
 				}
 			}
 		}, false);
@@ -6299,31 +6338,26 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const FILE_TYPE_SHEET = ['.xls', '.xlsx', '.csv'];
 	const FILE_TYPE_ZIP = ['.7z', '.zip', '.rar'];
 	const DEFAULT_REQUEST_HANDLE = (url, fileMap, callbacks) => {
-		return uploadFile(url, fileMap, {
-			onSuccess: (rspJson) => {
-				let rspObj;
-				try {
-					rspObj = JSON.parse(rspJson);
-					if(rspObj.code === undefined || rspObj.message === undefined){
-						throw "{code, message} 字段必须提供（code=0表示成功）";
-					}
-				} catch(err){
-					throw `JSON格式解析失败${err}，返回格式必须是：{code, message, data:{name,value,thumb,error}}`;
-				}
-				if(rspObj.code !== 0){
-					return {error: rspObj.message};
-				}
-				callbacks.onSuccess({
-					value: rspObj.data.value,
-					thumb: rspObj.data.thumb,
-					name: rspObj.data.name,
-					error:null
-				});
-			},
-			onError: callbacks.onError,
-			onAbort: callbacks.onAbort,
-			onProgress: callbacks.onProgress
+		let n = Net.uploadFile(url, fileMap, null, {responseFormat: RESPONSE_FORMAT.JSON});
+		n.onProgress.listen(callbacks.onProgress);
+		n.onError.listen(callbacks.onError);
+		n.onResponse.listen(rspObj => {
+			if(rspObj.code === undefined || rspObj.message === undefined){
+				callbacks.onError("{code, message} 字段必须提供（code=0表示成功）");
+				return;
+			}
+			if(rspObj.code !== 0){
+				callbacks.onError(rspObj.message);
+				return;
+			}
+			callbacks.onSuccess({
+				value: rspObj.data.value,
+				thumb: rspObj.data.thumb,
+				name: rspObj.data.name,
+				error: null
+			});
 		});
+		return n.xhr;
 	};
 	const mergeNoNull = (target, source) => {
 		for(let i in source){
@@ -7083,11 +7117,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const STATE_OVERLOAD = 'overload';
 	const MAIN_CLASS = Theme.Namespace + 'text-counter';
 	const STYLE_STR$1 = `
-.${MAIN_CLASS} {pointer-events:none; margin-left:0.5em; user-select:none;}
-.${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.5}
-.${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_ACTIVE}"] {}
-.${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.8; color:red}
-.${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_ACTIVE}"] {color:red}
+	.${MAIN_CLASS} {pointer-events:none; margin-left:0.5em; user-select:none;}
+	.${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.5}
+	.${MAIN_CLASS}[data-state="${STATE_NORMAL}"][data-ui-state="${UI_STATE_ACTIVE}"] {}
+	.${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_INACTIVE}"] {opacity:0.8; color:red}
+	.${MAIN_CLASS}[data-state="${STATE_OVERLOAD}"][data-ui-state="${UI_STATE_ACTIVE}"] {color:red}
 `;
 	class ACTextCounter {
 		static init(input, params = {}){
@@ -7950,7 +7984,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.triggerDomEvent = triggerDomEvent;
 	exports.trim = trim;
 	exports.unescapeHtml = unescapeHtml;
-	exports.uploadFile = uploadFile;
 	exports.utf8Decode = utf8Decode;
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;

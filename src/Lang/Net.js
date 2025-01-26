@@ -1,6 +1,5 @@
 import {resolveFileExtension, resolveFileName} from "./File.js";
 import {BizEvent} from "./Event.js";
-import {Toast} from "../Widget/Toast.js";
 import {remove} from "./Dom.js";
 import {regQuote} from "./String.js";
 
@@ -49,7 +48,7 @@ export const mergerUriParam = (uri, data) => {
 	if(data === null ||
 		data === undefined ||
 		(Array.isArray(data) && data.length === 0) ||
-		(typeof(data) === 'string' && data.length === 0)
+		(typeof (data) === 'string' && data.length === 0)
 	){
 		return uri;
 	}
@@ -88,7 +87,7 @@ const REQUEST_DATA_HANDLE_MAP = {
 		}
 		if(data instanceof FormData){
 			let obj = {};
-			data.forEach((v,k)=>{
+			data.forEach((v, k) => {
 				obj[k] = v;
 			});
 			return JSON.stringify(obj);
@@ -115,6 +114,35 @@ const RESPONSE_ACCEPT_TYPE_MAP = {
 };
 
 /**
+ * 转换数据到FormData
+ * @param {*} data
+ * @return {FormData}
+ */
+const dataToFormData = (data) => {
+	let fd = new FormData;
+	if(!data){
+		return fd;
+	}
+	if(typeof (this.data) === 'string'){
+		let dataMap = QueryString.parse(this.data);
+		for(let k in dataMap){
+			fd.append(k, dataMap[k]);
+		}
+	}else if(this.data.toString.indexOf('FormData') >= 0){
+		this.data.forEach((val, name) => {
+			fd.append(name, val);
+		})
+	}else if(typeof (this.data) === 'object'){
+		for(let k in this.data){
+			fd.append(k, this.data[k]);
+		}
+	}
+	let err = "Convert data to FormData fail";
+	console.error(err, data);
+	throw err;
+}
+
+/**
  * JSON方式请求
  * @param {String} url
  * @param {Object|String} data 数据，当前仅支持对象或queryString
@@ -131,67 +159,12 @@ export const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) =>
 }
 
 /**
- * 文件上传，同时发送 Accept=application/json，以方便调用方返回
- * @param {String} url 接口地址
- * @param {Object} fileMap 文件映射对象，key为变量名称，如：{name:File}
- * @param callbacks
- * @param {Function} callbacks.onSuccess 成功回调
- * @param {Function} callbacks.onProgress 进度更新回调
- * @param {Function} callbacks.onError 错误回调
- * @param {Function} callbacks.onAbort 中断回调
- * @param {Object|null} extParam 额外传递body变量
- * @return {XMLHttpRequest}
- */
-export const uploadFile = (url, fileMap, callbacks, extParam = null) => {
-	let {onSuccess, onProgress, onError, onAbort} = callbacks;
-
-	//缺省值
-	onProgress = onProgress || function(){};
-	onError = onError || function(err){Toast.showError(err)};
-	onAbort = onAbort || onError;
-
-	let formData = new FormData();
-	for(let name in fileMap){
-		formData.append(name, fileMap[name]);
-	}
-	if(extParam){
-		for(let k in extParam){
-			formData.append(k, extParam[k]);
-		}
-	}
-	let xhr = new XMLHttpRequest();
-	xhr.withCredentials = true;
-	xhr.upload.addEventListener('progress', e => {
-		onProgress(e.loaded, e.total);
-	}, false);
-	xhr.addEventListener('load', e => {
-		if(xhr.readyState === 4){
-			if(xhr.status === 200){
-				onProgress(e.total, e.total || e.loaded); //fix loaded == 0 in onload event
-				onSuccess(xhr.responseText);
-			}else{
-				onError(xhr.responseText || xhr.statusText);
-			}
-		}
-	});
-	xhr.addEventListener('error', e => {
-		onError(e);
-	});
-	xhr.addEventListener('abort', () => {
-		onAbort('请求中断');
-	});
-	xhr.open('POST', url);
-	xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[RESPONSE_FORMAT.JSON])
-	xhr.send(formData);
-	return xhr;
-}
-
-/**
  * XHR 网络请求
  */
 export class Net {
 	cgi = null; //请求接口
 	data = null; //请求数据
+	fileMap = null;
 	option = {
 		method: HTTP_METHOD.GET, //请求方法
 		timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
@@ -207,51 +180,66 @@ export class Net {
 
 	/**
 	 * 构造器
-	 * @param {String} cgi
-	 * @param {String|*} data
-	 * @param {Object} option
+	 * @param {String} cgi 请求URL
+	 * @param {*} data 请求发送数据
+	 * @param {Object} option 选项
+	 * @param {Object|null} fileMap 发送文件map
 	 */
-	constructor(cgi, data, option = {}){
+	constructor(cgi, data, option = {}, fileMap = null){
 		this.cgi = cgi;
 		this.data = data;
+		this.fileMap = fileMap;
 		this.option = {
 			...this.option,
 			...option
 		};
+
+		//文件上传，强制选项：POST，去除ContentType（浏览器默认 multipart/form-data; boundary=***
+		if(this.fileMap){
+			this.option.method = HTTP_METHOD.POST;
+			this.option.requestFormat = null;
+		}
+
 		//patch GET request parameter
 		if(this.option.method === HTTP_METHOD.GET && this.data){
 			this.cgi = mergerUriParam(this.cgi, this.data);
 		}
 		this.xhr = new XMLHttpRequest();
+		this.xhr.withCredentials = true;
 		this.xhr.open(this.option.method, this.cgi, true);
 		this.xhr.addEventListener("progress", e => {
 			if(e.lengthComputable){
 				this.onProgress.fire(e.loaded / e.total);
-			}else{
-				this.onProgress.fire(null);
 			}
 		});
 		this.xhr.onreadystatechange = () => {
 			this.onStateChange.fire(this.xhr.status);
 		}
-		this.xhr.addEventListener("load", () => {
-			let ret;
-			switch(option.responseFormat){
-				case RESPONSE_FORMAT.JSON:
-					try {
-						ret = JSON.parse(this.xhr.responseText);
-					} catch(err){
-						this.onError.fire('JSON解析失败：'+err, this.xhr.status);
+		this.xhr.addEventListener("load", e => {
+			if(this.xhr.readyState === 4){
+				if(this.xhr.status === 200){
+					this.onProgress.fire(e.total, e.total || e.loaded); //fix loaded == 0 in onload event
+					let ret;
+					switch(option.responseFormat){
+						case RESPONSE_FORMAT.JSON:
+							try{
+								ret = JSON.parse(this.xhr.responseText);
+							}catch(err){
+								this.onError.fire('JSON解析失败：' + err, this.xhr.status);
+							}
+							break;
+						case RESPONSE_FORMAT.XML:
+						case RESPONSE_FORMAT.TEXT:
+						case RESPONSE_FORMAT.HTML:
+						default:
+							ret = this.xhr.responseText
+							break;
 					}
-					break;
-				case RESPONSE_FORMAT.XML:
-				case RESPONSE_FORMAT.TEXT:
-				case RESPONSE_FORMAT.HTML:
-				default:
-					ret = this.xhr.responseText
-					break;
+					this.onResponse.fire(ret);
+				}else{
+					this.onError.fire(this.xhr.responseText || this.xhr.statusText);
+				}
 			}
-			this.onResponse.fire(ret);
 		});
 		this.xhr.addEventListener("error", () => {
 			this.onError.fire(this.xhr.statusText, this.xhr.status);
@@ -259,8 +247,12 @@ export class Net {
 		this.xhr.addEventListener("abort", () => {
 			this.onError.fire('Request aborted.', CODE_ABORT);
 		});
-		this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
-		this.xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[this.option.responseFormat]);
+		if(this.option.requestFormat){
+			this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
+		}
+		if(this.option.responseFormat){
+			this.xhr.setRequestHeader('Accept', RESPONSE_ACCEPT_TYPE_MAP[this.option.responseFormat]);
+		}
 		for(let key in this.option.headers){
 			this.xhr.setRequestHeader(key, this.option.headers[key]);
 		}
@@ -274,10 +266,25 @@ export class Net {
 
 	/**
 	 * 发送请求
+	 * 文件上传需要合并参数
 	 */
 	send(){
-		let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
-		this.xhr.send(data);
+		if(this.fileMap){
+			let data = new FormData();
+			for(let name in this.fileMap){
+				data.append(name, this.fileMap[name]);
+			}
+			if(this.data){
+				let d = dataToFormData(this.data);
+				d.forEach((val, name) => {
+					data.append(name, val);
+				});
+			}
+			this.xhr.send(data);
+		}else{
+			let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
+			this.xhr.send(data);
+		}
 	}
 
 	/**
@@ -317,7 +324,8 @@ export class Net {
 	static getJSONP(url, data, callback_name = 'callback', timeout = 3000){
 		return new Promise((resolve, reject) => {
 			let tm = window.setTimeout(function(){
-				window[callback_name] = function(){};
+				window[callback_name] = function(){
+				};
 				reject(`timeout in ${timeout}ms`);
 			}, timeout);
 
@@ -353,9 +361,26 @@ export class Net {
 		return Net.post(cgi, data, option);
 	}
 
-	static request(cgi, data, option = {}){
+	/**
+	 * 上传文件（缺省采用post方式，服务器响应JSON）
+	 * @param {String} url
+	 * @param {Object} fileMap
+	 * @param {Object|null} data
+	 * @param {Object} option
+	 * @return {Net}
+	 */
+	static uploadFile = (url, fileMap, data = null, option = {}) => {
+		let n = new Net(url, data, option, fileMap);
+		//异步发送，外部可以对n绑定事件
+		setTimeout(() => {
+			n.send();
+		}, 0);
+		return n;
+	}
+
+	static request(cgi, data, option = {}, fileMap = null){
 		return new Promise((resolve, reject) => {
-			let req = new Net(cgi, data, option);
+			let req = new Net(cgi, data, option, fileMap);
 			req.onResponse.listen(ret => {
 				resolve(ret);
 			});

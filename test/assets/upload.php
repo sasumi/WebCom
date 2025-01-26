@@ -20,7 +20,7 @@ success([
 ]);
 
 function fail($err){
-	echo json_encode(['error' => $err], JSON_UNESCAPED_UNICODE);
+	echo json_encode(['message' => $err, 'code'=>-1], JSON_UNESCAPED_UNICODE);
 	exit;
 }
 
@@ -32,6 +32,6 @@ function getExt($file_name){
 }
 
 function success($data){
-	echo json_encode($data, JSON_UNESCAPED_UNICODE);
+	echo json_encode(['code'=>0, 'message'=>'success', 'data'=>json_encode($data, JSON_UNESCAPED_UNICODE)]);
 	exit;
 }

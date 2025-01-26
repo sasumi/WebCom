@@ -2,7 +2,7 @@ import {createDomByHtml, findOne, insertStyleSheet} from "../Lang/Dom.js";
 import {Theme} from "./Theme.js";
 import {bindNodeActive, BizEvent, triggerDomEvent} from "../Lang/Event.js";
 import {Toast} from "./Toast.js";
-import {uploadFile} from "../Lang/Net.js";
+import {Net, RESPONSE_FORMAT} from "../Lang/Net.js";
 
 const NS = Theme.Namespace + 'uploader';
 const STYLE_STR = `
@@ -55,7 +55,7 @@ export const FILE_TYPE_ZIP = ['.7z', '.zip', '.rar'];
 
 /**
  * 缺省请求处理方法
- * 接收后台返回格式为：{code, message, data:{name,value,thumb,error}} 格式
+ * 接收后台返回格式为：{code, message, data:{name,value,thumb}} 格式
  * @param {String} url
  * @param {Object} fileMap
  * @param {Object} callbacks 回调函数合集对象
@@ -67,31 +67,26 @@ export const FILE_TYPE_ZIP = ['.7z', '.zip', '.rar'];
  * @constructor
  */
 const DEFAULT_REQUEST_HANDLE = (url, fileMap, callbacks) => {
-	return uploadFile(url, fileMap, {
-		onSuccess: (rspJson) => {
-			let rspObj;
-			try {
-				rspObj = JSON.parse(rspJson);
-				if(rspObj.code === undefined || rspObj.message === undefined){
-					throw "{code, message} 字段必须提供（code=0表示成功）";
-				}
-			} catch(err){
-				throw `JSON格式解析失败${err}，返回格式必须是：{code, message, data:{name,value,thumb,error}}`;
-			}
-			if(rspObj.code !== 0){
-				return {error: rspObj.message};
-			}
-			callbacks.onSuccess({
-				value: rspObj.data.value,
-				thumb: rspObj.data.thumb,
-				name: rspObj.data.name,
-				error:null
-			});
-		},
-		onError: callbacks.onError,
-		onAbort: callbacks.onAbort,
-		onProgress: callbacks.onProgress
+	let n = Net.uploadFile(url, fileMap, null, {responseFormat: RESPONSE_FORMAT.JSON});
+	n.onProgress.listen(callbacks.onProgress);
+	n.onError.listen(callbacks.onError);
+	n.onResponse.listen(rspObj => {
+		if(rspObj.code === undefined || rspObj.message === undefined){
+			callbacks.onError("{code, message} 字段必须提供（code=0表示成功）");
+			return;
+		}
+		if(rspObj.code !== 0){
+			callbacks.onError(rspObj.message);
+			return;
+		}
+		callbacks.onSuccess({
+			value: rspObj.data.value,
+			thumb: rspObj.data.thumb,
+			name: rspObj.data.name,
+			error: null
+		});
 	});
+	return n.xhr;
 }
 
 /**
