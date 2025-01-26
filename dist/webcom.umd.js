@@ -1631,18 +1631,18 @@
 		if(!data){
 			return fd;
 		}
-		if(typeof (undefined.data) === 'string'){
-			let dataMap = QueryString.parse(undefined.data);
+		if(typeof (data) === 'string'){
+			let dataMap = QueryString.parse(data);
 			for(let k in dataMap){
 				fd.append(k, dataMap[k]);
 			}
-		}else if(undefined.data.toString.indexOf('FormData') >= 0){
-			undefined.data.forEach((val, name) => {
+		}else if(data.toString.indexOf('FormData') >= 0){
+			data.forEach((val, name) => {
 				fd.append(name, val);
 			});
-		}else if(typeof (undefined.data) === 'object'){
-			for(let k in undefined.data){
-				fd.append(k, undefined.data[k]);
+		}else if(typeof (data) === 'object'){
+			for(let k in data){
+				fd.append(k, data[k]);
 			}
 		}
 		let err = "Convert data to FormData fail";

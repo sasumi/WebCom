@@ -123,18 +123,18 @@ const dataToFormData = (data) => {
 	if(!data){
 		return fd;
 	}
-	if(typeof (this.data) === 'string'){
-		let dataMap = QueryString.parse(this.data);
+	if(typeof (data) === 'string'){
+		let dataMap = QueryString.parse(data);
 		for(let k in dataMap){
 			fd.append(k, dataMap[k]);
 		}
-	}else if(this.data.toString.indexOf('FormData') >= 0){
-		this.data.forEach((val, name) => {
+	}else if(data.toString.indexOf('FormData') >= 0){
+		data.forEach((val, name) => {
 			fd.append(name, val);
 		})
-	}else if(typeof (this.data) === 'object'){
-		for(let k in this.data){
-			fd.append(k, this.data[k]);
+	}else if(typeof (data) === 'object'){
+		for(let k in data){
+			fd.append(k, data[k]);
 		}
 	}
 	let err = "Convert data to FormData fail";
