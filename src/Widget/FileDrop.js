@@ -6,7 +6,7 @@ import {Toast} from "./Toast.js";
  * 绑定指定容器，使其支持文件（目录拖放），建议使用 label>input:file 结构，同时支持点击选择文件
  * @param {String|Node} container 容器内如果有 input[type=file]，其onChange事件同时绑定，同时读取 input[type=file]{accept} 属性对文件列表进行过滤
  * @param {Object} Option
- * @param {Function} Option.onInput 用户出发输入，包括文件拖入、文件选择完成
+ * @param {Function} Option.onTrigger 用户出发输入，包括文件拖入、文件选择完成
  * @param {Function} Option.onFile 单个文件处理回调（参数为文件，返回Boolean），返回false将过略掉该文件
  * @param {Function} Option.onFinish 所有文件处理回调（如果是拖动目录，需要等待目录所有文件读取完毕）参数为文件列表，此处文件包含fullPath目录信息
  * @param {Function} Option.onError 错误信息回调（多个文件可能会触发多次错误），缺省为显示到Toast上
@@ -15,7 +15,7 @@ import {Toast} from "./Toast.js";
  */
 export const bindFileDrop = (container, Option = {}) => {
 	Option = Object.assign({
-		onInput: () => {
+		onTrigger: () => {
 		},
 		onFile: (file) => {
 			return true;
@@ -48,7 +48,7 @@ export const bindFileDrop = (container, Option = {}) => {
 	}
 	if(fileInput){
 		fileInput.addEventListener('change', e => {
-			Option.onInput();
+			Option.onTrigger();
 			let fs = [];
 			Array.from(e.target.files).forEach(file => {
 				file.fullPath = '/' + file.name;
@@ -74,7 +74,7 @@ export const bindFileDrop = (container, Option = {}) => {
 	});
 	container.addEventListener('drop', event => {
 		event.preventDefault();
-		Option.onInput();
+		Option.onTrigger();
 		let items = event.dataTransfer.items;
 		let total_item_length = 0;
 		Array.from(items).forEach(item => {

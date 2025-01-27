@@ -3879,7 +3879,7 @@ var WebCom = (function (exports) {
 
 	const bindFileDrop = (container, Option = {}) => {
 		Option = Object.assign({
-			onInput: () => {
+			onTrigger: () => {
 			},
 			onFile: (file) => {
 				return true;
@@ -3908,7 +3908,7 @@ var WebCom = (function (exports) {
 		};
 		if(fileInput){
 			fileInput.addEventListener('change', e => {
-				Option.onInput();
+				Option.onTrigger();
 				let fs = [];
 				Array.from(e.target.files).forEach(file => {
 					file.fullPath = '/' + file.name;
@@ -3934,7 +3934,7 @@ var WebCom = (function (exports) {
 		});
 		container.addEventListener('drop', event => {
 			event.preventDefault();
-			Option.onInput();
+			Option.onTrigger();
 			let items = event.dataTransfer.items;
 			let total_item_length = 0;
 			Array.from(items).forEach(item => {

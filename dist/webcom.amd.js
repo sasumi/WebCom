@@ -3895,7 +3895,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const bindFileDrop = (container, Option = {}) => {
 		Option = Object.assign({
-			onInput: () => {
+			onTrigger: () => {
 			},
 			onFile: (file) => {
 				return true;
@@ -3924,7 +3924,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		};
 		if(fileInput){
 			fileInput.addEventListener('change', e => {
-				Option.onInput();
+				Option.onTrigger();
 				let fs = [];
 				Array.from(e.target.files).forEach(file => {
 					file.fullPath = '/' + file.name;
@@ -3950,7 +3950,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 		container.addEventListener('drop', event => {
 			event.preventDefault();
-			Option.onInput();
+			Option.onTrigger();
 			let items = event.dataTransfer.items;
 			let total_item_length = 0;
 			Array.from(items).forEach(item => {
