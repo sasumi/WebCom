@@ -114,6 +114,38 @@ export const fileToImg = (file) => {
 	});
 }
 
+
+/**
+ * 转换 webp, avif 格式图片为jpg
+ * @param {File} file 图片文件（如果文件不是图片，可能出错）
+ * @param {String} toFormat 目标格式：jpeg, png, gif 等
+ * @param {String|null} newName 新文件名称，缺省为 file.{ext}
+ * @return {Promise<File>}
+ */
+export const imageFileFormatConvert = (file, toFormat, newName = null) => {
+	return new Promise((resolve, reject) => {
+		let img = new Image();
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.naturalWidth;
+			canvas.height = img.naturalHeight;
+			canvas.getContext('2d').drawImage(img, 0, 0);
+			let blobBin = atob(canvas.toDataURL().split(',')[1]);
+			let arr = [];
+			for(let i = 0; i < blobBin.length; i++){
+				arr.push(blobBin.charCodeAt(i));
+			}
+			newName = newName || `file.${toFormat}`;
+			let pngFile = blobToFile(new Blob([new Uint8Array(arr)], {type: `image/${toFormat}`}), {name: newName});
+			resolve(pngFile);
+		}
+		img.onerror = ()=>{
+			reject('image convert error');
+		}
+		img.src = URL.createObjectURL(file);
+	});
+}
+
 /**
  * 转换blob为文件对象
  * @param {Blob} blob

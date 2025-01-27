@@ -1542,6 +1542,29 @@ var WebCom = (function (exports) {
 			};
 		});
 	};
+	const imageFileFormatConvert = (file, toFormat, newName = null) => {
+		return new Promise((resolve, reject) => {
+			let img = new Image();
+			img.onload = () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = img.naturalWidth;
+				canvas.height = img.naturalHeight;
+				canvas.getContext('2d').drawImage(img, 0, 0);
+				let blobBin = atob(canvas.toDataURL().split(',')[1]);
+				let arr = [];
+				for(let i = 0; i < blobBin.length; i++){
+					arr.push(blobBin.charCodeAt(i));
+				}
+				newName = newName || `file.${toFormat}`;
+				let pngFile = blobToFile(new Blob([new Uint8Array(arr)], {type: `image/${toFormat}`}), {name: newName});
+				resolve(pngFile);
+			};
+			img.onerror = ()=>{
+				reject('image convert error');
+			};
+			img.src = URL.createObjectURL(file);
+		});
+	};
 	const blobToFile = (blob, fileAttr = {}) => {
 		fileAttr = Object.assign({
 			name: 'file',
@@ -7893,6 +7916,7 @@ var WebCom = (function (exports) {
 	exports.hide = hide;
 	exports.highlightText = highlightText;
 	exports.html2Text = html2Text;
+	exports.imageFileFormatConvert = imageFileFormatConvert;
 	exports.imgToFile = imgToFile;
 	exports.inMobile = inMobile;
 	exports.initAutofillButton = initAutofillButton;
