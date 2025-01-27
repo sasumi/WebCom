@@ -286,16 +286,18 @@ const bindImgMove = (img) => {
 	let moving = false;
 	let lastOffset = {};
 	img.addEventListener('mousedown', e => {
-		moving = true;
-		lastOffset = {
-			clientX: e.clientX,
-			clientY: e.clientY,
-			marginLeft: parseInt(img.style.marginLeft || 0, 10),
-			marginTop: parseInt(img.style.marginTop || 0, 10)
-		};
-		e.preventDefault();
+		if(LocalSetting.get('allow_move')){
+			moving = true;
+			lastOffset = {
+				clientX: e.clientX,
+				clientY: e.clientY,
+				marginLeft: parseInt(img.style.marginLeft || 0, 10),
+				marginTop: parseInt(img.style.marginTop || 0, 10)
+			};
+			e.preventDefault();
+			return false;
+		}
 	});
-
 	['mouseup', 'mouseout'].forEach(ev => {
 		img.addEventListener(ev, e => {
 			moving = false;

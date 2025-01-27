@@ -1588,7 +1588,6 @@ const setHash = data => {
 const getHash = () => {
 	return location.hash ? location.hash.substring(1) : '';
 };
-const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
 const DEFAULT_TIMEOUT = 0;
 const REQUEST_CONTENT_TYPE_MAP = {
@@ -1726,7 +1725,7 @@ class Net {
 			this.onError.fire(this.xhr.statusText, this.xhr.status);
 		});
 		this.xhr.addEventListener("abort", () => {
-			this.onError.fire('Request aborted.', CODE_ABORT);
+			this.abort();
 		});
 		if(this.option.requestFormat){
 			this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
@@ -1739,8 +1738,7 @@ class Net {
 		}
 		if(this.option.timeout){
 			setTimeout(() => {
-				this.xhr.abort();
-				this.onError.fire('Request timeout', CODE_TIMEOUT);
+				this.abort('timeout');
 			}, this.option.timeout);
 		}
 	}
@@ -1762,8 +1760,9 @@ class Net {
 			this.xhr.send(data);
 		}
 	}
-	abort(){
+	abort(reason = ''){
 		this.xhr.abort();
+		this.onError.fire(`Request abort(${reason})`, CODE_ABORT);
 	}
 	static get(cgi, data, option = {}){
 		option.method = option.method || HTTP_METHOD.GET;
@@ -4295,14 +4294,17 @@ const bindImgMove = (img) => {
 	let moving = false;
 	let lastOffset = {};
 	img.addEventListener('mousedown', e => {
-		moving = true;
-		lastOffset = {
-			clientX: e.clientX,
-			clientY: e.clientY,
-			marginLeft: parseInt(img.style.marginLeft || 0, 10),
-			marginTop: parseInt(img.style.marginTop || 0, 10)
-		};
-		e.preventDefault();
+		if(LocalSetting.get('allow_move')){
+			moving = true;
+			lastOffset = {
+				clientX: e.clientX,
+				clientY: e.clientY,
+				marginLeft: parseInt(img.style.marginLeft || 0, 10),
+				marginTop: parseInt(img.style.marginTop || 0, 10)
+			};
+			e.preventDefault();
+			return false;
+		}
 	});
 	['mouseup', 'mouseout'].forEach(ev => {
 		img.addEventListener(ev, e => {

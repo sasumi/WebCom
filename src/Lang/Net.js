@@ -63,7 +63,6 @@ export const getHash = () => {
 	return location.hash ? location.hash.substring(1) : '';
 }
 
-const CODE_TIMEOUT = 508;
 const CODE_ABORT = 509;
 const DEFAULT_TIMEOUT = 0;
 
@@ -171,11 +170,12 @@ export class Net {
 	option = {
 		method: HTTP_METHOD.GET, //请求方法
 		timeout: DEFAULT_TIMEOUT, //超时时间(毫秒)(超时将纳入onError处理)
-		requestFormat: REQUEST_FORMAT.FORM, //请求数据格式
+		requestFormat: REQUEST_FORMAT.FORM, //缺省请求数据格式为 FORM
 		responseFormat: RESPONSE_FORMAT.TEXT, //响应数据格式
 		headers: {}, //请求头部信息
 	};
 	xhr = null;
+
 	onError = new BizEvent(); //(error,code)
 	onResponse = new BizEvent(); //(body || object)
 	onStateChange = new BizEvent(); //(state) http 状态码
@@ -251,7 +251,7 @@ export class Net {
 			this.onError.fire(this.xhr.statusText, this.xhr.status);
 		});
 		this.xhr.addEventListener("abort", () => {
-			this.onError.fire('Request aborted.', CODE_ABORT);
+			this.abort();
 		});
 		if(this.option.requestFormat){
 			this.xhr.setRequestHeader('content-type', REQUEST_CONTENT_TYPE_MAP[this.option.requestFormat]);
@@ -264,8 +264,7 @@ export class Net {
 		}
 		if(this.option.timeout){
 			setTimeout(() => {
-				this.xhr.abort();
-				this.onError.fire('Request timeout', CODE_TIMEOUT);
+				this.abort('timeout');
 			}, this.option.timeout);
 		}
 	}
@@ -296,8 +295,9 @@ export class Net {
 	/**
 	 * 终止请求
 	 */
-	abort(){
+	abort(reason = ''){
 		this.xhr.abort();
+		this.onError.fire(`Request abort(${reason})`, CODE_ABORT);
 	}
 
 	static get(cgi, data, option = {}){
@@ -384,6 +384,14 @@ export class Net {
 		return n;
 	}
 
+	/**
+	 * 请求
+	 * @param cgi
+	 * @param data
+	 * @param option
+	 * @param fileMap
+	 * @return {Promise<unknown>}
+	 */
 	static request(cgi, data, option = {}, fileMap = null){
 		return new Promise((resolve, reject) => {
 			let req = new Net(cgi, data, option, fileMap);
