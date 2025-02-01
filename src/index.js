@@ -34,6 +34,7 @@ export * from "./Widget/Paginate.js";
 export * from "./Widget/ParallelPromise.js";
 export * from "./Widget/Select.js";
 export * from "./Widget/Sortable.js";
+export * from "./Widget/Tab.js";
 export * from "./Widget/Theme.js";
 export * from "./Widget/Tip.js";
 export * from "./Widget/Toast.js";

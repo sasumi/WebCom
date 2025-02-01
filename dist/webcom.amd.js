@@ -916,6 +916,35 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const findOne = (selector, parent = document) => {
 		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
 	};
+	const waitForSelector = (selector, option = {}) => {
+		return new Promise((resolve, reject) => {
+			waitForSelectors(selector, option).then(ns => {
+				resolve(ns[0]);
+			}, reject);
+		})
+	};
+	const waitForSelectors = (selector, option = {}) => {
+		let {timeout, parent, checkInterval} = option;
+		checkInterval = checkInterval || 10;
+		timeout = timeout || 10000;
+		parent = parent || document;
+		const st = Date.now();
+		return new Promise((resolve, reject) => {
+			let chk = () => {
+				if(timeout && (Date.now() - st > timeout)){
+					reject(`waitForSelectors timeout, ${selector} ${timeout}ms`);
+					return;
+				}
+				let ns = parent.querySelectorAll(selector);
+				if(ns.length){
+					resolve(ns);
+					return;
+				}
+				setTimeout(chk, checkInterval);
+			};
+			chk();
+		})
+	};
 	const findAll = (selector, parent = document) => {
 		if(typeof selector === 'string'){
 			selector = selector.trim();
@@ -1315,27 +1344,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 		return skip;
-	};
-	const tabConnect = (tabs, contents, option = {}) => {
-		let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
-		if(typeof (tabs) === 'string'){
-			tabs = findAll(tabs);
-		}
-		if(typeof (contents) === 'string'){
-			contents = findAll(contents);
-		}
-		tabs.forEach((tab, idx) => {
-			tab.addEventListener(triggerEvent, e => {
-				contents.forEach(ctn => {
-					ctn.classList.remove(contentActiveClass);
-				});
-				contents[idx].classList.add(contentActiveClass);
-				tabs.forEach(t => {
-					t.classList.remove(tabActiveClass);
-				});
-				tab.classList.add(tabActiveClass);
-			});
-		});
 	};
 	const createDomByHtml = (html, parentNode = null) => {
 		let tpl = document.createElement('template');
@@ -6225,6 +6233,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 	};
 
+	const tabConnect = (tabs, contents, option = {}) => {
+		let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
+		tabs = findAll(tabs);
+		contents = findAll(contents);
+		tabs.forEach((tab, idx) => {
+			tab.addEventListener(triggerEvent, e => {
+				contents.forEach(ctn => {
+					ctn.classList.remove(contentActiveClass);
+				});
+				contents[idx].classList.add(contentActiveClass);
+				tabs.forEach(t => {
+					t.classList.remove(tabActiveClass);
+				});
+				tab.classList.add(tabActiveClass);
+			});
+		});
+	};
+
 	const CLASS_PREFIX = Theme.Namespace + 'toc';
 	const COM_ID = Theme.Namespace + 'toc';
 	const STYLE_STR$3 = `
@@ -8022,5 +8048,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.utf8Encode = utf8Encode;
 	exports.validateFormChanged = validateFormChanged;
 	exports.versionCompare = versionCompare;
+	exports.waitForSelector = waitForSelector;
+	exports.waitForSelectors = waitForSelectors;
 
 }));

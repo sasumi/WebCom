@@ -1,7 +1,8 @@
 import {Theme} from "./Theme.js";
 import {escapeAttr} from "../Lang/Html.js";
-import {insertStyleSheet, tabConnect} from "../Lang/Dom.js";
+import {insertStyleSheet} from "../Lang/Dom.js";
 import {Tip} from "./Tip.js";
+import {tabConnect} from "./Tab.js";
 
 const SUPPORT_LIST = {
 	//face

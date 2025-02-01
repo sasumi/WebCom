@@ -66,6 +66,55 @@ export const findOne = (selector, parent = document) => {
 }
 
 /**
+ * 选择器等待
+ * @param {String} selector
+ * @param {Object} option
+ * @param {Number} option.timeout 超时时间，默认为10秒（不能为0）
+ * @param {Node|null} option.parent 父级节点，默认为document
+ * @param {Number} option.checkInterval 检查间隔，默认为10毫秒
+ * @return {Promise<Node[]>}
+ */
+export const waitForSelector = (selector, option = {}) => {
+	return new Promise((resolve, reject) => {
+		waitForSelectors(selector, option).then(ns => {
+			resolve(ns[0]);
+		}, reject);
+	})
+}
+
+/**
+ * 批量选择器等待
+ * @param {String} selector
+ * @param {Object} option
+ * @param {Number} option.timeout 超时时间，默认为10秒（不能为0）
+ * @param {Node|null} option.parent 父级节点，默认为document
+ * @param {Number} option.checkInterval 检查间隔，默认为10毫秒
+ * @return {Promise<Node[]>}
+ */
+export const waitForSelectors = (selector, option = {}) => {
+	let {timeout, parent, checkInterval} = option;
+	checkInterval = checkInterval || 10;
+	timeout = timeout || 10000;
+	parent = parent || document;
+	const st = Date.now();
+	return new Promise((resolve, reject) => {
+		let chk = () => {
+			if(timeout && (Date.now() - st > timeout)){
+				reject(`waitForSelectors timeout, ${selector} ${timeout}ms`);
+				return;
+			}
+			let ns = parent.querySelectorAll(selector);
+			if(ns.length){
+				resolve(ns);
+				return;
+			}
+			setTimeout(chk, checkInterval);
+		};
+		chk();
+	})
+}
+
+/**
  * 通过选择器查找子节点（强制添加 :scope来约束必须是子节点）
  * @param {String} selector
  * @param {Node} parent
@@ -706,37 +755,6 @@ export const nodeHighlight = (node, pattern, hlClass) => {
 		}
 	}
 	return skip;
-}
-
-/**
- * tab 连接
- * @param {Element[]|String} tabs tab节点列表
- * @param {Element[]|String} contents 内容节点列表
- * @param {Object} option 选项
- * @param {string} option.contentActiveClass 内容区激活类名
- * @param {string} option.tabActiveClass tab区激活类名
- * @param {string} option.triggerEvent tab激活事件类型
- */
-export const tabConnect = (tabs, contents, option = {}) => {
-	let {contentActiveClass = 'active', tabActiveClass = 'active', triggerEvent = 'click'} = option;
-	if(typeof (tabs) === 'string'){
-		tabs = findAll(tabs);
-	}
-	if(typeof (contents) === 'string'){
-		contents = findAll(contents);
-	}
-	tabs.forEach((tab, idx) => {
-		tab.addEventListener(triggerEvent, e => {
-			contents.forEach(ctn => {
-				ctn.classList.remove(contentActiveClass);
-			});
-			contents[idx].classList.add(contentActiveClass);
-			tabs.forEach(t => {
-				t.classList.remove(tabActiveClass);
-			});
-			tab.classList.add(tabActiveClass);
-		});
-	});
 }
 
 /**
