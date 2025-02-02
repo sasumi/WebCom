@@ -1008,7 +1008,7 @@ const bindIframeAutoResize = (iframe) => {
 				attributes: true,
 				subtree: true,
 				childList: true
-			}, ()=>{
+			}, () => {
 				resizeIframe(iframe);
 			});
 		});
@@ -1118,7 +1118,7 @@ const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	});
 	obs.observe(dom, option);
 };
-const lockElementInteraction = (el, payload)=>{
+const lockElementInteraction = (el, payload) => {
 	const LOCK_CLASS = '__element-lock__';
 	insertStyleSheet(`
 		.${LOCK_CLASS} {pointer-event:none !important;}
@@ -1127,7 +1127,7 @@ const lockElementInteraction = (el, payload)=>{
 	el.disabled = 'disabled';
 	el.setAttribute('data-disabled', 'disabled');
 	el.classList.add(LOCK_CLASS);
-	let reset = ()=>{
+	let reset = () => {
 		el.removeAttribute('disabled');
 		el.removeAttribute('data-disabled');
 		el.classList.remove(LOCK_CLASS);
@@ -2531,6 +2531,7 @@ const KEYS = {
 const loadImgBySrc = (src)=>{
 	return new Promise((resolve, reject) => {
 		let img = new Image;
+		img.referrerPolicy = 'no-referrer';
 		img.onload = ()=>{
 			resolve(img);
 		};
@@ -7090,7 +7091,7 @@ const resolveSrc = (node) => {
 		if(!src && node.srcset){
 			src = getHighestResFromSrcSet(node.srcset);
 		}
-		src = src || node.src;
+		src = src || node.src || node.dataset.src;
 	}else if(!src && node.tagName === 'A'){
 		src = node.href;
 	}

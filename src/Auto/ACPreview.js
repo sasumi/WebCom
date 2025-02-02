@@ -15,7 +15,7 @@ const resolveSrc = (node) => {
 		if(!src && node.srcset){
 			src = getHighestResFromSrcSet(node.srcset);
 		}
-		src = src || node.src;
+		src = src || node.src || node.dataset.src;
 	}else if(!src && node.tagName === 'A'){
 		src = node.href;
 	}

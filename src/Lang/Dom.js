@@ -5,11 +5,11 @@ import {guid} from "./Util.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
-};
+}
 
 export const getViewHeight = () => {
 	return window.innerHeight;
-};
+}
 
 /**
  * @param {HTMLElement} dom
@@ -234,7 +234,7 @@ export const bindIframeAutoResize = (iframe) => {
 				attributes: true,
 				subtree: true,
 				childList: true
-			}, ()=>{
+			}, () => {
 				resizeIframe(iframe);
 			});
 		});
@@ -408,7 +408,7 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
  * @param {Node} el
  * @param {Function} payload 处理函数，参数为 reset
  */
-export const lockElementInteraction = (el, payload)=>{
+export const lockElementInteraction = (el, payload) => {
 	const LOCK_CLASS = '__element-lock__';
 	insertStyleSheet(`
 		.${LOCK_CLASS} {pointer-event:none !important;}
@@ -417,7 +417,7 @@ export const lockElementInteraction = (el, payload)=>{
 	el.disabled = 'disabled';
 	el.setAttribute('data-disabled', 'disabled');
 	el.classList.add(LOCK_CLASS);
-	let reset = ()=>{
+	let reset = () => {
 		el.removeAttribute('disabled');
 		el.removeAttribute('data-disabled');
 		el.classList.remove(LOCK_CLASS);

@@ -1,4 +1,14 @@
-import {createDomByHtml, findAll, findOne, getContextWindow, hide, insertStyleSheet, remove, setStyle, show} from "../Lang/Dom.js";
+import {
+	createDomByHtml,
+	findAll,
+	findOne,
+	getContextWindow,
+	hide,
+	insertStyleSheet,
+	remove,
+	setStyle,
+	show
+} from "../Lang/Dom.js";
 import {loadImgBySrc} from "../Lang/Img.js";
 import {Theme} from "./Theme.js";
 import {bindNodeActive, KEYBOARD_KEY_MAP} from "../Lang/Event.js";

@@ -8,6 +8,7 @@ import {convertBlobToBase64} from "./Base64.js";
 export const loadImgBySrc = (src)=>{
 	return new Promise((resolve, reject) => {
 		let img = new Image;
+		img.referrerPolicy = 'no-referrer';
 		img.onload = ()=>{
 			resolve(img);
 		};

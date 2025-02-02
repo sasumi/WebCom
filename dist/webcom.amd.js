@@ -1027,7 +1027,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					attributes: true,
 					subtree: true,
 					childList: true
-				}, ()=>{
+				}, () => {
 					resizeIframe(iframe);
 				});
 			});
@@ -1137,7 +1137,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		});
 		obs.observe(dom, option);
 	};
-	const lockElementInteraction = (el, payload)=>{
+	const lockElementInteraction = (el, payload) => {
 		const LOCK_CLASS = '__element-lock__';
 		insertStyleSheet(`
 		.${LOCK_CLASS} {pointer-event:none !important;}
@@ -1146,7 +1146,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		el.disabled = 'disabled';
 		el.setAttribute('data-disabled', 'disabled');
 		el.classList.add(LOCK_CLASS);
-		let reset = ()=>{
+		let reset = () => {
 			el.removeAttribute('disabled');
 			el.removeAttribute('data-disabled');
 			el.classList.remove(LOCK_CLASS);
@@ -2550,6 +2550,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const loadImgBySrc = (src)=>{
 		return new Promise((resolve, reject) => {
 			let img = new Image;
+			img.referrerPolicy = 'no-referrer';
 			img.onload = ()=>{
 				resolve(img);
 			};
@@ -7109,7 +7110,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			if(!src && node.srcset){
 				src = getHighestResFromSrcSet(node.srcset);
 			}
-			src = src || node.src;
+			src = src || node.src || node.dataset.src;
 		}else if(!src && node.tagName === 'A'){
 			src = node.href;
 		}
