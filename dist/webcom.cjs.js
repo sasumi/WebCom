@@ -6847,6 +6847,8 @@ class ACConfirm {
 
 const NS$2 = Theme.Namespace + 'ac-copy';
 class ACCopy {
+	static TRIGGER_SELF = 1;
+	static TRIGGER_INSIDE = 2;
 	static COPY_CLASS = NS$2;
 	static init(node, params = {}){
 		insertStyleSheet(`
@@ -6855,7 +6857,8 @@ class ACCopy {
 			.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
 		`, Theme.Namespace + 'ac-copy');
 		let trigger = node;
-		if(PAIR_TAGS.includes(node.tagName)){
+		if((!params.trigger && PAIR_TAGS.includes(node.tagName)) ||
+			(params.trigger && params.trigger === ACCopy.TRIGGER_INSIDE)){
 			trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		}
 		bindNodeActive(trigger, e => {
