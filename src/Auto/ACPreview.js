@@ -28,20 +28,39 @@ const resolveSrc = (node) => {
  * 调用方式② 图片节点模式：img[src][data-preview-selector=".all-img"]
  */
 export class ACPreview {
-	static active(node, param = {}){
-		return new Promise((resolve, reject) => {
+	/**
+	 * 父容器绑定模式
+	 * @param node
+	 * @param {Object} param
+	 * @param {String} param.watch 监听子节点点击事件选择器
+	 * @return {Promise<null>}
+	 */
+	static init(node, param = {}){
+		return new Promise(resolve=>{
 			let watchSelector = param.watch;
 			if(watchSelector){
-				eventDelegate(node, watchSelector, 'click', (e, clickNode)=>{
-					let index = 0, imgSrcList = [];
+				eventDelegate(node, watchSelector, 'click', (e, clickNode) => {
+					let currentIndex = 0,
+						currentSrc = resolveSrc(clickNode),
+						imgSrcList = [];
 					node.querySelectorAll(watchSelector).forEach((n, idx) => {
-						if(node === clickNode){
-							index = idx;
+						let src = resolveSrc(n);
+						if(src === currentSrc){
+							currentIndex = idx;
 						}
-						imgSrcList.push(resolveSrc(clickNode));
+						imgSrcList.push(src);
 					});
-					showImgListPreview(imgSrcList, index);
+					showImgListPreview(imgSrcList, currentIndex);
 				});
+				resolve();
+			}
+		})
+
+	}
+
+	static active(node, param = {}){
+		return new Promise((resolve, reject) => {
+			if(param.watch){
 				resolve();
 				return;
 			}

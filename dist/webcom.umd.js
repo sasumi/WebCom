@@ -7107,20 +7107,30 @@
 		return src;
 	};
 	class ACPreview {
-		static active(node, param = {}){
-			return new Promise((resolve, reject) => {
+		static init(node, param = {}){
+			return new Promise(resolve=>{
 				let watchSelector = param.watch;
 				if(watchSelector){
-					eventDelegate(node, watchSelector, 'click', (e, clickNode)=>{
-						let index = 0, imgSrcList = [];
+					eventDelegate(node, watchSelector, 'click', (e, clickNode) => {
+						let currentIndex = 0,
+							currentSrc = resolveSrc(clickNode),
+							imgSrcList = [];
 						node.querySelectorAll(watchSelector).forEach((n, idx) => {
-							if(node === clickNode){
-								index = idx;
+							let src = resolveSrc(n);
+							if(src === currentSrc){
+								currentIndex = idx;
 							}
-							imgSrcList.push(resolveSrc(clickNode));
+							imgSrcList.push(src);
 						});
-						showImgListPreviewFn(imgSrcList, index);
+						showImgListPreviewFn(imgSrcList, currentIndex);
 					});
+					resolve();
+				}
+			})
+		}
+		static active(node, param = {}){
+			return new Promise((resolve, reject) => {
+				if(param.watch){
 					resolve();
 					return;
 				}
