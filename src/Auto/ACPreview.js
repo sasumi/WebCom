@@ -56,6 +56,7 @@ export class ACPreview {
 
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
+			event.preventDefault();
 			if(param.watch){
 				resolve();
 				return;

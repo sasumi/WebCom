@@ -12,8 +12,8 @@ export class ACDialog {
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			let title, url, content;
-
 			if(node.tagName === 'A'){
+				event.preventDefault();
 				url = node.href || url;
 				title = node.title || title;
 			}

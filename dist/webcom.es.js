@@ -6949,7 +6949,7 @@ class ACConfirm {
 		return new Promise((resolve, reject) => {
 			let title = param.title;
 			let message = param.message || '确认进行该项操作？';
-			console.log('confirm dialog');
+			event.preventDefault();
 			DialogClass.confirm(title || '确认', message).then(resolve, reject);
 		});
 	}
@@ -6986,6 +6986,7 @@ class ACDialog {
 		return new Promise((resolve, reject) => {
 			let title, url, content;
 			if(node.tagName === 'A'){
+				event.preventDefault();
 				url = node.href || url;
 				title = node.title || title;
 			}
@@ -7215,6 +7216,7 @@ class ACPreview {
 	}
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
+			event.preventDefault();
 			if(param.watch){
 				resolve();
 				return;
@@ -7311,6 +7313,7 @@ class ACTip {
 class ACToast {
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
+			event.preventDefault();
 			let message = param.message || '提示信息';
 			let type = param.type || ToastClass.TYPE_INFO;
 			ToastClass.showToast(message, type, ToastClass.DEFAULT_TIME_MAP[type], resolve);
