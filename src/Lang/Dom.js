@@ -12,10 +12,11 @@ export const getViewHeight = () => {
 }
 
 /**
- * @param {HTMLElement} dom
+ * 隐藏节点（通过设置display:none方式）
+ * @param {Node|String} dom
  */
 export const hide = (dom) => {
-	dom.style.display = 'none';
+	findOne(dom).style.display = 'none';
 }
 
 /**
@@ -32,19 +33,74 @@ export const remove = (dom) => {
 }
 
 /**
+ * 显示节点（通过设置display为空方式）
  * @param {HTMLElement} dom
  * @param dom
  */
 export const show = (dom) => {
-	dom.style.display = '';
+	findOne(dom).style.display = '';
 }
 
 /**
+ * 切换显示、隐藏元素
  * @param {Node} dom
  * @param toShow
  */
 export const toggle = (dom, toShow) => {
 	toShow ? show(dom) : hide(dom);
+}
+
+const _el_disabled_class_ = '__element-lock__';
+
+/**
+ * 禁用元素（禁止交互，设置disabled）
+ * @param {String|Node} el
+ * @param {String} disabledClass
+ */
+export const disabled = (el, disabledClass = '')=>{
+	return toggleDisabled(el, disabledClass, false);
+}
+
+/**
+ * 启用元素（允许交互，移除disabled）
+ * @param {String|Node} el
+ * @param {String} disabledClass
+ */
+export const enabled = (el, disabledClass = '')=>{
+	return toggleDisabled(el, disabledClass, true);
+}
+
+/**
+ * 禁用启用元素切换
+ * @param {String|Node} el
+ * @param {String} disabledClass
+ * @param {Boolean|Null} forceEnabled 强制启用、禁用，为空表示自动切换
+ */
+export const toggleDisabled = (el, disabledClass = '', forceEnabled = null) => {
+	let toDisabled = forceEnabled === null ? !el.classList.has(_el_disabled_class_) : !forceEnabled;
+	if(toDisabled){
+		insertStyleSheet(`.${_el_disabled_class_} {pointer-event:none !important;}`, '__element_lock_style__');
+	}
+	el = findOne(el);
+	el.classList.toggle(_el_disabled_class_, !toDisabled);
+	el[toDisabled ? 'setAttribute' : 'removeAttribute']('disabled', 'disabled');
+	el[toDisabled ? 'setAttribute' : 'removeAttribute']('data-disabled', 'disabled');
+	if(disabledClass){
+		el.classList.toggle(disabledClass, !toDisabled);
+	}
+}
+
+/**
+ * 绑定元素，禁止交互
+ * @param {Node} el
+ * @param {Function} payload 处理函数，参数为 reset
+ */
+export const lockElementInteraction = (el, payload) => {
+	disabled(el);
+	let reset = () => {
+		enabled(el);
+	};
+	payload(reset);
 }
 
 /**
@@ -401,28 +457,6 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 		}
 	});
 	obs.observe(dom, option);
-}
-
-/**
- * 绑定元素，禁止交互
- * @param {Node} el
- * @param {Function} payload 处理函数，参数为 reset
- */
-export const lockElementInteraction = (el, payload) => {
-	const LOCK_CLASS = '__element-lock__';
-	insertStyleSheet(`
-		.${LOCK_CLASS} {pointer-event:none !important;}
-	`)
-	el = findOne(el);
-	el.disabled = 'disabled';
-	el.setAttribute('data-disabled', 'disabled');
-	el.classList.add(LOCK_CLASS);
-	let reset = () => {
-		el.removeAttribute('disabled');
-		el.removeAttribute('data-disabled');
-		el.classList.remove(LOCK_CLASS);
-	};
-	payload(reset);
 }
 
 /**

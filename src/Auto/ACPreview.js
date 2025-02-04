@@ -36,29 +36,25 @@ export class ACPreview {
 	 * @return {Promise<null>}
 	 */
 	static init(node, param = {}){
-		return new Promise(resolve=>{
-			let watchSelector = param.watch;
-			if(watchSelector){
-				eventDelegate(node, watchSelector, 'click', (e, clickNode) => {
-					let currentIndex = 0,
-						currentSrc = resolveSrc(clickNode),
-						imgSrcList = [];
-					node.querySelectorAll(watchSelector).forEach((n, idx) => {
-						let src = resolveSrc(n);
-						if(src === currentSrc){
-							currentIndex = idx;
-						}
-						imgSrcList.push(src);
-					});
-					showImgListPreview(imgSrcList, currentIndex);
+		let watchSelector = param.watch;
+		if(watchSelector){
+			eventDelegate(node, watchSelector, 'click', (e, clickNode) => {
+				let currentIndex = 0,
+					currentSrc = resolveSrc(clickNode),
+					imgSrcList = [];
+				node.querySelectorAll(watchSelector).forEach((n, idx) => {
+					let src = resolveSrc(n);
+					if(src === currentSrc){
+						currentIndex = idx;
+					}
+					imgSrcList.push(src);
 				});
-				resolve();
-			}
-		})
-
+				showImgListPreview(imgSrcList, currentIndex);
+			});
+		}
 	}
 
-	static active(node, param = {}){
+	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			if(param.watch){
 				resolve();

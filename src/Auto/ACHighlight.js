@@ -10,12 +10,9 @@ export class ACHighlight {
 	static cssClass = 'highlight';
 
 	static init(node, params = {}){
-		return new Promise((resolve, reject) => {
-			let kw = (params.keyword || params.kw || '').trim();
-			if(kw){
-				nodeHighlight(node, kw, ACHighlight.cssClass);
-			}
-			resolve();
-		});
+		let kw = (params.keyword || params.kw || '').trim();
+		if(kw){
+			nodeHighlight(node, kw, ACHighlight.cssClass);
+		}
 	}
 }

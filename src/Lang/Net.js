@@ -417,6 +417,8 @@ export const downloadFile = (src, save_name) => {
 		save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
 	}
 	let link = document.createElement('a');
+	link.rel = 'noopener noreferrer';
+	link.target = '_blank';
 	link.href = src;
 	link.download = save_name;
 	document.body.appendChild(link);

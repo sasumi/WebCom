@@ -25,11 +25,11 @@ export class ACCopy {
 
 	/**
 	 * @param {Node} node
-	 * @param {Object} params
-	 * @param {Number} params.trigger 触发器类型，TRIGGER_SELF：当前节点，TRIGGER_INSIDE：内部额外新建触发器
-	 * @param {String} params.content 额外指定复制内容
+	 * @param {Object} param
+	 * @param {Number} param.trigger 触发器类型，TRIGGER_SELF：当前节点，TRIGGER_INSIDE：内部额外新建触发器
+	 * @param {String} param.content 额外指定复制内容
 	 */
-	static init(node, params = {}){
+	static init(node, param = {}){
 		insertStyleSheet(`
 			.${NS} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
 			.${NS}:hover {opacity:1}
@@ -37,12 +37,12 @@ export class ACCopy {
 		`, Theme.Namespace + 'ac-copy');
 
 		let trigger = node;
-		if((!params.trigger && PAIR_TAGS.includes(node.tagName)) ||
-			(params.trigger && params.trigger === ACCopy.TRIGGER_INSIDE)){
+		if((!param.trigger && PAIR_TAGS.includes(node.tagName)) ||
+			(param.trigger && param.trigger === ACCopy.TRIGGER_INSIDE)){
 			trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 		}
 		bindNodeActive(trigger, e => {
-			let content = params.content || node.innerText;
+			let content = param.content || node.innerText;
 			copy(content, true);
 			e.preventDefault();
 			e.stopPropagation();

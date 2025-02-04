@@ -18,6 +18,5 @@ export class ACUnSaveAlert {
 			}
 		});
 		bindFormUnSavedUnloadAlert(form, msg);
-		return Promise.resolve();
 	}
 }

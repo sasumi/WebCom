@@ -9,7 +9,7 @@ import {cutString} from "../Lang/String.js";
  * a[title] | node[text] 对话框标题
  */
 export class ACDialog {
-	static active(node, param = {}){
+	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			let title, url, content;
 

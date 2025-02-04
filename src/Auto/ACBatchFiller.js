@@ -81,7 +81,7 @@ export class ACBatchFiller {
 			.${NS} textarea {min-height:5em; resize:vertical}
 		`, Theme.Namespace + '-batch-filler');
 	}
-	static active(node, param = {}){
+	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			let relative_elements = findAll(param.selector);
 			if(!relative_elements.length){

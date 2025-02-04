@@ -110,6 +110,5 @@ export class ACSelectAll {
 		}
 		onDomTreeChange(container, containerInit);
 		containerInit();
-		return Promise.resolve();
 	}
 }

@@ -46,7 +46,8 @@ export class ACColumnFiller {
 			.${NS} {padding:2em 2em 1em 2em; text-align:center;}
 		`)
 	}
-	static active(node, param = {}){
+
+	static active(node, param, event){
 		const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
 		if(!TABLE){
 			throw "no table found";
@@ -106,7 +107,9 @@ export class ACColumnFiller {
 			form = dlg.dom.querySelector('form');
 			form.addEventListener('submit', doFill);
 			let els = getAvailableElements(form, true);
-			els.forEach(el=>{resetEl(el)});
+			els.forEach(el => {
+				resetEl(el)
+			});
 			els[0].focus();
 			resolve();
 		});

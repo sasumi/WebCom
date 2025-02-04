@@ -46,16 +46,12 @@ export class ACHotKey {
 			});
 			document.addEventListener('click', ACHotKey.hideAllHotKeyTips);
 		}
-
-		return new Promise((resolve, reject) => {
-			if(!param.key){
-				reject('param.key required');
-				return false;
-			}
-			bindHotKeys(param.key, e => {
-				node.focus();
-				node.click();
-			});
+		if(!param.key){
+			throw 'param.key required';
+		}
+		bindHotKeys(param.key, e => {
+			node.focus();
+			node.click();
 		});
 	}
 

@@ -6,7 +6,7 @@ import {Theme} from "../Widget/Theme.js";
 const NS = Theme.Namespace + 'ac-ie-';
 
 let _patch_flag = false;
-const patchCss = ()=>{
+const patchCss = () => {
 	if(_patch_flag){
 		return;
 	}
@@ -41,7 +41,7 @@ const patchCss = ()=>{
 		.${NS}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
 		.${NS}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
 		.${NS}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
-	`, NS+'style')
+	`, NS + 'style')
 }
 
 /**
@@ -81,7 +81,7 @@ export class ACInlineEditor {
 			method = method || form.method.toLocaleUpperCase();
 		}
 
-		node.classList.add(NS+'editor');
+		node.classList.add(NS + 'editor');
 		let input_wrap;
 		let input_el;
 
@@ -92,7 +92,7 @@ export class ACInlineEditor {
 						<span class="${NS}editor-wrap">
 							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
 						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
-							<span disabled class="${NS}save-btn" tabindex="0"></span>
+							<span disabled="disabled" class="${NS}save-btn" tabindex="0"></span>
 							<span class="${NS}cancel-btn" tabindex="0"></span>
 						</span>
 					`);
@@ -101,11 +101,11 @@ export class ACInlineEditor {
 					let cancel_btn = input_wrap.querySelector(`.${NS}cancel-btn`);
 					input_el = input_wrap.querySelector('input,textarea');
 
-					const doSave = ()=>{
+					const doSave = () => {
 						let new_text = input_el.value;
 						let data = {};
 						data[name] = new_text;
-						ACInlineEditor.transmitter(action, data, method).then(()=>{
+						ACInlineEditor.transmitter(action, data, method).then(() => {
 							node.innerText = new_text;
 							text = new_text;
 							switchState(false);
@@ -113,19 +113,19 @@ export class ACInlineEditor {
 						});
 					}
 
-					input_el.addEventListener('input', ()=>{
+					input_el.addEventListener('input', () => {
 						let disabled = input_el.value.trim() === text;
 						if(disabled){
 							save_btn.setAttribute('disabled', 'disabled');
-						} else {
+						}else{
 							save_btn.removeAttribute('disabled');
 						}
 					});
-					input_el.addEventListener('keydown', e=>{
+					input_el.addEventListener('keydown', e => {
 						if(!multiple && e.key === KEYBOARD_KEY_MAP.Enter){
 							if(input_el.value.trim() !== text){
 								doSave();
-							} else {
+							}else{
 								switchState(false);
 							}
 							e.preventDefault();
@@ -140,8 +140,10 @@ export class ACInlineEditor {
 						}
 					});
 
-					bindNodeActive(cancel_btn, () => {switchState(false);});
-					bindNodeActive(save_btn,doSave);
+					bindNodeActive(cancel_btn, () => {
+						switchState(false);
+					});
+					bindNodeActive(save_btn, doSave);
 					input_el.focus();
 				}
 				input_el.focus();

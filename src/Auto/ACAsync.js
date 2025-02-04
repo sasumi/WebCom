@@ -1,5 +1,5 @@
 import {Toast} from "../Widget/Toast.js";
-import {HTTP_METHOD, Net, REQUEST_FORMAT, requestJSON, RESPONSE_FORMAT} from "../Lang/Net.js";
+import {HTTP_METHOD, Net, REQUEST_FORMAT, RESPONSE_FORMAT} from "../Lang/Net.js";
 import {formSerializeJSON, formSerializeString} from "../Lang/Form.js";
 import {BizEvent} from "../Lang/Event.js";
 
@@ -52,8 +52,9 @@ export class ACAsync {
 		}
 	}
 
-	static active(node, param = {}, event = null){
+	static active(node, param, event){
 		return new Promise((resolve, reject) => {
+			event.preventDefault();
 			if(node.getAttribute(ASYNC_SUBMITTING_FLAG)){
 				return;
 			}

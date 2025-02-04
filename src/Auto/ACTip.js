@@ -9,17 +9,13 @@ import {Tip} from "../Widget/Tip.js";
 export class ACTip {
 	static init(node, params){
 		let {content, triggertype = 'hover'} = params;
-		return new Promise((resolve, reject) => {
-			if(!content && node.title){
-				content = node.title;
-				node.title = '';
-			}
-			if(!content){
-				reject('content required');
-				return;
-			}
-			Tip.bindNode(content, node, {triggerType:triggertype});
-			resolve();
-		});
+		if(!content && node.title){
+			content = node.title;
+			node.title = '';
+		}
+		if(!content){
+			throw 'content required';
+		}
+		Tip.bindNode(content, node, {triggerType: triggertype});
 	}
 }

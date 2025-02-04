@@ -7,7 +7,7 @@ import {Dialog} from "../Widget/Dialog.js";
  * node[data-confirm-message] 内容
  */
 export class ACConfirm {
-	static active(node, param = {}){
+	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			let title = param.title;
 			let message = param.message || '确认进行该项操作？';

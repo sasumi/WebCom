@@ -895,7 +895,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return window.innerHeight;
 	};
 	const hide = (dom) => {
-		dom.style.display = 'none';
+		findOne(dom).style.display = 'none';
 	};
 	const remove = (dom) => {
 		if(dom && dom.parentNode){
@@ -905,10 +905,37 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return false;
 	};
 	const show = (dom) => {
-		dom.style.display = '';
+		findOne(dom).style.display = '';
 	};
 	const toggle = (dom, toShow) => {
 		toShow ? show(dom) : hide(dom);
+	};
+	const _el_disabled_class_ = '__element-lock__';
+	const disabled = (el, disabledClass = '')=>{
+		return toggleDisabled(el, disabledClass, false);
+	};
+	const enabled = (el, disabledClass = '')=>{
+		return toggleDisabled(el, disabledClass, true);
+	};
+	const toggleDisabled = (el, disabledClass = '', forceEnabled = null) => {
+		let toDisabled = forceEnabled === null ? !el.classList.has(_el_disabled_class_) : !forceEnabled;
+		if(toDisabled){
+			insertStyleSheet(`.${_el_disabled_class_} {pointer-event:none !important;}`, '__element_lock_style__');
+		}
+		el = findOne(el);
+		el.classList.toggle(_el_disabled_class_, !toDisabled);
+		el[toDisabled ? 'setAttribute' : 'removeAttribute']('disabled', 'disabled');
+		el[toDisabled ? 'setAttribute' : 'removeAttribute']('data-disabled', 'disabled');
+		if(disabledClass){
+			el.classList.toggle(disabledClass, !toDisabled);
+		}
+	};
+	const lockElementInteraction = (el, payload) => {
+		disabled(el);
+		let reset = () => {
+			enabled(el);
+		};
+		payload(reset);
 	};
 	const nodeIndex = (node) => {
 		return Array.prototype.indexOf.call(node.parentNode.children, node);
@@ -1136,22 +1163,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		});
 		obs.observe(dom, option);
-	};
-	const lockElementInteraction = (el, payload) => {
-		const LOCK_CLASS = '__element-lock__';
-		insertStyleSheet(`
-		.${LOCK_CLASS} {pointer-event:none !important;}
-	`);
-		el = findOne(el);
-		el.disabled = 'disabled';
-		el.setAttribute('data-disabled', 'disabled');
-		el.classList.add(LOCK_CLASS);
-		let reset = () => {
-			el.removeAttribute('disabled');
-			el.removeAttribute('data-disabled');
-			el.classList.remove(LOCK_CLASS);
-		};
-		payload(reset);
 	};
 	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
 		onDomTreeChange(container, () => {
@@ -1873,6 +1884,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
 		}
 		let link = document.createElement('a');
+		link.rel = 'noopener noreferrer';
+		link.target = '_blank';
 		link.href = src;
 		link.download = save_name;
 		document.body.appendChild(link);
@@ -5562,7 +5575,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			};
 			onDomTreeChange(container, containerInit);
 			containerInit();
-			return Promise.resolve();
 		}
 	}
 
@@ -6667,8 +6679,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				next();
 			}
 		}
-		static active(node, param = {}, event = null){
+		static active(node, param, event){
 			return new Promise((resolve, reject) => {
+				event.preventDefault();
 				if(node.getAttribute(ASYNC_SUBMITTING_FLAG)){
 					return;
 				}
@@ -6782,7 +6795,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			.${NS$3} textarea {min-height:5em; resize:vertical}
 		`, Theme.Namespace + '-batch-filler');
 		}
-		static active(node, param = {}){
+		static active(node, param, event){
 			return new Promise((resolve, reject) => {
 				let relative_elements = findAll(param.selector);
 				if(!relative_elements.length){
@@ -6851,8 +6864,107 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
+	const NS$2 = Theme.Namespace + 'ac-column-filler';
+	const resetEl = el => {
+		if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
+			el.checked = false;
+		}else if(el.tagName === 'SELECT'){
+			Array.from(el.options).forEach(opt => {
+				opt.selected = false;
+			});
+		}else {
+			el.value = '';
+		}
+	};
+	const syncValue = (fromEl, toEl) => {
+		if(fromEl.tagName === 'INPUT' && (fromEl.type === 'checkbox' || fromEl.type === 'radio')){
+			toEl.checked = fromEl.checked;
+		}else if(fromEl.tagName === 'SELECT' && fromEl.multiple){
+			Array.from(toEl.options).forEach(opt => {
+				opt.selected = false;
+			});
+			Array.from(fromEl.selectedOptions).forEach(opt => {
+				Array.from(toEl.options)[opt.index].selected = true;
+			});
+		}else {
+			toEl.value = fromEl.value;
+		}
+	};
+	class ACColumnFiller {
+		static init(){
+			insertStyleSheet(`
+			.${NS$2} {padding:2em 2em 1em 2em; text-align:center;}
+		`);
+		}
+		static active(node, param, event){
+			const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
+			if(!TABLE){
+				throw "no table found";
+			}
+			const _current_tr = node.closest('tr');
+			let COL_IDX = 0;
+			if(node.closest('th')){
+				COL_IDX = nodeIndex(node.closest('th'));
+			}else if(node.closest('td')){
+				COL_IDX = nodeIndex(node.closest('td'));
+			}else {
+				throw "column index no detected";
+			}
+			let trs = findAll('tr', TABLE);
+			let AVAILABLE_ROWS = trs.filter(t => {
+				return t !== _current_tr;
+			});
+			if(!AVAILABLE_ROWS.length){
+				throw "no form row find";
+			}
+			let tmpl_cell = Array.from(AVAILABLE_ROWS[0].children)[COL_IDX];
+			if(!tmpl_cell){
+				throw "no cell found by IDX:" + COL_IDX;
+			}
+			if(!getAvailableElements(tmpl_cell, true).length){
+				throw "no form element found";
+			}
+			let form_html = tmpl_cell.innerHTML;
+			let form, dlg;
+			return new Promise((resolve, reject) => {
+				let doFill = () => {
+					let els = getAvailableElements(form, true);
+					AVAILABLE_ROWS.forEach(row => {
+						let _els = getAvailableElements(Array.from(row.children)[COL_IDX], true);
+						els.forEach((e, idx) => {
+							syncValue(e, _els[idx]);
+						});
+					});
+					dlg.close();
+				};
+				dlg = DialogClass.show('批量设置',
+					`<form class="${NS$2}">${form_html}</form>`, {
+						width: 350,
+						buttons: [
+							{
+								default: true,
+								title: '确定', callback: () => {
+									doFill();
+									dlg.close();
+								}
+							},
+							{title: '关闭', className: DLG_CLS_WEAK_BTN}
+						]
+					});
+				form = dlg.dom.querySelector('form');
+				form.addEventListener('submit', doFill);
+				let els = getAvailableElements(form, true);
+				els.forEach(el => {
+					resetEl(el);
+				});
+				els[0].focus();
+				resolve();
+			});
+		}
+	}
+
 	class ACConfirm {
-		static active(node, param = {}){
+		static active(node, param, event){
 			return new Promise((resolve, reject) => {
 				let title = param.title;
 				let message = param.message || '确认进行该项操作？';
@@ -6862,24 +6974,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS$2 = Theme.Namespace + 'ac-copy';
+	const NS$1 = Theme.Namespace + 'ac-copy';
 	class ACCopy {
 		static TRIGGER_SELF = 1;
 		static TRIGGER_INSIDE = 2;
-		static COPY_CLASS = NS$2;
-		static init(node, params = {}){
+		static COPY_CLASS = NS$1;
+		static init(node, param = {}){
 			insertStyleSheet(`
-			.${NS$2} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-			.${NS$2}:hover {opacity:1}
-			.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+			.${NS$1} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+			.${NS$1}:hover {opacity:1}
+			.${NS$1}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
 		`, Theme.Namespace + 'ac-copy');
 			let trigger = node;
-			if((!params.trigger && PAIR_TAGS.includes(node.tagName)) ||
-				(params.trigger && params.trigger === ACCopy.TRIGGER_INSIDE)){
+			if((!param.trigger && PAIR_TAGS.includes(node.tagName)) ||
+				(param.trigger && param.trigger === ACCopy.TRIGGER_INSIDE)){
 				trigger = createDomByHtml(`<span class="${ACCopy.COPY_CLASS}" tabindex="1" title="复制"></span>`, node);
 			}
 			bindNodeActive(trigger, e => {
-				let content = params.content || node.innerText;
+				let content = param.content || node.innerText;
 				copy(content, true);
 				e.preventDefault();
 				e.stopPropagation();
@@ -6889,7 +7001,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 
 	class ACDialog {
-		static active(node, param = {}){
+		static active(node, param, event){
 			return new Promise((resolve, reject) => {
 				let title, url, content;
 				if(node.tagName === 'A'){
@@ -6914,35 +7026,32 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	class ACHighlight {
 		static cssClass = 'highlight';
 		static init(node, params = {}){
-			return new Promise((resolve, reject) => {
-				let kw = (params.keyword || params.kw || '').trim();
-				if(kw){
-					nodeHighlight(node, kw, ACHighlight.cssClass);
-				}
-				resolve();
-			});
+			let kw = (params.keyword || params.kw || '').trim();
+			if(kw){
+				nodeHighlight(node, kw, ACHighlight.cssClass);
+			}
 		}
 	}
 
-	const NS$1 = Theme.Namespace + 'ac-ie-';
+	const NS = Theme.Namespace + 'ac-ie-';
 	let _patch_flag = false;
-	const patchCss = ()=>{
+	const patchCss = () => {
 		if(_patch_flag){
 			return;
 		}
 		_patch_flag = true;
 		insertStyleSheet(`
-		.${NS$1}editor {cursor:pointer}
-		.${NS$1}editor:hover:after {opacity:1; color:var(--color-link)}
-		.${NS$1}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS}editor {cursor:pointer}
+		.${NS}editor:hover:after {opacity:1; color:var(--color-link)}
+		.${NS}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
 		
-		.${NS$1}editor-wrap {
+		.${NS}editor-wrap {
 		    display:inline-flex;
 		    align-items:center;
 		    gap:0.25em;
 		}
-		.${NS$1}save-btn,
-		.${NS$1}cancel-btn {
+		.${NS}save-btn,
+		.${NS}cancel-btn {
 		    display: inline-flex;
 		    border: 1px solid gray;
 		    align-items: center;
@@ -6956,11 +7065,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		    cursor: pointer;
 		}
 		
-		.${NS$1}save-btn[disabled],
-		.${NS$1}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
-		.${NS$1}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
-		.${NS$1}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
-	`, NS$1+'style');
+		.${NS}save-btn[disabled],
+		.${NS}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
+		.${NS}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
+		.${NS}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
+	`, NS + 'style');
 	};
 	class ACInlineEditor {
 		static transmitter;
@@ -6985,48 +7094,48 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				action = form.action;
 				method = method || form.method.toLocaleUpperCase();
 			}
-			node.classList.add(NS$1+'editor');
+			node.classList.add(NS + 'editor');
 			let input_wrap;
 			let input_el;
 			let switchState = (edit) => {
 				if(edit){
 					if(!input_wrap){
 						input_wrap = createDomByHtml(`
-						<span class="${NS$1}editor-wrap">
+						<span class="${NS}editor-wrap">
 							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
 						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
-							<span disabled class="${NS$1}save-btn" tabindex="0"></span>
-							<span class="${NS$1}cancel-btn" tabindex="0"></span>
+							<span disabled="disabled" class="${NS}save-btn" tabindex="0"></span>
+							<span class="${NS}cancel-btn" tabindex="0"></span>
 						</span>
 					`);
 						node.parentNode.insertBefore(input_wrap, node);
-						let save_btn = input_wrap.querySelector(`.${NS$1}save-btn`);
-						let cancel_btn = input_wrap.querySelector(`.${NS$1}cancel-btn`);
+						let save_btn = input_wrap.querySelector(`.${NS}save-btn`);
+						let cancel_btn = input_wrap.querySelector(`.${NS}cancel-btn`);
 						input_el = input_wrap.querySelector('input,textarea');
-						const doSave = ()=>{
+						const doSave = () => {
 							let new_text = input_el.value;
 							let data = {};
 							data[name] = new_text;
-							ACInlineEditor.transmitter(action, data, method).then(()=>{
+							ACInlineEditor.transmitter(action, data, method).then(() => {
 								node.innerText = new_text;
 								text = new_text;
 								switchState(false);
 								ACInlineEditor.onUpdate.fire(name, new_text, node);
 							});
 						};
-						input_el.addEventListener('input', ()=>{
+						input_el.addEventListener('input', () => {
 							let disabled = input_el.value.trim() === text;
 							if(disabled){
 								save_btn.setAttribute('disabled', 'disabled');
-							} else {
+							}else {
 								save_btn.removeAttribute('disabled');
 							}
 						});
-						input_el.addEventListener('keydown', e=>{
+						input_el.addEventListener('keydown', e => {
 							if(!multiple && e.key === KEYBOARD_KEY_MAP.Enter){
 								if(input_el.value.trim() !== text){
 									doSave();
-								} else {
+								}else {
 									switchState(false);
 								}
 								e.preventDefault();
@@ -7040,8 +7149,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 								}
 							}
 						});
-						bindNodeActive(cancel_btn, () => {switchState(false);});
-						bindNodeActive(save_btn,doSave);
+						bindNodeActive(cancel_btn, () => {
+							switchState(false);
+						});
+						bindNodeActive(save_btn, doSave);
 						input_el.focus();
 					}
 					input_el.focus();
@@ -7062,48 +7173,31 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 
 	class ACMultiSelectRelate {
-		static active(button, param){
-			return new Promise((resolve, reject) => {
-				if(button.getAttribute('disabled')){
-					reject('button disabled');
-				}else {
-					resolve();
+		static init(node, params = {}){
+			const container = findOne(params.container || 'body');
+			const orgUrl = node.href || node.formAction;
+			const patchDataUri = () => {
+				if(node.href || node.formAction){
+					let data_str = [];
+					findAll('input:checked', container).forEach(chk => {
+						data_str.push(encodeURIComponent(chk.name) + '=' + encodeURIComponent(chk.value));
+					});
+					data_str = data_str.join('&');
+					if(node.formAction){
+						node.formAction = mergerUriParam(orgUrl, data_str);
+					}else {
+						node.href = mergerUriParam(orgUrl, data_str);
+					}
+				}
+			};
+			domChangedWatch(container, 'input:checked', coll => {
+				const toEnabled = !!coll.length;
+				toggleDisabled(node, '', toEnabled);
+				node.title = toEnabled ? '' : '请选择要操作的项目';
+				if(toEnabled){
+					patchDataUri();
 				}
 			});
-		}
-		static init(button, params = {}){
-			return new Promise((resolve, reject) => {
-				const container = findOne(params.container || 'body');
-				const disableBtn = () => {
-					button.title = '请选择要操作的项目';
-					button.setAttribute('disabled', 'disabled');
-					button.classList.add('button-disabled');
-				};
-				const enableBtn = () => {
-					button.title = '';
-					button.removeAttribute('disabled');
-					button.classList.remove('button-disabled');
-					if(button.href || button.formAction){
-						let org_url = button.getAttribute('multiple-relate-select-org-url');
-						if(!org_url){
-							org_url = button.href || button.formAction;
-							button.setAttribute('multiple-relate-select-org-url', org_url);
-						}
-						let data_str = [];
-						findAll('input:checked', container).forEach(chk => {
-							data_str.push(encodeURIComponent(chk.name) + '=' + encodeURIComponent(chk.value));
-						});
-						if(button.formAction){
-							button.formAction = org_url + (org_url.indexOf('?') >= 0 ? '&' : '?') + data_str.join('&');
-						}else {
-							button.href = org_url + (org_url.indexOf('?') >= 0 ? '&' : '?') + data_str.join('&');
-						}
-					}
-				};
-				domChangedWatch(container, 'input:checked', coll => {
-					coll.length ? enableBtn() : disableBtn();
-				});
-			})
 		}
 	}
 
@@ -7121,27 +7215,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	class ACPreview {
 		static init(node, param = {}){
-			return new Promise(resolve=>{
-				let watchSelector = param.watch;
-				if(watchSelector){
-					eventDelegate(node, watchSelector, 'click', (e, clickNode) => {
-						let currentIndex = 0,
-							currentSrc = resolveSrc(clickNode),
-							imgSrcList = [];
-						node.querySelectorAll(watchSelector).forEach((n, idx) => {
-							let src = resolveSrc(n);
-							if(src === currentSrc){
-								currentIndex = idx;
-							}
-							imgSrcList.push(src);
-						});
-						showImgListPreviewFn(imgSrcList, currentIndex);
+			let watchSelector = param.watch;
+			if(watchSelector){
+				eventDelegate(node, watchSelector, 'click', (e, clickNode) => {
+					let currentIndex = 0,
+						currentSrc = resolveSrc(clickNode),
+						imgSrcList = [];
+					node.querySelectorAll(watchSelector).forEach((n, idx) => {
+						let src = resolveSrc(n);
+						if(src === currentSrc){
+							currentIndex = idx;
+						}
+						imgSrcList.push(src);
 					});
-					resolve();
-				}
-			})
+					showImgListPreviewFn(imgSrcList, currentIndex);
+				});
+			}
 		}
-		static active(node, param = {}){
+		static active(node, param, event){
 			return new Promise((resolve, reject) => {
 				if(param.watch){
 					resolve();
@@ -7180,7 +7271,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}else if(node.tagName === 'INPUT' && node.list){
 				Select.bindTextInput(node, params);
 			}
-			return Promise.resolve();
 		}
 	}
 
@@ -7198,54 +7288,47 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 `;
 	class ACTextCounter {
 		static init(input, params = {}){
-			insertStyleSheet(STYLE_STR$1, Theme.Namespace+'text-counter');
-			return new Promise((resolve, reject) => {
-				let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
-				let trim = params.trim;
-				if(!maxlength){
-					console.debug('no maxlength set');
-				}
-				const trigger = createDomByHtml(`<span class="${MAIN_CLASS}" data-state="${STATE_NORMAL}" data-ui-state="${UI_STATE_INACTIVE}">0/${maxlength}</span>`);
-				const updState = () => {
-					let len = trim ? input.value.trim().length : input.value.length;
-					let state = (maxlength && len > maxlength) ? STATE_OVERLOAD : STATE_NORMAL;
-					trigger.setAttribute('data-state', state);
-					trigger.innerHTML = maxlength ? (len + '/' + maxlength) : len;
-				};
-				input.parentNode.insertBefore(trigger, input.nextSibling);
-				input.addEventListener('focus', () => {
-					trigger.setAttribute('data-ui-state', UI_STATE_ACTIVE);
-				});
-				input.addEventListener('blur', () => {
-					trigger.setAttribute('data-ui-state', UI_STATE_INACTIVE);
-				});
-				input.addEventListener('input', updState);
-				updState();
-				resolve();
-			})
+			insertStyleSheet(STYLE_STR$1, Theme.Namespace + 'text-counter');
+			let maxlength = parseInt(Math.max(input.maxLength, 0) || params.maxlength, 10) || 0;
+			let trim = params.trim;
+			if(!maxlength){
+				console.debug('no maxlength set');
+			}
+			const trigger = createDomByHtml(`<span class="${MAIN_CLASS}" data-state="${STATE_NORMAL}" data-ui-state="${UI_STATE_INACTIVE}">0/${maxlength}</span>`);
+			const updState = () => {
+				let len = trim ? input.value.trim().length : input.value.length;
+				let state = (maxlength && len > maxlength) ? STATE_OVERLOAD : STATE_NORMAL;
+				trigger.setAttribute('data-state', state);
+				trigger.innerHTML = maxlength ? (len + '/' + maxlength) : len;
+			};
+			input.parentNode.insertBefore(trigger, input.nextSibling);
+			input.addEventListener('focus', () => {
+				trigger.setAttribute('data-ui-state', UI_STATE_ACTIVE);
+			});
+			input.addEventListener('blur', () => {
+				trigger.setAttribute('data-ui-state', UI_STATE_INACTIVE);
+			});
+			input.addEventListener('input', updState);
+			updState();
 		}
 	}
 
 	class ACTip {
 		static init(node, params){
 			let {content, triggertype = 'hover'} = params;
-			return new Promise((resolve, reject) => {
-				if(!content && node.title){
-					content = node.title;
-					node.title = '';
-				}
-				if(!content){
-					reject('content required');
-					return;
-				}
-				Tip.bindNode(content, node, {triggerType:triggertype});
-				resolve();
-			});
+			if(!content && node.title){
+				content = node.title;
+				node.title = '';
+			}
+			if(!content){
+				throw 'content required';
+			}
+			Tip.bindNode(content, node, {triggerType: triggertype});
 		}
 	}
 
 	class ACToast {
-		static active(node, param = {}){
+		static active(node, param, event){
 			return new Promise((resolve, reject) => {
 				let message = param.message || '提示信息';
 				let type = param.type || ToastClass.TYPE_INFO;
@@ -7263,25 +7346,21 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 			bindFormUnSavedUnloadAlert(form, msg);
-			return Promise.resolve();
 		}
 	}
 
 	class ACUploader {
 		static init(node, params){
-			return new Promise(resolve => {
-				params = objectKeyMapping(params, {
-					'uploadurl': 'uploadUrl',
-					'uploadfilefieldname': 'uploadFileFieldName',
-					'allowfiletypes': 'allowFileTypes',
-					'filesizelimit': 'fileSizeLimit',
-				});
-				if(node.accept){
-					params.allowFileTypes = node.accept;
-				}
-				Uploader.bindInput(node, params, params);
-				resolve();
+			params = objectKeyMapping(params, {
+				'uploadurl': 'uploadUrl',
+				'uploadfilefieldname': 'uploadFileFieldName',
+				'allowfiletypes': 'allowFileTypes',
+				'filesizelimit': 'fileSizeLimit',
 			});
+			if(node.accept){
+				params.allowFileTypes = node.accept;
+			}
+			Uploader.bindInput(node, params, params);
 		}
 	}
 
@@ -7461,7 +7540,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			});
 			bindTargetMenu(node, commands, {triggerType: 'mouseover'});
-			return Promise.resolve();
 		}
 	}
 
@@ -7498,15 +7576,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				});
 				document.addEventListener('click', ACHotKey.hideAllHotKeyTips);
 			}
-			return new Promise((resolve, reject) => {
-				if(!param.key){
-					reject('param.key required');
-					return false;
-				}
-				bindHotKeys(param.key, e => {
-					node.focus();
-					node.click();
-				});
+			if(!param.key){
+				throw 'param.key required';
+			}
+			bindHotKeys(param.key, e => {
+				node.focus();
+				node.click();
 			});
 		}
 		static showAllHotKeyTips(){
@@ -7550,126 +7625,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS = Theme.Namespace + 'ac-column-filler';
-	const resetEl = el => {
-		if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
-			el.checked = false;
-		}else if(el.tagName === 'SELECT'){
-			Array.from(el.options).forEach(opt => {
-				opt.selected = false;
-			});
-		}else {
-			el.value = '';
-		}
-	};
-	const syncValue = (fromEl, toEl) => {
-		if(fromEl.tagName === 'INPUT' && (fromEl.type === 'checkbox' || fromEl.type === 'radio')){
-			toEl.checked = fromEl.checked;
-		}else if(fromEl.tagName === 'SELECT' && fromEl.multiple){
-			Array.from(toEl.options).forEach(opt => {
-				opt.selected = false;
-			});
-			Array.from(fromEl.selectedOptions).forEach(opt => {
-				Array.from(toEl.options)[opt.index].selected = true;
-			});
-		}else {
-			toEl.value = fromEl.value;
-		}
-	};
-	class ACColumnFiller {
-		static init(){
-			insertStyleSheet(`
-			.${NS} {padding:2em 2em 1em 2em; text-align:center;}
-		`);
-		}
-		static active(node, param = {}){
-			const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
-			if(!TABLE){
-				throw "no table found";
-			}
-			const _current_tr = node.closest('tr');
-			let COL_IDX = 0;
-			if(node.closest('th')){
-				COL_IDX = nodeIndex(node.closest('th'));
-			}else if(node.closest('td')){
-				COL_IDX = nodeIndex(node.closest('td'));
-			}else {
-				throw "column index no detected";
-			}
-			let trs = findAll('tr', TABLE);
-			let AVAILABLE_ROWS = trs.filter(t => {
-				return t !== _current_tr;
-			});
-			if(!AVAILABLE_ROWS.length){
-				throw "no form row find";
-			}
-			let tmpl_cell = Array.from(AVAILABLE_ROWS[0].children)[COL_IDX];
-			if(!tmpl_cell){
-				throw "no cell found by IDX:" + COL_IDX;
-			}
-			if(!getAvailableElements(tmpl_cell, true).length){
-				throw "no form element found";
-			}
-			let form_html = tmpl_cell.innerHTML;
-			let form, dlg;
-			return new Promise((resolve, reject) => {
-				let doFill = () => {
-					let els = getAvailableElements(form, true);
-					AVAILABLE_ROWS.forEach(row => {
-						let _els = getAvailableElements(Array.from(row.children)[COL_IDX], true);
-						els.forEach((e, idx) => {
-							syncValue(e, _els[idx]);
-						});
-					});
-					dlg.close();
-				};
-				dlg = DialogClass.show('批量设置',
-					`<form class="${NS}">${form_html}</form>`, {
-						width: 350,
-						buttons: [
-							{
-								default: true,
-								title: '确定', callback: () => {
-									doFill();
-									dlg.close();
-								}
-							},
-							{title: '关闭', className: DLG_CLS_WEAK_BTN}
-						]
-					});
-				form = dlg.dom.querySelector('form');
-				form.addEventListener('submit', doFill);
-				let els = getAvailableElements(form, true);
-				els.forEach(el=>{resetEl(el);});
-				els[0].focus();
-				resolve();
-			});
-		}
-	}
-
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
 		async: ACAsync,
-		unsavealert: ACUnSaveAlert,
-		copy: ACCopy,
-		dialog: ACDialog,
-		confirm: ACConfirm,
-		preview: ACPreview,
-		select: ACSelect,
-		hl: ACHighlight,
-		highlight: ACHighlight,
-		inlineeditor: ACInlineEditor,
-		selectall: ACSelectAll,
-		selectrelate: ACMultiSelectRelate,
-		tip: ACTip,
-		toast: ACToast,
-		textcounter: ACTextCounter,
-		uploader: ACUploader,
 		batchfiller: ACBatchFiller,
 		columnfiller: ACColumnFiller,
+		confirm: ACConfirm,
+		copy: ACCopy,
 		daterangeselector: ACDateRangeSelector,
+		dialog: ACDialog,
+		highlight: ACHighlight,
+		hl: ACHighlight,
 		hotkey: ACHotKey,
+		inlineeditor: ACInlineEditor,
+		selectrelate: ACMultiSelectRelate,
+		preview: ACPreview,
+		select: ACSelect,
+		selectall: ACSelectAll,
+		textcounter: ACTextCounter,
+		tip: ACTip,
+		toast: ACToast,
+		unsavealert: ACUnSaveAlert,
+		uploader: ACUploader,
 	};
 	const parseComponents = function(attr){
 		let tmp = attr.split(',');
@@ -7703,7 +7681,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			cs.forEach(componentAlias => {
 				let C = AC_COMPONENT_NAME_MAPPING[componentAlias];
 				if(!C){
-					console.warn('component no found', componentAlias);
+					console.error(`Component ${componentAlias} no found`);
 					return false;
 				}
 				init_count++;
@@ -7713,11 +7691,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				BIND_LIST[id].push(C);
 				let data = resolveDataParam(node, componentAlias);
 				if(C.init){
-					C.init(node, data);
+					try{
+						C.init(node, data);
+					}catch(err){
+						console.error(`Component ${componentAlias} initialize fail`, err);
+					}
 				}
 				if(C.active){
 					activeStacks.push((event) => {
-						return C.active(node, resolveDataParam(node, componentAlias), event);
+						try{
+							let p = C.active(node, resolveDataParam(node, componentAlias), event);
+							if(!isPromise(p)){
+								throw `Component ${componentAlias} active() method required <Promise> as return`;
+							}
+							return p;
+						}catch(err){
+							console.error(`Component ${componentAlias} active fail`, err);
+							return Promise.resolve();
+						}
 					});
 				}
 				return true;
@@ -7758,8 +7749,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				}
 			};
 			exe();
-			event.preventDefault();
-			return false;
 		});
 	};
 	const ACComponent = {
@@ -7791,6 +7780,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	exports.ACAsync = ACAsync;
 	exports.ACBatchFiller = ACBatchFiller;
+	exports.ACColumnFiller = ACColumnFiller;
 	exports.ACComponent = ACComponent;
 	exports.ACConfirm = ACConfirm;
 	exports.ACCopy = ACCopy;
@@ -7909,10 +7899,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.decodeHTMLEntities = decodeHTMLEntities;
 	exports.deleteCookie = deleteCookie;
 	exports.dimension2Style = dimension2Style;
+	exports.disabled = disabled;
 	exports.doOnce = doOnce;
 	exports.domChangedWatch = domChangedWatch;
 	exports.domContained = domContained;
 	exports.downloadFile = downloadFile;
+	exports.enabled = enabled;
 	exports.enterFullScreen = enterFullScreen;
 	exports.entityToString = entityToString;
 	exports.escapeAttr = escapeAttr;
@@ -8052,6 +8044,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.throttleEffect = throttleEffect;
 	exports.toHtmlEntities = toHtmlEntities;
 	exports.toggle = toggle;
+	exports.toggleDisabled = toggleDisabled;
 	exports.toggleFullScreen = toggleFullScreen;
 	exports.toggleStickyClass = toggleStickyClass;
 	exports.trans = trans;

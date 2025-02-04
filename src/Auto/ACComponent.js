@@ -14,7 +14,7 @@ import {ACUploader} from "./ACUploader.js";
 import {ACTextCounter} from "./ACTextCounter.js";
 import {findAll} from "../Lang/Dom.js";
 import {ACBatchFiller} from "./ACBatchFiller.js";
-import {guid} from "../Lang/Util.js";
+import {guid, isPromise} from "../Lang/Util.js";
 import {ACUnSaveAlert} from "./ACUnSaveAlert.js";
 import {ACDateRangeSelector} from "./ACDateRangeSelector.js";
 import {ACInlineEditor} from "./ACInlineEditor.js";
@@ -30,25 +30,25 @@ const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
  */
 let AC_COMPONENT_NAME_MAPPING = {
 	async: ACAsync,
-	unsavealert: ACUnSaveAlert,
-	copy: ACCopy,
-	dialog: ACDialog,
-	confirm: ACConfirm,
-	preview: ACPreview,
-	select: ACSelect,
-	hl: ACHighlight,
-	highlight: ACHighlight,
-	inlineeditor: ACInlineEditor,
-	selectall: ACSelectAll,
-	selectrelate: ACMultiSelectRelate,
-	tip: ACTip,
-	toast: ACToast,
-	textcounter: ACTextCounter,
-	uploader: ACUploader,
 	batchfiller: ACBatchFiller,
 	columnfiller: ACColumnFiller,
+	confirm: ACConfirm,
+	copy: ACCopy,
 	daterangeselector: ACDateRangeSelector,
+	dialog: ACDialog,
+	highlight: ACHighlight,
+	hl: ACHighlight,
 	hotkey: ACHotKey,
+	inlineeditor: ACInlineEditor,
+	selectrelate: ACMultiSelectRelate,
+	preview: ACPreview,
+	select: ACSelect,
+	selectall: ACSelectAll,
+	textcounter: ACTextCounter,
+	tip: ACTip,
+	toast: ACToast,
+	unsavealert: ACUnSaveAlert,
+	uploader: ACUploader,
 };
 
 /**
@@ -106,7 +106,7 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 		cs.forEach(componentAlias => {
 			let C = AC_COMPONENT_NAME_MAPPING[componentAlias];
 			if(!C){
-				console.warn('component no found', componentAlias);
+				console.error(`Component ${componentAlias} no found`);
 				return false;
 			}
 			init_count++;
@@ -116,11 +116,24 @@ const bindNode = function(container = document, attr_flag = DEFAULT_ATTR_COM_FLA
 			BIND_LIST[id].push(C);
 			let data = resolveDataParam(node, componentAlias);
 			if(C.init){
-				C.init(node, data);
+				try{
+					C.init(node, data);
+				}catch(err){
+					console.error(`Component ${componentAlias} initialize fail`, err);
+				}
 			}
 			if(C.active){
 				activeStacks.push((event) => {
-					return C.active(node, resolveDataParam(node, componentAlias), event); //点击时实时解析参数
+					try{
+						let p = C.active(node, resolveDataParam(node, componentAlias), event); //点击时实时解析参数
+						if(!isPromise(p)){
+							throw `Component ${componentAlias} active() method required <Promise> as return`;
+						}
+						return p;
+					}catch(err){
+						console.error(`Component ${componentAlias} active fail`, err);
+						return Promise.resolve();
+					}
 				});
 			}
 			return true;
@@ -179,8 +192,9 @@ const bindActiveChain = (node, activeStacks) => {
 			}
 		}
 		exe();
-		event.preventDefault();
-		return false;
+		//部分组件运行在父容器上，这里不能阻止默认事件，会影响子节点事件
+		// event.preventDefault();
+		// return false;
 	});
 }
 

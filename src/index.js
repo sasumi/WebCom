@@ -44,6 +44,7 @@ export * from "./Widget/Uploader.js";
 //Auto 组件在 Widget组件后加载
 export * from "./Auto/ACAsync.js";
 export * from "./Auto/ACBatchFiller.js";
+export * from "./Auto/ACColumnFiller.js";
 export * from "./Auto/ACConfirm.js";
 export * from "./Auto/ACCopy.js";
 export * from "./Auto/ACDialog.js";
@@ -51,7 +52,6 @@ export * from "./Auto/ACHighlight.js";
 export * from "./Auto/ACInlineEditor.js";
 export * from "./Auto/ACMultiSelectRelate.js";
 export * from "./Auto/ACPreview.js";
-export * from "./Auto/ACPswValidate.js";
 export * from "./Auto/ACSelect.js";
 export * from "./Auto/ACSelectAll.js";
 export * from "./Auto/ACTextCounter.js";

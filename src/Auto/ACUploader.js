@@ -14,18 +14,15 @@ import {objectKeyMapping} from "../Lang/Array.js";
  */
 export class ACUploader {
 	static init(node, params){
-		return new Promise(resolve => {
-			params = objectKeyMapping(params, {
-				'uploadurl': 'uploadUrl',
-				'uploadfilefieldname': 'uploadFileFieldName',
-				'allowfiletypes': 'allowFileTypes',
-				'filesizelimit': 'fileSizeLimit',
-			});
-			if(node.accept){
-				params.allowFileTypes = node.accept;
-			}
-			Uploader.bindInput(node, params, params);
-			resolve();
+		params = objectKeyMapping(params, {
+			'uploadurl': 'uploadUrl',
+			'uploadfilefieldname': 'uploadFileFieldName',
+			'allowfiletypes': 'allowFileTypes',
+			'filesizelimit': 'fileSizeLimit',
 		});
+		if(node.accept){
+			params.allowFileTypes = node.accept;
+		}
+		Uploader.bindInput(node, params, params);
 	}
 }

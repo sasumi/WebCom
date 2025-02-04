@@ -7,7 +7,7 @@ import {Toast} from "../Widget/Toast.js";
  * node[data-toast-type] type 为 Toast.type 类型
  */
 export class ACToast {
-	static active(node, param = {}){
+	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			let message = param.message || '提示信息';
 			let type = param.type || Toast.TYPE_INFO;

@@ -16,6 +16,5 @@ export class ACSelect {
 		}else if(node.tagName === 'INPUT' && node.list){
 			Select.bindTextInput(node, params);
 		}
-		return Promise.resolve();
 	}
 }
