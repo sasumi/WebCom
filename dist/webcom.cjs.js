@@ -7185,18 +7185,6 @@ class ACMultiSelectRelate {
 	}
 }
 
-const resolveSrc = (node) => {
-	let src = node.dataset.src;
-	if(node.tagName === 'IMG'){
-		if(!src && node.srcset){
-			src = getHighestResFromSrcSet(node.srcset);
-		}
-		src = src || node.src || node.dataset.src;
-	}else if(!src && node.tagName === 'A'){
-		src = node.href;
-	}
-	return src;
-};
 class ACPreview {
 	static init(node, param = {}){
 		let watchSelector = param.watch;
@@ -7218,7 +7206,6 @@ class ACPreview {
 	}
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
-			event.preventDefault();
 			if(param.watch){
 				resolve();
 				return;
@@ -7229,6 +7216,7 @@ class ACPreview {
 				console.warn('image preview src empty', node);
 				return;
 			}
+			event.preventDefault();
 			if(selector){
 				let index = 0, imgSrcList = [];
 				findAll(selector).forEach((n, idx) => {
@@ -7245,6 +7233,18 @@ class ACPreview {
 		});
 	}
 }
+const resolveSrc = (node) => {
+	let src = node.dataset.src;
+	if(node.tagName === 'IMG'){
+		if(!src && node.srcset){
+			src = getHighestResFromSrcSet(node.srcset);
+		}
+		src = src || node.src || node.dataset.src;
+	}else if(!src && node.tagName === 'A'){
+		src = node.href;
+	}
+	return src;
+};
 
 class ACSelect {
 	static init(node, params){

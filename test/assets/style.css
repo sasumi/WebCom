@@ -7,7 +7,6 @@
 	--element-radius:3px;
 	--element-height:2.25em;
 }
-html, body, ul, li, ol, h1, h2, h3, h4, h5, h6, dd{margin:0; padding:0;}
 body{padding:1em;font-size:14px;}
 code {font-style:italic; font-family:monospace; color:green;}
 
@@ -24,57 +23,3 @@ h1{font-size:1.8rem;}
 h2{font-size:1.4rem;}
 h3{font-size:1.2rem;}
 h4{font-size:1.1rem;}
-
-input[type=button], button, .button{
-	line-height:1;
-	padding-left:1em;
-	padding-right:1em;
-	cursor:pointer;
-	color:var(--inversed-color);
-	background-color:var(--link-color);
-	border:none;
-	border-radius:var(--element-radius);
-	min-width:5em;
-	height:var(--element-height);
-	box-sizing:border-box;
-	display:inline-flex;
-	justify-content:center;
-	align-items:center;
-}
-input[type=button]:active, button:active, .button:active {
-	background-color:var(--active-color);
-	color:var(--inversed-color)
-}
-
-.button-disabled, button[disabled], input[type=button][disabled]{
-	background-color:gray;
-	cursor:default;
-}
-
-.WebCom-dialog-weak-btn[type=button]{
-	color:#666666;
-	background-color:#eeeeee;
-}
-
-
-/*html body{*/
-/*	--WebCom-color: white;*/
-/*	--WebCom-background-color: black;*/
-/*}*/
-
-.table{
-	border-collapse:collapse;
-	border-spacing:0;
-}
-
-.table thead tr{background-color:#dddddd;}
-.table tbody th{background-color:#eeec;}
-.table th{text-align:left; font-weight:normal}
-.table th, .table td{padding:0.25em .5em; border:1px solid gray}
-
-input[type=text],
-input[type=number],
-input[type=search],
-input[type=password]{
-	padding:0.5em;
-}

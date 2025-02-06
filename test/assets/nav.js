@@ -22,6 +22,7 @@ const nav = [
 	'html_cut.html',
 	'img_preview.html',
 	'menu.html',
+	'multiselect.html',
 	'net.html',
 	'novice_guide.html',
 	'select.html',
@@ -38,6 +39,7 @@ const nav = [
 	'batchfiller.html'
 ]
 let html = `
+<link rel="stylesheet" href="assets/origincss-default.css">
 <link rel="stylesheet" href="assets/style.css">
 <script type="module">
     import {ACComponent} from "../src/index.js";

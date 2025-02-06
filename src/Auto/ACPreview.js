@@ -4,25 +4,6 @@ import {eventDelegate} from "../Lang/Event.js";
 import {findAll} from "../Lang/Dom.js";
 
 /**
- * 提取节点图片源
- * @param node
- * @returns {string}
- */
-const resolveSrc = (node) => {
-	let src = node.dataset.src;
-	//src获取优先级：param.src > img[data-src] > img[srcset] > img[src]
-	if(node.tagName === 'IMG'){
-		if(!src && node.srcset){
-			src = getHighestResFromSrcSet(node.srcset);
-		}
-		src = src || node.src || node.dataset.src;
-	}else if(!src && node.tagName === 'A'){
-		src = node.href;
-	}
-	return src;
-}
-
-/**
  * 图片预览
  * 调用方式① 父容器模式：[data-preview-watch="img"]
  * 调用方式② 图片节点模式：img[src][data-preview-selector=".all-img"]
@@ -56,7 +37,6 @@ export class ACPreview {
 
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
-			event.preventDefault();
 			if(param.watch){
 				resolve();
 				return;
@@ -68,6 +48,7 @@ export class ACPreview {
 				console.warn('image preview src empty', node);
 				return;
 			}
+			event.preventDefault();
 			if(selector){
 				let index = 0, imgSrcList = [];
 				findAll(selector).forEach((n, idx) => {
@@ -83,4 +64,23 @@ export class ACPreview {
 			resolve();
 		});
 	}
+}
+
+/**
+ * 提取节点图片源
+ * @param node
+ * @returns {string}
+ */
+const resolveSrc = (node) => {
+	let src = node.dataset.src;
+	//src获取优先级：param.src > img[data-src] > img[srcset] > img[src]
+	if(node.tagName === 'IMG'){
+		if(!src && node.srcset){
+			src = getHighestResFromSrcSet(node.srcset);
+		}
+		src = src || node.src || node.dataset.src;
+	}else if(!src && node.tagName === 'A'){
+		src = node.href;
+	}
+	return src;
 }
