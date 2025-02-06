@@ -6834,7 +6834,7 @@
 									dlg.close();
 								}
 							},
-							{title: '关闭', className:DLG_CLS_WEAK_BTN}
+							{title: '关闭', className:DLG_CLS_WEAK_BTN, ariaLabel:'Close'}
 						]
 					});
 				el = findOne('input,textarea,select', dlg.dom);
