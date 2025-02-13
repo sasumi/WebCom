@@ -1607,6 +1607,16 @@
 		HEAD: 'HEAD',
 		CONNECT: 'CONNECT',
 		TRACE: 'TRACE',
+		resolve: method => {
+			if(!method){
+				return HTTP_METHOD.GET;
+			}
+			let upMethod = method.toUpperCase();
+			if(!HTTP_METHOD[upMethod]){
+				throw `method no found: ${method}`;
+			}
+			return HTTP_METHOD[upMethod];
+		}
 	};
 	const REQUEST_FORMAT = {
 		JSON: 'JSON',
@@ -1694,7 +1704,9 @@
 		throw err;
 	};
 	const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
-		return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);
+		return HTTP_METHOD.resolve(method) === HTTP_METHOD.GET ?
+			Net.getJSON(url, data, option) :
+			Net.postJSON(url, data, option);
 	};
 	class Net {
 		cgi = null;
@@ -1720,6 +1732,7 @@
 				...this.option,
 				...option
 			};
+			this.option.method = HTTP_METHOD.resolve(this.option.method);
 			if(this.fileMap){
 				this.option.method = HTTP_METHOD.POST;
 				this.option.requestFormat = null;
@@ -1802,7 +1815,7 @@
 				}
 				this.xhr.send(data);
 			}else {
-				let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
+				let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data, this.option.method) : null;
 				this.xhr.send(data);
 			}
 		}
@@ -1811,7 +1824,7 @@
 			this.onError.fire(`Request abort(${reason})`, CODE_ABORT);
 		}
 		static get(cgi, data, option = {}){
-			option.method = option.method || HTTP_METHOD.GET;
+			option.method = HTTP_METHOD.GET;
 			return Net.request(cgi, data, option);
 		}
 		static getJSON(cgi, data, option = {}){
@@ -1838,7 +1851,7 @@
 			});
 		}
 		static post(cgi, data, option = {}){
-			option.method = option.method || HTTP_METHOD.POST;
+			option.method = HTTP_METHOD.POST;
 			return Net.request(cgi, data, option);
 		}
 		static postJSON(cgi, data, option = {}){
@@ -2099,18 +2112,10 @@
 	};
 	const bindFormSubmitAsJSON = (form, onSubmitting = () => {}) => {
 		return new Promise((resolve, reject) => {
-			let submitting = false;
 			form.addEventListener('submit', e => {
-				if(submitting){
-					return false;
-				}
-				submitting = true;
-				let url = form.action;
-				let method = form.method.toUpperCase() || "GET";
-				let data = formSerializeJSON(form);
-				onSubmitting();
-				requestJSON(url, data, method).then(resolve, reject).finally(() => {
-					submitting = false;
+				lockElementInteraction(form, reset=>{
+					onSubmitting();
+					requestJSON(form.action, formSerializeJSON(form), form.method).then(resolve, reject).finally(reset);
 				});
 				e.preventDefault();
 				return false;
@@ -3431,7 +3436,7 @@
 	.${DLG_CLS_PREF} {position:fixed;inset-block-start: 0px;inset-block-end: 0px;}
 	.${DLG_CLS_PREF}:focus {outline:none}
 	.${DLG_CLS_PREF}[data-transparent] {background-color:transparent !important; box-shadow:none !important}
-	.${DLG_CLS_PREF} .${DLG_CLS_TI} {user-select:none; box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
+	.${DLG_CLS_PREF} .${DLG_CLS_TI} {box-sizing:border-box; line-height:1; padding:0.75em 2.5em 0.75em 0.75em; font-weight:normal;color:var(${Theme.CssVar.CSS_LIGHTEN})}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON_ZONE} {position:absolute; right:0; top:0; display:flex; gap:0.5em; }
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON} {display:flex; align-items:center; justify-content: center; line-height:1; width:2.25em; height:2.5em; overflow:hidden; opacity:0.6; cursor:pointer; box-sizing:border-box}
 	.${DLG_CLS_PREF} .${DLG_CLS_TOP_BUTTON}:after {content:""; font-size:0.9em; font-family:${Theme.IconFont}; line-height:1; display:block;}
@@ -3954,16 +3959,55 @@
 			}
 			return !!Option.onFile(file);
 		};
+		const handleTransferFiles = (files) => {
+			let fs = [];
+			Array.from(files).forEach(file => {
+				file.fullPath = '/' + file.name;
+				processFile(file) && fs.push(file);
+			});
+			Option.onFinish(fs);
+		};
+		const handleTransferItems = (transferItems) => {
+			let total_item_length = 0;
+			Array.from(transferItems).forEach(item => {
+				total_item_length += item.kind === 'file';
+			});
+			let files = [];
+			let find_cnt = 0;
+			for(let i = 0; i < transferItems.length; i++){
+				if(transferItems[i].kind !== 'file'){
+					console.warn('item is not file', transferItems[i]);
+					continue;
+				}
+				let item = transferItems[i].webkitGetAsEntry();
+				if(item){
+					traverseFileTree(item, file => {
+						processFile(file) && files.push(file);
+					}, () => {
+						find_cnt++;
+						if(find_cnt === total_item_length){
+							Option.onFinish(files);
+						}
+					});
+				}
+				else {
+					find_cnt++;
+					let file = transferItems[i].getAsFile();
+					if(file && processFile(file)){
+						file.fullPath = '/' + file.name;
+						files.push(file);
+					}
+					if(find_cnt === total_item_length){
+						Option.onFinish(files);
+					}
+				}
+			}
+		};
 		if(fileInput){
 			fileInput.addEventListener('change', e => {
 				Option.onTrigger();
-				let fs = [];
-				Array.from(e.target.files).forEach(file => {
-					file.fullPath = '/' + file.name;
-					processFile(file) && fs.push(file);
-				});
 				fileInput.value = '';
-				Option.onFinish(fs);
+				handleTransferFiles(e.target.files);
 			});
 		}
 		['dragenter', 'dragover'].forEach(ev => {
@@ -3980,44 +4024,20 @@
 				return false;
 			}, false);
 		});
+		if(!container.getAttribute('tabindex')){
+			container.setAttribute('tabindex', 0);
+		}
+		container.addEventListener('paste', e => {
+			let transferItems = Array.from(e.clipboardData.items);
+			if(!transferItems.length){
+				return;
+			}
+			handleTransferItems(transferItems);
+		});
 		container.addEventListener('drop', event => {
 			event.preventDefault();
 			Option.onTrigger();
-			let items = event.dataTransfer.items;
-			let total_item_length = 0;
-			Array.from(items).forEach(item => {
-				total_item_length += item.kind === 'file';
-			});
-			let files = [];
-			let find_cnt = 0;
-			for(let i = 0; i < items.length; i++){
-				if(items[i].kind !== 'file'){
-					console.warn('item is not file', items[i]);
-					continue;
-				}
-				let item = items[i].webkitGetAsEntry();
-				if(item){
-					traverseFileTree(item, file => {
-						processFile(file) && files.push(file);
-					}, () => {
-						find_cnt++;
-						if(find_cnt === total_item_length){
-							Option.onFinish(files);
-						}
-					});
-				}
-				else {
-					find_cnt++;
-					let file = items[i].getAsFile();
-					if(file && processFile(file)){
-						file.fullPath = '/' + file.name;
-						files.push(file);
-					}
-					if(find_cnt === total_item_length){
-						Option.onFinish(files);
-					}
-				}
-			}
+			handleTransferItems(event.dataTransfer.items);
 		}, false);
 	};
 	const traverseFileTree = (item, itemCallback, totalCallback, path = '/') => {
@@ -4027,7 +4047,9 @@
 				itemCallback(file);
 				totalCallback();
 			});
-		}else if(item.isDirectory){
+			return;
+		}
+		if(item.isDirectory){
 			let dirReader = item.createReader();
 			dirReader.readEntries(function(entries){
 				let fin_count = 0;
@@ -4045,10 +4067,10 @@
 					}, path + item.name + "/");
 				}
 			});
-		}else {
-			console.warn('err', item);
-			totalCallback();
+			return;
 		}
+		console.warn('err', item);
+		totalCallback();
 	};
 
 	const json_decode = (v) => {
@@ -5474,6 +5496,61 @@
 		}
 	}
 
+	const getToastOption = (showMsg) => {
+		if(typeof showMsg === 'boolean' || showMsg === null){
+			return {
+				pending: !!showMsg,
+				success: !!showMsg,
+				error: !!showMsg,
+			};
+		}
+		if(isObject(showMsg)){
+			return {
+				pending: !!showMsg.pending,
+				success: !!showMsg.success,
+				error: !!showMsg.error,
+			};
+		}
+		throw "silent config param illegal";
+	};
+	const QuickJsonRequest = {
+		PENDING_MSG: '正在请求，请稍候···',
+		RESPONSE_SUCCESS_ERROR: (rsp) => {
+			return (rsp && rsp.code && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
+		},
+		request: (method, url, data, showMsg = true) => {
+			let toastOpt = getToastOption(showMsg);
+			let pendingToast = null;
+			if(toastOpt.pending){
+				pendingToast = ToastClass.showLoadingLater(QuickJsonRequest.PENDING_MSG);
+			}
+			return new Promise((resolve, reject) => {
+				requestJSON(url, data, method)
+					.then(rsp => {
+						let [successMsg, errorMsg] = QuickJsonRequest.RESPONSE_SUCCESS_ERROR(rsp);
+						if(successMsg){
+							toastOpt.success && ToastClass.showSuccess(successMsg);
+							resolve(rsp);
+						}else if(errorMsg){
+							toastOpt.error && ToastClass.showError(errorMsg);
+							reject(rsp);
+						}else {
+							throw "response error";
+						}
+					})
+					.finally(() => {
+						pendingToast && pendingToast.hide();
+					});
+			});
+		},
+		get(url, data, showMsg = true){
+			return QuickJsonRequest.request(HTTP_METHOD.GET, url, data, showMsg);
+		},
+		post(url, data, showMsg = true){
+			return QuickJsonRequest.request(HTTP_METHOD.POST, url, data, showMsg);
+		}
+	};
+
 	const isCheckBox = node => {
 		return node.tagName === 'INPUT' && node.type === 'checkbox';
 	};
@@ -6683,18 +6760,18 @@
 						onsuccess = param.onsuccess;
 					}
 				}
+				method = param.method;
 				if(node.tagName === 'FORM'){
 					url = getSubmitterFormAction(node, event);
 					submitter = event.submitter;
 					data = requestFormat === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
-					method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
+					method = method || node.method;
 				}else if(node.tagName === 'A'){
 					url = node.href;
-					method = 'get';
 				}
 				url = param.url || url;
-				method = (param.method || method || 'get').toUpperCase();
 				data = param.data || data;
+				method = HTTP_METHOD.resolve(method);
 				let loader = ToastClass.showLoadingLater('正在请求中，请稍候···');
 				node.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
 				submitter && submitter.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
@@ -7062,25 +7139,25 @@
 	class ACInlineEditor {
 		static transmitter;
 		static onUpdate = new BizEvent();
-		static init(node, params){
+		static init(node, param){
 			if(!ACInlineEditor.transmitter){
 				throw "ACInlineEditor.transmitter 未配置";
 			}
 			patchCss();
 			node.tabIndex = 0;
-			let name = params.name;
-			let multiple = params.multiple === '1';
+			let name = param.name;
+			let multiple = param.multiple === '1';
 			let text = node.innerText.trim();
-			let required = !!params.required;
-			let action = params.action;
-			let method = params.method ? params.method.toLocaleUpperCase() : 'get';
+			let required = !!param.required;
+			let action = param.action;
+			let method = param.method;
 			if(!action){
 				let form = node.closest('form');
 				if(!form){
 					throw "QKEditor required action or in form context";
 				}
 				action = form.action;
-				method = method || form.method.toLocaleUpperCase();
+				method = method || form.method;
 			}
 			node.classList.add(NS + 'editor');
 			let input_wrap;
@@ -7828,6 +7905,7 @@
 	exports.PROMISE_STATE_REJECTED = PROMISE_STATE_REJECTED;
 	exports.ParallelPromise = ParallelPromise;
 	exports.QueryString = QueryString;
+	exports.QuickJsonRequest = QuickJsonRequest;
 	exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 	exports.REQUEST_FORMAT = REQUEST_FORMAT;
 	exports.RESPONSE_FORMAT = RESPONSE_FORMAT;

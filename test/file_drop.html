@@ -7,13 +7,17 @@
 	<title>Document</title>
 	<style>
 		.drag-over {background-color:blue;}
+		#file-drop {border:2px dotted gray;}
+		#file-drop:focus {border-color:green;}
 	</style>
 </head>
 <body>
 <script src="assets/nav.js"></script>
 
-<label id="file-drop" style="display:block; padding:2em; border:2px dotted gray;">
-	<input type="file" name="" id="" multiple accept="image/*">
+<label id="file-drop" style="display:block; padding:2em; " tabindex="0">
+<!--	<input type="file" name="" id="" multiple accept="image/*">-->
+
+	asdfas
 </label>
 
 <div id="result"></div>
@@ -22,7 +26,12 @@
 <script type="module">
 	import {bindFileDrop, createDomByHtml, findOne} from "../src/index.js";
 	const result_dom = findOne('#result');
-	bindFileDrop('#file-drop', {
+
+	let fileDropDom = findOne('#file-drop');
+	fileDropDom.addEventListener('click', e=>{
+		fileDropDom.focus();
+	})
+	bindFileDrop(fileDropDom, {
 		onInput: ()=>{
 			result_dom.innerHTML = '';
 		},

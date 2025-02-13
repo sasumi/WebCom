@@ -58,18 +58,18 @@ export class ACInlineEditor {
 	/** @var BizEvent onUpdate fire(name, new_text, node) **/
 	static onUpdate = new BizEvent();
 
-	static init(node, params){
+	static init(node, param){
 		if(!ACInlineEditor.transmitter){
 			throw "ACInlineEditor.transmitter 未配置";
 		}
 		patchCss();
 		node.tabIndex = 0;
-		let name = params.name;
-		let multiple = params.multiple === '1';
+		let name = param.name;
+		let multiple = param.multiple === '1';
 		let text = node.innerText.trim();
-		let required = !!params.required;
-		let action = params.action;
-		let method = params.method ? params.method.toLocaleUpperCase() : 'get';
+		let required = !!param.required;
+		let action = param.action;
+		let method = param.method;
 
 		//从上级表单中读取action和method
 		if(!action){
@@ -78,9 +78,8 @@ export class ACInlineEditor {
 				throw "QKEditor required action or in form context";
 			}
 			action = form.action;
-			method = method || form.method.toLocaleUpperCase();
+			method = method || form.method;
 		}
-
 		node.classList.add(NS + 'editor');
 		let input_wrap;
 		let input_el;

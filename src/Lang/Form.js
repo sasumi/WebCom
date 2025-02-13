@@ -1,5 +1,5 @@
-import {findAll, isButton, mutationEffective, onDomTreeChange} from "./Dom.js";
-import {guid, throttleEffect} from "./Util.js";
+import {findAll, isButton, lockElementInteraction, mutationEffective, onDomTreeChange} from "./Dom.js";
+import {guid} from "./Util.js";
 import {Theme} from "../Widget/Theme.js";
 import {isEquals, objectPushByPath} from "./Array.js";
 import {requestJSON} from "./Net.js";
@@ -244,18 +244,10 @@ export const fixGetFormAction = (form) => {
  */
 export const bindFormSubmitAsJSON = (form, onSubmitting = () => {}) => {
 	return new Promise((resolve, reject) => {
-		let submitting = false;
 		form.addEventListener('submit', e => {
-			if(submitting){
-				return false;
-			}
-			submitting = true;
-			let url = form.action;
-			let method = form.method.toUpperCase() || "GET";
-			let data = formSerializeJSON(form);
-			onSubmitting();
-			requestJSON(url, data, method).then(resolve, reject).finally(() => {
-				submitting = false;
+			lockElementInteraction(form, reset=>{
+				onSubmitting();
+				requestJSON(form.action, formSerializeJSON(form), form.method).then(resolve, reject).finally(reset);
 			});
 			e.preventDefault();
 			return false;

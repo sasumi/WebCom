@@ -34,6 +34,7 @@ const nav = [
 	'toast.html',
 	'emoji.html',
 	'form.html',
+	'file_drop.html',
 	'toc.html',
 	'upload.html',
 	'batchfiller.html'

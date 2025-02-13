@@ -16,6 +16,22 @@ export const HTTP_METHOD = {
 	HEAD: 'HEAD',
 	CONNECT: 'CONNECT',
 	TRACE: 'TRACE',
+
+	/**
+	 * 解析请求方法，为空返回 GET
+	 * @param {String|Null} method
+	 * @return {string}
+	 */
+	resolve: method => {
+		if(!method){
+			return HTTP_METHOD.GET;
+		}
+		let upMethod = method.toUpperCase();
+		if(!HTTP_METHOD[upMethod]){
+			throw `method no found: ${method}`;
+		}
+		return HTTP_METHOD[upMethod];
+	}
 };
 
 /**
@@ -157,7 +173,9 @@ const dataToFormData = (data) => {
  * @return {Promise<unknown>}
  */
 export const requestJSON = (url, data, method = HTTP_METHOD.GET, option = {}) => {
-	return method === HTTP_METHOD.GET ? Net.getJSON(url, data, option) : Net.postJSON(url, data, option);
+	return HTTP_METHOD.resolve(method) === HTTP_METHOD.GET ?
+		Net.getJSON(url, data, option) :
+		Net.postJSON(url, data, option);
 }
 
 /**
@@ -196,6 +214,9 @@ export class Net {
 			...this.option,
 			...option
 		};
+
+		//修正请求方法
+		this.option.method = HTTP_METHOD.resolve(this.option.method);
 
 		//文件上传，强制选项：POST，去除ContentType（浏览器默认 multipart/form-data; boundary=***
 		if(this.fileMap){
@@ -287,7 +308,7 @@ export class Net {
 			}
 			this.xhr.send(data);
 		}else{
-			let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data) : null;
+			let data = this.data ? REQUEST_DATA_HANDLE_MAP[this.option.requestFormat](this.data, this.option.method) : null;
 			this.xhr.send(data);
 		}
 	}
@@ -301,12 +322,12 @@ export class Net {
 	}
 
 	static get(cgi, data, option = {}){
-		option.method = option.method || HTTP_METHOD.GET;
+		option.method = HTTP_METHOD.GET; //强制请求方法
 		return Net.request(cgi, data, option);
 	}
 
 	/**
-	 * 以JSON方式请求，并以JSON方式处理响应
+	 * 强制以JSON方式请求，并以JSON方式处理响应
 	 * @param cgi
 	 * @param data
 	 * @param option
@@ -349,19 +370,18 @@ export class Net {
 	}
 
 	static post(cgi, data, option = {}){
-		option.method = option.method || HTTP_METHOD.POST;
+		option.method = HTTP_METHOD.POST; //强制请求方法
 		return Net.request(cgi, data, option);
 	}
 
 	/**
-	 * 以JSON方式请求，并以JSON方式处理响应
+	 * 强制以JSON方式请求，并以JSON方式处理响应
 	 * @param cgi
 	 * @param data
 	 * @param option
 	 * @return {Promise<unknown>}
 	 */
 	static postJSON(cgi, data, option = {}){
-		//强制，如果不适用请使用 post() 方法
 		option.requestFormat = REQUEST_FORMAT.JSON;
 		option.responseFormat = RESPONSE_FORMAT.JSON;
 		return Net.post(cgi, data, option);

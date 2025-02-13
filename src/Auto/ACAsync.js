@@ -71,20 +71,22 @@ export class ACAsync {
 					onsuccess = param.onsuccess;
 				}
 			}
+			method = param.method;
 			if(node.tagName === 'FORM'){
 				url = getSubmitterFormAction(node, event);
 				submitter = event.submitter;
 				data = requestFormat === REQUEST_FORMAT.JSON ? formSerializeJSON(node) : formSerializeString(node);
-				method = node.method.toLowerCase() === 'post' ? 'post' : 'get';
+				method = method || node.method;
 			}else if(node.tagName === 'A'){
 				url = node.href;
-				method = 'get';
 			}
 
 			//优先使用参数传参
 			url = param.url || url;
-			method = (param.method || method || 'get').toUpperCase();
 			data = param.data || data;
+
+			//修正请求方法
+			method = HTTP_METHOD.resolve(method);
 
 			let loader = Toast.showLoadingLater('正在请求中，请稍候···');
 			node.setAttribute(ASYNC_SUBMITTING_FLAG, '1');
