@@ -37,7 +37,7 @@ export const QuickJsonRequest = {
 	 * @constructor
 	 */
 	RESPONSE_SUCCESS_ERROR: (rsp) => {
-		return (rsp && rsp.code && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
+		return (rsp && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
 	},
 
 	request: (method, url, data, showMsg = true) => {

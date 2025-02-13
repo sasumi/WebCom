@@ -108,8 +108,8 @@ export const bindFileDrop = (container, Option = {}) => {
 	if(fileInput){
 		fileInput.addEventListener('change', e => {
 			Option.onTrigger();
-			fileInput.value = '';
 			handleTransferFiles(e.target.files);
+			fileInput.value = '';
 		});
 	}
 

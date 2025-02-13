@@ -4002,8 +4002,8 @@ const bindFileDrop = (container, Option = {}) => {
 	if(fileInput){
 		fileInput.addEventListener('change', e => {
 			Option.onTrigger();
-			fileInput.value = '';
 			handleTransferFiles(e.target.files);
+			fileInput.value = '';
 		});
 	}
 	['dragenter', 'dragover'].forEach(ev => {
@@ -5512,7 +5512,7 @@ const getToastOption = (showMsg) => {
 const QuickJsonRequest = {
 	PENDING_MSG: '正在请求，请稍候···',
 	RESPONSE_SUCCESS_ERROR: (rsp) => {
-		return (rsp && rsp.code && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
+		return (rsp && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
 	},
 	request: (method, url, data, showMsg = true) => {
 		let toastOpt = getToastOption(showMsg);
