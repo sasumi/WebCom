@@ -3534,6 +3534,9 @@ var WebCom = (function (exports) {
 		if(dlg.config.buttons.length){
 			html += `<div class="${DLG_CLS_OP}">`;
 			dlg.config.buttons.forEach(button => {
+				if(button.callback && !button.ariaLabel){
+					button.ariaLabel = 'Close';
+				}
 				html += `<input type="button" class="${button.className || ''}" 
 				${button.default ? 'autofocus' : ''} 
 				tabindex="0" 

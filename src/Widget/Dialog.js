@@ -205,6 +205,9 @@ const domConstruct = (dlg) => {
 	if(dlg.config.buttons.length){
 		html += `<div class="${DLG_CLS_OP}">`;
 		dlg.config.buttons.forEach(button => { //autofocus 在部分浏览器场景可能会失效，这里采用js主动切换
+			if(button.callback && !button.ariaLabel){
+				button.ariaLabel = 'Close';
+			}
 			html += `<input type="button" class="${button.className || ''}" 
 				${button.default ? 'autofocus' : ''} 
 				tabindex="0" 
