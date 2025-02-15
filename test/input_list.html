@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+<h1>fix input list</h1>
+
+<input type="text" list="list">
+
+<datalist id="list">
+    <option value="value1">this is value1</option>
+    <option value="value2">this is value2</option>
+    <option value="value3">this is value3</option>
+    <option value="value4">this is value4</option>
+    <option value="value5">this is value5</option>
+    <option value="value6">this is value6</option>
+</datalist>
+
+<script type="module">
+    import {fixInputListOption} from "../dist/webcom.es.js";
+
+    fixInputListOption();
+</script>
+</body>
+</html>

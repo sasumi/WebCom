@@ -10,6 +10,10 @@ import {Dialog} from "./Dialog.js";
  * @returns {boolean} 是否复制成功
  */
 export const copy = (text, show_msg = false) => {
+	if(!text.trim().length){
+		Toast.showInfo('需要复制的内容为空');
+		return false;
+	}
 	let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
 	txtNode.style.cssText = 'position:absolute; left:-9999px;';
 	let y = window.pageYOffset || document.documentElement.scrollTop;
@@ -33,10 +37,14 @@ export const copy = (text, show_msg = false) => {
 
 /**
  * Copy formatted html content
- * @param html
- * @param silent
+ * @param {String} html
+ * @param {Boolean} silent
  */
 export const copyFormatted = (html, silent = false) => {
+	if(!html.trim().length){
+		Toast.showInfo('需要复制的内容为空');
+		return false;
+	}
 	// Create container for the HTML
 	let container = createDomByHtml(`
 		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>

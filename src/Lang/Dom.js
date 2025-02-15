@@ -2,6 +2,7 @@ import {between} from "./Math.js";
 import {strToPascalCase} from "./String.js";
 import {dimension2Style} from "./Html.js";
 import {guid} from "./Util.js";
+import {bindNodeEvents} from "./Event.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -891,6 +892,36 @@ export const toggleStickyClass = (node, className) => {
 		threshold: [1],
 	});
 	observer.observe(node);
+}
+
+/**
+ * 修正input[list]交互中，没有显示所有列表的交互问题
+ * @param {String|Object} inputs
+ */
+export const fixInputListOption = (inputs = 'input[list]') => {
+	findAll(inputs).forEach(input => {
+		let val = '';
+		let origin_placeholder = input.getAttribute('placeholder') || '';
+		bindNodeEvents(input, ['focus', 'click'], e=>{
+			val = input.value;
+			if(val){
+				input.setAttribute('placeholder', val);
+			}
+			input.value = '';
+			if(val){
+				setTimeout(() => {
+					input.value = val;
+				}, 10);
+			}
+		})
+		input.addEventListener('input', e => {
+			val = input.value;
+		});
+		input.addEventListener('blur', e => {
+			input.value = val;
+			input.setAttribute('placeholder', origin_placeholder);
+		})
+	})
 }
 
 /**

@@ -526,16 +526,31 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT', 'OL', 'P', 'PRE', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'];
 	const PAIR_TAGS = [
-		'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR',
+		'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'HEAD', 'HTML', 'I', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OPTION', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'STYLE', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'TITLE', 'U', 'VAR',
 	].concat(...BLOCK_TAGS);
 	const SELF_CLOSING_TAGS = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
-	const REMOVABLE_TAGS = [
-		'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON', 'META', 'LINK', 'PARAM', 'SOURCE'
-	];
-	const html2Text = (html)=>{
-		REMOVABLE_TAGS.forEach(tag=>{
-			html = html.replace(new RegExp(tag, 'ig'), '');
+	const cleanHtml = (html, option = {})=>{
+		option = Object.assign({
+			pageUrl: '',
+			clearInlineStyle: true,
+			keepTags: [],
+			cleanTags: []
+		}, option);
+		let TAGS_N_CTN = ['STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON', 'META', 'LINK', 'PARAM', 'SOURCE'];
+		TAGS_N_CTN.forEach(tag=>{
+			if(PAIR_TAGS.includes(tag)){
+				html = html.replace(new RegExp(`<${tag}[^>]*>.*?</${tag}>`, 'idg'), '');
+			}
+			html = html.replace(new RegExp(`<${tag}[^>]*>`, 'idg'), '');
 		});
+		html = html.replace(/<!--[\s\S]*?-->/ig, '');
+		html = html.replace(/<\w+\s([^>]+)>/ig, ms=>{
+		});
+		if(option.pageUrl);
+		return html;
+	};
+	const html2Text = (html)=>{
+		html = cleanHtml(html);
 		html = html.replace(/[\r|\n]/g, '');
 		html = html.replace(/<(\w+)([^>]*)>/g, function(ms, tag, tail){
 			if(BLOCK_TAGS.includes(tag.toUpperCase())){
@@ -887,561 +902,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	window.WEBCOM_GET_LIB_MODULE = getLibModule;
 	window.WEBCOM_GET_SCRIPT_ENTRY = getLibEntryScript;
-
-	const getViewWidth = () => {
-		return window.innerWidth;
-	};
-	const getViewHeight = () => {
-		return window.innerHeight;
-	};
-	const hide = (dom) => {
-		findOne(dom).style.display = 'none';
-	};
-	const remove = (dom) => {
-		if(dom && dom.parentNode){
-			dom.parentNode.removeChild(dom);
-			return true;
-		}
-		return false;
-	};
-	const show = (dom) => {
-		findOne(dom).style.display = '';
-	};
-	const toggle = (dom, toShow) => {
-		toShow ? show(dom) : hide(dom);
-	};
-	const _el_disabled_class_ = '__element-lock__';
-	const disabled = (el, disabledClass = '')=>{
-		return toggleDisabled(el, disabledClass, false);
-	};
-	const enabled = (el, disabledClass = '')=>{
-		return toggleDisabled(el, disabledClass, true);
-	};
-	const toggleDisabled = (el, disabledClass = '', forceEnabled = null) => {
-		let toDisabled = forceEnabled === null ? !el.classList.has(_el_disabled_class_) : !forceEnabled;
-		if(toDisabled){
-			insertStyleSheet(`.${_el_disabled_class_} {pointer-event:none !important;}`, '__element_lock_style__');
-		}
-		el = findOne(el);
-		el.classList.toggle(_el_disabled_class_, !toDisabled);
-		el[toDisabled ? 'setAttribute' : 'removeAttribute']('disabled', 'disabled');
-		el[toDisabled ? 'setAttribute' : 'removeAttribute']('data-disabled', 'disabled');
-		if(disabledClass){
-			el.classList.toggle(disabledClass, !toDisabled);
-		}
-	};
-	const lockElementInteraction = (el, payload) => {
-		disabled(el);
-		let reset = () => {
-			enabled(el);
-		};
-		payload(reset);
-	};
-	const nodeIndex = (node) => {
-		return Array.prototype.indexOf.call(node.parentNode.children, node);
-	};
-	const findOne = (selector, parent = document) => {
-		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
-	};
-	const waitForSelector = (selector, option = {}) => {
-		return new Promise((resolve, reject) => {
-			waitForSelectors(selector, option).then(ns => {
-				resolve(ns[0]);
-			}, reject);
-		})
-	};
-	const waitForSelectors = (selector, option = {}) => {
-		let {timeout, parent, checkInterval} = option;
-		checkInterval = checkInterval || 10;
-		timeout = timeout || 10000;
-		parent = parent || document;
-		const st = Date.now();
-		return new Promise((resolve, reject) => {
-			let chk = () => {
-				if(timeout && (Date.now() - st > timeout)){
-					reject(`waitForSelectors timeout, ${selector} ${timeout}ms`);
-					return;
-				}
-				let ns = parent.querySelectorAll(selector);
-				if(ns.length){
-					resolve(ns);
-					return;
-				}
-				setTimeout(chk, checkInterval);
-			};
-			chk();
-		})
-	};
-	const findAll = (selector, parent = document) => {
-		if(typeof selector === 'string'){
-			selector = selector.trim();
-			if(selector.indexOf(':scope') !== 0){
-				selector = ':scope ' + selector;
-			}
-			return Array.from(parent.querySelectorAll(selector));
-		}else if(Array.isArray(selector)){
-			let ns = [];
-			selector.forEach(sel => {
-				ns.push(...findAll(sel));
-			});
-			return ns;
-		}else {
-			return [selector];
-		}
-	};
-	const findAllOrFail = (selector, parent = document) => {
-		let ls = findAll(selector, parent);
-		if(!ls.length){
-			throw "no nodes found:" + selector;
-		}
-		return ls;
-	};
-	const getDomOffset = (target) => {
-		let rect = target.getBoundingClientRect();
-		return {
-			width: rect.width,
-			height: rect.height,
-			top: rect.top,
-			bottom: rect.bottom,
-			left: rect.left,
-			right: rect.right,
-			x: rect.x,
-			y: rect.y,
-		}
-	};
-	const isButton = (el) => {
-		return el.tagName === 'BUTTON' ||
-			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
-	};
-	const bindTextAutoResize = (textarea, init = true) => {
-		textarea.style.height = 'auto';
-		textarea.addEventListener('input', () => {
-			textarea.style.height = textarea.scrollHeight + 'px';
-		});
-		if(init){
-			textarea.style.height = textarea.scrollHeight + 'px';
-		}
-	};
-	let __divs = {};
-	const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
-	const getNodeHeightWithMargin = (node) => {
-		let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
-		if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
-			return __divs[tmp_div_id].offsetTop;
-		}
-		tmp_div_id = guid('tmp_div_id');
-		node.setAttribute(NODE_HEIGHT_TMP_ATTR_KEY, tmp_div_id);
-		let tmp_div = document.createElement('div');
-		tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
-		node.appendChild(tmp_div);
-		__divs[tmp_div_id] = tmp_div;
-		return tmp_div.offsetTop;
-	};
-	const resizeIframe = (iframe) => {
-		let bdy = iframe.contentWindow.document.body;
-		if(!bdy){
-			return;
-		}
-		let h = getNodeHeightWithMargin(bdy);
-		iframe.style.height = dimension2Style(h);
-	};
-	const bindIframeAutoResize = (iframe) => {
-		let obs;
-		try{
-			iframe.addEventListener('load', () => {
-				resizeIframe(iframe);
-				mutationEffective(iframe.contentWindow.document.body, {
-					attributes: true,
-					subtree: true,
-					childList: true
-				}, () => {
-					resizeIframe(iframe);
-				});
-			});
-		}catch(err){
-			try{
-				obs && obs.disconnect();
-			}catch(err){
-				console.error('observer disconnect fail', err);
-			}
-			console.warn('iframe content upd', err);
-		}
-	};
-	const bindTextSupportTab = (textarea, tabChar = "\t") => {
-		textarea.addEventListener('keydown', function(e){
-			if(e.key !== 'Tab'){
-				return;
-			}
-			e.preventDefault();
-			document.execCommand('insertText', false, tabChar);
-		});
-	};
-	const matchParent = (dom, selector) => {
-		return dom.closest(selector);
-	};
-	const domContained = (nodes, child, includeEqual = false) => {
-		let contains = findAll(nodes);
-		for(let i = 0; i < contains.length; i++){
-			if((includeEqual ? contains[i] === child : false) ||
-				contains[i].compareDocumentPosition(child) & 16){
-				return true;
-			}
-		}
-		return false;
-	};
-	const getFocusableElements = (dom = document) => {
-		let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
-		return els.filter(el => {
-			return !isNodeHidden(el);
-		});
-	};
-	const isNodeHidden = (node) => {
-		return node.offsetParent === null;
-	};
-	const getNodeXPath = (el) => {
-		let allNodes = document.getElementsByTagName('*');
-		let seg_list = [];
-		for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
-			if(el.hasAttribute('id')){
-				let uniqueIdCount = 0;
-				for(let n = 0; n < allNodes.length; n++){
-					if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
-					if(uniqueIdCount > 1) break;
-				}
-				if(uniqueIdCount === 1){
-					seg_list.unshift('id("' + el.getAttribute('id') + '")');
-					return seg_list.join('/');
-				}else {
-					seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
-				}
-			}else if(el.hasAttribute('class')){
-				seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
-			}else {
-				let i, sib;
-				for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
-					if(sib.localName === el.localName){
-						i++;
-					}
-				}
-				seg_list.unshift(el.localName.toLowerCase() + '[' + i + ']');
-			}
-		}
-		return seg_list.length ? '/' + seg_list.join('/') : null;
-	};
-	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
-		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
-		let watchEl = () => {
-			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el => {
-				el.setAttribute(PRO_KEY, '1');
-				el.addEventListener('change', callback);
-			});
-		};
-		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
-			includeElementChanged && watchEl();
-			callback();
-		}, 10);
-		includeElementChanged && watchEl();
-	};
-	const mutationEffective = (dom, option, payload, minInterval = 10) => {
-		let last_queue_time = 0;
-		let callback_queueing = false;
-		let obs = new MutationObserver(() => {
-			if(callback_queueing){
-				return;
-			}
-			let r = minInterval - (new Date().getTime() - last_queue_time);
-			if(r > 0){
-				callback_queueing = true;
-				setTimeout(() => {
-					callback_queueing = false;
-					last_queue_time = new Date().getTime();
-					payload(obs);
-				}, r);
-			}else {
-				last_queue_time = new Date().getTime();
-				payload(obs);
-			}
-		});
-		obs.observe(dom, option);
-	};
-	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
-		onDomTreeChange(container, () => {
-			notification(findAll(matchedSelector, container));
-		});
-		if(executionFirst){
-			notification(findAll(matchedSelector, container));
-		}
-	};
-	const keepRectCenter = (width, height, containerDimension = {
-		left: 0,
-		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight
-	}) => {
-		return [
-			Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
-			Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
-		];
-	};
-	const keepDomInContainer = (target, container = document.body) => {
-		keepRectInContainer({
-			left: target.left,
-			top: target.top,
-			width: target.clientWidth,
-			height: target.clientHeight,
-		});
-	};
-	const keepRectInContainer = (objDim, ctnDim = {
-		left: 0,
-		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight
-	}) => {
-		let ret = {left: objDim.left, top: objDim.top};
-		if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
-			return ret;
-		}
-		if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
-			ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
-		}
-		if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
-			ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
-		}
-		if(objDim.left < ctnDim.left){
-			ret.left = ctnDim.left;
-		}
-		if(objDim.top < ctnDim.top){
-			ret.top = ctnDim.top;
-		}
-		return ret;
-	};
-	const getDomDimension = (dom) => {
-		let org_visibility = dom.style.visibility;
-		let org_display = dom.style.display;
-		let width, height;
-		dom.style.visibility = 'hidden';
-		dom.style.display = 'block';
-		width = dom.clientWidth;
-		height = dom.clientHeight;
-		dom.style.visibility = org_visibility;
-		dom.style.display = org_display;
-		return {width, height};
-	};
-	const rectAssoc = (rect1, rect2) => {
-		if(rect1.left <= rect2.left){
-			return (rect1.left + rect1.width) >= rect2.left && (
-				between(rect2.top, rect1.top, rect1.top + rect1.height) ||
-				between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
-				rect2.top >= rect1.top && rect2.height >= rect1.height
-			);
-		}else {
-			return (rect2.left + rect2.width) >= rect1.left && (
-				between(rect1.top, rect2.top, rect2.top + rect2.height) ||
-				between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
-				rect1.top >= rect2.top && rect1.height >= rect2.height
-			);
-		}
-	};
-	const isElement = (obj) => {
-		try{
-			return obj instanceof HTMLElement;
-		}catch(e){
-			return (typeof obj === "object") &&
-				(obj.nodeType === 1) && (typeof obj.style === "object") &&
-				(typeof obj.ownerDocument === "object");
-		}
-	};
-	let _c = {};
-	const loadCss = (file, forceReload = false) => {
-		if(!forceReload && _c[file]){
-			return _c[file];
-		}
-		_c[file] = new Promise((resolve, reject) => {
-			let link = document.createElement('link');
-			link.rel = "stylesheet";
-			link.href = file;
-			link.onload = () => {
-				resolve();
-			};
-			link.onerror = () => {
-				reject();
-			};
-			document.head.append(link);
-		});
-		return _c[file];
-	};
-	const loadScript = (src, forceReload = false) => {
-		if(!forceReload && _c[src]){
-			return _c[src];
-		}
-		_c[src] = new Promise((resolve, reject) => {
-			let script = document.createElement('script');
-			script.src = src;
-			script.onload = () => {
-				resolve();
-			};
-			script.onerror = () => {
-				reject();
-			};
-			document.head.append(script);
-		});
-		return _c[src];
-	};
-	const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
-		if(id && doc.querySelector(`#${id}`)){
-			return doc.querySelector(`#${id}`);
-		}
-		let style = doc.createElement('style');
-		doc.head.appendChild(style);
-		style.innerHTML = styleSheetStr;
-		if(id){
-			style.id = id;
-		}
-		return style;
-	};
-	const getRegion = (win = window) => {
-		let info = {};
-		let doc = win.document;
-		info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
-		info.screenTop = win.screenTop ? win.screenTop : win.screenY;
-		if(win.innerWidth){
-			info.visibleWidth = win.innerWidth;
-			info.visibleHeight = win.innerHeight;
-			info.horizenScroll = win.pageXOffset;
-			info.verticalScroll = win.pageYOffset;
-		}else {
-			let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
-				doc.documentElement : doc.body;
-			info.visibleWidth = tmp.clientWidth;
-			info.visibleHeight = tmp.clientHeight;
-			info.horizenScroll = tmp.scrollLeft;
-			info.verticalScroll = tmp.scrollTop;
-		}
-		let tag = (doc.documentElement && doc.documentElement.scrollWidth) ?
-			doc.documentElement : doc.body;
-		info.documentWidth = Math.max(tag.scrollWidth, info.visibleWidth);
-		info.documentHeight = Math.max(tag.scrollHeight, info.visibleHeight);
-		return info;
-	};
-	const rectInLayout = (rect, layout) => {
-		return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width)
-			&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width);
-	};
-	const setStyle = (dom, style = {}) => {
-		for(let key in style){
-			key = strToPascalCase(key);
-			dom.style[key] = dimension2Style(style[key]);
-		}
-	};
-	const nodeHighlight = (node, pattern, hlClass) => {
-		let skip = 0;
-		if(node.nodeType === 3){
-			pattern = new RegExp(pattern, 'i');
-			let pos = node.data.search(pattern);
-			if(pos >= 0 && node.data.length > 0){
-				let match = node.data.match(pattern);
-				let spanNode = document.createElement('span');
-				spanNode.className = hlClass;
-				let middleBit = node.splitText(pos);
-				middleBit.splitText(match[0].length);
-				let middleClone = middleBit.cloneNode(true);
-				spanNode.appendChild(middleClone);
-				middleBit.parentNode.replaceChild(spanNode, middleBit);
-				skip = 1;
-			}
-		}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
-			for(let i = 0; i < node.childNodes.length; ++i){
-				i += nodeHighlight(node.childNodes[i], pattern, hlClass);
-			}
-		}
-		return skip;
-	};
-	const createDomByHtml = (html, parentNode = null) => {
-		let tpl = document.createElement('template');
-		html = html.trim();
-		tpl.innerHTML = html;
-		let nodes = [];
-		if(parentNode){
-			tpl.content.childNodes.forEach(node => {
-				nodes.push(parentNode.appendChild(node));
-			});
-		}else {
-			nodes = tpl.content.childNodes;
-		}
-		return nodes.length === 1 ? nodes[0] : nodes;
-	};
-	function repaint(element, delay = 0){
-		setTimeout(() => {
-			try{
-				element.hidden = true;
-				element.offsetHeight;
-				element.hidden = false;
-			}catch(_){
-			}
-		}, delay);
-	}
-	const enterFullScreen = (element) => {
-		if(element.requestFullscreen){
-			return element.requestFullscreen();
-		}
-		if(element.webkitRequestFullScreen){
-			return element.webkitRequestFullScreen();
-		}
-		if(element.mozRequestFullScreen){
-			element.mozRequestFullScreen();
-		}
-		if(element.msRequestFullScreen){
-			element.msRequestFullScreen();
-		}
-		throw "Browser no allow full screen";
-	};
-	const exitFullScreen = () => {
-		return document.exitFullscreen();
-	};
-	const toggleFullScreen = (element) => {
-		return new Promise((resolve, reject) => {
-			if(!isInFullScreen()){
-				enterFullScreen(element).then(resolve).catch(reject);
-			}else {
-				exitFullScreen().then(resolve).catch(reject);
-			}
-		})
-	};
-	const toggleStickyClass = (node, className) => {
-		const observer = new IntersectionObserver(([e]) => {
-			e.target.classList.toggle(className, e.intersectionRatio < 1);
-		}, {
-			rootMargin: '-1px 0px 0px 0px',
-			threshold: [1],
-		});
-		observer.observe(node);
-	};
-	const isInFullScreen = () => {
-		return !!document.fullscreenElement;
-	};
-	let CURRENT_WINDOW;
-	const setContextWindow = (win) => {
-		CURRENT_WINDOW = win;
-	};
-	const getContextDocument = () => {
-		let win = getContextWindow();
-		return win.document;
-	};
-	const getContextWindow = () => {
-		if(CURRENT_WINDOW){
-			return CURRENT_WINDOW;
-		}
-		let win;
-		try{
-			win = window;
-			while(win !== win.parent){
-				win = win.parent;
-			}
-		}catch(err){
-			console.warn('context window assign fail:', err);
-		}
-		return win || window;
-	};
 
 	const NS$6 = 'WebCom-';
 	const VAR_PREFIX = '--' + NS$6;
@@ -2563,6 +2023,586 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		BackSpace: 8, Esc: 27, RightArrow: 39, Tab: 9, Space: 32, DownArrow: 40, Clear: 12, PageUp: 33, Insert: 45, Enter: 13, PageDown: 34, Delete: 46, Shift: 16, End: 35, NumLock: 144, Control: 17, Home: 36, Alt: 18, LeftArrow: 37, CapsLock: 20, UpArrow: 38,
 		F1: 112,F2: 113,F3: 114,F4: 115,F5: 116,F6: 117,F7: 118,F8: 119,F9: 120,F10: 121,F11: 122,F12: 123,
 		NumPad0: 96, NumPad1: 97, NumPad2: 98, NumPad3: 99, NumPad4: 100, NumPad5: 101, NumPad6: 102, NumPad7: 103, NumPad8: 104, NumPad9: 105, NumPadMultiple: 106, NumPadPlus: 107, NumPadDash: 109, NumPadDot: 110, NumPadSlash: 111, NumPadEnter: 108
+	};
+
+	const getViewWidth = () => {
+		return window.innerWidth;
+	};
+	const getViewHeight = () => {
+		return window.innerHeight;
+	};
+	const hide = (dom) => {
+		findOne(dom).style.display = 'none';
+	};
+	const remove = (dom) => {
+		if(dom && dom.parentNode){
+			dom.parentNode.removeChild(dom);
+			return true;
+		}
+		return false;
+	};
+	const show = (dom) => {
+		findOne(dom).style.display = '';
+	};
+	const toggle = (dom, toShow) => {
+		toShow ? show(dom) : hide(dom);
+	};
+	const _el_disabled_class_ = '__element-lock__';
+	const disabled = (el, disabledClass = '')=>{
+		return toggleDisabled(el, disabledClass, false);
+	};
+	const enabled = (el, disabledClass = '')=>{
+		return toggleDisabled(el, disabledClass, true);
+	};
+	const toggleDisabled = (el, disabledClass = '', forceEnabled = null) => {
+		let toDisabled = forceEnabled === null ? !el.classList.has(_el_disabled_class_) : !forceEnabled;
+		if(toDisabled){
+			insertStyleSheet(`.${_el_disabled_class_} {pointer-event:none !important;}`, '__element_lock_style__');
+		}
+		el = findOne(el);
+		el.classList.toggle(_el_disabled_class_, !toDisabled);
+		el[toDisabled ? 'setAttribute' : 'removeAttribute']('disabled', 'disabled');
+		el[toDisabled ? 'setAttribute' : 'removeAttribute']('data-disabled', 'disabled');
+		if(disabledClass){
+			el.classList.toggle(disabledClass, !toDisabled);
+		}
+	};
+	const lockElementInteraction = (el, payload) => {
+		disabled(el);
+		let reset = () => {
+			enabled(el);
+		};
+		payload(reset);
+	};
+	const nodeIndex = (node) => {
+		return Array.prototype.indexOf.call(node.parentNode.children, node);
+	};
+	const findOne = (selector, parent = document) => {
+		return typeof (selector) === 'string' ? parent.querySelector(selector) : selector;
+	};
+	const waitForSelector = (selector, option = {}) => {
+		return new Promise((resolve, reject) => {
+			waitForSelectors(selector, option).then(ns => {
+				resolve(ns[0]);
+			}, reject);
+		})
+	};
+	const waitForSelectors = (selector, option = {}) => {
+		let {timeout, parent, checkInterval} = option;
+		checkInterval = checkInterval || 10;
+		timeout = timeout || 10000;
+		parent = parent || document;
+		const st = Date.now();
+		return new Promise((resolve, reject) => {
+			let chk = () => {
+				if(timeout && (Date.now() - st > timeout)){
+					reject(`waitForSelectors timeout, ${selector} ${timeout}ms`);
+					return;
+				}
+				let ns = parent.querySelectorAll(selector);
+				if(ns.length){
+					resolve(ns);
+					return;
+				}
+				setTimeout(chk, checkInterval);
+			};
+			chk();
+		})
+	};
+	const findAll = (selector, parent = document) => {
+		if(typeof selector === 'string'){
+			selector = selector.trim();
+			if(selector.indexOf(':scope') !== 0){
+				selector = ':scope ' + selector;
+			}
+			return Array.from(parent.querySelectorAll(selector));
+		}else if(Array.isArray(selector)){
+			let ns = [];
+			selector.forEach(sel => {
+				ns.push(...findAll(sel));
+			});
+			return ns;
+		}else {
+			return [selector];
+		}
+	};
+	const findAllOrFail = (selector, parent = document) => {
+		let ls = findAll(selector, parent);
+		if(!ls.length){
+			throw "no nodes found:" + selector;
+		}
+		return ls;
+	};
+	const getDomOffset = (target) => {
+		let rect = target.getBoundingClientRect();
+		return {
+			width: rect.width,
+			height: rect.height,
+			top: rect.top,
+			bottom: rect.bottom,
+			left: rect.left,
+			right: rect.right,
+			x: rect.x,
+			y: rect.y,
+		}
+	};
+	const isButton = (el) => {
+		return el.tagName === 'BUTTON' ||
+			(el.tagName === 'INPUT' && ['button', 'reset', 'submit'].includes(el.getAttribute('type')));
+	};
+	const bindTextAutoResize = (textarea, init = true) => {
+		textarea.style.height = 'auto';
+		textarea.addEventListener('input', () => {
+			textarea.style.height = textarea.scrollHeight + 'px';
+		});
+		if(init){
+			textarea.style.height = textarea.scrollHeight + 'px';
+		}
+	};
+	let __divs = {};
+	const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
+	const getNodeHeightWithMargin = (node) => {
+		let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
+		if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+			return __divs[tmp_div_id].offsetTop;
+		}
+		tmp_div_id = guid('tmp_div_id');
+		node.setAttribute(NODE_HEIGHT_TMP_ATTR_KEY, tmp_div_id);
+		let tmp_div = document.createElement('div');
+		tmp_div.style.cssText = 'height:0; width:100%; clear:both;';
+		node.appendChild(tmp_div);
+		__divs[tmp_div_id] = tmp_div;
+		return tmp_div.offsetTop;
+	};
+	const resizeIframe = (iframe) => {
+		let bdy = iframe.contentWindow.document.body;
+		if(!bdy){
+			return;
+		}
+		let h = getNodeHeightWithMargin(bdy);
+		iframe.style.height = dimension2Style(h);
+	};
+	const bindIframeAutoResize = (iframe) => {
+		let obs;
+		try{
+			iframe.addEventListener('load', () => {
+				resizeIframe(iframe);
+				mutationEffective(iframe.contentWindow.document.body, {
+					attributes: true,
+					subtree: true,
+					childList: true
+				}, () => {
+					resizeIframe(iframe);
+				});
+			});
+		}catch(err){
+			try{
+				obs && obs.disconnect();
+			}catch(err){
+				console.error('observer disconnect fail', err);
+			}
+			console.warn('iframe content upd', err);
+		}
+	};
+	const bindTextSupportTab = (textarea, tabChar = "\t") => {
+		textarea.addEventListener('keydown', function(e){
+			if(e.key !== 'Tab'){
+				return;
+			}
+			e.preventDefault();
+			document.execCommand('insertText', false, tabChar);
+		});
+	};
+	const matchParent = (dom, selector) => {
+		return dom.closest(selector);
+	};
+	const domContained = (nodes, child, includeEqual = false) => {
+		let contains = findAll(nodes);
+		for(let i = 0; i < contains.length; i++){
+			if((includeEqual ? contains[i] === child : false) ||
+				contains[i].compareDocumentPosition(child) & 16){
+				return true;
+			}
+		}
+		return false;
+	};
+	const getFocusableElements = (dom = document) => {
+		let els = findAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), details:not([disabled]), summary:not(:disabled)', dom);
+		return els.filter(el => {
+			return !isNodeHidden(el);
+		});
+	};
+	const isNodeHidden = (node) => {
+		return node.offsetParent === null;
+	};
+	const getNodeXPath = (el) => {
+		let allNodes = document.getElementsByTagName('*');
+		let seg_list = [];
+		for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
+			if(el.hasAttribute('id')){
+				let uniqueIdCount = 0;
+				for(let n = 0; n < allNodes.length; n++){
+					if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
+					if(uniqueIdCount > 1) break;
+				}
+				if(uniqueIdCount === 1){
+					seg_list.unshift('id("' + el.getAttribute('id') + '")');
+					return seg_list.join('/');
+				}else {
+					seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
+				}
+			}else if(el.hasAttribute('class')){
+				seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
+			}else {
+				let i, sib;
+				for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
+					if(sib.localName === el.localName){
+						i++;
+					}
+				}
+				seg_list.unshift(el.localName.toLowerCase() + '[' + i + ']');
+			}
+		}
+		return seg_list.length ? '/' + seg_list.join('/') : null;
+	};
+	const onDomTreeChange = (dom, callback, includeElementChanged = true) => {
+		const PRO_KEY = 'ON_DOM_TREE_CHANGE_BIND_' + guid();
+		let watchEl = () => {
+			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`, dom).forEach(el => {
+				el.setAttribute(PRO_KEY, '1');
+				el.addEventListener('change', callback);
+			});
+		};
+		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
+			includeElementChanged && watchEl();
+			callback();
+		}, 10);
+		includeElementChanged && watchEl();
+	};
+	const mutationEffective = (dom, option, payload, minInterval = 10) => {
+		let last_queue_time = 0;
+		let callback_queueing = false;
+		let obs = new MutationObserver(() => {
+			if(callback_queueing){
+				return;
+			}
+			let r = minInterval - (new Date().getTime() - last_queue_time);
+			if(r > 0){
+				callback_queueing = true;
+				setTimeout(() => {
+					callback_queueing = false;
+					last_queue_time = new Date().getTime();
+					payload(obs);
+				}, r);
+			}else {
+				last_queue_time = new Date().getTime();
+				payload(obs);
+			}
+		});
+		obs.observe(dom, option);
+	};
+	const domChangedWatch = (container, matchedSelector, notification, executionFirst = true) => {
+		onDomTreeChange(container, () => {
+			notification(findAll(matchedSelector, container));
+		});
+		if(executionFirst){
+			notification(findAll(matchedSelector, container));
+		}
+	};
+	const keepRectCenter = (width, height, containerDimension = {
+		left: 0,
+		top: 0,
+		width: window.innerWidth,
+		height: window.innerHeight
+	}) => {
+		return [
+			Math.max((containerDimension.width - width) / 2 + containerDimension.left, 0),
+			Math.max((containerDimension.height - height) / 2 + containerDimension.top, 0)
+		];
+	};
+	const keepDomInContainer = (target, container = document.body) => {
+		keepRectInContainer({
+			left: target.left,
+			top: target.top,
+			width: target.clientWidth,
+			height: target.clientHeight,
+		});
+	};
+	const keepRectInContainer = (objDim, ctnDim = {
+		left: 0,
+		top: 0,
+		width: window.innerWidth,
+		height: window.innerHeight
+	}) => {
+		let ret = {left: objDim.left, top: objDim.top};
+		if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
+			return ret;
+		}
+		if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
+			ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
+		}
+		if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
+			ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
+		}
+		if(objDim.left < ctnDim.left){
+			ret.left = ctnDim.left;
+		}
+		if(objDim.top < ctnDim.top){
+			ret.top = ctnDim.top;
+		}
+		return ret;
+	};
+	const getDomDimension = (dom) => {
+		let org_visibility = dom.style.visibility;
+		let org_display = dom.style.display;
+		let width, height;
+		dom.style.visibility = 'hidden';
+		dom.style.display = 'block';
+		width = dom.clientWidth;
+		height = dom.clientHeight;
+		dom.style.visibility = org_visibility;
+		dom.style.display = org_display;
+		return {width, height};
+	};
+	const rectAssoc = (rect1, rect2) => {
+		if(rect1.left <= rect2.left){
+			return (rect1.left + rect1.width) >= rect2.left && (
+				between(rect2.top, rect1.top, rect1.top + rect1.height) ||
+				between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
+				rect2.top >= rect1.top && rect2.height >= rect1.height
+			);
+		}else {
+			return (rect2.left + rect2.width) >= rect1.left && (
+				between(rect1.top, rect2.top, rect2.top + rect2.height) ||
+				between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
+				rect1.top >= rect2.top && rect1.height >= rect2.height
+			);
+		}
+	};
+	const isElement = (obj) => {
+		try{
+			return obj instanceof HTMLElement;
+		}catch(e){
+			return (typeof obj === "object") &&
+				(obj.nodeType === 1) && (typeof obj.style === "object") &&
+				(typeof obj.ownerDocument === "object");
+		}
+	};
+	let _c = {};
+	const loadCss = (file, forceReload = false) => {
+		if(!forceReload && _c[file]){
+			return _c[file];
+		}
+		_c[file] = new Promise((resolve, reject) => {
+			let link = document.createElement('link');
+			link.rel = "stylesheet";
+			link.href = file;
+			link.onload = () => {
+				resolve();
+			};
+			link.onerror = () => {
+				reject();
+			};
+			document.head.append(link);
+		});
+		return _c[file];
+	};
+	const loadScript = (src, forceReload = false) => {
+		if(!forceReload && _c[src]){
+			return _c[src];
+		}
+		_c[src] = new Promise((resolve, reject) => {
+			let script = document.createElement('script');
+			script.src = src;
+			script.onload = () => {
+				resolve();
+			};
+			script.onerror = () => {
+				reject();
+			};
+			document.head.append(script);
+		});
+		return _c[src];
+	};
+	const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
+		if(id && doc.querySelector(`#${id}`)){
+			return doc.querySelector(`#${id}`);
+		}
+		let style = doc.createElement('style');
+		doc.head.appendChild(style);
+		style.innerHTML = styleSheetStr;
+		if(id){
+			style.id = id;
+		}
+		return style;
+	};
+	const getRegion = (win = window) => {
+		let info = {};
+		let doc = win.document;
+		info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
+		info.screenTop = win.screenTop ? win.screenTop : win.screenY;
+		if(win.innerWidth){
+			info.visibleWidth = win.innerWidth;
+			info.visibleHeight = win.innerHeight;
+			info.horizenScroll = win.pageXOffset;
+			info.verticalScroll = win.pageYOffset;
+		}else {
+			let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
+				doc.documentElement : doc.body;
+			info.visibleWidth = tmp.clientWidth;
+			info.visibleHeight = tmp.clientHeight;
+			info.horizenScroll = tmp.scrollLeft;
+			info.verticalScroll = tmp.scrollTop;
+		}
+		let tag = (doc.documentElement && doc.documentElement.scrollWidth) ?
+			doc.documentElement : doc.body;
+		info.documentWidth = Math.max(tag.scrollWidth, info.visibleWidth);
+		info.documentHeight = Math.max(tag.scrollHeight, info.visibleHeight);
+		return info;
+	};
+	const rectInLayout = (rect, layout) => {
+		return between(rect.top, layout.top, layout.top + layout.height) && between(rect.left, layout.left, layout.left + layout.width)
+			&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width);
+	};
+	const setStyle = (dom, style = {}) => {
+		for(let key in style){
+			key = strToPascalCase(key);
+			dom.style[key] = dimension2Style(style[key]);
+		}
+	};
+	const nodeHighlight = (node, pattern, hlClass) => {
+		let skip = 0;
+		if(node.nodeType === 3){
+			pattern = new RegExp(pattern, 'i');
+			let pos = node.data.search(pattern);
+			if(pos >= 0 && node.data.length > 0){
+				let match = node.data.match(pattern);
+				let spanNode = document.createElement('span');
+				spanNode.className = hlClass;
+				let middleBit = node.splitText(pos);
+				middleBit.splitText(match[0].length);
+				let middleClone = middleBit.cloneNode(true);
+				spanNode.appendChild(middleClone);
+				middleBit.parentNode.replaceChild(spanNode, middleBit);
+				skip = 1;
+			}
+		}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
+			for(let i = 0; i < node.childNodes.length; ++i){
+				i += nodeHighlight(node.childNodes[i], pattern, hlClass);
+			}
+		}
+		return skip;
+	};
+	const createDomByHtml = (html, parentNode = null) => {
+		let tpl = document.createElement('template');
+		html = html.trim();
+		tpl.innerHTML = html;
+		let nodes = [];
+		if(parentNode){
+			tpl.content.childNodes.forEach(node => {
+				nodes.push(parentNode.appendChild(node));
+			});
+		}else {
+			nodes = tpl.content.childNodes;
+		}
+		return nodes.length === 1 ? nodes[0] : nodes;
+	};
+	function repaint(element, delay = 0){
+		setTimeout(() => {
+			try{
+				element.hidden = true;
+				element.offsetHeight;
+				element.hidden = false;
+			}catch(_){
+			}
+		}, delay);
+	}
+	const enterFullScreen = (element) => {
+		if(element.requestFullscreen){
+			return element.requestFullscreen();
+		}
+		if(element.webkitRequestFullScreen){
+			return element.webkitRequestFullScreen();
+		}
+		if(element.mozRequestFullScreen){
+			element.mozRequestFullScreen();
+		}
+		if(element.msRequestFullScreen){
+			element.msRequestFullScreen();
+		}
+		throw "Browser no allow full screen";
+	};
+	const exitFullScreen = () => {
+		return document.exitFullscreen();
+	};
+	const toggleFullScreen = (element) => {
+		return new Promise((resolve, reject) => {
+			if(!isInFullScreen()){
+				enterFullScreen(element).then(resolve).catch(reject);
+			}else {
+				exitFullScreen().then(resolve).catch(reject);
+			}
+		})
+	};
+	const toggleStickyClass = (node, className) => {
+		const observer = new IntersectionObserver(([e]) => {
+			e.target.classList.toggle(className, e.intersectionRatio < 1);
+		}, {
+			rootMargin: '-1px 0px 0px 0px',
+			threshold: [1],
+		});
+		observer.observe(node);
+	};
+	const fixInputListOption = (inputs = 'input[list]') => {
+		findAll(inputs).forEach(input => {
+			let val = '';
+			let origin_placeholder = input.getAttribute('placeholder') || '';
+			bindNodeEvents(input, ['focus', 'click'], e=>{
+				val = input.value;
+				if(val){
+					input.setAttribute('placeholder', val);
+				}
+				input.value = '';
+				if(val){
+					setTimeout(() => {
+						input.value = val;
+					}, 10);
+				}
+			});
+			input.addEventListener('input', e => {
+				val = input.value;
+			});
+			input.addEventListener('blur', e => {
+				input.value = val;
+				input.setAttribute('placeholder', origin_placeholder);
+			});
+		});
+	};
+	const isInFullScreen = () => {
+		return !!document.fullscreenElement;
+	};
+	let CURRENT_WINDOW;
+	const setContextWindow = (win) => {
+		CURRENT_WINDOW = win;
+	};
+	const getContextDocument = () => {
+		let win = getContextWindow();
+		return win.document;
+	};
+	const getContextWindow = () => {
+		if(CURRENT_WINDOW){
+			return CURRENT_WINDOW;
+		}
+		let win;
+		try{
+			win = window;
+			while(win !== win.parent){
+				win = win.parent;
+			}
+		}catch(err){
+			console.warn('context window assign fail:', err);
+		}
+		return win || window;
 	};
 
 	const loadImgBySrc = (src)=>{
@@ -3902,6 +3942,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	let DialogManagerClass = CONTEXT_WINDOW$1[COM_ID$4].DialogManager || DialogManager;
 
 	const copy = (text, show_msg = false) => {
+		if(!text.trim().length){
+			ToastClass.showInfo('需要复制的内容为空');
+			return false;
+		}
 		let txtNode = createDomByHtml('<textarea readonly="readonly">', document.body);
 		txtNode.style.cssText = 'position:absolute; left:-9999px;';
 		let y = window.pageYOffset || document.documentElement.scrollTop;
@@ -3923,6 +3967,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return false;
 	};
 	const copyFormatted = (html, silent = false) => {
+		if(!html.trim().length){
+			ToastClass.showInfo('需要复制的内容为空');
+			return false;
+		}
 		let container = createDomByHtml(`
 		<div style="position:fixed; pointer-events:none; opacity:0;">${html}</div>
 	`, document.body);
@@ -7922,7 +7970,6 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.ParallelPromise = ParallelPromise;
 	exports.QueryString = QueryString;
 	exports.QuickJsonRequest = QuickJsonRequest;
-	exports.REMOVABLE_TAGS = REMOVABLE_TAGS;
 	exports.REQUEST_FORMAT = REQUEST_FORMAT;
 	exports.RESPONSE_FORMAT = RESPONSE_FORMAT;
 	exports.SELF_CLOSING_TAGS = SELF_CLOSING_TAGS;
@@ -7969,6 +8016,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.buildHtmlHidden = buildHtmlHidden;
 	exports.capitalize = capitalize;
 	exports.chunk = chunk;
+	exports.cleanHtml = cleanHtml;
 	exports.convertBlobToBase64 = convertBlobToBase64;
 	exports.convertFormDataToObject = convertFormDataToObject;
 	exports.convertObjectToFormData = convertObjectToFormData;
@@ -8005,6 +8053,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.findOne = findOne;
 	exports.fireEvent = fireEvent;
 	exports.fixGetFormAction = fixGetFormAction;
+	exports.fixInputListOption = fixInputListOption;
 	exports.formSerializeJSON = formSerializeJSON;
 	exports.formSerializeString = formSerializeString;
 	exports.formSync = formSync;

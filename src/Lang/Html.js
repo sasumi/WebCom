@@ -13,7 +13,7 @@ export const BLOCK_TAGS = ['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS'
  * @type {*[]}
  */
 export const PAIR_TAGS = [
-	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR',
+	'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'HEAD', 'HTML', 'I', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'OPTION', 'OUTPUT', 'Q', 'S', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'STYLE', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'TITLE', 'U', 'VAR',
 ].concat(...BLOCK_TAGS);
 
 /**
@@ -23,23 +23,52 @@ export const PAIR_TAGS = [
 export const SELF_CLOSING_TAGS = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
 
 /**
- * 非内容可清理标签
- * @type {string[]}
+ * 清理HTML内容代码（如清理页面源码成为内容HTML）
+ * @param {String} html
+ * @param {Object} option
+ * @param {String} option.pageUrl 页面URL，用于修正html中资源相对路径
+ * @param {Boolean} option.clearInlineStyle 是否清理内联样式
  */
-export const REMOVABLE_TAGS = [
-	'STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON', 'META', 'LINK', 'PARAM', 'SOURCE'
-];
+export const cleanHtml = (html, option = {})=>{
+	option = Object.assign({
+		pageUrl: '',
+		clearInlineStyle: true,
+		keepTags: [],
+		cleanTags: []
+	}, option);
+
+	//清理标签，及标签内部内容
+	let TAGS_N_CTN = ['STYLE', 'COMMENT', 'SELECT', 'OPTION', 'SCRIPT', 'TITLE', 'HEAD', 'BUTTON', 'META', 'LINK', 'PARAM', 'SOURCE'];
+	TAGS_N_CTN.forEach(tag=>{
+		if(PAIR_TAGS.includes(tag)){
+			html = html.replace(new RegExp(`<${tag}[^>]*>.*?</${tag}>`, 'idg'), '');
+		}
+		html = html.replace(new RegExp(`<${tag}[^>]*>`, 'idg'), '');
+	});
+
+	//清理评论
+	html = html.replace(/<!--[\s\S]*?-->/ig, '');
+
+	//清理属性
+	html = html.replace(/<\w+\s([^>]+)>/ig, ms=>{
+
+	});
+
+	//修正相对URL
+	if(option.pageUrl){
+
+	}
+
+	return html;
+}
 
 /**
- * Convert html to plain text
+ * 转换HTML为多行文本
  * @param {String} html
  * @returns {string}
  */
 export const html2Text = (html)=>{
-	//remove removable tags
-	REMOVABLE_TAGS.forEach(tag=>{
-		html = html.replace(new RegExp(tag, 'ig'), '');
-	})
+	html = cleanHtml(html);
 
 	//remove text line break
 	html = html.replace(/[\r|\n]/g, '');
