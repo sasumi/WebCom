@@ -1,3 +1,5 @@
+import {MIME_BINARY_DEFAULT, MIME_EXTENSION_MAP} from "./MIME.js";
+
 /**
  * 解析文件扩展名（不包含点，格式如：jpg）
  * @param {string} fileName
@@ -9,6 +11,16 @@ export const resolveFileExtension = fileName => {
 	}
 	let segList = fileName.split('.');
 	return segList[segList.length - 1];
+}
+
+/**
+ * 根据扩展名获取对应MIME
+ * @param {String} ext 扩展名（不包含点符号 @see https://en.wikipedia.org/wiki/Filename_extension）
+ * @param defaultMIME
+ * @return {String}
+ */
+export const getMimeByExtension = (ext, defaultMIME = MIME_BINARY_DEFAULT) => {
+	return MIME_EXTENSION_MAP[ext] || defaultMIME;
 }
 
 /**

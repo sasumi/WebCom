@@ -1430,9 +1430,9 @@
 		return win || window;
 	};
 
-	const NS$6 = 'WebCom-';
-	const VAR_PREFIX = '--' + NS$6;
-	const ICON_FONT = NS$6 + 'iconfont';
+	const NS$7 = 'WebCom-';
+	const VAR_PREFIX = '--' + NS$7;
+	const ICON_FONT = NS$7 + 'iconfont';
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1464,9 +1464,9 @@
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$6+'theme');
+}`, NS$7+'theme');
 	const Theme = {
-		Namespace: NS$6,
+		Namespace: NS$7,
 		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
@@ -1489,12 +1489,315 @@
 		ToastIndex: 1000000,
 	};
 
+	const MIME_BINARY_DEFAULT = 'application/octet-stream';
+	const MIME_EXTENSION_MAP = {
+		"323": "text/h323",
+		"accdb": "application/msaccess",
+		"accde": "application/msaccess",
+		"accdt": "application/msaccess",
+		"acx": "application/internet-property-stream",
+		"ai": "application/postscript",
+		"aif": "audio/x-aiff",
+		"aifc": "audio/aiff",
+		"aiff": "audio/aiff",
+		"application": "application/x-ms-application",
+		"art": "image/x-jg",
+		"asf": "video/x-ms-asf",
+		"asm": "text/plain",
+		"asr": "video/x-ms-asf",
+		"asx": "video/x-ms-asf",
+		"atom": "application/atom+xml",
+		"au": "audio/basic",
+		"avi": "video/x-msvideo",
+		"axs": "application/olescript",
+		"bas": "text/plain",
+		"bcpio": "application/x-bcpio",
+		"bmp": "image/bmp",
+		"c": "text/plain",
+		"calx": "application/vnd.ms-office.calx",
+		"cat": "application/vnd.ms-pki.seccat",
+		"cdf": "application/x-cdf",
+		"class": "application/x-java-applet",
+		"clp": "application/x-msclip",
+		"cmx": "image/x-cmx",
+		"cnf": "text/plain",
+		"cod": "image/cis-cod",
+		"cpio": "application/x-cpio",
+		"cpp": "text/plain",
+		"crd": "application/x-mscardfile",
+		"crl": "application/pkix-crl",
+		"crt": "application/x-x509-ca-cert",
+		"csh": "application/x-csh",
+		"css": "text/css",
+		"dcr": "application/x-director",
+		"der": "application/x-x509-ca-cert",
+		"dib": "image/bmp",
+		"dir": "application/x-director",
+		"disco": "text/xml",
+		"dll": "application/x-msdownload",
+		"dll.config": "text/xml",
+		"dlm": "text/dlm",
+		"doc": "application/msword",
+		"docm": "application/vnd.ms-word.document.macroEnabled.12",
+		"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		"dot": "application/msword",
+		"dotm": "application/vnd.ms-word.template.macroEnabled.12",
+		"dotx": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+		"dtd": "text/xml",
+		"dvi": "application/x-dvi",
+		"dwf": "drawing/x-dwf",
+		"dxr": "application/x-director",
+		"eml": "message/rfc822",
+		"eps": "application/postscript",
+		"etx": "text/x-setext",
+		"evy": "application/envoy",
+		"exe.config": "text/xml",
+		"fdf": "application/vnd.fdf",
+		"fif": "application/fractals",
+		"flr": "x-world/x-vrml",
+		"flv": "video/x-flv",
+		"gif": "image/gif",
+		"gtar": "application/x-gtar",
+		"gz": "application/x-gzip",
+		"h": "text/plain",
+		"hdf": "application/x-hdf",
+		"hdml": "text/x-hdml",
+		"hhc": "application/x-oleobject",
+		"hlp": "application/winhlp",
+		"hqx": "application/mac-binhex40",
+		"hta": "application/hta",
+		"htc": "text/x-component",
+		"htm": "text/html",
+		"html": "text/html",
+		"htt": "text/webviewhtml",
+		"hxt": "text/html",
+		"ico": "image/x-icon",
+		"ief": "image/ief",
+		"iii": "application/x-iphone",
+		"ins": "application/x-internet-signup",
+		"isp": "application/x-internet-signup",
+		"IVF": "video/x-ivf",
+		"jar": "application/java-archive",
+		"jck": "application/liquidmotion",
+		"jcz": "application/liquidmotion",
+		"jfif": "image/pjpeg",
+		"jpe": "image/jpeg",
+		"jpeg": "image/jpeg",
+		"jpg": "image/jpeg",
+		"js": "application/x-javascript",
+		"jsx": "text/jscript",
+		"latex": "application/x-latex",
+		"lit": "application/x-ms-reader",
+		"lsf": "video/x-la-asf",
+		"lsx": "video/x-la-asf",
+		"m13": "application/x-msmediaview",
+		"m14": "application/x-msmediaview",
+		"m1v": "video/mpeg",
+		"m3u": "audio/x-mpegurl",
+		"man": "application/x-troff-man",
+		"manifest": "application/x-ms-manifest",
+		"map": "text/plain",
+		"mdb": "application/x-msaccess",
+		"me": "application/x-troff-me",
+		"mht": "message/rfc822",
+		"mhtml": "message/rfc822",
+		"mid": "audio/mid",
+		"midi": "audio/mid",
+		"mmf": "application/x-smaf",
+		"mno": "text/xml",
+		"mny": "application/x-msmoney",
+		"mov": "video/quicktime",
+		"movie": "video/x-sgi-movie",
+		"mp2": "video/mpeg",
+		"mp3": "audio/mpeg",
+		"mpa": "video/mpeg",
+		"mpe": "video/mpeg",
+		"mpeg": "video/mpeg",
+		"mpg": "video/mpeg",
+		"mpp": "application/vnd.ms-project",
+		"mpv2": "video/mpeg",
+		"ms": "application/x-troff-ms",
+		"mvb": "application/x-msmediaview",
+		"mvc": "application/x-miva-compiled",
+		"nc": "application/x-netcdf",
+		"nsc": "video/x-ms-asf",
+		"nws": "message/rfc822",
+		"oda": "application/oda",
+		"odc": "text/x-ms-odc",
+		"ods": "application/oleobject",
+		"one": "application/onenote",
+		"onea": "application/onenote",
+		"onetoc": "application/onenote",
+		"onetoc2": "application/onenote",
+		"onetmp": "application/onenote",
+		"onepkg": "application/onenote",
+		"osdx": "application/opensearchdescription+xml",
+		"p10": "application/pkcs10",
+		"p12": "application/x-pkcs12",
+		"p7b": "application/x-pkcs7-certificates",
+		"p7c": "application/pkcs7-mime",
+		"p7m": "application/pkcs7-mime",
+		"p7r": "application/x-pkcs7-certreqresp",
+		"p7s": "application/pkcs7-signature",
+		"pbm": "image/x-portable-bitmap",
+		"pdf": "application/pdf",
+		"pfx": "application/x-pkcs12",
+		"pgm": "image/x-portable-graymap",
+		"pko": "application/vnd.ms-pki.pko",
+		"pma": "application/x-perfmon",
+		"pmc": "application/x-perfmon",
+		"pml": "application/x-perfmon",
+		"pmr": "application/x-perfmon",
+		"pmw": "application/x-perfmon",
+		"png": "image/png",
+		"pnm": "image/x-portable-anymap",
+		"pnz": "image/png",
+		"pot": "application/vnd.ms-powerpoint",
+		"potm": "application/vnd.ms-powerpoint.template.macroEnabled.12",
+		"potx": "application/vnd.openxmlformats-officedocument.presentationml.template",
+		"ppam": "application/vnd.ms-powerpoint.addin.macroEnabled.12",
+		"ppm": "image/x-portable-pixmap",
+		"pps": "application/vnd.ms-powerpoint",
+		"ppsm": "application/vnd.ms-powerpoint.slideshow.macroEnabled.12",
+		"ppsx": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
+		"ppt": "application/vnd.ms-powerpoint",
+		"pptm": "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
+		"pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		"prf": "application/pics-rules",
+		"ps": "application/postscript",
+		"pub": "application/x-mspublisher",
+		"qt": "video/quicktime",
+		"qtl": "application/x-quicktimeplayer",
+		"ra": "audio/x-pn-realaudio",
+		"ram": "audio/x-pn-realaudio",
+		"ras": "image/x-cmu-raster",
+		"rf": "image/vnd.rn-realflash",
+		"rgb": "image/x-rgb",
+		"rm": "application/vnd.rn-realmedia",
+		"rmi": "audio/mid",
+		"roff": "application/x-troff",
+		"rpm": "audio/x-pn-realaudio-plugin",
+		"rtf": "application/rtf",
+		"rtx": "text/richtext",
+		"scd": "application/x-msschedule",
+		"sct": "text/scriptlet",
+		"setpay": "application/set-payment-initiation",
+		"setreg": "application/set-registration-initiation",
+		"sgml": "text/sgml",
+		"sh": "application/x-sh",
+		"shar": "application/x-shar",
+		"sit": "application/x-stuffit",
+		"sldm": "application/vnd.ms-powerpoint.slide.macroEnabled.12",
+		"sldx": "application/vnd.openxmlformats-officedocument.presentationml.slide",
+		"smd": "audio/x-smd",
+		"smx": "audio/x-smd",
+		"smz": "audio/x-smd",
+		"snd": "audio/basic",
+		"spc": "application/x-pkcs7-certificates",
+		"spl": "application/futuresplash",
+		"src": "application/x-wais-source",
+		"ssm": "application/streamingmedia",
+		"sst": "application/vnd.ms-pki.certstore",
+		"stl": "application/vnd.ms-pki.stl",
+		"sv4cpio": "application/x-sv4cpio",
+		"sv4crc": "application/x-sv4crc",
+		"svg": "image/svg+xml",
+		"swf": "application/x-shockwave-flash",
+		"t": "application/x-troff",
+		"tar": "application/x-tar",
+		"tcl": "application/x-tcl",
+		"tex": "application/x-tex",
+		"texi": "application/x-texinfo",
+		"texinfo": "application/x-texinfo",
+		"tgz": "application/x-compressed",
+		"thmx": "application/vnd.ms-officetheme",
+		"tif": "image/tiff",
+		"tiff": "image/tiff",
+		"tr": "application/x-troff",
+		"trm": "application/x-msterminal",
+		"tsv": "text/tab-separated-values",
+		"txt": "text/plain",
+		"uls": "text/iuls",
+		"ustar": "application/x-ustar",
+		"vbs": "text/vbscript",
+		"vcf": "text/x-vcard",
+		"vcs": "text/plain",
+		"vdx": "application/vnd.ms-visio.viewer",
+		"vml": "text/xml",
+		"vsd": "application/vnd.visio",
+		"vss": "application/vnd.visio",
+		"vst": "application/vnd.visio",
+		"vsto": "application/x-ms-vsto",
+		"vsw": "application/vnd.visio",
+		"vsx": "application/vnd.visio",
+		"vtx": "application/vnd.visio",
+		"wav": "audio/wav",
+		"wax": "audio/x-ms-wax",
+		"wbmp": "image/vnd.wap.wbmp",
+		"wcm": "application/vnd.ms-works",
+		"wdb": "application/vnd.ms-works",
+		"wks": "application/vnd.ms-works",
+		"wm": "video/x-ms-wm",
+		"wma": "audio/x-ms-wma",
+		"wmd": "application/x-ms-wmd",
+		"wmf": "application/x-msmetafile",
+		"wml": "text/vnd.wap.wml",
+		"wmlc": "application/vnd.wap.wmlc",
+		"wmls": "text/vnd.wap.wmlscript",
+		"wmlsc": "application/vnd.wap.wmlscriptc",
+		"wmp": "video/x-ms-wmp",
+		"wmv": "video/x-ms-wmv",
+		"wmx": "video/x-ms-wmx",
+		"wmz": "application/x-ms-wmz",
+		"wps": "application/vnd.ms-works",
+		"wri": "application/x-mswrite",
+		"wrl": "x-world/x-vrml",
+		"wrz": "x-world/x-vrml",
+		"wsdl": "text/xml",
+		"wvx": "video/x-ms-wvx",
+		"x": "application/directx",
+		"xaf": "x-world/x-vrml",
+		"xaml": "application/xaml+xml",
+		"xap": "application/x-silverlight-app",
+		"xbap": "application/x-ms-xbap",
+		"xbm": "image/x-xbitmap",
+		"xdr": "text/plain",
+		"xht": "application/xhtml+xml",
+		"xhtml": "application/xhtml+xml",
+		"xla": "application/vnd.ms-excel",
+		"xlam": "application/vnd.ms-excel.addin.macroEnabled.12",
+		"xlc": "application/vnd.ms-excel",
+		"xlm": "application/vnd.ms-excel",
+		"xls": "application/vnd.ms-excel",
+		"xlsb": "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+		"xlsm": "application/vnd.ms-excel.sheet.macroEnabled.12",
+		"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		"xlt": "application/vnd.ms-excel",
+		"xltm": "application/vnd.ms-excel.template.macroEnabled.12",
+		"xltx": "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+		"xlw": "application/vnd.ms-excel",
+		"xml": "text/xml",
+		"xof": "x-world/x-vrml",
+		"xpm": "image/x-xpixmap",
+		"xps": "application/vnd.ms-xpsdocument",
+		"xsd": "text/xml",
+		"xsf": "text/xml",
+		"xsl": "text/xml",
+		"xslt": "text/xml",
+		"xwd": "image/x-xwindowdump",
+		"z": "application/x-compress",
+		"zip": "application/x-zip-compressed"
+	};
+
 	const resolveFileExtension = fileName => {
 		if(fileName.indexOf('.') < 0){
 			return '';
 		}
 		let segList = fileName.split('.');
 		return segList[segList.length - 1];
+	};
+	const getMimeByExtension = (ext, defaultMIME = MIME_BINARY_DEFAULT) => {
+		return MIME_EXTENSION_MAP[ext] || defaultMIME;
 	};
 	const resolveFileName = (fileName) => {
 		fileName = fileName.replace(/.*?[/|\\]/ig, '');
@@ -1879,15 +2182,30 @@
 			});
 		}
 	}
-	const downloadFile = (src, save_name) => {
-		if(!save_name){
-			save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
+	const downloadString = (string, fileName, fileMime = '') => {
+		fileMime = fileMime || getMimeByExtension(resolveFileExtension(fileName) || 'txt', MIME_BINARY_DEFAULT);
+		let blob = new Blob([string], {type: fileMime});
+		let a = document.createElement('a');
+		a.download = fileName;
+		a.href = URL.createObjectURL(blob);
+		a.dataset.downloadurl = [fileMime, a.download, a.href].join(':');
+		a.style.display = "none";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		setTimeout(function(){
+			URL.revokeObjectURL(a.href);
+		}, 1500);
+	};
+	const downloadFile = (url, saveName = '') => {
+		if(!saveName){
+			saveName = resolveFileName(url) + '.' + resolveFileExtension(url);
 		}
 		let link = document.createElement('a');
 		link.rel = 'noopener noreferrer';
 		link.target = '_blank';
-		link.href = src;
-		link.download = save_name;
+		link.href = url;
+		link.download = saveName;
 		document.body.appendChild(link);
 		link.click();
 		remove(link);
@@ -3537,7 +3855,7 @@
 		if(dlg.config.buttons.length){
 			html += `<div class="${DLG_CLS_OP}">`;
 			dlg.config.buttons.forEach(button => {
-				if(button.callback && !button.ariaLabel){
+				if(!button.callback && !button.ariaLabel){
 					button.ariaLabel = 'Close';
 				}
 				html += `<input type="button" class="${button.className || ''}" 
@@ -5012,73 +5330,73 @@
 	};
 
 	const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	const NS$5 = Theme.Namespace + 'tip';
+	const NS$6 = Theme.Namespace + 'tip';
 	const DEFAULT_DIR = 11;
 	const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	let TIP_COLLECTION = {};
 	const STYLE_STR$6 = `
-	.${NS$5}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$5}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$5}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$5}-close:hover {opacity:1}
-	.${NS$5}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$6}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$6}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$6}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$6}-close:hover {opacity:1}
+	.${NS$6}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$5}-container-wrap[data-tip-dir="11"],
-	.${NS$5}-container-wrap[data-tip-dir="0"],
-	.${NS$5}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="11"],
+	.${NS$6}-container-wrap[data-tip-dir="0"],
+	.${NS$6}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="11"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="0"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="1"] .${NS$6}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$6}-container-wrap[data-tip-dir="11"] .${NS$6}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="0"] .${NS$6}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$6}-container-wrap[data-tip-dir="1"] .${NS$6}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$5}-container-wrap[data-tip-dir="8"],
-	.${NS$5}-container-wrap[data-tip-dir="9"],
-	.${NS$5}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-close{top:3px;}
-	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="8"],
+	.${NS$6}-container-wrap[data-tip-dir="9"],
+	.${NS$6}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-close{top:3px;}
+	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$5}-container-wrap[data-tip-dir="5"],
-	.${NS$5}-container-wrap[data-tip-dir="6"],
-	.${NS$5}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-close{top:3px;}
-	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="5"],
+	.${NS$6}-container-wrap[data-tip-dir="6"],
+	.${NS$6}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-close{top:3px;}
+	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$5}-container-wrap[data-tip-dir="2"],
-	.${NS$5}-container-wrap[data-tip-dir="3"],
-	.${NS$5}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-close{right:13px;top:3px;}
-	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$6}-container-wrap[data-tip-dir="2"],
+	.${NS$6}-container-wrap[data-tip-dir="3"],
+	.${NS$6}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-close{right:13px;top:3px;}
+	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-arrow{top:calc(75% - var(--tip-gap))}
 `;
 	let bindEvent = (tip)=>{
 		if(tip.option.showCloseButton){
-			let close_btn = tip.dom.querySelector(`.${NS$5}-close`);
+			let close_btn = tip.dom.querySelector(`.${NS$6}-close`);
 			close_btn.addEventListener('click', () => {tip.hide();}, false);
 			document.addEventListener('keyup', (e) => {
 				if(e.key === KEYBOARD_KEY_MAP.Escape){
@@ -5164,16 +5482,16 @@
 			this.relateNode = relateNode;
 			this.option = Object.assign(this.option, opt);
 			this.dom = createDomByHtml(
-				`<div class="${NS$5}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$5}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$5}-close">&#10005;</span>` : ''}
-				<div class="${NS$5}-content">${content}</div>
+				`<div class="${NS$6}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$6}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$6}-close">&#10005;</span>` : ''}
+				<div class="${NS$6}-content">${content}</div>
 			</div>`);
 			bindEvent(this);
 			TIP_COLLECTION[this.id] = this;
 		}
 		setContent(html){
-			this.dom.querySelector(`.${NS$5}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$6}-content`).innerHTML = html;
 			updatePosition(this);
 		}
 		show(){
@@ -6431,40 +6749,40 @@
 		}
 	}
 
-	const NS$4 = Theme.Namespace + 'uploader';
+	const NS$5 = Theme.Namespace + 'uploader';
 	const STYLE_STR$2 = `
-	.${NS$4}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$5}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS$4}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS$4}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS$4}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$5}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$5}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$5}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS$4}[data-state="empty"]{opacity:0.5}
-	.${NS$4}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$5}[data-state="empty"]{opacity:0.5}
+	.${NS$5}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS$4}[data-state="empty"] :is(.${NS$4}-handle,.${NS$4}-progress),
-	.${NS$4}[data-state="pending"] :is(.${NS$4}-btn-clean, .${NS$4}-file, .${NS$4}-content),
-	.${NS$4}[data-state="error"] :is(.${NS$4}-progress,.${NS$4}-btn-clean),
-	.${NS$4}[data-state="normal"] :is(.${NS$4}-progress,.${NS$4}-btn-cancel),
-	.${NS$4}[data-state="normal"] .${NS$4}-file:before{
+	.${NS$5}[data-state="empty"] :is(.${NS$5}-handle,.${NS$5}-progress),
+	.${NS$5}[data-state="pending"] :is(.${NS$5}-btn-clean, .${NS$5}-file, .${NS$5}-content),
+	.${NS$5}[data-state="error"] :is(.${NS$5}-progress,.${NS$5}-btn-clean),
+	.${NS$5}[data-state="normal"] :is(.${NS$5}-progress,.${NS$5}-btn-cancel),
+	.${NS$5}[data-state="normal"] .${NS$5}-file:before{
 		display:none;
 	}
 	
-	.${NS$4}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS$4}-content{width:100%;height:100%;}
-	.${NS$4}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$5}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$5}-content{width:100%;height:100%;}
+	.${NS$5}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS$4}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS$4}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$5}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$5}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS$4}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS$4}-btn:hover{opacity:1;}
-	.${NS$4}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS$4}-btn-cancel:before{content:"\\e61a"}
-	.${NS$4}-btn-clean:before{content:"\\e61b"}
+	.${NS$5}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$5}-btn:hover{opacity:1;}
+	.${NS$5}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$5}-btn-cancel:before{content:"\\e61a"}
+	.${NS$5}-btn-clean:before{content:"\\e61b"}
 `;
-	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$4}-image`;
-	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$4}-file`;
+	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$5}-image`;
+	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$5}-file`;
 	const UPLOAD_STATE_EMPTY = 'empty';
 	const UPLOAD_STATE_PENDING = 'pending';
 	const UPLOAD_STATE_ERROR = 'error';
@@ -6518,7 +6836,7 @@
 	};
 	const updateState = (up, state, data = null) => {
 		const fileEl = findOne('input[type=file]', up.dom);
-		const contentCtn = findOne(`.${NS$4}-content`, up.dom);
+		const contentCtn = findOne(`.${NS$5}-content`, up.dom);
 		up.dom.setAttribute('data-state', state);
 		up.dom.title = '';
 		switch(state){
@@ -6632,24 +6950,24 @@
 			});
 			let acceptStr = this.option.allowFileTypes.join(',');
 			const html =
-				`<div class="${NS$4}" data-state="${this.state}">
-			<label class="${NS$4}-file">
+				`<div class="${NS$5}" data-state="${this.state}">
+			<label class="${NS$5}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" data-required="${this.option.required ? 'required' : ''}">
 			</label>
-			<div class="${NS$4}-progress">
+			<div class="${NS$5}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS$4}-content"></div>
-			<div class="${NS$4}-handle">
-				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-cancel" title="取消上传"></span>
-				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-clean" title="清除"></span>
+			<div class="${NS$5}-content"></div>
+			<div class="${NS$5}-handle">
+				<span tabindex="0" class="${NS$5}-btn ${NS$5}-btn-cancel" title="取消上传"></span>
+				<span tabindex="0" class="${NS$5}-btn ${NS$5}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 			this.dom = createDomByHtml(html, container);
 			const fileEl = findOne('input[type=file]', this.dom);
-			bindNodeActive(findOne(`.${NS$4}-btn-clean`, this.dom), () => {cleanUpload(this);});
-			bindNodeActive(findOne(`.${NS$4}-btn-cancel`, this.dom), () => {abortUpload(this);});
+			bindNodeActive(findOne(`.${NS$5}-btn-clean`, this.dom), () => {cleanUpload(this);});
+			bindNodeActive(findOne(`.${NS$5}-btn-cancel`, this.dom), () => {abortUpload(this);});
 			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			fileEl.addEventListener('change', () => {
 				let file = fileEl.files[0];
@@ -6678,7 +6996,7 @@
 						},
 						onProgress: (loaded, total) => {
 							const progressEl = findOne('progress', this.dom);
-							const progressPnt = findOne(`.${NS$4}-progress span`, this.dom);
+							const progressPnt = findOne(`.${NS$5}-progress span`, this.dom);
 							progressEl.value = loaded;
 							progressEl.max = total;
 							progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
@@ -6801,7 +7119,7 @@
 		}
 	}
 
-	const NS$3 = Theme.Namespace + 'ac-batchfiller';
+	const NS$4 = Theme.Namespace + 'ac-batchfiller';
 	const SUPPORT_INPUT_TYPES = [
 		'color',
 		'date',
@@ -6854,12 +7172,12 @@
 	class ACBatchFiller {
 		static init(){
 			insertStyleSheet(`
-			.${NS$3} {padding:2em 2em 1em 2em}
-			.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-			.${NS$3} input,
-			.${NS$3} textarea,
-			.${NS$3} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-			.${NS$3} textarea {min-height:5em; resize:vertical}
+			.${NS$4} {padding:2em 2em 1em 2em}
+			.${NS$4} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+			.${NS$4} input,
+			.${NS$4} textarea,
+			.${NS$4} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+			.${NS$4} textarea {min-height:5em; resize:vertical}
 		`, Theme.Namespace + '-batch-filler');
 		}
 		static active(node, param, event){
@@ -6869,7 +7187,7 @@
 					ToastClass.showInfo("没有可以填写的输入框");
 					return;
 				}
-				let id = guid(NS$3);
+				let id = guid(NS$4);
 				let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 				let el, dlg;
 				let label_html = param.title || '批量设置';
@@ -6901,7 +7219,7 @@
 					dlg.close();
 				};
 				dlg = DialogClass.show('',
-					`<div class="${NS$3}">
+					`<div class="${NS$4}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </div>`, {
@@ -6931,7 +7249,7 @@
 		}
 	}
 
-	const NS$2 = Theme.Namespace + 'ac-column-filler';
+	const NS$3 = Theme.Namespace + 'ac-column-filler';
 	const resetEl = el => {
 		if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
 			el.checked = false;
@@ -6960,7 +7278,7 @@
 	class ACColumnFiller {
 		static init(){
 			insertStyleSheet(`
-			.${NS$2} {padding:2em 2em 1em 2em; text-align:center;}
+			.${NS$3} {padding:2em 2em 1em 2em; text-align:center;}
 		`);
 		}
 		static active(node, param, event){
@@ -7005,7 +7323,7 @@
 					dlg.close();
 				};
 				dlg = DialogClass.show('批量设置',
-					`<form class="${NS$2}">${form_html}</form>`, {
+					`<form class="${NS$3}">${form_html}</form>`, {
 						width: 350,
 						buttons: [
 							{
@@ -7041,16 +7359,16 @@
 		}
 	}
 
-	const NS$1 = Theme.Namespace + 'ac-copy';
+	const NS$2 = Theme.Namespace + 'ac-copy';
 	class ACCopy {
 		static TRIGGER_SELF = 1;
 		static TRIGGER_INSIDE = 2;
-		static COPY_CLASS = NS$1;
+		static COPY_CLASS = NS$2;
 		static init(node, param = {}){
 			insertStyleSheet(`
-			.${NS$1} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-			.${NS$1}:hover {opacity:1}
-			.${NS$1}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+			.${NS$2} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+			.${NS$2}:hover {opacity:1}
+			.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
 		`, Theme.Namespace + 'ac-copy');
 			let trigger = node;
 			if((!param.trigger && PAIR_TAGS.includes(node.tagName)) ||
@@ -7101,7 +7419,7 @@
 		}
 	}
 
-	const NS = Theme.Namespace + 'ac-ie-';
+	const NS$1 = Theme.Namespace + 'ac-ie-';
 	let _patch_flag = false;
 	const patchCss = () => {
 		if(_patch_flag){
@@ -7109,17 +7427,17 @@
 		}
 		_patch_flag = true;
 		insertStyleSheet(`
-		.${NS}editor {cursor:pointer}
-		.${NS}editor:hover:after {opacity:1; color:var(--color-link)}
-		.${NS}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS$1}editor {cursor:pointer}
+		.${NS$1}editor:hover:after {opacity:1; color:var(--color-link)}
+		.${NS$1}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
 		
-		.${NS}editor-wrap {
+		.${NS$1}editor-wrap {
 		    display:inline-flex;
 		    align-items:center;
 		    gap:0.25em;
 		}
-		.${NS}save-btn,
-		.${NS}cancel-btn {
+		.${NS$1}save-btn,
+		.${NS$1}cancel-btn {
 		    display: inline-flex;
 		    border: 1px solid gray;
 		    align-items: center;
@@ -7133,11 +7451,11 @@
 		    cursor: pointer;
 		}
 		
-		.${NS}save-btn[disabled],
-		.${NS}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
-		.${NS}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
-		.${NS}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
-	`, NS + 'style');
+		.${NS$1}save-btn[disabled],
+		.${NS$1}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
+		.${NS$1}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
+		.${NS$1}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
+	`, NS$1 + 'style');
 	};
 	class ACInlineEditor {
 		static transmitter;
@@ -7162,23 +7480,23 @@
 				action = form.action;
 				method = method || form.method;
 			}
-			node.classList.add(NS + 'editor');
+			node.classList.add(NS$1 + 'editor');
 			let input_wrap;
 			let input_el;
 			let switchState = (edit) => {
 				if(edit){
 					if(!input_wrap){
 						input_wrap = createDomByHtml(`
-						<span class="${NS}editor-wrap">
+						<span class="${NS$1}editor-wrap">
 							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
 						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
-							<span disabled="disabled" class="${NS}save-btn" tabindex="0"></span>
-							<span class="${NS}cancel-btn" tabindex="0"></span>
+							<span disabled="disabled" class="${NS$1}save-btn" tabindex="0"></span>
+							<span class="${NS$1}cancel-btn" tabindex="0"></span>
 						</span>
 					`);
 						node.parentNode.insertBefore(input_wrap, node);
-						let save_btn = input_wrap.querySelector(`.${NS}save-btn`);
-						let cancel_btn = input_wrap.querySelector(`.${NS}cancel-btn`);
+						let save_btn = input_wrap.querySelector(`.${NS$1}save-btn`);
+						let cancel_btn = input_wrap.querySelector(`.${NS$1}cancel-btn`);
 						input_el = input_wrap.querySelector('input,textarea');
 						const doSave = () => {
 							let new_text = input_el.value;
@@ -7431,6 +7749,55 @@
 				params.allowFileTypes = node.accept;
 			}
 			Uploader.bindInput(node, params, params);
+		}
+	}
+
+	const NS = Theme.Namespace + 'ac-view-copy';
+	class ACViewCopy {
+		static init(node, param){
+			insertStyleSheet(`
+			.${NS}-txt-wrap {padding:0.5em 1em;}
+			.${NS}-txt {width:100%; box-sizing:border-box; min-height:12em; resize:vertical;}
+		`, NS);
+		}
+		static active(node, param){
+			return new Promise(resolve => {
+				if(!param.content){
+					console.error('没有内容', param);
+					return;
+				}
+				let extButtons = [];
+				if(param.file !== undefined){
+					let fileName = param.file || '文件.txt';
+					extButtons = [{title:"下载", callback:()=>{
+						downloadString(param.content, fileName);
+					}}];
+				}
+				let html =
+`<div class="${NS}-txt-wrap">
+	<textarea readonly class="${NS}-txt"></textarea>
+</div>`	;
+				let txt = null;
+				let dlg = DialogClass.show('复制', html, {
+					buttons:[
+						{title:"复制内容", callback:()=>{
+							try{
+								txt.select();
+								document.execCommand('copy');
+								ToastClass.showSuccess(trans('内容已复制到剪贴板'));
+							}catch(err){
+								console.error(err);
+								ToastClass.showWarning('复制失败，请手工复制');
+							}
+						}},
+						...extButtons,
+						{title:"关闭"},
+					]
+				});
+				txt = dlg.dom.querySelector('textarea');
+				txt.value = param.content;
+				resolve();
+			})
 		}
 	}
 
@@ -7703,6 +8070,7 @@
 		columnfiller: ACColumnFiller,
 		confirm: ACConfirm,
 		copy: ACCopy,
+		viewcopy:ACViewCopy,
 		daterangeselector: ACDateRangeSelector,
 		dialog: ACDialog,
 		highlight: ACHighlight,
@@ -7866,6 +8234,7 @@
 	exports.ACToast = ACToast;
 	exports.ACUnSaveAlert = ACUnSaveAlert;
 	exports.ACUploader = ACUploader;
+	exports.ACViewCopy = ACViewCopy;
 	exports.ASYNC_SUBMITTING_FLAG = ASYNC_SUBMITTING_FLAG;
 	exports.BLOCK_TAGS = BLOCK_TAGS;
 	exports.Base64Encode = Base64Encode;
@@ -7893,6 +8262,8 @@
 	exports.KEYS = KEYS;
 	exports.LocalStorageSetting = LocalStorageSetting;
 	exports.MD5 = MD5;
+	exports.MIME_BINARY_DEFAULT = MIME_BINARY_DEFAULT;
+	exports.MIME_EXTENSION_MAP = MIME_EXTENSION_MAP;
 	exports.Masker = Masker;
 	exports.Net = Net;
 	exports.ONE_DAY = ONE_DAY;
@@ -7975,6 +8346,7 @@
 	exports.domChangedWatch = domChangedWatch;
 	exports.domContained = domContained;
 	exports.downloadFile = downloadFile;
+	exports.downloadString = downloadString;
 	exports.enabled = enabled;
 	exports.enterFullScreen = enterFullScreen;
 	exports.entityToString = entityToString;
@@ -8022,6 +8394,7 @@
 	exports.getLibEntryScript = getLibEntryScript;
 	exports.getLibModule = getLibModule;
 	exports.getLibModuleTop = getLibModuleTop;
+	exports.getMimeByExtension = getMimeByExtension;
 	exports.getMonthLastDay = getMonthLastDay;
 	exports.getNextMonth = getNextMonth;
 	exports.getNodeXPath = getNodeXPath;

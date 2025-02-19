@@ -1,7 +1,8 @@
-import {resolveFileExtension, resolveFileName} from "./File.js";
+import {getMimeByExtension, resolveFileExtension, resolveFileName} from "./File.js";
 import {BizEvent} from "./Event.js";
 import {remove} from "./Dom.js";
 import {regQuote} from "./String.js";
+import {MIME_BINARY_DEFAULT} from "./MIME.js";
 
 /**
  * HTTP请求方法
@@ -427,20 +428,42 @@ export class Net {
 }
 
 /**
+ * 下载字符串
+ * @param {String} string 字符串（文件内容）
+ * @param {String} fileName 文件名
+ * @param {String} fileMime 文件类型MIME，缺省为自动从文件名后缀中识别
+ */
+export const downloadString = (string, fileName, fileMime = '') => {
+	fileMime = fileMime || getMimeByExtension(resolveFileExtension(fileName) || 'txt', MIME_BINARY_DEFAULT);
+	let blob = new Blob([string], {type: fileMime});
+	let a = document.createElement('a');
+	a.download = fileName;
+	a.href = URL.createObjectURL(blob);
+	a.dataset.downloadurl = [fileMime, a.download, a.href].join(':');
+	a.style.display = "none";
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	setTimeout(function(){
+		URL.revokeObjectURL(a.href);
+	}, 1500);
+}
+
+/**
  * 文件下载
  * 注意：在浏览器中如果非同域，自定义保存名称无效
- * @param src 文件地址
- * @param save_name 保存名称（包含扩展名，为空表示自动从src中提取）
+ * @param url 文件地址
+ * @param saveName 保存名称（包含扩展名，为空表示自动从src中提取）
  */
-export const downloadFile = (src, save_name) => {
-	if(!save_name){
-		save_name = resolveFileName(src) + '.' + resolveFileExtension(src);
+export const downloadFile = (url, saveName = '') => {
+	if(!saveName){
+		saveName = resolveFileName(url) + '.' + resolveFileExtension(url);
 	}
 	let link = document.createElement('a');
 	link.rel = 'noopener noreferrer';
 	link.target = '_blank';
-	link.href = src;
-	link.download = save_name;
+	link.href = url;
+	link.download = saveName;
 	document.body.appendChild(link);
 	link.click();
 	remove(link);

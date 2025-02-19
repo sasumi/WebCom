@@ -2,14 +2,15 @@
 export * from "./Lang/Array.js";
 export * from "./Lang/Base64.js";
 export * from "./Lang/Cookie.js";
-export * from "./Lang/Dom.js";
 export * from "./Lang/Event.js";
+export * from "./Lang/Dom.js";
 export * from "./Lang/File.js";
 export * from "./Lang/Form.js";
 export * from "./Lang/Html.js";
 export * from "./Lang/Img.js";
 export * from "./Lang/Math.js";
 export * from "./Lang/MD5.js";
+export * from "./Lang/MIME.js";
 export * from "./Lang/Net.js";
 export * from "./Lang/ReportApi.js";
 export * from "./Lang/Route.js";
@@ -60,6 +61,7 @@ export * from "./Auto/ACTip.js";
 export * from "./Auto/ACToast.js";
 export * from "./Auto/ACUnSaveAlert.js";
 export * from "./Auto/ACUploader.js";
+export * from "./Auto/ACViewCopy.js";
 
 //组件管理模块最后加载
 export * from "./Auto/ACComponent.js";
