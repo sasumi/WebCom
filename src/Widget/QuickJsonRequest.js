@@ -3,7 +3,8 @@ import {HTTP_METHOD, requestJSON} from "../Lang/Net.js";
 import {Toast} from "./Toast.js";
 
 /**
- * @param showMsg
+ * 获取提示语显示选项
+ * @param {Object|Boolean} showMsg, TRUE表示显示所有提示语，FALSE表示关闭显示，Object则由具体选项控制
  * @return {{success: boolean, pending: boolean, error: boolean}}
  */
 const getToastOption = (showMsg) => {
@@ -40,7 +41,15 @@ export const QuickJsonRequest = {
 		return (rsp && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
 	},
 
-	request: (method, url, data, showMsg = true) => {
+	/**
+	 * 发起JSON请求
+	 * @param {String} method 请求方法：GET，POST
+	 * @param {String} url 请求URL
+	 * @param {*} data 请求数据
+	 * @param {Object|Boolean} showMsg 是否显示提示语（提示语选项请参考 getToastOption() 方法）
+	 * @return {Promise<Object,String>}
+	 */
+	request: (method, url, data, showMsg = false) => {
 		let toastOpt = getToastOption(showMsg);
 		let pendingToast = null;
 		if(toastOpt.pending){
@@ -68,20 +77,20 @@ export const QuickJsonRequest = {
 
 	/**
 	 * 快速 GET JSON请求
-	 * @param {String} url
-	 * @param {Object|String} data
-	 * @param {Object|Boolean} showMsg
+	 * @param {String} url 请求URL
+	 * @param {Object|String} data 请求数据
+	 * @param {Object|Boolean} showMsg 是否显示提示语（提示语选项请参考 getToastOption() 方法）
 	 * @return {Promise<Object,String>}
 	 */
-	get(url, data, showMsg = true){
+	get(url, data, showMsg = false){
 		return QuickJsonRequest.request(HTTP_METHOD.GET, url, data, showMsg);
 	},
 
 	/**
 	 * 快速 POST JSON请求
-	 * @param {String} url
-	 * @param {Object|String} data
-	 * @param {Object|Boolean} showMsg
+	 * @param {String} url 请求URL
+	 * @param {*} data 请求数据
+	 * @param {Object|Boolean} showMsg 是否显示提示语（提示语选项请参考 getToastOption() 方法）
 	 * @return {Promise<Object,String>}
 	 */
 	post(url, data, showMsg = true){

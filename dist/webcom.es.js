@@ -5833,7 +5833,7 @@ const QuickJsonRequest = {
 	RESPONSE_SUCCESS_ERROR: (rsp) => {
 		return (rsp && rsp.code === 0) ? [rsp.message || '操作成功', ''] : ['', rsp.message || '请求发生错误'];
 	},
-	request: (method, url, data, showMsg = true) => {
+	request: (method, url, data, showMsg = false) => {
 		let toastOpt = getToastOption(showMsg);
 		let pendingToast = null;
 		if(toastOpt.pending){
@@ -5858,7 +5858,7 @@ const QuickJsonRequest = {
 				});
 		});
 	},
-	get(url, data, showMsg = true){
+	get(url, data, showMsg = false){
 		return QuickJsonRequest.request(HTTP_METHOD.GET, url, data, showMsg);
 	},
 	post(url, data, showMsg = true){
