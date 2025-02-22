@@ -52,6 +52,17 @@ export class ACAsync {
 		}
 	}
 
+	/**
+	 * @param {Node} node
+	 * @param {Object} param
+	 * @param {String} param.url
+	 * @param {String} param.data
+	 * @param {String} param.method
+	 * @param {String} param.requestformat
+	 * @param {String} param.onsuccess 成功回调，如果指定会覆盖默认成功回调
+	 * @param event
+	 * @return {Promise<unknown>}
+	 */
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			event.preventDefault();
