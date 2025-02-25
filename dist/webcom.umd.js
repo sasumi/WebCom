@@ -2213,6 +2213,10 @@
 	const downloadFiles = (urls, itemCallback = null) => {
 		let loop = () => {
 			let url = urls.pop();
+			if(isObject(url)){
+				url = url.url;
+				url.name;
+			}
 			downloadFile(url);
 			itemCallback && itemCallback(url);
 			if(urls.length){

@@ -3,6 +3,7 @@ import {BizEvent} from "./Event.js";
 import {remove} from "./Dom.js";
 import {regQuote} from "./String.js";
 import {MIME_BINARY_DEFAULT} from "./MIME.js";
+import {isObject} from "./Util.js";
 
 /**
  * HTTP请求方法
@@ -471,12 +472,19 @@ export const downloadFile = (url, saveName = '') => {
 
 /**
  * 批量文件下载（由于chrome浏览器最多只能一次事件触发下载10个，超过10个需要异步下载）
- * @param {String[]} urls
+ * @param {String[]|Object[]} urls
+ * @param {String} urls.name
+ * @param {String} urls.url
  * @param {Function|Null} itemCallback
  */
 export const downloadFiles = (urls, itemCallback = null) => {
 	let loop = () => {
 		let url = urls.pop();
+		let name = '';
+		if(isObject(url)){
+			url = url.url;
+			name = url.name;
+		}
 		downloadFile(url);
 		itemCallback && itemCallback(url);
 		if(urls.length){
