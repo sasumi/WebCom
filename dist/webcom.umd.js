@@ -2215,9 +2215,9 @@
 			let item = urls.pop();
 			let name = '';
 			let url = '';
-			if(isObject(url)){
-				url = url.url;
-				name = url.name;
+			if(isObject(item)){
+				url = item.url;
+				name = item.name;
 			} else {
 				url = item;
 			}
