@@ -479,14 +479,17 @@ export const downloadFile = (url, saveName = '') => {
  */
 export const downloadFiles = (urls, itemCallback = null) => {
 	let loop = () => {
-		let url = urls.pop();
+		let item = urls.pop();
 		let name = '';
+		let url = '';
 		if(isObject(url)){
 			url = url.url;
 			name = url.name;
+		} else {
+			url = item;
 		}
-		downloadFile(url);
-		itemCallback && itemCallback(url);
+		downloadFile(url, name);
+		itemCallback && itemCallback(item);
 		if(urls.length){
 			setTimeout(loop, 50);
 		}
