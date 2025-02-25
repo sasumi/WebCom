@@ -469,6 +469,23 @@ export const downloadFile = (url, saveName = '') => {
 	remove(link);
 };
 
+/**
+ * 批量文件下载（由于chrome浏览器最多只能一次事件触发下载10个，超过10个需要异步下载）
+ * @param {String[]} urls
+ * @param {Function|Null} itemCallback
+ */
+export const downloadFiles = (urls, itemCallback = null) => {
+	let loop = () => {
+		let url = urls.pop();
+		downloadFile(url);
+		itemCallback && itemCallback(url);
+		if(urls.length){
+			setTimeout(loop, 50);
+		}
+	}
+	loop();
+}
+
 export const QueryString = {
 	parse(str){
 		if(str[0] === '?'){

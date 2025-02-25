@@ -2207,6 +2207,17 @@ var WebCom = (function (exports) {
 		link.click();
 		remove(link);
 	};
+	const downloadFiles = (urls, itemCallback = null) => {
+		let loop = () => {
+			let url = urls.pop();
+			downloadFile(url);
+			itemCallback && itemCallback(url);
+			if(urls.length){
+				setTimeout(loop, 50);
+			}
+		};
+		loop();
+	};
 	const QueryString = {
 		parse(str){
 			if(str[0] === '?'){
@@ -2259,7 +2270,7 @@ var WebCom = (function (exports) {
 	};
 
 	const inputAble = el => {
-		if(el instanceof HTMLFormElement){
+		if(el instanceof HTMLInputElement){
 			return !(el.disabled ||
 				el.readOnly ||
 				el.tagName === 'BUTTON' ||
@@ -2267,6 +2278,12 @@ var WebCom = (function (exports) {
 			);
 		}
 		return false;
+	};
+	const inputTypeAble = (el)=>{
+		return inputAble(el) && (
+			['text', 'password', 'url', 'search', 'tel', 'address', 'number', 'date', 'datetime-local', 'month'].includes(el.type)
+			|| el.tagName === 'TEXTAREA'
+		);
 	};
 	const getElementValue = (el) => {
 		if(el.disabled){
@@ -8343,6 +8360,7 @@ var WebCom = (function (exports) {
 	exports.domChangedWatch = domChangedWatch;
 	exports.domContained = domContained;
 	exports.downloadFile = downloadFile;
+	exports.downloadFiles = downloadFiles;
 	exports.downloadString = downloadString;
 	exports.enabled = enabled;
 	exports.enterFullScreen = enterFullScreen;
@@ -8410,6 +8428,7 @@ var WebCom = (function (exports) {
 	exports.inMobile = inMobile;
 	exports.initAutofillButton = initAutofillButton;
 	exports.inputAble = inputAble;
+	exports.inputTypeAble = inputTypeAble;
 	exports.insertStyleSheet = insertStyleSheet;
 	exports.isButton = isButton;
 	exports.isElement = isElement;

@@ -10,7 +10,7 @@ import {requestJSON} from "./Net.js";
  * @returns {boolean}
  */
 export const inputAble = el => {
-	if(el instanceof HTMLFormElement){
+	if(el instanceof HTMLInputElement){
 		return !(el.disabled || //禁用
 			el.readOnly || //只读
 			el.tagName === 'BUTTON' || //按钮
@@ -18,6 +18,18 @@ export const inputAble = el => {
 		);
 	}
 	return false;
+}
+
+/**
+ * 检测元素是否可以按键输入（文本型）
+ * @param {HTMLElement} el
+ * @returns {Boolean}
+ */
+export const inputTypeAble = (el)=>{
+	return inputAble(el) && (
+		['text', 'password', 'url', 'search', 'tel', 'address', 'number', 'date', 'datetime-local', 'month'].includes(el.type)
+		|| el.tagName === 'TEXTAREA'
+	);
 }
 
 /**
