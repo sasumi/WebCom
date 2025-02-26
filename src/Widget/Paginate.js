@@ -6,7 +6,7 @@ import {eventDelegate} from "../Lang/Event.js";
  * @param {Object} paginate
  * @param {Number} paginate.item_total
  * @param {Number} paginate.page_size
- * @param {Number} paginate.current_page
+ * @param {Number} paginate.page
  * @param {Function} onChange
  * @return {ChildNode | NodeListOf<ChildNode>}
  */
@@ -15,7 +15,7 @@ export const renderPaginate = (paginate, onChange) => {
 
 	let item_total = paginate.item_total;
 	let page_size = paginate.page_size;
-	let page = paginate.current_page;
+	let page = paginate.page;
 	let page_total = Math.ceil(item_total / page_size);
 
 	const PAGINATE_DOM = createDomByHtml(`<div class="paginate paginate-total-${page_total}"></div>`);

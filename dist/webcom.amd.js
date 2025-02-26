@@ -5755,7 +5755,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		const NUM_OFFSET = 4;
 		let item_total = paginate.item_total;
 		let page_size = paginate.page_size;
-		let page = paginate.current_page;
+		let page = paginate.page;
 		let page_total = Math.ceil(item_total / page_size);
 		const PAGINATE_DOM = createDomByHtml(`<div class="paginate paginate-total-${page_total}"></div>`);
 		const render = (page) => {
