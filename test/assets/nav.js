@@ -15,6 +15,7 @@ const nav = [
 	'daterange.html',
 	'inlineeditor.html',
 	'confirm.html',
+	'columnfiller.html',
 	'hotkey.html',
 	'console.html',
 	'dialog.html',

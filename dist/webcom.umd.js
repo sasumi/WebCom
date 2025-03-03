@@ -1430,9 +1430,9 @@
 		return win || window;
 	};
 
-	const NS$7 = 'WebCom-';
-	const VAR_PREFIX = '--' + NS$7;
-	const ICON_FONT = NS$7 + 'iconfont';
+	const NS$6 = 'WebCom-';
+	const VAR_PREFIX = '--' + NS$6;
+	const ICON_FONT = NS$6 + 'iconfont';
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1464,9 +1464,9 @@
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$7+'theme');
+}`, NS$6+'theme');
 	const Theme = {
-		Namespace: NS$7,
+		Namespace: NS$6,
 		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
@@ -5355,73 +5355,73 @@
 	};
 
 	const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	const NS$6 = Theme.Namespace + 'tip';
+	const NS$5 = Theme.Namespace + 'tip';
 	const DEFAULT_DIR = 11;
 	const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	let TIP_COLLECTION = {};
 	const STYLE_STR$6 = `
-	.${NS$6}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$6}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$6}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$6}-close:hover {opacity:1}
-	.${NS$6}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$5}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$5}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$5}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$5}-close:hover {opacity:1}
+	.${NS$5}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$6}-container-wrap[data-tip-dir="11"],
-	.${NS$6}-container-wrap[data-tip-dir="0"],
-	.${NS$6}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$6}-container-wrap[data-tip-dir="11"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="0"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="1"] .${NS$6}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$6}-container-wrap[data-tip-dir="11"] .${NS$6}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$6}-container-wrap[data-tip-dir="0"] .${NS$6}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$6}-container-wrap[data-tip-dir="1"] .${NS$6}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="11"],
+	.${NS$5}-container-wrap[data-tip-dir="0"],
+	.${NS$5}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$6}-container-wrap[data-tip-dir="8"],
-	.${NS$6}-container-wrap[data-tip-dir="9"],
-	.${NS$6}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-close,
-	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-close,
-	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-close{top:3px;}
-	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="8"],
+	.${NS$5}-container-wrap[data-tip-dir="9"],
+	.${NS$5}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-close{top:3px;}
+	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$6}-container-wrap[data-tip-dir="5"],
-	.${NS$6}-container-wrap[data-tip-dir="6"],
-	.${NS$6}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-close,
-	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-close,
-	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-close{top:3px;}
-	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="5"],
+	.${NS$5}-container-wrap[data-tip-dir="6"],
+	.${NS$5}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-close{top:3px;}
+	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$6}-container-wrap[data-tip-dir="2"],
-	.${NS$6}-container-wrap[data-tip-dir="3"],
-	.${NS$6}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-close,
-	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-close,
-	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-close{right:13px;top:3px;}
-	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-arrow,
-	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$5}-container-wrap[data-tip-dir="2"],
+	.${NS$5}-container-wrap[data-tip-dir="3"],
+	.${NS$5}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-close,
+	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-close{right:13px;top:3px;}
+	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow,
+	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap))}
 `;
 	let bindEvent = (tip)=>{
 		if(tip.option.showCloseButton){
-			let close_btn = tip.dom.querySelector(`.${NS$6}-close`);
+			let close_btn = tip.dom.querySelector(`.${NS$5}-close`);
 			close_btn.addEventListener('click', () => {tip.hide();}, false);
 			document.addEventListener('keyup', (e) => {
 				if(e.key === KEYBOARD_KEY_MAP.Escape){
@@ -5507,16 +5507,16 @@
 			this.relateNode = relateNode;
 			this.option = Object.assign(this.option, opt);
 			this.dom = createDomByHtml(
-				`<div class="${NS$6}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$6}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$6}-close">&#10005;</span>` : ''}
-				<div class="${NS$6}-content">${content}</div>
+				`<div class="${NS$5}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$5}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$5}-close">&#10005;</span>` : ''}
+				<div class="${NS$5}-content">${content}</div>
 			</div>`);
 			bindEvent(this);
 			TIP_COLLECTION[this.id] = this;
 		}
 		setContent(html){
-			this.dom.querySelector(`.${NS$6}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$5}-content`).innerHTML = html;
 			updatePosition(this);
 		}
 		show(){
@@ -6774,40 +6774,40 @@
 		}
 	}
 
-	const NS$5 = Theme.Namespace + 'uploader';
+	const NS$4 = Theme.Namespace + 'uploader';
 	const STYLE_STR$2 = `
-	.${NS$5}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$4}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS$5}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS$5}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS$5}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$4}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$4}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$4}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS$5}[data-state="empty"]{opacity:0.5}
-	.${NS$5}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$4}[data-state="empty"]{opacity:0.5}
+	.${NS$4}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS$5}[data-state="empty"] :is(.${NS$5}-handle,.${NS$5}-progress),
-	.${NS$5}[data-state="pending"] :is(.${NS$5}-btn-clean, .${NS$5}-file, .${NS$5}-content),
-	.${NS$5}[data-state="error"] :is(.${NS$5}-progress,.${NS$5}-btn-clean),
-	.${NS$5}[data-state="normal"] :is(.${NS$5}-progress,.${NS$5}-btn-cancel),
-	.${NS$5}[data-state="normal"] .${NS$5}-file:before{
+	.${NS$4}[data-state="empty"] :is(.${NS$4}-handle,.${NS$4}-progress),
+	.${NS$4}[data-state="pending"] :is(.${NS$4}-btn-clean, .${NS$4}-file, .${NS$4}-content),
+	.${NS$4}[data-state="error"] :is(.${NS$4}-progress,.${NS$4}-btn-clean),
+	.${NS$4}[data-state="normal"] :is(.${NS$4}-progress,.${NS$4}-btn-cancel),
+	.${NS$4}[data-state="normal"] .${NS$4}-file:before{
 		display:none;
 	}
 	
-	.${NS$5}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS$5}-content{width:100%;height:100%;}
-	.${NS$5}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$4}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$4}-content{width:100%;height:100%;}
+	.${NS$4}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS$5}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS$5}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$4}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$4}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS$5}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS$5}-btn:hover{opacity:1;}
-	.${NS$5}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS$5}-btn-cancel:before{content:"\\e61a"}
-	.${NS$5}-btn-clean:before{content:"\\e61b"}
+	.${NS$4}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$4}-btn:hover{opacity:1;}
+	.${NS$4}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$4}-btn-cancel:before{content:"\\e61a"}
+	.${NS$4}-btn-clean:before{content:"\\e61b"}
 `;
-	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$5}-image`;
-	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$5}-file`;
+	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$4}-image`;
+	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$4}-file`;
 	const UPLOAD_STATE_EMPTY = 'empty';
 	const UPLOAD_STATE_PENDING = 'pending';
 	const UPLOAD_STATE_ERROR = 'error';
@@ -6861,7 +6861,7 @@
 	};
 	const updateState = (up, state, data = null) => {
 		const fileEl = findOne('input[type=file]', up.dom);
-		const contentCtn = findOne(`.${NS$5}-content`, up.dom);
+		const contentCtn = findOne(`.${NS$4}-content`, up.dom);
 		up.dom.setAttribute('data-state', state);
 		up.dom.title = '';
 		switch(state){
@@ -6975,24 +6975,24 @@
 			});
 			let acceptStr = this.option.allowFileTypes.join(',');
 			const html =
-				`<div class="${NS$5}" data-state="${this.state}">
-			<label class="${NS$5}-file">
+				`<div class="${NS$4}" data-state="${this.state}">
+			<label class="${NS$4}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" data-required="${this.option.required ? 'required' : ''}">
 			</label>
-			<div class="${NS$5}-progress">
+			<div class="${NS$4}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS$5}-content"></div>
-			<div class="${NS$5}-handle">
-				<span tabindex="0" class="${NS$5}-btn ${NS$5}-btn-cancel" title="取消上传"></span>
-				<span tabindex="0" class="${NS$5}-btn ${NS$5}-btn-clean" title="清除"></span>
+			<div class="${NS$4}-content"></div>
+			<div class="${NS$4}-handle">
+				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-cancel" title="取消上传"></span>
+				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 			this.dom = createDomByHtml(html, container);
 			const fileEl = findOne('input[type=file]', this.dom);
-			bindNodeActive(findOne(`.${NS$5}-btn-clean`, this.dom), () => {cleanUpload(this);});
-			bindNodeActive(findOne(`.${NS$5}-btn-cancel`, this.dom), () => {abortUpload(this);});
+			bindNodeActive(findOne(`.${NS$4}-btn-clean`, this.dom), () => {cleanUpload(this);});
+			bindNodeActive(findOne(`.${NS$4}-btn-cancel`, this.dom), () => {abortUpload(this);});
 			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			fileEl.addEventListener('change', () => {
 				let file = fileEl.files[0];
@@ -7021,7 +7021,7 @@
 						},
 						onProgress: (loaded, total) => {
 							const progressEl = findOne('progress', this.dom);
-							const progressPnt = findOne(`.${NS$5}-progress span`, this.dom);
+							const progressPnt = findOne(`.${NS$4}-progress span`, this.dom);
 							progressEl.value = loaded;
 							progressEl.max = total;
 							progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
@@ -7144,7 +7144,7 @@
 		}
 	}
 
-	const NS$4 = Theme.Namespace + 'ac-batchfiller';
+	const NS$3 = Theme.Namespace + 'ac-batch-filler';
 	const SUPPORT_INPUT_TYPES = [
 		'color',
 		'date',
@@ -7162,19 +7162,20 @@
 		'text',
 		'url',
 	];
-	const cloneElementAsHtml = (el, id = '') => {
-		let required_attr = el.required ? 'required' : '';
-		let pattern_attr = el.getAttribute('pattern') ? `pattern="${el.getAttribute('pattern')}"` : '';
-		let placeholder_attr = el.placeholder ? `placeholder="${escapeAttr(el.placeholder)}"` : '';
-		let title_attr = el.title ? `title="${escapeAttr(el.title)}"` : '';
-		let max_attr = el.max ? `max=${escapeAttr(el.max)}` : '';
-		let min_attr = el.min ? `min=${escapeAttr(el.min)}` : '';
-		let step_attr = el.step ? `step=${escapeAttr(el.step)}` : '';
-		let id_attr = id.length ? `id="${escapeAttr(id)}"` : '';
+	const KEEP_ATTRIBUTES = ['type', 'required', 'pattern', 'placeholder', 'size', 'maxlength', 'title', 'min', 'max', 'step', 'multiple'];
+	const cloneElementAsHtml = (el, newId = '') => {
+		let keep_attr_str = [];
+		if(newId){
+			keep_attr_str.push(`id="${escapeAttr(newId)}"`);
+		}
+		KEEP_ATTRIBUTES.forEach(attr_name => {
+			if(el.hasAttribute(attr_name)){
+				let attr_val = el.getAttribute(attr_name);
+				keep_attr_str.push(attr_val !== null ? `${attr_name}="${escapeAttr(attr_val)}"` : attr_name);
+			}
+		});
 		switch(el.tagName){
 			case 'SELECT':
-				let multiple = el.hasAttribute('multiple');
-				let size = el.getAttribute('size');
 				let option_html = '';
 				Array.from(el.options).forEach(opt => {
 					option_html +=
@@ -7182,100 +7183,19 @@
 						${escapeHtml(opt.innerText)}
 					</option>`;
 				});
-				return `<select ${id_attr} ${required_attr} ${multiple ? 'multiple' : ''} ${size ? 'size="' + size + '"' : ''} ${title_attr}>${option_html}</select>`;
+				return `<select ${keep_attr_str.join(' ')}>${option_html}</select>`;
 			case 'INPUT':
 				if(SUPPORT_INPUT_TYPES.includes(el.type.toLowerCase())){
-					return `<input ${id_attr} type="${el.type}" ${max_attr} ${min_attr} ${step_attr} ${required_attr} ${pattern_attr} ${placeholder_attr} ${title_attr} ${el.maxLength > 0 ? 'maxlength="' + el.maxLength + '"' : ''}>`;
+					return `<input ${keep_attr_str.join(' ')}>`;
 				}
 				throw "no support type" + el.type;
 			case 'TEXTAREA':
-				return `<textarea ${id_attr} ${pattern_attr} ${required_attr} ${placeholder_attr} ${title_attr} ${el.maxLength > 0 ? 'maxlength="' + el.maxLength + '"' : ''}></textarea>`;
+				return `<textarea ${keep_attr_str.join(' ')}></textarea>`;
 			default:
 				throw "no support type" + el.type;
 		}
 	};
-	class ACBatchFiller {
-		static init(){
-			insertStyleSheet(`
-			.${NS$4} {padding:2em 2em 1em 2em}
-			.${NS$4} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-			.${NS$4} input,
-			.${NS$4} textarea,
-			.${NS$4} select {width:100%; box-sizing:border-box; min-height:2.25em;}
-			.${NS$4} textarea {min-height:5em; resize:vertical}
-		`, Theme.Namespace + '-batch-filler');
-		}
-		static active(node, param, event){
-			return new Promise((resolve, reject) => {
-				let relative_elements = findAll(param.selector);
-				if(!relative_elements.length){
-					ToastClass.showInfo("没有可以填写的输入框");
-					return;
-				}
-				let id = guid(NS$4);
-				let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
-				let el, dlg;
-				let label_html = param.title || '批量设置';
-				let doFill = () => {
-					relative_elements.forEach(element => {
-						switch(el.tagName){
-							case 'TEXTAREA':
-							case 'INPUT':
-								element.value = el.value;
-								break;
-							case 'SELECT':
-								if(el.multiple){
-									let indexes = [];
-									Array.from(el.selectedOptions).forEach(opt => {
-										indexes.push(opt.index);
-									});
-									for(let i = 0; i < element.options.length; i++){
-										element.options[i].selected = indexes.includes(i);
-									}
-								}else {
-									element.selectedIndex = el.selectedIndex;
-								}
-								break;
-							default:
-								throw "no support tag:" + el.tagName;
-						}
-						triggerDomEvent(element, 'change');
-					});
-					dlg.close();
-				};
-				dlg = DialogClass.show('',
-					`<div class="${NS$4}">
-	<label for="${id}">${label_html}</label>
-	<div>${shadow_el_html}</div>
-</div>`, {
-						width: 350,
-						buttons: [
-							{
-								default: true,
-								title: '确定', callback: () => {
-									doFill();
-									dlg.close();
-								}
-							},
-							{title: '关闭', className:DLG_CLS_WEAK_BTN, ariaLabel:'Close'}
-						]
-					});
-				el = findOne('input,textarea,select', dlg.dom);
-				el.focus();
-				if(el.tagName === 'INPUT'){
-					el.addEventListener('keydown', e => {
-						if(e.key === KEYBOARD_KEY_MAP.Enter){
-							doFill();
-						}
-					});
-				}
-				resolve();
-			});
-		}
-	}
-
-	const NS$3 = Theme.Namespace + 'ac-column-filler';
-	const resetEl = el => {
+	const initElement = el => {
 		if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
 			el.checked = false;
 		}else if(el.tagName === 'SELECT'){
@@ -7300,55 +7220,46 @@
 			toEl.value = fromEl.value;
 		}
 	};
-	class ACColumnFiller {
+	class ACBatchFiller {
 		static init(){
 			insertStyleSheet(`
-			.${NS$3} {padding:2em 2em 1em 2em; text-align:center;}
-		`);
+			.${NS$3} {padding:2em 2em 1em 2em}
+			.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+			.${NS$3} input,
+			.${NS$3} textarea,
+			.${NS$3} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
+			.${NS$3} textarea {min-height:5em; resize:vertical}
+		`, NS$3);
 		}
 		static active(node, param, event){
-			const TABLE = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
-			if(!TABLE){
-				throw "no table found";
-			}
-			const _current_tr = node.closest('tr');
-			let COL_IDX = 0;
-			if(node.closest('th')){
-				COL_IDX = nodeIndex(node.closest('th'));
-			}else if(node.closest('td')){
-				COL_IDX = nodeIndex(node.closest('td'));
-			}else {
-				throw "column index no detected";
-			}
-			let trs = findAll('tr', TABLE);
-			let AVAILABLE_ROWS = trs.filter(t => {
-				return t !== _current_tr;
-			});
-			if(!AVAILABLE_ROWS.length){
-				throw "no form row find";
-			}
-			let tmpl_cell = Array.from(AVAILABLE_ROWS[0].children)[COL_IDX];
-			if(!tmpl_cell){
-				throw "no cell found by IDX:" + COL_IDX;
-			}
-			if(!getAvailableElements(tmpl_cell, true).length){
-				throw "no form element found";
-			}
-			let form_html = tmpl_cell.innerHTML;
-			let form, dlg;
 			return new Promise((resolve, reject) => {
+				let relative_elements = findAll(param.relative_elements);
+				if(!relative_elements.length){
+					throw "param.selector or param.container_selector required";
+				}
+				relative_elements = relative_elements.filter(el => {
+					return el.type !== 'BUTTON' && el.type !== 'RESET' && el.tagName !== 'BUTTON';
+				});
+				if(!relative_elements.length){
+					ToastClass.showInfo("没有可以填写的输入框");
+					return;
+				}
+				let id = guid(NS$3);
+				let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
+				let el, dlg, form;
+				let label_html = param.title || '批量设置';
 				let doFill = () => {
-					let els = getAvailableElements(form, true);
-					AVAILABLE_ROWS.forEach(row => {
-						let _els = getAvailableElements(Array.from(row.children)[COL_IDX], true);
-						els.forEach((e, idx) => {
-							syncValue(e, _els[idx]);
-						});
+					relative_elements.forEach(element => {
+						syncValue(el, element);
+						triggerDomEvent(element, 'change');
 					});
 					dlg.close();
 				};
-				dlg = DialogClass.show('批量设置',
-					`<form class="${NS$3}">${form_html}</form>`, {
+				dlg = DialogClass.show('',
+`<form class="${NS$3}">
+	<label for="${id}">${label_html}</label>
+	<div>${shadow_el_html}</div>
+</form>`	, {
 						width: 350,
 						buttons: [
 							{
@@ -7358,18 +7269,52 @@
 									dlg.close();
 								}
 							},
-							{title: '关闭', className: DLG_CLS_WEAK_BTN}
+							{title: '关闭', className: DLG_CLS_WEAK_BTN, ariaLabel: 'Close'}
 						]
 					});
+				el = getAvailableElements(dlg.dom, true)[0];
+				el.focus();
+				initElement(el);
 				form = dlg.dom.querySelector('form');
 				form.addEventListener('submit', doFill);
-				let els = getAvailableElements(form, true);
-				els.forEach(el => {
-					resetEl(el);
-				});
-				els[0].focus();
 				resolve();
 			});
+		}
+	}
+
+	const findParentTBody = (node) => {
+		let tbody = node.closest('tbody') || findOne('tbody', node.closest('table')) || node.closest('table');
+		if(!tbody){
+			throw "no table body found";
+		}
+		return tbody;
+	};
+	const nodeInColumnIndex = (node) => {
+		let column_index = 0;
+		if(node.closest('th')){
+			column_index = nodeIndex(node.closest('th'));
+		}else if(node.closest('td')){
+			column_index = nodeIndex(node.closest('td'));
+		}else {
+			throw "column index no detected";
+		}
+		return column_index;
+	};
+	class ACColumnFiller {
+		static init(){
+			ACBatchFiller.init();
+		}
+		static active(node, param, event){
+			const tbody = findParentTBody(node);
+			let column_idx = nodeInColumnIndex(node);
+			let relative_elements = [];
+			findAll('tr>td, tr>th', tbody).forEach(cell => {
+				if(nodeIndex(cell) === column_idx){
+					relative_elements.push(getAvailableElements(cell, true)[0]);
+				}
+			});
+			param.relative_elements = relative_elements;
+			return ACBatchFiller.active(node, param);
 		}
 	}
 

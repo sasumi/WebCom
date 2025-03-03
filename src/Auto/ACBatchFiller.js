@@ -1,12 +1,13 @@
 import {Toast} from "../Widget/Toast.js";
-import {findAll, findOne, insertStyleSheet} from "../Lang/Dom.js";
+import {findAll, insertStyleSheet} from "../Lang/Dom.js";
 import {escapeAttr, escapeHtml} from "../Lang/Html.js";
 import {Dialog, DLG_CLS_WEAK_BTN} from "../Widget/Dialog.js";
 import {Theme} from "../Widget/Theme.js";
 import {guid} from "../Lang/Util.js";
-import {KEYBOARD_KEY_MAP, triggerDomEvent} from "../Lang/Event.js";
+import {triggerDomEvent} from "../Lang/Event.js";
+import {getAvailableElements} from "../Lang/Form.js";
 
-const NS = Theme.Namespace + 'ac-batchfiller';
+const NS = Theme.Namespace + 'ac-batch-filler';
 
 const SUPPORT_INPUT_TYPES = [
 	// 'button',
@@ -34,19 +35,21 @@ const SUPPORT_INPUT_TYPES = [
 	'url',
 ];
 
-const cloneElementAsHtml = (el, id = '') => {
-	let required_attr = el.required ? 'required' : '';
-	let pattern_attr = el.getAttribute('pattern') ? `pattern="${el.getAttribute('pattern')}"` : '';
-	let placeholder_attr = el.placeholder ? `placeholder="${escapeAttr(el.placeholder)}"` : '';
-	let title_attr = el.title ? `title="${escapeAttr(el.title)}"` : '';
-	let max_attr = el.max ? `max=${escapeAttr(el.max)}` : '';
-	let min_attr = el.min ? `min=${escapeAttr(el.min)}` : '';
-	let step_attr = el.step ? `step=${escapeAttr(el.step)}` : '';
-	let id_attr = id.length ? `id="${escapeAttr(id)}"` : '';
+const KEEP_ATTRIBUTES = ['type', 'required', 'pattern', 'placeholder', 'size', 'maxlength', 'title', 'min', 'max', 'step', 'multiple'];
+
+const cloneElementAsHtml = (el, newId = '') => {
+	let keep_attr_str = [];
+	if(newId){
+		keep_attr_str.push(`id="${escapeAttr(newId)}"`);
+	}
+	KEEP_ATTRIBUTES.forEach(attr_name => {
+		if(el.hasAttribute(attr_name)){
+			let attr_val = el.getAttribute(attr_name);
+			keep_attr_str.push(attr_val !== null ? `${attr_name}="${escapeAttr(attr_val)}"` : attr_name);
+		}
+	});
 	switch(el.tagName){
 		case 'SELECT':
-			let multiple = el.hasAttribute('multiple');
-			let size = el.getAttribute('size');
 			let option_html = '';
 			Array.from(el.options).forEach(opt => {
 				option_html +=
@@ -54,16 +57,48 @@ const cloneElementAsHtml = (el, id = '') => {
 						${escapeHtml(opt.innerText)}
 					</option>`;
 			});
-			return `<select ${id_attr} ${required_attr} ${multiple ? 'multiple' : ''} ${size ? 'size="' + size + '"' : ''} ${title_attr}>${option_html}</select>`;
+			return `<select ${keep_attr_str.join(' ')}>${option_html}</select>`;
 		case 'INPUT':
 			if(SUPPORT_INPUT_TYPES.includes(el.type.toLowerCase())){
-				return `<input ${id_attr} type="${el.type}" ${max_attr} ${min_attr} ${step_attr} ${required_attr} ${pattern_attr} ${placeholder_attr} ${title_attr} ${el.maxLength > 0 ? 'maxlength="' + el.maxLength + '"' : ''}>`;
+				return `<input ${keep_attr_str.join(' ')}>`;
 			}
 			throw "no support type" + el.type;
 		case 'TEXTAREA':
-			return `<textarea ${id_attr} ${pattern_attr} ${required_attr} ${placeholder_attr} ${title_attr} ${el.maxLength > 0 ? 'maxlength="' + el.maxLength + '"' : ''}></textarea>`;
+			return `<textarea ${keep_attr_str.join(' ')}></textarea>`;
 		default:
 			throw "no support type" + el.type;
+	}
+}
+
+const initElement = el => {
+	if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')){
+		el.checked = false;
+	}else if(el.tagName === 'SELECT'){
+		Array.from(el.options).forEach(opt => {
+			opt.selected = false;
+		});
+	}else{
+		el.value = '';
+	}
+}
+
+/**
+ * 同步两个元素值
+ * @param fromEl
+ * @param toEl
+ */
+const syncValue = (fromEl, toEl) => {
+	if(fromEl.tagName === 'INPUT' && (fromEl.type === 'checkbox' || fromEl.type === 'radio')){
+		toEl.checked = fromEl.checked;
+	}else if(fromEl.tagName === 'SELECT' && fromEl.multiple){
+		Array.from(toEl.options).forEach(opt => {
+			opt.selected = false;
+		});
+		Array.from(fromEl.selectedOptions).forEach(opt => {
+			Array.from(toEl.options)[opt.index].selected = true;
+		});
+	}else{
+		toEl.value = fromEl.value;
 	}
 }
 
@@ -77,53 +112,44 @@ export class ACBatchFiller {
 			.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
 			.${NS} input,
 			.${NS} textarea,
-			.${NS} select {width:100%; box-sizing:border-box; min-height:2.25em;}
+			.${NS} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
 			.${NS} textarea {min-height:5em; resize:vertical}
-		`, Theme.Namespace + '-batch-filler');
+		`, NS);
 	}
+
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
-			let relative_elements = findAll(param.selector);
+			let relative_elements = findAll(param.relative_elements);
+
+			if(!relative_elements.length){
+				throw "param.selector or param.container_selector required";
+			}
+
+			relative_elements = relative_elements.filter(el => {
+				return el.type !== 'BUTTON' && el.type !== 'RESET' && el.tagName !== 'BUTTON';
+			});
+
 			if(!relative_elements.length){
 				Toast.showInfo("没有可以填写的输入框");
 				return;
 			}
 			let id = guid(NS);
 			let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
-			let el, dlg;
+			let el, dlg, form;
 			let label_html = param.title || '批量设置';
 			let doFill = () => {
 				relative_elements.forEach(element => {
-					switch(el.tagName){
-						case 'TEXTAREA':
-						case 'INPUT':
-							element.value = el.value;
-							break;
-						case 'SELECT':
-							if(el.multiple){
-								let indexes = [];
-								Array.from(el.selectedOptions).forEach(opt => {
-									indexes.push(opt.index);
-								});
-								for(let i = 0; i < element.options.length; i++){
-									element.options[i].selected = indexes.includes(i);
-								}
-							}else{
-								element.selectedIndex = el.selectedIndex;
-							}
-							break;
-						default:
-							throw "no support tag:" + el.tagName;
-					}
+					syncValue(el, element);
 					triggerDomEvent(element, 'change');
 				});
 				dlg.close();
 			};
+
 			dlg = Dialog.show('',
-				`<div class="${NS}">
+`<form class="${NS}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
-</div>`, {
+</form>`, {
 					width: 350,
 					buttons: [
 						{
@@ -133,18 +159,14 @@ export class ACBatchFiller {
 								dlg.close();
 							}
 						},
-						{title: '关闭', className:DLG_CLS_WEAK_BTN, ariaLabel:'Close'}
+						{title: '关闭', className: DLG_CLS_WEAK_BTN, ariaLabel: 'Close'}
 					]
 				});
-			el = findOne('input,textarea,select', dlg.dom);
+			el = getAvailableElements(dlg.dom, true)[0];
 			el.focus();
-			if(el.tagName === 'INPUT'){
-				el.addEventListener('keydown', e => {
-					if(e.key === KEYBOARD_KEY_MAP.Enter){
-						doFill();
-					}
-				});
-			}
+			initElement(el);
+			form = dlg.dom.querySelector('form');
+			form.addEventListener('submit', doFill);
 			resolve();
 		});
 	}
