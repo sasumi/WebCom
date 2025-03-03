@@ -31,10 +31,6 @@ const nodeInColumnIndex = (node) => {
  * 批量填充功能
  */
 export class ACColumnFiller {
-	static init(){
-		ACBatchFiller.init();
-	}
-
 	static active(node, param, event){
 		const tbody = findParentTBody(node);
 		let column_idx = nodeInColumnIndex(node);

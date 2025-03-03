@@ -1,5 +1,5 @@
 import {Toast} from "../Widget/Toast.js";
-import {findAll, insertStyleSheet} from "../Lang/Dom.js";
+import {findAll} from "../Lang/Dom.js";
 import {escapeAttr, escapeHtml} from "../Lang/Html.js";
 import {Dialog, DLG_CLS_WEAK_BTN} from "../Widget/Dialog.js";
 import {Theme} from "../Widget/Theme.js";
@@ -106,17 +106,6 @@ const syncValue = (fromEl, toEl) => {
  * 批量填充功能
  */
 export class ACBatchFiller {
-	static init(){
-		insertStyleSheet(`
-			.${NS} {padding:2em 2em 1em 2em}
-			.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-			.${NS} input,
-			.${NS} textarea,
-			.${NS} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
-			.${NS} textarea {min-height:5em; resize:vertical}
-		`, NS);
-	}
-
 	static active(node, param, event){
 		return new Promise((resolve, reject) => {
 			let relative_elements = findAll(param.relative_elements);
@@ -146,7 +135,16 @@ export class ACBatchFiller {
 			};
 
 			dlg = Dialog.show('',
-`<form class="${NS}">
+`
+<style>
+.${NS} {padding:2em 2em 1em 2em}
+.${NS} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+.${NS} input,
+.${NS} textarea,
+.${NS} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
+.${NS} textarea {min-height:5em; resize:vertical}
+</style>
+<form class="${NS}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </form>`, {

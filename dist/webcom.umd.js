@@ -7221,16 +7221,6 @@
 		}
 	};
 	class ACBatchFiller {
-		static init(){
-			insertStyleSheet(`
-			.${NS$3} {padding:2em 2em 1em 2em}
-			.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-			.${NS$3} input,
-			.${NS$3} textarea,
-			.${NS$3} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
-			.${NS$3} textarea {min-height:5em; resize:vertical}
-		`, NS$3);
-		}
 		static active(node, param, event){
 			return new Promise((resolve, reject) => {
 				let relative_elements = findAll(param.relative_elements);
@@ -7256,7 +7246,16 @@
 					dlg.close();
 				};
 				dlg = DialogClass.show('',
-`<form class="${NS$3}">
+`
+<style>
+.${NS$3} {padding:2em 2em 1em 2em}
+.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+.${NS$3} input,
+.${NS$3} textarea,
+.${NS$3} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
+.${NS$3} textarea {min-height:5em; resize:vertical}
+</style>
+<form class="${NS$3}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </form>`	, {
@@ -7301,9 +7300,6 @@
 		return column_index;
 	};
 	class ACColumnFiller {
-		static init(){
-			ACBatchFiller.init();
-		}
 		static active(node, param, event){
 			const tbody = findParentTBody(node);
 			let column_idx = nodeInColumnIndex(node);
