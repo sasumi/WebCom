@@ -7176,7 +7176,7 @@ var WebCom = (function (exports) {
 				let option_html = '';
 				Array.from(el.options).forEach(opt => {
 					option_html +=
-						`<option value="${escapeAttr(opt.name) || ''}" ${opt.disabled ? 'disabled' : ''}>
+						`<option value="${escapeAttr(opt.value) || ''}" ${opt.disabled ? 'disabled' : ''}>
 						${escapeHtml(opt.innerText)}
 					</option>`;
 				});
