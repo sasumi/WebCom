@@ -1443,9 +1443,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return win || window;
 	};
 
-	const NS$6 = 'WebCom-';
-	const VAR_PREFIX = '--' + NS$6;
-	const ICON_FONT = NS$6 + 'iconfont';
+	const NS$7 = 'WebCom-';
+	const VAR_PREFIX = '--' + NS$7;
+	const ICON_FONT = NS$7 + 'iconfont';
 	const CSS_VAR_COLOR = VAR_PREFIX + 'color';
 	const CSS_VAR_COLOR_LIGHTEN = VAR_PREFIX + 'color-lighten';
 	const CSS_VAR_DISABLE_COLOR = VAR_PREFIX + 'disable-color';
@@ -1477,9 +1477,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	
 	${CSS_VAR_FULL_SCREEN_BACKDROP_FILTER}:blur(4px);
 	${CSS_VAR_FULL_SCREEN_BACKGROUND_COLOR}:#33333342;
-}`, NS$6+'theme');
+}`, NS$7+'theme');
 	const Theme = {
-		Namespace: NS$6,
+		Namespace: NS$7,
 		CssVarPrefix: VAR_PREFIX,
 		CssVar: {
 			'COLOR': CSS_VAR_COLOR,
@@ -5368,73 +5368,73 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	const GUID_BIND_KEY = Theme.Namespace+'-tip-guid';
-	const NS$5 = Theme.Namespace + 'tip';
+	const NS$6 = Theme.Namespace + 'tip';
 	const DEFAULT_DIR = 11;
 	const TRY_DIR_MAP = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	let TIP_COLLECTION = {};
 	const STYLE_STR$6 = `
-	.${NS$5}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
-	.${NS$5}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
-	.${NS$5}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
-	.${NS$5}-close:hover {opacity:1}
-	.${NS$5}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
+	.${NS$6}-container-wrap {position:absolute; filter:drop-shadow(var(${Theme.CssVar.PANEL_SHADOW})); --tip-arrow-size:10px; --tip-gap:calc(var(--tip-arrow-size) * 0.7071067811865476); --tip-mgr:calc(var(--tip-gap) - var(--tip-arrow-size) / 2); color:var(${Theme.CssVar.COLOR}); z-index:${Theme.TipIndex};}
+	.${NS$6}-arrow {display:block; background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); clip-path:polygon(0% 0%, 100% 100%, 0% 100%); width:var(--tip-arrow-size); height:var(--tip-arrow-size); position:absolute; z-index:1}
+	.${NS$6}-close {display:block; overflow:hidden; width:15px; height:20px; position:absolute; right:7px; top:10px; text-align:center; cursor:pointer; font-size:13px; opacity:.5}
+	.${NS$6}-close:hover {opacity:1}
+	.${NS$6}-content {border-radius:var(${Theme.CssVar.PANEL_RADIUS}); background-color:var(${Theme.CssVar.BACKGROUND_COLOR}); padding:1em;  max-width:30em; word-break:break-all}
 	
 	/** top **/
-	.${NS$5}-container-wrap[data-tip-dir="11"],
-	.${NS$5}-container-wrap[data-tip-dir="0"],
-	.${NS$5}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
-	.${NS$5}-container-wrap[data-tip-dir="11"] .${NS$5}-arrow{left:calc(25% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="0"] .${NS$5}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
-	.${NS$5}-container-wrap[data-tip-dir="1"] .${NS$5}-arrow{left:calc(75% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="11"],
+	.${NS$6}-container-wrap[data-tip-dir="0"],
+	.${NS$6}-container-wrap[data-tip-dir="1"]{padding-top:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="11"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="0"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="1"] .${NS$6}-arrow{top:var(--tip-mgr); transform:rotate(135deg);}
+	.${NS$6}-container-wrap[data-tip-dir="11"] .${NS$6}-arrow{left:calc(25% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="0"] .${NS$6}-arrow{left:calc(50% - var(--tip-gap));background:orange;}
+	.${NS$6}-container-wrap[data-tip-dir="1"] .${NS$6}-arrow{left:calc(75% - var(--tip-gap));}
 	
 	/** left **/
-	.${NS$5}-container-wrap[data-tip-dir="8"],
-	.${NS$5}-container-wrap[data-tip-dir="9"],
-	.${NS$5}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-close{top:3px;}
-	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
-	.${NS$5}-container-wrap[data-tip-dir="8"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="9"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="10"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="8"],
+	.${NS$6}-container-wrap[data-tip-dir="9"],
+	.${NS$6}-container-wrap[data-tip-dir="10"]{padding-left:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-close{top:3px;}
+	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-arrow{left:var(--tip-mgr); transform:rotate(45deg);}
+	.${NS$6}-container-wrap[data-tip-dir="8"] .${NS$6}-arrow{top:calc(75% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="9"] .${NS$6}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="10"] .${NS$6}-arrow{top:calc(25% - var(--tip-gap));}
 	
 	/** bottom **/
-	.${NS$5}-container-wrap[data-tip-dir="5"],
-	.${NS$5}-container-wrap[data-tip-dir="6"],
-	.${NS$5}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-close{top:3px;}
-	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
-	.${NS$5}-container-wrap[data-tip-dir="5"] .${NS$5}-arrow{right: calc(25% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="6"] .${NS$5}-arrow{right: calc(50% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="7"] .${NS$5}-arrow{right: calc(75% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="5"],
+	.${NS$6}-container-wrap[data-tip-dir="6"],
+	.${NS$6}-container-wrap[data-tip-dir="7"]{padding-bottom:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-close{top:3px;}
+	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-arrow{bottom:var(--tip-mgr); transform:rotate(-45deg);}
+	.${NS$6}-container-wrap[data-tip-dir="5"] .${NS$6}-arrow{right: calc(25% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="6"] .${NS$6}-arrow{right: calc(50% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="7"] .${NS$6}-arrow{right: calc(75% - var(--tip-gap));}
 	
 	/** right **/
-	.${NS$5}-container-wrap[data-tip-dir="2"],
-	.${NS$5}-container-wrap[data-tip-dir="3"],
-	.${NS$5}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
-	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-close,
-	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-close{right:13px;top:3px;}
-	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow,
-	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
-	.${NS$5}-container-wrap[data-tip-dir="2"] .${NS$5}-arrow{top:calc(25% - var(--tip-gap))}
-	.${NS$5}-container-wrap[data-tip-dir="3"] .${NS$5}-arrow{top:calc(50% - var(--tip-gap));}
-	.${NS$5}-container-wrap[data-tip-dir="4"] .${NS$5}-arrow{top:calc(75% - var(--tip-gap))}
+	.${NS$6}-container-wrap[data-tip-dir="2"],
+	.${NS$6}-container-wrap[data-tip-dir="3"],
+	.${NS$6}-container-wrap[data-tip-dir="4"]{padding-right:var(--tip-gap)}
+	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-close,
+	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-close{right:13px;top:3px;}
+	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-arrow,
+	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-arrow{right:var(--tip-mgr);transform: rotate(-135deg);}
+	.${NS$6}-container-wrap[data-tip-dir="2"] .${NS$6}-arrow{top:calc(25% - var(--tip-gap))}
+	.${NS$6}-container-wrap[data-tip-dir="3"] .${NS$6}-arrow{top:calc(50% - var(--tip-gap));}
+	.${NS$6}-container-wrap[data-tip-dir="4"] .${NS$6}-arrow{top:calc(75% - var(--tip-gap))}
 `;
 	let bindEvent = (tip)=>{
 		if(tip.option.showCloseButton){
-			let close_btn = tip.dom.querySelector(`.${NS$5}-close`);
+			let close_btn = tip.dom.querySelector(`.${NS$6}-close`);
 			close_btn.addEventListener('click', () => {tip.hide();}, false);
 			document.addEventListener('keyup', (e) => {
 				if(e.key === KEYBOARD_KEY_MAP.Escape){
@@ -5520,16 +5520,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			this.relateNode = relateNode;
 			this.option = Object.assign(this.option, opt);
 			this.dom = createDomByHtml(
-				`<div class="${NS$5}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
-				<s class="${NS$5}-arrow"></s>
-				${this.option.showCloseButton ? `<span class="${NS$5}-close">&#10005;</span>` : ''}
-				<div class="${NS$5}-content">${content}</div>
+				`<div class="${NS$6}-container-wrap" style="display:none; ${this.option.width ? 'width:'+dimension2Style(this.option.width) : ''}">
+				<s class="${NS$6}-arrow"></s>
+				${this.option.showCloseButton ? `<span class="${NS$6}-close">&#10005;</span>` : ''}
+				<div class="${NS$6}-content">${content}</div>
 			</div>`);
 			bindEvent(this);
 			TIP_COLLECTION[this.id] = this;
 		}
 		setContent(html){
-			this.dom.querySelector(`.${NS$5}-content`).innerHTML = html;
+			this.dom.querySelector(`.${NS$6}-content`).innerHTML = html;
 			updatePosition(this);
 		}
 		show(){
@@ -6787,40 +6787,40 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS$4 = Theme.Namespace + 'uploader';
+	const NS$5 = Theme.Namespace + 'uploader';
 	const STYLE_STR$2 = `
-	.${NS$4}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
+	.${NS$5}{display:inline-block;position:relative;background-color:#dddddd;width:80px;height:80px;overflow:hidden;}
 	
-	.${NS$4}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
-	.${NS$4}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
-	.${NS$4}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
+	.${NS$5}-file{width:100%;height:100%;position:absolute;cursor:pointer;display:flex;align-items:center;}
+	.${NS$5}-file:before{flex:1;font-family:WebCom-iconfont, serif;content:"\\e9de";font-size:30px;text-align:center;}
+	.${NS$5}-file input[type=file]{position:absolute;width:1px;height:1px;left:0;top:0;opacity:0;}
 	
-	.${NS$4}[data-state="empty"]{opacity:0.5}
-	.${NS$4}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
+	.${NS$5}[data-state="empty"]{opacity:0.5}
+	.${NS$5}[data-state="empty"]:hover{opacity:1; transition:all 0.2s linear}
 	
-	.${NS$4}[data-state="empty"] :is(.${NS$4}-handle,.${NS$4}-progress),
-	.${NS$4}[data-state="pending"] :is(.${NS$4}-btn-clean, .${NS$4}-file, .${NS$4}-content),
-	.${NS$4}[data-state="error"] :is(.${NS$4}-progress,.${NS$4}-btn-clean),
-	.${NS$4}[data-state="normal"] :is(.${NS$4}-progress,.${NS$4}-btn-cancel),
-	.${NS$4}[data-state="normal"] .${NS$4}-file:before{
+	.${NS$5}[data-state="empty"] :is(.${NS$5}-handle,.${NS$5}-progress),
+	.${NS$5}[data-state="pending"] :is(.${NS$5}-btn-clean, .${NS$5}-file, .${NS$5}-content),
+	.${NS$5}[data-state="error"] :is(.${NS$5}-progress,.${NS$5}-btn-clean),
+	.${NS$5}[data-state="normal"] :is(.${NS$5}-progress,.${NS$5}-btn-cancel),
+	.${NS$5}[data-state="normal"] .${NS$5}-file:before{
 		display:none;
 	}
 	
-	.${NS$4}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
-	.${NS$4}-content{width:100%;height:100%;}
-	.${NS$4}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
+	.${NS$5}-handle{width:100%;position:absolute;padding:.25em;text-align:right;box-sizing:border-box;bottom:0;}
+	.${NS$5}-content{width:100%;height:100%;}
+	.${NS$5}-content img{display:inline-block;width:100%;height:100%;object-fit:cover;}
 	
-	.${NS$4}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
-	.${NS$4}-progress progress{width:100%; transition:all 1s linear}
+	.${NS$5}-progress{width:100%;height:100%;padding:0 .5em;display:flex;flex-direction:column;box-sizing:border-box;justify-content:center;align-items:center;font-size:0.9em;color:gray;user-select:none;}
+	.${NS$5}-progress progress{width:100%; transition:all 1s linear}
 	
-	.${NS$4}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
-	.${NS$4}-btn:hover{opacity:1;}
-	.${NS$4}-btn:before{content:""; font-family:WebCom-iconfont, serif}
-	.${NS$4}-btn-cancel:before{content:"\\e61a"}
-	.${NS$4}-btn-clean:before{content:"\\e61b"}
+	.${NS$5}-btn{display:inline-block;user-select:none;cursor:pointer;color:white;text-shadow:1px 1px 1px gray;opacity:0.7;}
+	.${NS$5}-btn:hover{opacity:1;}
+	.${NS$5}-btn:before{content:""; font-family:WebCom-iconfont, serif}
+	.${NS$5}-btn-cancel:before{content:"\\e61a"}
+	.${NS$5}-btn-clean:before{content:"\\e61b"}
 `;
-	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$4}-image`;
-	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$4}-file`;
+	const UPLOADER_IMAGE_DEFAULT_CLASS = `${NS$5}-image`;
+	const UPLOADER_FILE_DEFAULT_CLASS = `${NS$5}-file`;
 	const UPLOAD_STATE_EMPTY = 'empty';
 	const UPLOAD_STATE_PENDING = 'pending';
 	const UPLOAD_STATE_ERROR = 'error';
@@ -6874,7 +6874,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const updateState = (up, state, data = null) => {
 		const fileEl = findOne('input[type=file]', up.dom);
-		const contentCtn = findOne(`.${NS$4}-content`, up.dom);
+		const contentCtn = findOne(`.${NS$5}-content`, up.dom);
 		up.dom.setAttribute('data-state', state);
 		up.dom.title = '';
 		switch(state){
@@ -6988,24 +6988,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			});
 			let acceptStr = this.option.allowFileTypes.join(',');
 			const html =
-				`<div class="${NS$4}" data-state="${this.state}">
-			<label class="${NS$4}-file">
+				`<div class="${NS$5}" data-state="${this.state}">
+			<label class="${NS$5}-file">
 				<input type="file" tabindex="0" accept="${acceptStr}" data-required="${this.option.required ? 'required' : ''}">
 			</label>
-			<div class="${NS$4}-progress">
+			<div class="${NS$5}-progress">
 				<progress max="100" value="0">0%</progress>
 				<span>0%</span>
 			</div>
-			<div class="${NS$4}-content"></div>
-			<div class="${NS$4}-handle">
-				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-cancel" title="取消上传"></span>
-				<span tabindex="0" class="${NS$4}-btn ${NS$4}-btn-clean" title="清除"></span>
+			<div class="${NS$5}-content"></div>
+			<div class="${NS$5}-handle">
+				<span tabindex="0" class="${NS$5}-btn ${NS$5}-btn-cancel" title="取消上传"></span>
+				<span tabindex="0" class="${NS$5}-btn ${NS$5}-btn-clean" title="清除"></span>
 			</div>
 		</div>`;
 			this.dom = createDomByHtml(html, container);
 			const fileEl = findOne('input[type=file]', this.dom);
-			bindNodeActive(findOne(`.${NS$4}-btn-clean`, this.dom), () => {cleanUpload(this);});
-			bindNodeActive(findOne(`.${NS$4}-btn-cancel`, this.dom), () => {abortUpload(this);});
+			bindNodeActive(findOne(`.${NS$5}-btn-clean`, this.dom), () => {cleanUpload(this);});
+			bindNodeActive(findOne(`.${NS$5}-btn-cancel`, this.dom), () => {abortUpload(this);});
 			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			fileEl.addEventListener('change', () => {
 				let file = fileEl.files[0];
@@ -7034,7 +7034,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 						},
 						onProgress: (loaded, total) => {
 							const progressEl = findOne('progress', this.dom);
-							const progressPnt = findOne(`.${NS$4}-progress span`, this.dom);
+							const progressPnt = findOne(`.${NS$5}-progress span`, this.dom);
 							progressEl.value = loaded;
 							progressEl.max = total;
 							progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
@@ -7157,7 +7157,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS$3 = Theme.Namespace + 'ac-batch-filler';
+	const NS$4 = Theme.Namespace + 'ac-batch-filler';
 	const SUPPORT_INPUT_TYPES = [
 		'color',
 		'date',
@@ -7247,7 +7247,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					ToastClass.showInfo("没有可以填写的输入框");
 					return;
 				}
-				let id = guid(NS$3);
+				let id = guid(NS$4);
 				let shadow_el_html = cloneElementAsHtml(relative_elements[0], id);
 				let el, dlg, form;
 				let label_html = param.title || '批量设置';
@@ -7261,14 +7261,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				dlg = DialogClass.show('',
 `
 <style>
-.${NS$3} {padding:2em 2em 1em 2em}
-.${NS$3} label {font-size:1.1em; margin-bottom:.75em; display:block;}
-.${NS$3} input,
-.${NS$3} textarea,
-.${NS$3} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
-.${NS$3} textarea {min-height:5em; resize:vertical}
+.${NS$4} {padding:2em 2em 1em 2em}
+.${NS$4} label {font-size:1.1em; margin-bottom:.75em; display:block;}
+.${NS$4} input,
+.${NS$4} textarea,
+.${NS$4} select {width:100% !important; box-sizing:border-box; min-height:2.25em;}
+.${NS$4} textarea {min-height:5em; resize:vertical}
 </style>
-<form class="${NS$3}">
+<form class="${NS$4}">
 	<label for="${id}">${label_html}</label>
 	<div>${shadow_el_html}</div>
 </form>`	, {
@@ -7338,16 +7338,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS$2 = Theme.Namespace + 'ac-copy';
+	const NS$3 = Theme.Namespace + 'ac-copy';
 	class ACCopy {
 		static TRIGGER_SELF = 1;
 		static TRIGGER_INSIDE = 2;
-		static COPY_CLASS = NS$2;
+		static COPY_CLASS = NS$3;
 		static init(node, param = {}){
 			insertStyleSheet(`
-			.${NS$2} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
-			.${NS$2}:hover {opacity:1}
-			.${NS$2}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
+			.${NS$3} {cursor:pointer; opacity:0.7; margin-left:0.2em;}
+			.${NS$3}:hover {opacity:1}
+			.${NS$3}:before {font-family:"${Theme.IconFont}", serif; content:"\\e6ae"}
 		`, Theme.Namespace + 'ac-copy');
 			let trigger = node;
 			if((!param.trigger && PAIR_TAGS.includes(node.tagName)) ||
@@ -7398,7 +7398,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS$1 = Theme.Namespace + 'ac-ie-';
+	const NS$2 = Theme.Namespace + 'ac-ie-';
 	let _patch_flag = false;
 	const patchCss = () => {
 		if(_patch_flag){
@@ -7406,17 +7406,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		_patch_flag = true;
 		insertStyleSheet(`
-		.${NS$1}editor {cursor:pointer}
-		.${NS$1}editor:hover:after {opacity:1; color:var(--color-link)}
-		.${NS$1}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS$2}editor {cursor:pointer}
+		.${NS$2}editor:hover:after {opacity:1; color:var(--color-link)}
+		.${NS$2}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
 		
-		.${NS$1}editor-wrap {
+		.${NS$2}editor-wrap {
 		    display:inline-flex;
 		    align-items:center;
 		    gap:0.25em;
 		}
-		.${NS$1}save-btn,
-		.${NS$1}cancel-btn {
+		.${NS$2}save-btn,
+		.${NS$2}cancel-btn {
 		    display: inline-flex;
 		    border: 1px solid gray;
 		    align-items: center;
@@ -7430,11 +7430,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		    cursor: pointer;
 		}
 		
-		.${NS$1}save-btn[disabled],
-		.${NS$1}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
-		.${NS$1}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
-		.${NS$1}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
-	`, NS$1 + 'style');
+		.${NS$2}save-btn[disabled],
+		.${NS$2}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
+		.${NS$2}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
+		.${NS$2}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
+	`, NS$2 + 'style');
 	};
 	class ACInlineEditor {
 		static transmitter;
@@ -7459,23 +7459,23 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				action = form.action;
 				method = method || form.method;
 			}
-			node.classList.add(NS$1 + 'editor');
+			node.classList.add(NS$2 + 'editor');
 			let input_wrap;
 			let input_el;
 			let switchState = (edit) => {
 				if(edit){
 					if(!input_wrap){
 						input_wrap = createDomByHtml(`
-						<span class="${NS$1}editor-wrap">
+						<span class="${NS$2}editor-wrap">
 							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
 						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
-							<span disabled="disabled" class="${NS$1}save-btn" tabindex="0"></span>
-							<span class="${NS$1}cancel-btn" tabindex="0"></span>
+							<span disabled="disabled" class="${NS$2}save-btn" tabindex="0"></span>
+							<span class="${NS$2}cancel-btn" tabindex="0"></span>
 						</span>
 					`);
 						node.parentNode.insertBefore(input_wrap, node);
-						let save_btn = input_wrap.querySelector(`.${NS$1}save-btn`);
-						let cancel_btn = input_wrap.querySelector(`.${NS$1}cancel-btn`);
+						let save_btn = input_wrap.querySelector(`.${NS$2}save-btn`);
+						let cancel_btn = input_wrap.querySelector(`.${NS$2}cancel-btn`);
 						input_el = input_wrap.querySelector('input,textarea');
 						const doSave = () => {
 							let new_text = input_el.value;
@@ -7731,13 +7731,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
-	const NS = Theme.Namespace + 'ac-view-copy';
+	const NS$1 = Theme.Namespace + 'ac-view-copy';
 	class ACViewCopy {
 		static init(node, param){
 			insertStyleSheet(`
-			.${NS}-txt-wrap {padding:0.5em 1em;}
-			.${NS}-txt {width:100%; box-sizing:border-box; min-height:12em; resize:vertical;}
-		`, NS);
+			.${NS$1}-txt-wrap {padding:0.5em 1em;}
+			.${NS$1}-txt {width:100%; box-sizing:border-box; min-height:12em; resize:vertical;}
+		`, NS$1);
 		}
 		static active(node, param){
 			return new Promise(resolve => {
@@ -7753,8 +7753,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					}}];
 				}
 				let html =
-`<div class="${NS}-txt-wrap">
-	<textarea readonly class="${NS}-txt"></textarea>
+`<div class="${NS$1}-txt-wrap">
+	<textarea readonly class="${NS$1}-txt"></textarea>
 </div>`	;
 				let txt = null;
 				let dlg = DialogClass.show('复制', html, {
@@ -8041,6 +8041,24 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	}
 
+	const NS = Theme.Namespace + 'input-ellipsis';
+	class ACInputEllipsis {
+		static init(input, params = {}){
+			insertStyleSheet(`.${NS}[readonly] {text-overflow: ellipsis;white-space: nowrap;overflow: hidden;}`, NS);
+			input.tabIndex = 0;
+			bindNodeEvents(input, ['click', 'focus'], () => {
+				input.classList.remove(NS);
+				input.removeAttribute('readonly');
+				input.title = '';
+			});
+			bindNodeEvents(input, 'blur', () => {
+				input.title = input.value;
+				input.classList.add(NS);
+				input.setAttribute('readonly', 'readonly');
+			}, null, true);
+		}
+	}
+
 	const DEFAULT_ATTR_COM_FLAG = 'data-component';
 	const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
 	let AC_COMPONENT_NAME_MAPPING = {
@@ -8049,7 +8067,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		columnfiller: ACColumnFiller,
 		confirm: ACConfirm,
 		copy: ACCopy,
-		viewcopy:ACViewCopy,
+		viewcopy: ACViewCopy,
 		daterangeselector: ACDateRangeSelector,
 		dialog: ACDialog,
 		highlight: ACHighlight,
@@ -8061,6 +8079,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		select: ACSelect,
 		selectall: ACSelectAll,
 		textcounter: ACTextCounter,
+		inputellipsis: ACInputEllipsis,
 		tip: ACTip,
 		toast: ACToast,
 		unsavealert: ACUnSaveAlert,

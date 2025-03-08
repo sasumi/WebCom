@@ -32,6 +32,7 @@ const nav = [
 	'theme.html',
 	'tip.html',
 	'text_count.html',
+	'input_ellipsis.html',
 	'toast.html',
 	'emoji.html',
 	'form.html',

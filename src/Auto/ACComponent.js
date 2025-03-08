@@ -21,6 +21,7 @@ import {ACInlineEditor} from "./ACInlineEditor.js";
 import {ACHotKey} from "./ACHotKey.js";
 import {ACColumnFiller} from "./ACColumnFiller.js";
 import {ACViewCopy} from "./ACViewCopy.js";
+import {ACInputEllipsis} from "./ACInputEllipsis.js";
 
 const DEFAULT_ATTR_COM_FLAG = 'data-component'; //data-component="com1,com2"
 const COMPONENT_BIND_GUID_KEY = 'component-init-bind';
@@ -35,7 +36,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	columnfiller: ACColumnFiller,
 	confirm: ACConfirm,
 	copy: ACCopy,
-	viewcopy:ACViewCopy,
+	viewcopy: ACViewCopy,
 	daterangeselector: ACDateRangeSelector,
 	dialog: ACDialog,
 	highlight: ACHighlight,
@@ -47,6 +48,7 @@ let AC_COMPONENT_NAME_MAPPING = {
 	select: ACSelect,
 	selectall: ACSelectAll,
 	textcounter: ACTextCounter,
+	inputellipsis: ACInputEllipsis,
 	tip: ACTip,
 	toast: ACToast,
 	unsavealert: ACUnSaveAlert,
