@@ -7379,17 +7379,12 @@ class ACHighlight {
 	}
 }
 
-const NS$2 = Theme.Namespace + 'ac-ie-';
-let _patch_flag = false;
-const patchCss = () => {
-	if(_patch_flag){
-		return;
-	}
-	_patch_flag = true;
+const NS$2 = Theme.Namespace + 'ac-inline-editor-';
+const patchStyle = () => {
 	insertStyleSheet(`
-		.${NS$2}editor {cursor:pointer}
-		.${NS$2}editor:hover:after {opacity:1; color:var(--color-link)}
-		.${NS$2}editor:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS$2}view-wrap {cursor:pointer}
+		.${NS$2}view-wrap:hover:after {opacity:1; color:var(--color-link)}
+		.${NS$2}view-wrap:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
 		
 		.${NS$2}editor-wrap {
 		    display:inline-flex;
@@ -7410,111 +7405,214 @@ const patchCss = () => {
 		    zoom: 0.92;
 		    cursor: pointer;
 		}
-		
-		.${NS$2}save-btn[disabled],
-		.${NS$2}cancel-btn[disabled] {opacity:0.4; pointer-events:none;}
 		.${NS$2}save-btn:before {content:"\\e624"; font-family:${Theme.IconFont}}
 		.${NS$2}cancel-btn:before {content:"\\e61a"; font-family:${Theme.IconFont}}
 	`, NS$2 + 'style');
 };
+const SELECT_PLACEHOLDER_VALUE = NS$2 + guid();
+const renderView = (container, type, value, options = []) => {
+	let html = '';
+	switch (type) {
+		case ACInlineEditor.TYPE_TEXT:
+		case ACInlineEditor.TYPE_NUMBER:
+		case ACInlineEditor.TYPE_DATE:
+		case ACInlineEditor.TYPE_TIME:
+		case ACInlineEditor.TYPE_DATETIME:
+			html = escapeHtml(value);
+			break;
+		case ACInlineEditor.TYPE_MULTILINE_TEXT:
+			html = escapeHtml(value).replace(/\n/g, '<br>');
+			break;
+		case ACInlineEditor.TYPE_OPTION_SELECT:
+			html = options.find(option => option.value == value)?.text || '';
+			break;
+		case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
+			html = value.map(val => options.find(option => option.value == val).text).join(',');
+			break;
+		case ACInlineEditor.TYPE_OPTION_RADIO:
+			html = options.find(option => option.value == value)?.text || '';
+			break;
+		case ACInlineEditor.TYPE_OPTION_CHECKBOX:
+			html = value.map(val => options.find(option => option.value == val).text).join(',');
+			break;
+		default:
+			throw `未知的编辑器类型：${type}`;
+	}
+	container.innerHTML = html;
+};
+const renderElement = (container, type, name, value, options = [], required = false) => {
+	const INPUT_TYPE_MAP = {
+		[ACInlineEditor.TYPE_TEXT]: 'text',
+		[ACInlineEditor.TYPE_NUMBER]: 'number',
+		[ACInlineEditor.TYPE_DATE]: 'date',
+		[ACInlineEditor.TYPE_TIME]: 'time',
+		[ACInlineEditor.TYPE_DATETIME]: 'datetime-local',
+	};
+	const REQUIRED_MESSAGES = {
+		[ACInlineEditor.TYPE_TEXT]: '此项为必填项',
+		[ACInlineEditor.TYPE_NUMBER]: '此项为必填项',
+		[ACInlineEditor.TYPE_DATE]: '此项为必填项',
+		[ACInlineEditor.TYPE_TIME]: '此项为必填项',
+		[ACInlineEditor.TYPE_DATETIME]: '此项为必填项',
+		[ACInlineEditor.TYPE_MULTILINE_TEXT]: '此项为必填项',
+		[ACInlineEditor.TYPE_OPTION_SELECT]: '请选择一项',
+		[ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT]: '请选择一项',
+		[ACInlineEditor.TYPE_OPTION_RADIO]: '请选择一项',
+		[ACInlineEditor.TYPE_OPTION_CHECKBOX]: '请选择一项',
+	};
+	let html = '';
+	switch (type) {
+		case INPUT_TYPE_MAP[type]:
+			html = `<input type="${INPUT_TYPE_MAP[type]}" name="${escapeAttr(name)}" value="${escapeAttr(value)}" ${required ? 'required' : ''}/>`;
+			break;
+		case ACInlineEditor.TYPE_MULTILINE_TEXT:
+			let v = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			html = `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${v}</textarea>`;
+			break;
+		case ACInlineEditor.TYPE_OPTION_SELECT:
+			let option_html = '';
+			if (!required) {
+				option_html = `<option value="${SELECT_PLACEHOLDER_VALUE}">请选择</option>`;
+			}
+			option_html = options.map(option => `<option value="${escapeAttr(option.value)}" ${option.value == value ? 'selected' : ''}>
+					${escapeHtml(option.text)}
+				</option>`).join('');
+			html = `<select name="${escapeAttr(name)}" ${required ? 'required' : ''}>${option_html}</select>`;
+			break;
+		case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
+			html = `<select name="${escapeAttr(name)}" multiple ${required ? 'required' : ''}>${value.map(option => `<option value="${escapeAttr(option.value)}">${escapeHtml(option.text)}</option>`).join('')}</select>`;
+			break;
+		case ACInlineEditor.TYPE_OPTION_RADIO:
+			html = options.map(option => `<label><input type="radio" name="${escapeAttr(name)}" value="${escapeAttr(option.value)}" ${option.value == value ? 'checked' : ''}>${escapeHtml(option.text)}</label>`).join('');
+			break;
+		case ACInlineEditor.TYPE_OPTION_CHECKBOX:
+			html = options.map(option => `<label><input type="checkbox" name="${escapeAttr(name)}" value="${escapeAttr(option.value)}" ${value.includes(option.value) ? 'checked' : ''}>${escapeHtml(option.text)}</label>`).join('');
+			break;
+		default:
+			throw `未知的编辑器类型：${type}`;
+	}
+	createDomByHtml(html, container);
+	return () => {
+		let error = null;
+		let value = null;
+		let elements = container.querySelectorAll('input,textarea,select');
+		switch (type) {
+			case INPUT_TYPE_MAP[type]:
+			case ACInlineEditor.TYPE_MULTILINE_TEXT:
+			case ACInlineEditor.TYPE_OPTION_SELECT:
+				value = elements[0].value;
+				if (required && (!value || value == SELECT_PLACEHOLDER_VALUE)) {
+					error = REQUIRED_MESSAGES[type];
+					break;
+				}
+				break;
+			case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
+				if (required && !elements[0].selectedOptions.length) {
+					error = REQUIRED_MESSAGES[type];
+					break;
+				}
+				value = Array.from(elements[0].selectedOptions).map(option => option.value);
+				break;
+			case ACInlineEditor.TYPE_OPTION_RADIO:
+				if (required && !Array.from(elements).some(el => el.checked)) {
+					error = REQUIRED_MESSAGES[type];
+					break;
+				}
+				value = Array.from(elements).find(el => el.checked).value;
+				break;
+			case ACInlineEditor.TYPE_OPTION_CHECKBOX:
+				if (required && !Array.from(elements).some(el => el.checked)) {
+					error = REQUIRED_MESSAGES[type];
+					break;
+				}
+				value = Array.from(elements).filter(el => el.checked).map(el => el.value);
+				break;
+			default:
+				throw `未知的编辑器类型：${type}`;
+		}
+		return [value, error];
+	}
+};
 class ACInlineEditor {
+	static TYPE_TEXT = 'text';
+	static TYPE_NUMBER = 'number';
+	static TYPE_DATE = 'date';
+	static TYPE_TIME = 'time';
+	static TYPE_DATETIME = 'datetime';
+	static TYPE_MULTILINE_TEXT = 'multiline_text';
+	static TYPE_OPTION_SELECT = 'select';
+	static TYPE_MULTIPLE_OPTION_SELECT = 'multiple_option';
+	static TYPE_OPTION_RADIO = 'radio';
+	static TYPE_OPTION_CHECKBOX = 'checkbox';
 	static transmitter;
 	static onUpdate = new BizEvent();
-	static init(node, param){
-		if(!ACInlineEditor.transmitter){
-			throw "ACInlineEditor.transmitter 未配置";
+	static init(container, param) {
+		const action = param.action;
+		const method = param.method;
+		const required = !!param.required;
+		const name = param.name;
+		const type = param.type || this.TYPE_TEXT;
+		let value = null;
+		if (!param.value && [
+			ACInlineEditor.TYPE_TEXT,
+			ACInlineEditor.TYPE_NUMBER,
+			ACInlineEditor.TYPE_DATE,
+			ACInlineEditor.TYPE_TIME,
+			ACInlineEditor.TYPE_DATETIME
+		].includes(type)) {
+			value = container.innerText.trim();
 		}
-		patchCss();
-		node.tabIndex = 0;
-		let name = param.name;
-		let multiple = param.multiple === '1';
-		let text = node.innerText.trim();
-		let required = !!param.required;
-		let action = param.action;
-		let method = param.method;
-		if(!action){
-			let form = node.closest('form');
-			if(!form){
-				throw "QKEditor required action or in form context";
-			}
-			action = form.action;
-			method = method || form.method;
+		if (!param.value && ACInlineEditor.TYPE_MULTILINE_TEXT == type) {
+			value = unescapeHtml(container.innerHTML.trim());
 		}
-		node.classList.add(NS$2 + 'editor');
-		let input_wrap;
-		let input_el;
-		let switchState = (edit) => {
-			if(edit){
-				if(!input_wrap){
-					input_wrap = createDomByHtml(`
-						<span class="${NS$2}editor-wrap">
-							${multiple ? `<textarea name="${escapeAttr(name)}" ${required ? 'required' : ''}>${escapeHtml(text)}</textarea>` :
-						`<input type="text" name="${escapeAttr(name)}}" value="${escapeAttr(text)}" ${required ? 'required' : ''}/>`}
-							<span disabled="disabled" class="${NS$2}save-btn" tabindex="0"></span>
-							<span class="${NS$2}cancel-btn" tabindex="0"></span>
-						</span>
-					`);
-					node.parentNode.insertBefore(input_wrap, node);
-					let save_btn = input_wrap.querySelector(`.${NS$2}save-btn`);
-					let cancel_btn = input_wrap.querySelector(`.${NS$2}cancel-btn`);
-					input_el = input_wrap.querySelector('input,textarea');
-					const doSave = () => {
-						let new_text = input_el.value;
-						let data = {};
-						data[name] = new_text;
-						ACInlineEditor.transmitter(action, data, method).then(() => {
-							node.innerText = new_text;
-							text = new_text;
-							switchState(false);
-							ACInlineEditor.onUpdate.fire(name, new_text, node);
-						});
-					};
-					input_el.addEventListener('input', () => {
-						let disabled = input_el.value.trim() === text;
-						if(disabled){
-							save_btn.setAttribute('disabled', 'disabled');
-						}else {
-							save_btn.removeAttribute('disabled');
-						}
-					});
-					input_el.addEventListener('keydown', e => {
-						if(!multiple && e.key === KEYBOARD_KEY_MAP.Enter){
-							if(input_el.value.trim() !== text){
-								doSave();
-							}else {
-								switchState(false);
-							}
-							e.preventDefault();
-							return false;
-						}
-						if(e.key === KEYBOARD_KEY_MAP.Escape){
-							if(input_el.value.trim() === text){
-								switchState(false);
-								e.preventDefault();
-								return false;
-							}
-						}
-					});
-					bindNodeActive(cancel_btn, () => {
-						switchState(false);
-					});
-					bindNodeActive(save_btn, doSave);
-					input_el.focus();
-				}
-				input_el.focus();
-				input_el.value = text;
-			}
-			edit ? show(input_wrap) : hide(input_wrap);
-			edit ? hide(node) : show(node);
+		let options = param.options || [
+		];
+		patchStyle();
+		container.innerHTML = `
+			<span class="${NS$2}editor-wrap" tabindex="0"></span>
+			<span class="${NS$2}view-wrap" style="display:none"></span>`;
+		let view_wrap = container.querySelector(`.${NS$2}view-wrap`);
+		let editor_wrap = container.querySelector(`.${NS$2}editor-wrap`);
+		const toggleState = toEdit => {
+			toEdit ? show(editor_wrap) : hide(editor_wrap);
+			!toEdit ? show(view_wrap) : hide(view_wrap);
 		};
-		node.addEventListener('click', () => {
-			switchState(true);
-		});
-		node.addEventListener('keyup', e => {
-			if(e.key === KEYBOARD_KEY_MAP.Enter){
-				switchState(true);
-			}
-		});
+		const toEdit = () => {
+			editor_wrap.innerHTML = '';
+			createDomByHtml(`
+						<span class="${NS$2}editor-text"></span>
+						<span class="${NS$2}save-btn" tabindex="0"></span>
+						<span class="${NS$2}cancel-btn" tabindex="0"></span>
+					`, editor_wrap);
+			const save_btn = editor_wrap.querySelector(`.${NS$2}save-btn`);
+			const cancel_btn = editor_wrap.querySelector(`.${NS$2}cancel-btn`);
+			const getVal = renderElement(editor_wrap.querySelector(`.${NS$2}editor-text`), type, name, value, options, required);
+			setTimeout(() => {
+				editor_wrap.querySelector('input,textarea,select').select();
+			});
+			const doSave = () => {
+				let [val, error] = getVal();
+				if (error) {
+					ToastClass.error(error);
+					return;
+				}
+				if (!this.transmitter) {
+					throw "ACInlineEditor.transmitter 未配置";
+				}
+				value = val;
+				this.transmitter(action, { [name]: value }, method).then(() => {
+					this.onUpdate.fire(name, value);
+					renderView(view_wrap, type, value, options);
+					toggleState(false);
+				});
+			};
+			bindNodeActive(cancel_btn, () => { toggleState(false); });
+			bindNodeActive(save_btn, doSave);
+			toggleState(true);
+		};
+		bindNodeActive(view_wrap, toEdit);
+		renderView(view_wrap, type, value, options);
+		toggleState(false);
 	}
 }
 
