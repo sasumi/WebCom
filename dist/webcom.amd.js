@@ -7571,8 +7571,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			const required = !!param.required;
 			const name = param.name;
 			const type = param.type || this.TYPE_TEXT;
-			let value = null;
-			if (!param.value && [
+			let value = param.value;
+			if (value == null && [
 				ACInlineEditor.TYPE_TEXT,
 				ACInlineEditor.TYPE_NUMBER,
 				ACInlineEditor.TYPE_DATE,
@@ -7581,7 +7581,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			].includes(type)) {
 				value = container.innerText.trim();
 			}
-			if (!param.value && ACInlineEditor.TYPE_MULTILINE_TEXT == type) {
+			if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT == type) {
 				value = unescapeHtml(container.innerHTML.trim());
 			}
 			let options = param.options || [
