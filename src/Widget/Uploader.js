@@ -3,6 +3,7 @@ import {Theme} from "./Theme.js";
 import {bindNodeActive, BizEvent, triggerDomEvent} from "../Lang/Event.js";
 import {Toast} from "./Toast.js";
 import {Net, RESPONSE_FORMAT} from "../Lang/Net.js";
+import {isFunction} from "../Lang/Util.js";
 
 const NS = Theme.Namespace + 'uploader';
 const STYLE_STR = `
@@ -215,12 +216,12 @@ export class Uploader {
 	 * @param {HTMLFormElement} inputEl
 	 * @param {Object} initData
 	 * @param {Object} option
-	 * @param {String} option.uploadUrl
+	 * @param {String|Function} option.uploadUrl
 	 * @param {String} option.uploadFileFieldName
 	 * @param {Boolean} option.required
 	 * @param {String} option.allowFileTypes
 	 * @param {Number} option.fileSizeLimit
-	 * @param {CallableFunction} option.requestHandle
+	 * @param {Function} option.requestHandle
 	 * @return {Uploader}
 	 */
 	static bindInput(inputEl, initData = {}, option = {}){
@@ -258,9 +259,11 @@ export class Uploader {
 	 * @param {String} initData.name 初始化数据 - 显示名称（可为空）
 	 * @param {Object} option
 	 * @param {String} option.uploadUrl
+	 * @param {String} option.uploadFileFieldName
 	 * @param {Boolean} option.required
+	 * @param {String} option.allowFileTypes
 	 * @param {Number} option.fileSizeLimit
-	 * @param {String[]} option.allowFileTypes
+	 * @param {Function} option.requestHandle
 	 */
 	constructor(container, initData = {}, option = {
 		uploadUrl: null,
@@ -322,7 +325,7 @@ export class Uploader {
 					return;
 				}
 				updateState(this, UPLOAD_STATE_PENDING);
-				this.xhr = requestHandle(uploadUrl, {[this.option.uploadFileFieldName]: file}, {
+				this.xhr = requestHandle(isFunction(uploadUrl) ? uploadUrl() : uploadUrl, {[this.option.uploadFileFieldName]: file}, {
 					onSuccess: rspObj => {
 						try{
 							responseFormatValidate(rspObj);

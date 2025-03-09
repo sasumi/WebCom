@@ -7019,7 +7019,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 						return;
 					}
 					updateState(this, UPLOAD_STATE_PENDING);
-					this.xhr = requestHandle(uploadUrl, {[this.option.uploadFileFieldName]: file}, {
+					this.xhr = requestHandle(isFunction(uploadUrl) ? uploadUrl() : uploadUrl, {[this.option.uploadFileFieldName]: file}, {
 						onSuccess: rspObj => {
 							try{
 								responseFormatValidate(rspObj);
