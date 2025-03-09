@@ -10,7 +10,7 @@ const patchStyle = () => {
 	insertStyleSheet(`
 		.${NS}view-wrap {cursor:pointer}
 		.${NS}view-wrap:hover:after {opacity:1; color:var(--color-link)}
-		.${NS}view-wrap:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS}view-wrap:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.3;}
 		
 		.${NS}editor-wrap {
 		    display:inline-flex;
@@ -283,7 +283,7 @@ export class ACInlineEditor {
 			const cancel_btn = editor_wrap.querySelector(`.${NS}cancel-btn`);
 			const getVal = renderElement(editor_wrap.querySelector(`.${NS}editor-text`), type, name, value, options, required);
 			setTimeout(() => {
-				editor_wrap.querySelector('input,textarea,select').select();
+				editor_wrap.querySelector('input,textarea,select').focus();
 			});
 			const doSave = () => {
 				let [val, error] = getVal();

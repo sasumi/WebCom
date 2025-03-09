@@ -7014,7 +7014,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 						ToastClass.showError('所选的文件内容为空');
 						return;
 					}
-					if(this.option.fileSizeLimit && file.size < this.option.fileSizeLimit){
+					if(this.option.fileSizeLimit && file.size > this.option.fileSizeLimit){
 						ToastClass.showError('所选的文件大小超出限制');
 						return;
 					}
@@ -7403,7 +7403,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		insertStyleSheet(`
 		.${NS$2}view-wrap {cursor:pointer}
 		.${NS$2}view-wrap:hover:after {opacity:1; color:var(--color-link)}
-		.${NS$2}view-wrap:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.5;}
+		.${NS$2}view-wrap:after {content:"\\e7a0";font-family:${Theme.IconFont};transform: scale(1.2);display: inline-block;margin-left: 0.25em;opacity: 0.3;}
 		
 		.${NS$2}editor-wrap {
 		    display:inline-flex;
@@ -7607,7 +7607,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				const cancel_btn = editor_wrap.querySelector(`.${NS$2}cancel-btn`);
 				const getVal = renderElement(editor_wrap.querySelector(`.${NS$2}editor-text`), type, name, value, options, required);
 				setTimeout(() => {
-					editor_wrap.querySelector('input,textarea,select').select();
+					editor_wrap.querySelector('input,textarea,select').focus();
 				});
 				const doSave = () => {
 					let [val, error] = getVal();

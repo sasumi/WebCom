@@ -317,7 +317,7 @@ export class Uploader {
 					Toast.showError('所选的文件内容为空');
 					return;
 				}
-				if(this.option.fileSizeLimit && file.size < this.option.fileSizeLimit){
+				if(this.option.fileSizeLimit && file.size > this.option.fileSizeLimit){
 					Toast.showError('所选的文件大小超出限制');
 					return;
 				}
