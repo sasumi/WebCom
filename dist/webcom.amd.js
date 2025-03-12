@@ -3859,7 +3859,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let noModalDialogs = getNoModalDialogs(excludedDialog);
 		return noModalDialogs.concat(modalDialogs);
 	};
-	const setState = (dlg, toState) => {
+	const setState$1 = (dlg, toState) => {
 		dlg.state = toState;
 		dlg.dom.setAttribute('data-dialog-state', toState);
 		dlg.dom[toState === STATE_HIDDEN ? 'hide' : (dlg.config.modal ? 'showModal' : 'show')]();
@@ -3999,19 +3999,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			let noModalDialogs = getNoModalDialogs(dlg);
 			if(dlg.config.modal){
 				noModalDialogs.forEach(d => {
-					setState(d, STATE_DISABLED);
+					setState$1(d, STATE_DISABLED);
 				});
 				modalDialogs.forEach(d => {
-					setState(d, STATE_DISABLED);
+					setState$1(d, STATE_DISABLED);
 				});
 				setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + modalDialogs.length);
-				setState(dlg, STATE_ACTIVE);
+				setState$1(dlg, STATE_ACTIVE);
 			}else {
 				modalDialogs.forEach((d, idx) => {
 					setZIndex(d, dlg.zIndex + idx + 1);
 				});
 				setZIndex(dlg, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length);
-				setState(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
+				setState$1(dlg, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
 			}
 			dlg.onShow.fire();
 		},
@@ -4026,17 +4026,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + noModalDialogs.length + idx);
 			});
 			if(modalDialogs.length){
-				setState(modalDialogs[modalDialogs.length - 1], STATE_ACTIVE);
+				setState$1(modalDialogs[modalDialogs.length - 1], STATE_ACTIVE);
 			}
 			noModalDialogs.forEach((d, idx) => {
 				setZIndex(d, Dialog.DIALOG_INIT_Z_INDEX + idx);
-				setState(d, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
+				setState$1(d, modalDialogs.length ? STATE_DISABLED : STATE_ACTIVE);
 			});
 			if(destroy){
 				DIALOG_COLLECTION = DIALOG_COLLECTION.filter(d => d !== dlg);
 				remove(dlg.dom);
 			}else {
-				setState(dlg, STATE_HIDDEN);
+				setState$1(dlg, STATE_HIDDEN);
 			}
 			getAllAvailableDialogs().length || dlg.dom.classList.remove(`${DLG_CLS_PREF}-masker`);
 		},
@@ -6846,9 +6846,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				return;
 			}
 			callbacks.onSuccess({
-				value: rspObj.data.value,
-				thumb: rspObj.data.thumb,
-				name: rspObj.data.name,
+				...rspObj.data,
 				error: null
 			});
 		});
@@ -6861,18 +6859,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			}
 		}
 	};
-	const cleanUpload = (up) => {
-		updateState(up, UPLOAD_STATE_EMPTY);
-	};
 	const abortUpload = up => {
 		try{
 			up.xhr && up.xhr.abort();
 		}catch(err){
 			console.error(err);
 		}
-		updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+		up.onAbort.fire();
+		setState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 	};
-	const updateState = (up, state, data = null) => {
+	const setState = (up, state, data = null) => {
 		const fileEl = findOne('input[type=file]', up.dom);
 		const contentCtn = findOne(`.${NS$5}-content`, up.dom);
 		up.dom.setAttribute('data-state', state);
@@ -6882,24 +6878,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				fileEl.value = '';
 				fileEl.required = !!fileEl.dataset.required;
 				contentCtn.innerHTML = '';
-				up.onClean.fire();
 				break;
 			case UPLOAD_STATE_PENDING:
-				up.onUploading.fire();
 				break;
 			case UPLOAD_STATE_NORMAL:
 				fileEl.required = false;
 				up.dom.title = up.name;
 				up.dom.title = up.name;
 				contentCtn.innerHTML = `<img alt="" src="${up.thumb}">`;
-				up.onSuccess.fire({name: up.name, value: up.value, thumb: up.thumb});
 				break;
 			case UPLOAD_STATE_ERROR:
 				fileEl.value = '';
 				fileEl.required = !!fileEl.dataset.required;
-				updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
-				console.error('Uploader Error:', data);
-				up.onError.fire(data);
+				setState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 				break;
 			default:
 				throw "todo";
@@ -7004,9 +6995,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		</div>`;
 			this.dom = createDomByHtml(html, container);
 			const fileEl = findOne('input[type=file]', this.dom);
-			bindNodeActive(findOne(`.${NS$5}-btn-clean`, this.dom), () => {cleanUpload(this);});
-			bindNodeActive(findOne(`.${NS$5}-btn-cancel`, this.dom), () => {abortUpload(this);});
-			updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+			bindNodeActive(findOne(`.${NS$5}-btn-clean`, this.dom), () => {
+				setState(this, UPLOAD_STATE_EMPTY);
+				this.onClean.fire();
+			});
+			bindNodeActive(findOne(`.${NS$5}-btn-cancel`, this.dom), () => {
+				abortUpload(this);
+			});
+			setState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			fileEl.addEventListener('change', () => {
 				let file = fileEl.files[0];
 				if(file){
@@ -7018,7 +7014,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 						ToastClass.showError('所选的文件大小超出限制');
 						return;
 					}
-					updateState(this, UPLOAD_STATE_PENDING);
+					setState(this, UPLOAD_STATE_PENDING);
+					this.onUploading.fire();
 					this.xhr = requestHandle(isFunction(uploadUrl) ? uploadUrl() : uploadUrl, {[this.option.uploadFileFieldName]: file}, {
 						onSuccess: rspObj => {
 							try{
@@ -7027,9 +7024,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 								this.value = value;
 								this.thumb = thumb;
 								this.name = name;
-								updateState(this, UPLOAD_STATE_NORMAL);
+								setState(this, UPLOAD_STATE_NORMAL);
+								this.onSuccess.fire(rspObj);
 							}catch(err){
-								updateState(this, UPLOAD_STATE_ERROR, err);
+								setState(this, UPLOAD_STATE_ERROR, err);
+								this.onError.fire(err);
 							}
 						},
 						onProgress: (loaded, total) => {
@@ -7038,13 +7037,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 							progressEl.value = loaded;
 							progressEl.max = total;
 							progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
-							updateState(this, UPLOAD_STATE_PENDING);
+							setState(this, UPLOAD_STATE_PENDING);
+							this.onUploading.fire();
 						},
 						onError: (err) => {
-							updateState(this, UPLOAD_STATE_ERROR, err);
+							setState(this, UPLOAD_STATE_ERROR, err);
+							this.onError.fire(err);
 						},
 						onAbort: () => {
-							updateState(this, UPLOAD_STATE_ERROR, '上传被中断');
+							setState(this, UPLOAD_STATE_ERROR, '上传被中断');
+							this.onAbort.fire();
 						},
 					});
 				}
@@ -7443,16 +7445,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				html = escapeHtml(value).replace(/\n/g, '<br>');
 				break;
 			case ACInlineEditor.TYPE_OPTION_SELECT:
-				html = options.find(option => option.value == value)?.text || '';
+			case ACInlineEditor.TYPE_OPTION_RADIO:
+				let opt = options.find(opt=>opt.value === value);
+				html = escapeHtml(opt ? (opt?.text || '') : value);
 				break;
 			case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
-				html = value.map(val => options.find(option => option.value == val).text).join(',');
-				break;
-			case ACInlineEditor.TYPE_OPTION_RADIO:
-				html = options.find(option => option.value == value)?.text || '';
-				break;
 			case ACInlineEditor.TYPE_OPTION_CHECKBOX:
-				html = value.map(val => options.find(option => option.value == val).text).join(',');
+				let text_list = [];
+				options.forEach(opt=>{
+					if(opt.value === value){
+						text_list.push(escapeHtml(opt.text));
+					}
+				});
+				html = text_list.length ? text_list.join(',') : escapeHtml(value);
 				break;
 			default:
 				throw `未知的编辑器类型：${type}`;
@@ -7570,7 +7575,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			const method = param.method;
 			const required = !!param.required;
 			const name = param.name;
-			const type = param.type || this.TYPE_TEXT;
+			const type = String(param.type) || this.TYPE_TEXT;
 			let value = param.value;
 			if (value == null && [
 				ACInlineEditor.TYPE_TEXT,
@@ -7581,7 +7586,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			].includes(type)) {
 				value = container.innerText.trim();
 			}
-			if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT == type) {
+			if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT === type) {
 				value = unescapeHtml(container.innerHTML.trim());
 			}
 			let options = param.options || [

@@ -42,7 +42,7 @@ const SELECT_PLACEHOLDER_VALUE = NS + guid();
  * 渲染视图
  * @param {Node} container 
  * @param {String} type 
- * @param {String} value 
+ * @param {String} value 当值不在选项列表中时，直接渲染值
  * @param {Array} options 
  * @returns {void}
  */
@@ -62,19 +62,20 @@ const renderView = (container, type, value, options = []) => {
 			break;
 
 		case ACInlineEditor.TYPE_OPTION_SELECT:
-			html = options.find(option => option.value == value)?.text || '';
+		case ACInlineEditor.TYPE_OPTION_RADIO:
+			let opt = options.find(opt=>opt.value === value);
+			html = escapeHtml(opt ? (opt?.text || '') : value);
 			break;
 
 		case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
-			html = value.map(val => options.find(option => option.value == val).text).join(',');
-			break;
-
-		case ACInlineEditor.TYPE_OPTION_RADIO:
-			html = options.find(option => option.value == value)?.text || '';
-			break;
-
 		case ACInlineEditor.TYPE_OPTION_CHECKBOX:
-			html = value.map(val => options.find(option => option.value == val).text).join(',');
+			let text_list = [];
+			options.forEach(opt=>{
+				if(opt.value === value){
+					text_list.push(escapeHtml(opt.text));
+				}
+			})
+			html = text_list.length ? text_list.join(',') : escapeHtml(value);
 			break;
 
 		default:
@@ -233,7 +234,7 @@ export class ACInlineEditor {
 		const method = param.method; //提交方式（可以为空，由transmitter处理）
 		const required = !!param.required; //是否必填
 		const name = param.name; //字段名
-		const type = param.type || this.TYPE_TEXT;
+		const type = String(param.type) || this.TYPE_TEXT;
 		let value = param.value;
 
 		if (value == null && [
@@ -245,7 +246,7 @@ export class ACInlineEditor {
 		].includes(type)) {
 			value = container.innerText.trim();
 		}
-		if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT == type) {
+		if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT === type) {
 			value = unescapeHtml(container.innerHTML.trim());
 		}
 

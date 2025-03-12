@@ -81,9 +81,7 @@ const DEFAULT_REQUEST_HANDLE = (url, fileMap, callbacks) => {
 			return;
 		}
 		callbacks.onSuccess({
-			value: rspObj.data.value,
-			thumb: rspObj.data.thumb,
-			name: rspObj.data.name,
+			...rspObj.data,
 			error: null
 		});
 	});
@@ -104,14 +102,6 @@ const mergeNoNull = (target, source) => {
 }
 
 /**
- * 清空上传
- * @param {Uploader} up
- */
-const cleanUpload = (up) => {
-	updateState(up, UPLOAD_STATE_EMPTY);
-}
-
-/**
  * 中断上传
  * @param {Uploader} up
  */
@@ -121,7 +111,8 @@ const abortUpload = up => {
 	}catch(err){
 		console.error(err)
 	}
-	updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+	up.onAbort.fire();
+	setState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 }
 
 /**
@@ -130,7 +121,7 @@ const abortUpload = up => {
  * @param {String} state
  * @param {*} data
  */
-const updateState = (up, state, data = null) => {
+const setState = (up, state, data = null) => {
 	const fileEl = findOne('input[type=file]', up.dom);
 	const contentCtn = findOne(`.${NS}-content`, up.dom);
 	up.dom.setAttribute('data-state', state);
@@ -140,24 +131,19 @@ const updateState = (up, state, data = null) => {
 			fileEl.value = '';
 			fileEl.required = !!fileEl.dataset.required;
 			contentCtn.innerHTML = '';
-			up.onClean.fire();
 			break;
 		case UPLOAD_STATE_PENDING:
-			up.onUploading.fire();
 			break;
 		case UPLOAD_STATE_NORMAL:
 			fileEl.required = false;
 			up.dom.title = up.name;
 			up.dom.title = up.name;
 			contentCtn.innerHTML = `<img alt="" src="${up.thumb}">`;
-			up.onSuccess.fire({name: up.name, value: up.value, thumb: up.thumb});
 			break;
 		case UPLOAD_STATE_ERROR:
 			fileEl.value = '';
 			fileEl.required = !!fileEl.dataset.required;
-			updateState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
-			console.error('Uploader Error:', data);
-			up.onError.fire(data);
+			setState(up, up.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 			break;
 		default:
 			throw "todo";
@@ -309,10 +295,15 @@ export class Uploader {
 		this.dom = createDomByHtml(html, container);
 		const fileEl = findOne('input[type=file]', this.dom);
 
-		bindNodeActive(findOne(`.${NS}-btn-clean`, this.dom), () => {cleanUpload(this);});
-		bindNodeActive(findOne(`.${NS}-btn-cancel`, this.dom), () => {abortUpload(this);});
+		bindNodeActive(findOne(`.${NS}-btn-clean`, this.dom), () => {
+			setState(this, UPLOAD_STATE_EMPTY);
+			this.onClean.fire();
+		});
+		bindNodeActive(findOne(`.${NS}-btn-cancel`, this.dom), () => {
+			abortUpload(this);
+		});
 
-		updateState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
+		setState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
 		fileEl.addEventListener('change', () => {
 			let file = fileEl.files[0];
 			if(file){
@@ -324,7 +315,8 @@ export class Uploader {
 					Toast.showError('所选的文件大小超出限制');
 					return;
 				}
-				updateState(this, UPLOAD_STATE_PENDING);
+				setState(this, UPLOAD_STATE_PENDING);
+				this.onUploading.fire();
 				this.xhr = requestHandle(isFunction(uploadUrl) ? uploadUrl() : uploadUrl, {[this.option.uploadFileFieldName]: file}, {
 					onSuccess: rspObj => {
 						try{
@@ -333,9 +325,11 @@ export class Uploader {
 							this.value = value;
 							this.thumb = thumb;
 							this.name = name;
-							updateState(this, UPLOAD_STATE_NORMAL);
+							setState(this, UPLOAD_STATE_NORMAL);
+							this.onSuccess.fire(rspObj);
 						}catch(err){
-							updateState(this, UPLOAD_STATE_ERROR, err);
+							setState(this, UPLOAD_STATE_ERROR, err);
+							this.onError.fire(err);
 						}
 					},
 					onProgress: (loaded, total) => {
@@ -344,13 +338,16 @@ export class Uploader {
 						progressEl.value = loaded;
 						progressEl.max = total;
 						progressPnt.innerHTML = Math.round(100 * loaded / total) + '%';
-						updateState(this, UPLOAD_STATE_PENDING);
+						setState(this, UPLOAD_STATE_PENDING);
+						this.onUploading.fire();
 					},
 					onError: (err) => {
-						updateState(this, UPLOAD_STATE_ERROR, err);
+						setState(this, UPLOAD_STATE_ERROR, err);
+						this.onError.fire(err);
 					},
 					onAbort: () => {
-						updateState(this, UPLOAD_STATE_ERROR, '上传被中断');
+						setState(this, UPLOAD_STATE_ERROR, '上传被中断');
+						this.onAbort.fire();
 					},
 				});
 			}
