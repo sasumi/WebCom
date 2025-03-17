@@ -2787,7 +2787,9 @@ const fireEvent = (nodes, event) => {
 };
 const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = false) => {
 	findAll(nodes).forEach(node=>{
-		node.addEventListener('click', payload, cancelBubble);
+		node.addEventListener('click', e=>{
+			payload.call(node, e, node);
+		}, cancelBubble);
 		node.addEventListener('keyup', e => {
 			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
 				node.click();
@@ -2795,7 +2797,7 @@ const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = fa
 			}
 		}, cancelBubble);
 		if(triggerAtOnce){
-			payload.call(node, null);
+			payload.call(node, null, node);
 		}
 	});
 };
@@ -2816,17 +2818,19 @@ const triggerDomEvent = (node, event) => {
 	}
 };
 const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOnce = false) => {
-	findAll(nodes).forEach(node=>{
+	findAll(nodes).forEach(node => {
 		let evs = Array.isArray(event) ? event : [event];
 		evs.forEach(ev => {
 			if(ev === EVENT_ACTIVE){
 				bindNodeActive(node, payload, option);
 			}else {
-				node.addEventListener(ev, payload, option);
+				node.addEventListener(ev, e => {
+					payload.call(node, e, node);
+				}, option);
 			}
 		});
 		if(triggerAtOnce){
-			payload.call(node, null);
+			payload.call(node, null, node);
 		}
 	});
 };
@@ -7558,7 +7562,7 @@ class ACInlineEditor {
 		const method = param.method;
 		const required = !!param.required;
 		const name = param.name;
-		const type = String(param.type) || this.TYPE_TEXT;
+		const type = param.type ? String(param.type) : this.TYPE_TEXT;
 		let value = param.value;
 		if (value == null && [
 			ACInlineEditor.TYPE_TEXT,

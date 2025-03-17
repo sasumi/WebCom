@@ -234,7 +234,7 @@ export class ACInlineEditor {
 		const method = param.method; //提交方式（可以为空，由transmitter处理）
 		const required = !!param.required; //是否必填
 		const name = param.name; //字段名
-		const type = String(param.type) || this.TYPE_TEXT;
+		const type = param.type ? String(param.type) : this.TYPE_TEXT;
 		let value = param.value;
 
 		if (value == null && [

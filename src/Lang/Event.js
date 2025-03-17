@@ -144,13 +144,15 @@ export const fireEvent = (nodes, event) => {
 /**
  * 绑定节点交互触发时间（包括鼠标点击、键盘回车、键盘空格）
  * @param {Node|Node[]|String|String[]} nodes
- * @param {CallableFunction} payload
+ * @param {CallableFunction} payload (event|null, targetFixed)
  * @param {Boolean} cancelBubble
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
 export const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = false) => {
 	findAll(nodes).forEach(node=>{
-		node.addEventListener('click', payload, cancelBubble);
+		node.addEventListener('click', e=>{
+			payload.call(node, e, node);
+		}, cancelBubble);
 		node.addEventListener('keyup', e => {
 			if(e.keyCode === KEYS.Space || e.keyCode === KEYS.Enter){
 				node.click(); //keyup同时触发一个 PointerEvent事件，这里做修正
@@ -158,7 +160,7 @@ export const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOn
 			}
 		}, cancelBubble);
 		if(triggerAtOnce){
-			payload.call(node, null);
+			payload.call(node, null, node);
 		}
 	});
 }
@@ -194,22 +196,24 @@ export const triggerDomEvent = (node, event) => {
  * 批量绑定事件，支持active自定义事件
  * @param {Node|Node[]|String|String[]} nodes
  * @param {String|String[]} event 事件名称或事件名称列表
- * @param {Function} payload
+ * @param {Function} payload (event|null, targetFixed)
  * @param {*} option
  * @param {Boolean} triggerAtOnce 是否立即触发一次（针对初始化场景）
  */
 export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOnce = false) => {
-	findAll(nodes).forEach(node=>{
+	findAll(nodes).forEach(node => {
 		let evs = Array.isArray(event) ? event : [event];
 		evs.forEach(ev => {
 			if(ev === EVENT_ACTIVE){
 				bindNodeActive(node, payload, option);
 			}else{
-				node.addEventListener(ev, payload, option);
+				node.addEventListener(ev, e => {
+					payload.call(node, e, node)
+				}, option);
 			}
 		});
 		if(triggerAtOnce){
-			payload.call(node, null);
+			payload.call(node, null, node);
 		}
 	});
 }
