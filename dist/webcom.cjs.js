@@ -2801,6 +2801,18 @@ const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOnce = fa
 		}
 	});
 };
+const objectOnChanged = (obj, onSet)=>{
+	new Proxy(obj, {
+		set: function(target, key, value){
+			console.log(`${key} set to ${value}`);
+			if(onSet(key, value) === false){
+				return false;
+			}
+			target[key] = value;
+			return true;
+		}
+	});
+};
 const onDocReady = (callback)=>{
 	if (document.readyState === 'complete') {
 		callback();
@@ -8531,6 +8543,7 @@ exports.nodeHighlight = nodeHighlight;
 exports.nodeIndex = nodeIndex;
 exports.objectGetByPath = objectGetByPath;
 exports.objectKeyMapping = objectKeyMapping;
+exports.objectOnChanged = objectOnChanged;
 exports.objectPushByPath = objectPushByPath;
 exports.onDocReady = onDocReady;
 exports.onDomTreeChange = onDomTreeChange;

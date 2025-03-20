@@ -165,6 +165,19 @@ export const bindNodeActive = (nodes, payload, cancelBubble = false, triggerAtOn
 	});
 }
 
+export const objectOnChanged = (obj, onSet)=>{
+	const proxy = new Proxy(obj, {
+		set: function(target, key, value){
+			console.log(`${key} set to ${value}`);
+			if(onSet(key, value) === false){
+				return false;
+			}
+			target[key] = value;
+			return true;
+		}
+	})
+}
+
 /**
  * on document ready
  * @param {Function} callback
@@ -220,7 +233,7 @@ export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOn
 
 /**
  * 绑定组合键
- * @param {String} keyStr
+ * @param {String} keyStr 快捷键组合，如 "ctrl+k", "A"
  * @param {Function} payload
  * @param {Object} option
  * @param {String} option.event 事件类型，默认为keydown

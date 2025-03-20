@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		#console div {background-color:#eee; margin-bottom:2px;}
+	</style>
+</head>
+<body>
+<script src="assets/nav.js"></script>
+
+<script type="module">
+	import {bindConsole, objectOnChanged} from "../src/index.js";
+
+	var TEST_DATA = {
+		name: '111'
+	};
+
+	TEST_DATA.watch('name', function())
+
+	objectOnChanged(TEST_DATA, (key, value)=>{
+
+	});
+
+	TEST_DATA.name = 123123123;
+</script>
+</body>
+</html>
