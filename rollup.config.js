@@ -34,6 +34,6 @@ export default {
 	],
 	plugins: [
 		cleanupPlugin({comments: "none", sourcemap: true, extensions: ["js", "ts"]}),
-		// terser()
+		terser()
 	]
 }
