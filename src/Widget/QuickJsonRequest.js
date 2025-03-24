@@ -64,7 +64,7 @@ export const QuickJsonRequest = {
 						resolve(rsp);
 					}else if(errorMsg){
 						toastOpt.error && Toast.showError(errorMsg);
-						reject(rsp);
+						reject(errorMsg);
 					}else{
 						throw "response error";
 					}

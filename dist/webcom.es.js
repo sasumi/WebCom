@@ -5889,7 +5889,7 @@ const QuickJsonRequest = {
 						resolve(rsp);
 					}else if(errorMsg){
 						toastOpt.error && ToastClass.showError(errorMsg);
-						reject(rsp);
+						reject(errorMsg);
 					}else {
 						throw "response error";
 					}
