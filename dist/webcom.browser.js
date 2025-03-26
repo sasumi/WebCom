@@ -2462,35 +2462,39 @@ var WebCom = (function (exports) {
 			});
 		});
 	};
+	const objSame = (obj1, obj2)=>{
+		return JSON.stringify(obj1) === JSON.stringify(obj2);
+	};
 	const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
 		let last_execute_time = 0;
-		let data_to_submit = null;
+		let last_submit_data = null;
 		const PRO_KEY = '_auto_save_listen_' + guid();
 		const STATE_IDLE = 'idle';
 		const STATE_SUBMITTING = 'submitting';
-		const STATE_QUEUEING = 'queueing';
 		let state = STATE_IDLE;
 		const doTask = ()=>{
-			const data = data_to_submit;
-			data_to_submit = null;
+			let data = formSerializeJSON(form, false);
+			if(objSame(last_submit_data, data)){
+				return;
+			}
 			state = STATE_SUBMITTING;
+			last_submit_data = data;
 			savePromise(data).finally(()=>{
 				last_execute_time = (new Date()).getTime();
-				if(data_to_submit){
-					state = STATE_QUEUEING;
-					setTimeout(doTask, minSaveInterval);
-				} else {
+				let d = formSerializeJSON(form, false);
+				if(objSame(last_submit_data, d)){
 					state = STATE_IDLE;
+					return;
 				}
+				setTimeout(doTask, minSaveInterval);
 			});
 		};
 		const trigger = ()=>{
 			const form_data = formSerializeJSON(form, false);
-			if(!form_data || JSON.stringify(data_to_submit) === JSON.stringify(form_data)){
+			if(!form_data){
 				return;
 			}
-			data_to_submit = form_data;
-			if(state === STATE_QUEUEING || state === STATE_SUBMITTING){
+			if(state === STATE_SUBMITTING){
 				return;
 			}
 			const remains = minSaveInterval - (new Date().getTime() - last_execute_time);
