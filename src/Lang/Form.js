@@ -274,54 +274,47 @@ export const bindFormSubmitAsJSON = (form, onSubmitting = () => {}) => {
  * @param {Number} minSaveInterval 最小保存间隔，上次保存完成后，至少间隔2s才继续下一次保存
  */
 export const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
-	let last_saved_data = formSerializeString(form, false);
-	let last_execute_time = 0; //最后一次任务执行后时间
-	let executing = false; //是否正在执行任务或等待中
-	let tasks = []; //任务队列，最多包含两个：item1: 执行中，item2：待执行
+	let last_execute_time = 0;
+	let data_to_submit = null;
 	const PRO_KEY = '_auto_save_listen_' + guid();
-
-	const doSaveAsync = () => {
-		if(executing){
-			return;
-		}
-		executing = true;
-		let doTask = ()=>{
-			let task = tasks.shift();
-			let task_data = formSerializeString(form, false);
-			task().finally(() => {
-				last_saved_data = task_data;
-				last_execute_time = (new Date()).getTime();
-				executing = false;
-				if(tasks.length){
-					doSaveAsync();
-				}
-			});
-		}
-		let remains = minSaveInterval - (new Date().getTime() - last_execute_time);
-		if(remains > 0){
-			setTimeout(doTask, remains);
-		} else {
-			doTask();
-		}
+	const STATE_IDLE = 'idle';
+	const STATE_SUBMITTING = 'submitting';
+	const STATE_QUEUEING = 'queueing';
+	let state = STATE_IDLE;
+	const doTask = ()=>{
+		const data = data_to_submit;
+		data_to_submit = null;
+		state = STATE_SUBMITTING;
+		savePromise(data).finally(()=>{
+			last_execute_time = (new Date()).getTime();
+			if(data_to_submit){
+				state = STATE_QUEUEING;
+				setTimeout(doTask, minSaveInterval);
+			} else {
+				state = STATE_IDLE;
+			}
+		});
 	};
-	const queue = ()=>{
-		if(tasks.length > 1){
+	const trigger = ()=>{
+		const form_data = formSerializeJSON(form, false);
+		if(!form_data || JSON.stringify(data_to_submit) === JSON.stringify(form_data)){
 			return;
 		}
-		if(last_saved_data === formSerializeString(form, false)){
+		data_to_submit = form_data;
+		if(state === STATE_QUEUEING || state === STATE_SUBMITTING){
 			return;
 		}
-		tasks.push(savePromise);
-		doSaveAsync();
+		const remains = minSaveInterval - (new Date().getTime() - last_execute_time);
+		setTimeout(doTask, Math.max(remains, 0));
 	};
 	mutationEffective(form,  {attributes: false, subtree: true, childList: true}, obs=>{
 		findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`).forEach(el=>{
 			el.setAttribute(PRO_KEY, '1');
-			el.addEventListener('change', queue);
+			el.addEventListener('change', trigger);
 		});
-		queue();
+		trigger();
 	}, 100);
-	findAll('input,textarea,select').forEach(el=>{el.addEventListener('change', queue);});
+	findAll('input,textarea,select').forEach(el=>{el.addEventListener('change', trigger);});
 }
 
 /**
@@ -352,11 +345,13 @@ export const getFormDataAvailable = (dom, validate = true) => {
  * 注意：同名表单项以JS数组方式组装，PHP方法名称中中括号将被作为变量名一部分使用
  * @param {HTMLElement} dom 表单节点或普通HTML容器节点
  * @param {Boolean} validate 是否校验表单
- * @returns {Object} JSON数据
+ * @returns {Object|Null} JSON数据，如果数据为空返回NULL
  */
 export const formSerializeJSON = (dom, validate = true) => {
-	let json_obj = {};
 	let data_list = getFormDataAvailable(dom, validate);
+	if(!data_list.length){
+		return null;
+	}
 	let name_counts = {};
 	data_list.forEach(item => {
 		let [name] = item;
@@ -366,6 +361,7 @@ export const formSerializeJSON = (dom, validate = true) => {
 			name_counts[name]++
 		}
 	});
+	let json_obj = {};
 	data_list.forEach(item => {
 		let [name, value] = item;
 		if(name_counts[name] > 1){
