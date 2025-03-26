@@ -63,7 +63,7 @@ export const getETA = (startTime, index, total, pretty = true)=>{
 	if(!index){
 		return '';
 	}
-	let sec = ((new Date().getTime()) - startTime) * (total - index)/index;
+	let sec = ((Date.getTime()) - startTime) * (total - index)/index;
 	if(!pretty){
 		return sec;
 	}
@@ -337,7 +337,7 @@ export const formatDate = function(format, date = null){
 	if(typeof date === 'object' && date !== null){
 		dateObj = date;
 	}else{
-		dateObj = new Date(date || (new Date().getTime()));
+		dateObj = new Date(date || (Date.getTime()));
 	}
 	return format.replace(/(\\?)(.)/g, function(_, esc, chr){
 		return (esc === '' && PHP_DATE_CHAR_MAP[chr]) ? PHP_DATE_CHAR_MAP[chr](dateObj) : chr

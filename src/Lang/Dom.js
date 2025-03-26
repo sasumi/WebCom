@@ -443,16 +443,16 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 		if(callback_queueing){
 			return;
 		}
-		let r = minInterval - (new Date().getTime() - last_queue_time);
+		let r = minInterval - (Date.getTime() - last_queue_time);
 		if(r > 0){
 			callback_queueing = true;
 			setTimeout(() => {
 				callback_queueing = false;
-				last_queue_time = new Date().getTime();
+				last_queue_time = Date.getTime();
 				payload(obs);
 			}, r);
 		}else{
-			last_queue_time = new Date().getTime();
+			last_queue_time = Date.getTime();
 			payload(obs);
 		}
 	});

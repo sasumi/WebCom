@@ -1133,16 +1133,16 @@ var WebCom = (function (exports) {
 			if(callback_queueing){
 				return;
 			}
-			let r = minInterval - (new Date().getTime() - last_queue_time);
+			let r = minInterval - (Date.getTime() - last_queue_time);
 			if(r > 0){
 				callback_queueing = true;
 				setTimeout(() => {
 					callback_queueing = false;
-					last_queue_time = new Date().getTime();
+					last_queue_time = Date.getTime();
 					payload(obs);
 				}, r);
 			}else {
-				last_queue_time = new Date().getTime();
+				last_queue_time = Date.getTime();
 				payload(obs);
 			}
 		});
@@ -2466,39 +2466,33 @@ var WebCom = (function (exports) {
 		return JSON.stringify(obj1) === JSON.stringify(obj2);
 	};
 	const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
-		let last_execute_time = 0;
-		let last_submit_data = null;
 		const PRO_KEY = '_auto_save_listen_' + guid();
-		const STATE_IDLE = 'idle';
-		const STATE_SUBMITTING = 'submitting';
-		let state = STATE_IDLE;
-		const doTask = ()=>{
+		let last_execute_time = 0;
+		let last_submit_data = formSerializeJSON(form, false);
+		let submitting = false;
+		const save = ()=>{
 			let data = formSerializeJSON(form, false);
 			if(objSame(last_submit_data, data)){
 				return;
 			}
-			state = STATE_SUBMITTING;
+			submitting = true;
 			last_submit_data = data;
 			savePromise(data).finally(()=>{
-				last_execute_time = (new Date()).getTime();
-				let d = formSerializeJSON(form, false);
-				if(objSame(last_submit_data, d)){
-					state = STATE_IDLE;
+				last_execute_time = Date.now();
+				if(objSame(last_submit_data, formSerializeJSON(form, false))){
+					submitting = false;
 					return;
 				}
-				setTimeout(doTask, minSaveInterval);
+				setTimeout(save, minSaveInterval);
 			});
 		};
 		const trigger = ()=>{
 			const form_data = formSerializeJSON(form, false);
-			if(!form_data){
+			if(!form_data || submitting){
 				return;
 			}
-			if(state === STATE_SUBMITTING){
-				return;
-			}
-			const remains = minSaveInterval - (new Date().getTime() - last_execute_time);
-			setTimeout(doTask, Math.max(remains, 0));
+			const remains = minSaveInterval - (Date.now() - last_execute_time);
+			setTimeout(save, Math.max(remains, 0));
 		};
 		mutationEffective(form,  {attributes: false, subtree: true, childList: true}, obs=>{
 			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`).forEach(el=>{
@@ -3305,7 +3299,7 @@ var WebCom = (function (exports) {
 		if(!index){
 			return '';
 		}
-		let sec = ((new Date().getTime()) - startTime) * (total - index)/index;
+		let sec = ((Date.getTime()) - startTime) * (total - index)/index;
 		if(!pretty){
 			return sec;
 		}
@@ -3532,7 +3526,7 @@ var WebCom = (function (exports) {
 		if(typeof date === 'object' && date !== null){
 			dateObj = date;
 		}else {
-			dateObj = new Date(date || (new Date().getTime()));
+			dateObj = new Date(date || (Date.getTime()));
 		}
 		return format.replace(/(\\?)(.)/g, function(_, esc, chr){
 			return (esc === '' && PHP_DATE_CHAR_MAP[chr]) ? PHP_DATE_CHAR_MAP[chr](dateObj) : chr
