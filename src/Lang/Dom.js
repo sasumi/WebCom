@@ -1,7 +1,7 @@
-import {between} from "./Math.js";
-import {strToPascalCase} from "./String.js";
-import {dimension2Style} from "./Html.js";
-import {guid} from "./Util.js";
+import { between } from "./Math.js";
+import { strToPascalCase } from "./String.js";
+import { dimension2Style } from "./Html.js";
+import { guid } from "./Util.js";
 
 export const getViewWidth = () => {
 	return window.innerWidth;
@@ -25,7 +25,7 @@ export const hide = (dom) => {
  * @return {boolean}
  */
 export const remove = (dom) => {
-	if(dom && dom.parentNode){
+	if (dom && dom.parentNode) {
 		dom.parentNode.removeChild(dom);
 		return true;
 	}
@@ -57,7 +57,7 @@ const _el_disabled_class_ = '__element-lock__';
  * @param {String|Node} el
  * @param {String} disabledClass
  */
-export const disabled = (el, disabledClass = '')=>{
+export const disabled = (el, disabledClass = '') => {
 	return toggleDisabled(el, disabledClass, false);
 }
 
@@ -66,7 +66,7 @@ export const disabled = (el, disabledClass = '')=>{
  * @param {String|Node} el
  * @param {String} disabledClass
  */
-export const enabled = (el, disabledClass = '')=>{
+export const enabled = (el, disabledClass = '') => {
 	return toggleDisabled(el, disabledClass, true);
 }
 
@@ -78,14 +78,14 @@ export const enabled = (el, disabledClass = '')=>{
  */
 export const toggleDisabled = (el, disabledClass = '', forceEnabled = null) => {
 	let toDisabled = forceEnabled === null ? !el.classList.has(_el_disabled_class_) : !forceEnabled;
-	if(toDisabled){
+	if (toDisabled) {
 		insertStyleSheet(`.${_el_disabled_class_} {pointer-event:none !important;}`, '__element_lock_style__');
 	}
 	el = findOne(el);
 	el.classList.toggle(_el_disabled_class_, !toDisabled);
 	el[toDisabled ? 'setAttribute' : 'removeAttribute']('disabled', 'disabled');
 	el[toDisabled ? 'setAttribute' : 'removeAttribute']('data-disabled', 'disabled');
-	if(disabledClass){
+	if (disabledClass) {
 		el.classList.toggle(disabledClass, !toDisabled);
 	}
 }
@@ -148,19 +148,19 @@ export const waitForSelector = (selector, option = {}) => {
  * @return {Promise<Node[]>}
  */
 export const waitForSelectors = (selector, option = {}) => {
-	let {timeout, parent, checkInterval} = option;
+	let { timeout, parent, checkInterval } = option;
 	checkInterval = checkInterval || 10;
 	timeout = timeout || 10000;
 	parent = parent || document;
 	const st = Date.now();
 	return new Promise((resolve, reject) => {
 		let chk = () => {
-			if(timeout && (Date.now() - st > timeout)){
+			if (timeout && (Date.now() - st > timeout)) {
 				reject(`waitForSelectors timeout, ${selector} ${timeout}ms`);
 				return;
 			}
 			let ns = parent.querySelectorAll(selector);
-			if(ns.length){
+			if (ns.length) {
 				resolve(ns);
 				return;
 			}
@@ -177,26 +177,30 @@ export const waitForSelectors = (selector, option = {}) => {
  * @return {Node[]}
  */
 export const findAll = (selector, parent = document) => {
-	if(typeof selector === 'string'){
+	if (typeof selector === 'string') {
 		selector = selector.trim();
-		if(selector.indexOf(':scope') !== 0){
+		if (selector.indexOf(':scope') !== 0) {
 			selector = ':scope ' + selector;
 		}
 		return Array.from(parent.querySelectorAll(selector));
-	}else if(Array.isArray(selector)){
+	} else if (Array.isArray(selector)) {
 		let ns = [];
 		selector.forEach(sel => {
 			ns.push(...findAll(sel));
 		});
 		return ns;
-	}else{
+	} else if (NodeList.prototype.isPrototypeOf(selector) || HTMLCollection.prototype.isPrototypeOf(selector)) {
+		return Array.from(selector);
+	} else if (selector instanceof HTMLElement) {
 		return [selector];
+	} else {
+		return selector;
 	}
 }
 
 export const findAllOrFail = (selector, parent = document) => {
 	let ls = findAll(selector, parent);
-	if(!ls.length){
+	if (!ls.length) {
 		throw "no nodes found:" + selector;
 	}
 	return ls;
@@ -240,7 +244,7 @@ export const bindTextAutoResize = (textarea, init = true) => {
 	textarea.addEventListener('input', () => {
 		textarea.style.height = textarea.scrollHeight + 'px';
 	});
-	if(init){
+	if (init) {
 		textarea.style.height = textarea.scrollHeight + 'px';
 	}
 }
@@ -254,7 +258,7 @@ let __divs = {};
 const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
 const getNodeHeightWithMargin = (node) => {
 	let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
-	if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+	if (tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode) {
 		return __divs[tmp_div_id].offsetTop;
 	}
 	tmp_div_id = guid('tmp_div_id');
@@ -268,7 +272,7 @@ const getNodeHeightWithMargin = (node) => {
 
 const resizeIframe = (iframe) => {
 	let bdy = iframe.contentWindow.document.body;
-	if(!bdy){
+	if (!bdy) {
 		return;
 	}
 	let h = getNodeHeightWithMargin(bdy);
@@ -282,7 +286,7 @@ const resizeIframe = (iframe) => {
  */
 export const bindIframeAutoResize = (iframe) => {
 	let obs;
-	try{
+	try {
 		//成功加载后，只监听节点变化才调整高度，避免性能消耗
 		iframe.addEventListener('load', () => {
 			resizeIframe(iframe);
@@ -294,10 +298,10 @@ export const bindIframeAutoResize = (iframe) => {
 				resizeIframe(iframe);
 			});
 		});
-	}catch(err){
-		try{
+	} catch (err) {
+		try {
 			obs && obs.disconnect();
-		}catch(err){
+		} catch (err) {
 			console.error('observer disconnect fail', err)
 		}
 		console.warn('iframe content upd', err);
@@ -310,8 +314,8 @@ export const bindIframeAutoResize = (iframe) => {
  * @param {String} tabChar
  */
 export const bindTextSupportTab = (textarea, tabChar = "\t") => {
-	textarea.addEventListener('keydown', function(e){
-		if(e.key !== 'Tab'){
+	textarea.addEventListener('keydown', function (e) {
+		if (e.key !== 'Tab') {
 			return;
 		}
 		e.preventDefault();
@@ -339,9 +343,9 @@ export const matchParent = (dom, selector) => {
  */
 export const domContained = (nodes, child, includeEqual = false) => {
 	let contains = findAll(nodes);
-	for(let i = 0; i < contains.length; i++){
-		if((includeEqual ? contains[i] === child : false) ||
-			contains[i].compareDocumentPosition(child) & 16){
+	for (let i = 0; i < contains.length; i++) {
+		if ((includeEqual ? contains[i] === child : false) ||
+			contains[i].compareDocumentPosition(child) & 16) {
 			return true;
 		}
 	}
@@ -377,25 +381,25 @@ export const isNodeHidden = (node) => {
 export const getNodeXPath = (el) => {
 	let allNodes = document.getElementsByTagName('*');
 	let seg_list = [];
-	for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
-		if(el.hasAttribute('id')){
+	for (seg_list = []; el && el.nodeType === 1; el = el.parentNode) {
+		if (el.hasAttribute('id')) {
 			let uniqueIdCount = 0;
-			for(let n = 0; n < allNodes.length; n++){
-				if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
-				if(uniqueIdCount > 1) break;
+			for (let n = 0; n < allNodes.length; n++) {
+				if (allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
+				if (uniqueIdCount > 1) break;
 			}
-			if(uniqueIdCount === 1){
+			if (uniqueIdCount === 1) {
 				seg_list.unshift('id("' + el.getAttribute('id') + '")');
 				return seg_list.join('/');
-			}else{
+			} else {
 				seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
 			}
-		}else if(el.hasAttribute('class')){
+		} else if (el.hasAttribute('class')) {
 			seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
-		}else{
+		} else {
 			let i, sib;
-			for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
-				if(sib.localName === el.localName){
+			for (i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling) {
+				if (sib.localName === el.localName) {
 					i++;
 				}
 			}
@@ -419,7 +423,7 @@ export const onDomTreeChange = (dom, callback, includeElementChanged = true) => 
 			el.addEventListener('change', callback);
 		});
 	}
-	mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
+	mutationEffective(dom, { attributes: true, subtree: true, childList: true }, () => {
 		includeElementChanged && watchEl();
 		callback();
 	}, 10);
@@ -440,19 +444,19 @@ export const mutationEffective = (dom, option, payload, minInterval = 10) => {
 	let last_queue_time = 0;
 	let callback_queueing = false;
 	let obs = new MutationObserver(() => {
-		if(callback_queueing){
+		if (callback_queueing) {
 			return;
 		}
-		let r = minInterval - (Date.getTime() - last_queue_time);
-		if(r > 0){
+		let r = minInterval - (Date.now() - last_queue_time);
+		if (r > 0) {
 			callback_queueing = true;
 			setTimeout(() => {
 				callback_queueing = false;
-				last_queue_time = Date.getTime();
+				last_queue_time = Date.now();
 				payload(obs);
 			}, r);
-		}else{
-			last_queue_time = Date.getTime();
+		} else {
+			last_queue_time = Date.now();
 			payload(obs);
 		}
 	});
@@ -472,7 +476,7 @@ export const domChangedWatch = (container, matchedSelector, notification, execut
 	onDomTreeChange(container, () => {
 		notification(findAll(matchedSelector, container));
 	});
-	if(executionFirst){
+	if (executionFirst) {
 		notification(findAll(matchedSelector, container));
 	}
 }
@@ -533,30 +537,30 @@ export const keepRectInContainer = (objDim, ctnDim = {
 	width: window.innerWidth,
 	height: window.innerHeight
 }) => {
-	let ret = {left: objDim.left, top: objDim.top};
+	let ret = { left: objDim.left, top: objDim.top };
 
 	//oversize
-	if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
+	if (objDim.width > ctnDim.width || objDim.height > ctnDim.height) {
 		return ret;
 	}
 
 	//右边超出
-	if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
+	if ((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)) {
 		ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
 	}
 
 	//底边超出
-	if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
+	if ((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)) {
 		ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
 	}
 
 	//优先保证左边露出
-	if(objDim.left < ctnDim.left){
+	if (objDim.left < ctnDim.left) {
 		ret.left = ctnDim.left;
 	}
 
 	//优先保证上边露出
-	if(objDim.top < ctnDim.top){
+	if (objDim.top < ctnDim.top) {
 		ret.top = ctnDim.top;
 	}
 	return ret;
@@ -579,7 +583,7 @@ export const getDomDimension = (dom) => {
 	height = dom.clientHeight;
 	dom.style.visibility = org_visibility;
 	dom.style.display = org_display;
-	return {width, height};
+	return { width, height };
 }
 
 /**
@@ -589,13 +593,13 @@ export const getDomDimension = (dom) => {
  * @returns {boolean}
  */
 export const rectAssoc = (rect1, rect2) => {
-	if(rect1.left <= rect2.left){
+	if (rect1.left <= rect2.left) {
 		return (rect1.left + rect1.width) >= rect2.left && (
 			between(rect2.top, rect1.top, rect1.top + rect1.height) ||
 			between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
 			rect2.top >= rect1.top && rect2.height >= rect1.height
 		);
-	}else{
+	} else {
 		return (rect2.left + rect2.width) >= rect1.left && (
 			between(rect1.top, rect2.top, rect2.top + rect2.height) ||
 			between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
@@ -611,10 +615,10 @@ export const rectAssoc = (rect1, rect2) => {
  * @returns {boolean}
  */
 export const isElement = (obj) => {
-	try{
+	try {
 		//Using W3 DOM2 (works for FF, Opera and Chrome)
 		return obj instanceof HTMLElement;
-	}catch(e){
+	} catch (e) {
 		//Browsers not supporting W3 DOM2 don't have HTMLElement and
 		//an exception is thrown and we end up here. Testing some
 		//properties that all elements have. (works on IE7)
@@ -632,7 +636,7 @@ let _c = {};
  * @param {Boolean} forceReload 是否强制重新挂载，缺省不重复挂载
  */
 export const loadCss = (file, forceReload = false) => {
-	if(!forceReload && _c[file]){
+	if (!forceReload && _c[file]) {
 		return _c[file];
 	}
 	_c[file] = new Promise((resolve, reject) => {
@@ -657,7 +661,7 @@ export const loadCss = (file, forceReload = false) => {
  * @return {Promise}
  */
 export const loadScript = (src, forceReload = false) => {
-	if(!forceReload && _c[src]){
+	if (!forceReload && _c[src]) {
 		return _c[src];
 	}
 	_c[src] = new Promise((resolve, reject) => {
@@ -682,13 +686,13 @@ export const loadScript = (src, forceReload = false) => {
  * @return {HTMLStyleElement}
  */
 export const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
-	if(id && doc.querySelector(`#${id}`)){
+	if (id && doc.querySelector(`#${id}`)) {
 		return doc.querySelector(`#${id}`);
 	}
 	let style = doc.createElement('style');
 	doc.head.appendChild(style);
 	style.innerHTML = styleSheetStr;
-	if(id){
+	if (id) {
 		style.id = id;
 	}
 	return style;
@@ -714,12 +718,12 @@ export const getRegion = (win = window) => {
 	info.screenTop = win.screenTop ? win.screenTop : win.screenY;
 
 	//no ie
-	if(win.innerWidth){
+	if (win.innerWidth) {
 		info.visibleWidth = win.innerWidth;
 		info.visibleHeight = win.innerHeight;
 		info.horizenScroll = win.pageXOffset;
 		info.verticalScroll = win.pageYOffset;
-	}else{
+	} else {
 		//IE + DOCTYPE defined || IE4, IE5, IE6+no DOCTYPE
 		let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
 			doc.documentElement : doc.body;
@@ -753,7 +757,7 @@ export const rectInLayout = (rect, layout) => {
  * @param {Object} style 样式对象
  */
 export const setStyle = (dom, style = {}) => {
-	for(let key in style){
+	for (let key in style) {
 		key = strToPascalCase(key);
 		dom.style[key] = dimension2Style(style[key]);
 	}
@@ -768,10 +772,10 @@ export const setStyle = (dom, style = {}) => {
  */
 export const nodeHighlight = (node, pattern, hlClass) => {
 	let skip = 0;
-	if(node.nodeType === 3){
+	if (node.nodeType === 3) {
 		pattern = new RegExp(pattern, 'i');
 		let pos = node.data.search(pattern);
-		if(pos >= 0 && node.data.length > 0){ // .* matching "" causes infinite loop
+		if (pos >= 0 && node.data.length > 0) { // .* matching "" causes infinite loop
 			let match = node.data.match(pattern); // get the match(es), but we would only handle the 1st one, hence /g is not recommended
 			let spanNode = document.createElement('span');
 			spanNode.className = hlClass; // set css
@@ -783,8 +787,8 @@ export const nodeHighlight = (node, pattern, hlClass) => {
 			middleBit.parentNode.replaceChild(spanNode, middleBit);
 			skip = 1; // skip this middleBit, but still need to check endBit
 		}
-	}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
-		for(let i = 0; i < node.childNodes.length; ++i){
+	} else if (node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)) {
+		for (let i = 0; i < node.childNodes.length; ++i) {
 			i += nodeHighlight(node.childNodes[i], pattern, hlClass);
 		}
 	}
@@ -802,11 +806,11 @@ export const createDomByHtml = (html, parentNode = null) => {
 	html = html.trim();
 	tpl.innerHTML = html;
 	let nodes = [];
-	if(parentNode){
+	if (parentNode) {
 		tpl.content.childNodes.forEach(node => {
 			nodes.push(parentNode.appendChild(node));
 		})
-	}else{
+	} else {
 		nodes = tpl.content.childNodes;
 	}
 	return nodes.length === 1 ? nodes[0] : nodes;
@@ -817,9 +821,9 @@ export const createDomByHtml = (html, parentNode = null) => {
  * @param {HTMLElement} element
  * @param {Number} delay
  */
-export function repaint(element, delay = 0){
+export function repaint(element, delay = 0) {
 	setTimeout(() => {
-		try{
+		try {
 			// eslint-disable-next-line no-param-reassign
 			element.hidden = true;
 
@@ -828,7 +832,7 @@ export function repaint(element, delay = 0){
 
 			// eslint-disable-next-line no-param-reassign
 			element.hidden = false;
-		}catch(_){
+		} catch (_) {
 			// Do nothing
 		}
 	}, delay);
@@ -839,16 +843,16 @@ export function repaint(element, delay = 0){
  * @param {HTMLElement} element
  */
 export const enterFullScreen = (element) => {
-	if(element.requestFullscreen){
+	if (element.requestFullscreen) {
 		return element.requestFullscreen();
 	}
-	if(element.webkitRequestFullScreen){
+	if (element.webkitRequestFullScreen) {
 		return element.webkitRequestFullScreen();
 	}
-	if(element.mozRequestFullScreen){
+	if (element.mozRequestFullScreen) {
 		element.mozRequestFullScreen();
 	}
-	if(element.msRequestFullScreen){
+	if (element.msRequestFullScreen) {
 		element.msRequestFullScreen();
 	}
 	throw "Browser no allow full screen";
@@ -869,9 +873,9 @@ export const exitFullScreen = () => {
  */
 export const toggleFullScreen = (element) => {
 	return new Promise((resolve, reject) => {
-		if(!isInFullScreen()){
+		if (!isInFullScreen()) {
 			enterFullScreen(element).then(resolve).catch(reject);
-		}else{
+		} else {
 			exitFullScreen().then(resolve).catch(reject);
 		}
 	})
@@ -924,16 +928,16 @@ export const getContextDocument = () => {
  * @return {Window}
  */
 export const getContextWindow = () => {
-	if(CURRENT_WINDOW){
+	if (CURRENT_WINDOW) {
 		return CURRENT_WINDOW;
 	}
 	let win;
-	try{
+	try {
 		win = window;
-		while(win !== win.parent){
+		while (win !== win.parent) {
 			win = win.parent;
 		}
-	}catch(err){
+	} catch (err) {
 		console.warn('context window assign fail:', err);
 	}
 	return win || window;

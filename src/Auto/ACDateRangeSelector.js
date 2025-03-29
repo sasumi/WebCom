@@ -9,7 +9,7 @@ const TYPE_YEAR = 'year';
 
 const WEEK_TXT_MAP = '一二三四五六日';
 
-const NOW = (new Date).getTime();
+const NOW = Date.now();
 const WS = () => {
 	return WEEK_TXT_MAP[ACDateRangeSelector.WEEK_START - 1];
 }

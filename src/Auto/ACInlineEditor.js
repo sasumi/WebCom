@@ -1,9 +1,10 @@
-import { bindNodeActive, BizEvent } from "../Lang/Event.js";
-import { createDomByHtml, hide, insertStyleSheet, show } from "../Lang/Dom.js";
-import { escapeAttr, escapeHtml, unescapeHtml } from "../Lang/Html.js";
-import { Theme } from "../Widget/Theme.js";
-import { guid } from "../Lang/Util.js";
-import { Toast } from "../Widget/Toast.js";
+import {bindKeyContinuous, bindNodeActive, bindNodeEvents, BizEvent} from "../Lang/Event.js";
+import {createDomByHtml, hide, insertStyleSheet, show} from "../Lang/Dom.js";
+import {escapeAttr, escapeHtml, unescapeHtml} from "../Lang/Html.js";
+import {Theme} from "../Widget/Theme.js";
+import {guid} from "../Lang/Util.js";
+import {Toast} from "../Widget/Toast.js";
+import {inputTypeAble} from "../Lang/Form.js";
 
 const NS = Theme.Namespace + 'ac-inline-editor-';
 const patchStyle = () => {
@@ -63,15 +64,15 @@ const renderView = (container, type, value, options = []) => {
 
 		case ACInlineEditor.TYPE_OPTION_SELECT:
 		case ACInlineEditor.TYPE_OPTION_RADIO:
-			let opt = options.find(opt=>opt.value === value);
+			let opt = options.find(opt => opt.value === value);
 			html = escapeHtml(opt ? (opt?.text || '') : value);
 			break;
 
 		case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
 		case ACInlineEditor.TYPE_OPTION_CHECKBOX:
 			let text_list = [];
-			options.forEach(opt=>{
-				if(opt.value === value){
+			options.forEach(opt => {
+				if (opt.value === value) {
 					text_list.push(escapeHtml(opt.text));
 				}
 			})
@@ -82,6 +83,7 @@ const renderView = (container, type, value, options = []) => {
 			throw `未知的编辑器类型：${type}`;
 	}
 	container.innerHTML = html;
+	show(container);
 }
 
 /**
@@ -153,12 +155,10 @@ const renderElement = (container, type, name, value, options = [], required = fa
 			break;
 
 		default:
-			throw `未知的编辑器类型：${type}`;
+			throw `内联编辑器暂不支持该类型：${type}`;
 	}
 
-	createDomByHtml(html, container);
-
-	return () => {
+	const getVal = () => {
 		let error = null;
 		let value = null;
 		let elements = container.querySelectorAll('input,textarea,select');
@@ -167,7 +167,7 @@ const renderElement = (container, type, name, value, options = [], required = fa
 			case ACInlineEditor.TYPE_MULTILINE_TEXT:
 			case ACInlineEditor.TYPE_OPTION_SELECT:
 				value = elements[0].value;
-				if (required && (!value || value == SELECT_PLACEHOLDER_VALUE)) {
+				if (required && (!value || value === SELECT_PLACEHOLDER_VALUE)) {
 					error = REQUIRED_MESSAGES[type];
 					break;
 				}
@@ -202,6 +202,10 @@ const renderElement = (container, type, name, value, options = [], required = fa
 		}
 		return [value, error];
 	}
+
+	createDomByHtml(html, container);
+	const doms = container.querySelectorAll('input,textarea,select');
+	return [getVal, doms];
 }
 
 /**
@@ -230,11 +234,13 @@ export class ACInlineEditor {
 	static onUpdate = new BizEvent();
 
 	static init(container, param) {
-		const action = param.action; //提交地址（可以为空，由transmitter处理）
-		const method = param.method; //提交方式（可以为空，由transmitter处理）
-		const required = !!param.required; //是否必填
-		const name = param.name; //字段名
-		const type = param.type ? String(param.type) : this.TYPE_TEXT;
+		const ACTION = param.action; //提交地址（可以为空，由transmitter处理）
+		const METHOD = param.method; //提交方式（可以为空，由transmitter处理）
+		const REQUIRED = !!param.required; //是否必填
+		const NAME = param.name; //字段名
+		const TYPE = param.type ? String(param.type) : this.TYPE_TEXT;
+
+		//当前值
 		let value = param.value;
 
 		if (value == null && [
@@ -243,10 +249,10 @@ export class ACInlineEditor {
 			ACInlineEditor.TYPE_DATE,
 			ACInlineEditor.TYPE_TIME,
 			ACInlineEditor.TYPE_DATETIME
-		].includes(type)) {
+		].includes(TYPE)) {
 			value = container.innerText.trim();
 		}
-		if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT === type) {
+		if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT === TYPE) {
 			value = unescapeHtml(container.innerHTML.trim());
 		}
 
@@ -261,19 +267,28 @@ export class ACInlineEditor {
 
 		//创建编辑器和视图容器
 		container.innerHTML = `
-			<span class="${NS}editor-wrap" tabindex="0"></span>
-			<span class="${NS}view-wrap" style="display:none"></span>`;
+			<span class="${NS}editor-wrap" style="display:none" tabindex="0"></span>
+			<span class="${NS}view-wrap"></span>`;
 
 		//编辑器和视图容器
 		let view_wrap = container.querySelector(`.${NS}view-wrap`);
 		let editor_wrap = container.querySelector(`.${NS}editor-wrap`);
 
-		const toggleState = toEdit => {
-			toEdit ? show(editor_wrap) : hide(editor_wrap);
-			!toEdit ? show(view_wrap) : hide(view_wrap);
+		const showView = () =>{
+			hide(editor_wrap);
+			renderView(view_wrap, TYPE, value, options);
 		}
 
-		const toEdit = () => {
+		/**
+		 * @returns 初始化编辑器
+		 */
+		const showEditor = () => {
+			hide(view_wrap);
+			show(editor_wrap);
+
+			if (!this.transmitter) {
+				throw "ACInlineEditor.transmitter 未配置";
+			}
 			editor_wrap.innerHTML = '';
 			createDomByHtml(`
 						<span class="${NS}editor-text"></span>
@@ -282,32 +297,39 @@ export class ACInlineEditor {
 					`, editor_wrap);
 			const save_btn = editor_wrap.querySelector(`.${NS}save-btn`);
 			const cancel_btn = editor_wrap.querySelector(`.${NS}cancel-btn`);
-			const getVal = renderElement(editor_wrap.querySelector(`.${NS}editor-text`), type, name, value, options, required);
-			setTimeout(() => {
-				editor_wrap.querySelector('input,textarea,select').focus();
-			});
+			const [getVal, inputList] = renderElement(editor_wrap.querySelector(`.${NS}editor-text`), TYPE, NAME, value, options, REQUIRED);
 			const doSave = () => {
 				let [val, error] = getVal();
 				if (error) {
 					Toast.error(error);
 					return;
 				}
-				if (!this.transmitter) {
-					throw "ACInlineEditor.transmitter 未配置";
-				}
 				value = val;
-				this.transmitter(action, { [name]: value }, method).then(() => {
-					this.onUpdate.fire(name, value);
-					renderView(view_wrap, type, value, options);
-					toggleState(false);
+				this.transmitter(ACTION, { [NAME]: value }, METHOD).then(() => {
+					this.onUpdate.fire(NAME, value);
+					showView();
 				});
 			}
-			bindNodeActive(cancel_btn, () => { toggleState(false); });
+
+			let firstInput = inputList[0];
+			setTimeout(() => {
+				firstInput.focus();
+				inputTypeAble(firstInput) && firstInput.select();
+			});
+			bindNodeEvents(inputList, 'keydown', (e) => {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					doSave();
+				}
+			});
+			if(inputTypeAble(firstInput)){
+				bindKeyContinuous(firstInput, 'Escape', showView);
+			}
+			bindNodeActive(cancel_btn, showView);
 			bindNodeActive(save_btn, doSave);
-			toggleState(true);
 		}
-		bindNodeActive(view_wrap, toEdit);
-		renderView(view_wrap, type, value, options);
-		toggleState(false);
+
+		bindNodeActive(view_wrap, showEditor);
+		showView();
 	}
 }

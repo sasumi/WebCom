@@ -505,7 +505,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let expires = "";
 		if(days){
 			let date = new Date();
-			date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+			date.setTime(Date.now() + (days * 24 * 60 * 60 * 1000));
 			expires = "; expires=" + date.toUTCString();
 		}
 		document.cookie = name + "=" + (value || "") + expires + "; path=" + path;
@@ -898,7 +898,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		findOne(dom).style.display = 'none';
 	};
 	const remove = (dom) => {
-		if(dom && dom.parentNode){
+		if (dom && dom.parentNode) {
 			dom.parentNode.removeChild(dom);
 			return true;
 		}
@@ -911,22 +911,22 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		toShow ? show(dom) : hide(dom);
 	};
 	const _el_disabled_class_ = '__element-lock__';
-	const disabled = (el, disabledClass = '')=>{
+	const disabled = (el, disabledClass = '') => {
 		return toggleDisabled(el, disabledClass, false);
 	};
-	const enabled = (el, disabledClass = '')=>{
+	const enabled = (el, disabledClass = '') => {
 		return toggleDisabled(el, disabledClass, true);
 	};
 	const toggleDisabled = (el, disabledClass = '', forceEnabled = null) => {
 		let toDisabled = forceEnabled === null ? !el.classList.has(_el_disabled_class_) : !forceEnabled;
-		if(toDisabled){
+		if (toDisabled) {
 			insertStyleSheet(`.${_el_disabled_class_} {pointer-event:none !important;}`, '__element_lock_style__');
 		}
 		el = findOne(el);
 		el.classList.toggle(_el_disabled_class_, !toDisabled);
 		el[toDisabled ? 'setAttribute' : 'removeAttribute']('disabled', 'disabled');
 		el[toDisabled ? 'setAttribute' : 'removeAttribute']('data-disabled', 'disabled');
-		if(disabledClass){
+		if (disabledClass) {
 			el.classList.toggle(disabledClass, !toDisabled);
 		}
 	};
@@ -951,19 +951,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		})
 	};
 	const waitForSelectors = (selector, option = {}) => {
-		let {timeout, parent, checkInterval} = option;
+		let { timeout, parent, checkInterval } = option;
 		checkInterval = checkInterval || 10;
 		timeout = timeout || 10000;
 		parent = parent || document;
 		const st = Date.now();
 		return new Promise((resolve, reject) => {
 			let chk = () => {
-				if(timeout && (Date.now() - st > timeout)){
+				if (timeout && (Date.now() - st > timeout)) {
 					reject(`waitForSelectors timeout, ${selector} ${timeout}ms`);
 					return;
 				}
 				let ns = parent.querySelectorAll(selector);
-				if(ns.length){
+				if (ns.length) {
 					resolve(ns);
 					return;
 				}
@@ -973,25 +973,29 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		})
 	};
 	const findAll = (selector, parent = document) => {
-		if(typeof selector === 'string'){
+		if (typeof selector === 'string') {
 			selector = selector.trim();
-			if(selector.indexOf(':scope') !== 0){
+			if (selector.indexOf(':scope') !== 0) {
 				selector = ':scope ' + selector;
 			}
 			return Array.from(parent.querySelectorAll(selector));
-		}else if(Array.isArray(selector)){
+		} else if (Array.isArray(selector)) {
 			let ns = [];
 			selector.forEach(sel => {
 				ns.push(...findAll(sel));
 			});
 			return ns;
-		}else {
+		} else if (NodeList.prototype.isPrototypeOf(selector) || HTMLCollection.prototype.isPrototypeOf(selector)) {
+			return Array.from(selector);
+		} else if (selector instanceof HTMLElement) {
 			return [selector];
+		} else {
+			return selector;
 		}
 	};
 	const findAllOrFail = (selector, parent = document) => {
 		let ls = findAll(selector, parent);
-		if(!ls.length){
+		if (!ls.length) {
 			throw "no nodes found:" + selector;
 		}
 		return ls;
@@ -1018,7 +1022,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		textarea.addEventListener('input', () => {
 			textarea.style.height = textarea.scrollHeight + 'px';
 		});
-		if(init){
+		if (init) {
 			textarea.style.height = textarea.scrollHeight + 'px';
 		}
 	};
@@ -1026,7 +1030,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const NODE_HEIGHT_TMP_ATTR_KEY = 'data-NODE-HEIGHT-TMP-ATTR-KEY';
 	const getNodeHeightWithMargin = (node) => {
 		let tmp_div_id = node.getAttribute(NODE_HEIGHT_TMP_ATTR_KEY);
-		if(tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode){
+		if (tmp_div_id && __divs[tmp_div_id] && __divs[tmp_div_id].parentNode) {
 			return __divs[tmp_div_id].offsetTop;
 		}
 		tmp_div_id = guid('tmp_div_id');
@@ -1039,7 +1043,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const resizeIframe = (iframe) => {
 		let bdy = iframe.contentWindow.document.body;
-		if(!bdy){
+		if (!bdy) {
 			return;
 		}
 		let h = getNodeHeightWithMargin(bdy);
@@ -1047,7 +1051,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const bindIframeAutoResize = (iframe) => {
 		let obs;
-		try{
+		try {
 			iframe.addEventListener('load', () => {
 				resizeIframe(iframe);
 				mutationEffective(iframe.contentWindow.document.body, {
@@ -1058,18 +1062,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					resizeIframe(iframe);
 				});
 			});
-		}catch(err){
-			try{
+		} catch (err) {
+			try {
 				obs && obs.disconnect();
-			}catch(err){
+			} catch (err) {
 				console.error('observer disconnect fail', err);
 			}
 			console.warn('iframe content upd', err);
 		}
 	};
 	const bindTextSupportTab = (textarea, tabChar = "\t") => {
-		textarea.addEventListener('keydown', function(e){
-			if(e.key !== 'Tab'){
+		textarea.addEventListener('keydown', function (e) {
+			if (e.key !== 'Tab') {
 				return;
 			}
 			e.preventDefault();
@@ -1081,9 +1085,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const domContained = (nodes, child, includeEqual = false) => {
 		let contains = findAll(nodes);
-		for(let i = 0; i < contains.length; i++){
-			if((includeEqual ? contains[i] === child : false) ||
-				contains[i].compareDocumentPosition(child) & 16){
+		for (let i = 0; i < contains.length; i++) {
+			if ((includeEqual ? contains[i] === child : false) ||
+				contains[i].compareDocumentPosition(child) & 16) {
 				return true;
 			}
 		}
@@ -1101,25 +1105,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const getNodeXPath = (el) => {
 		let allNodes = document.getElementsByTagName('*');
 		let seg_list = [];
-		for(seg_list = []; el && el.nodeType === 1; el = el.parentNode){
-			if(el.hasAttribute('id')){
+		for (seg_list = []; el && el.nodeType === 1; el = el.parentNode) {
+			if (el.hasAttribute('id')) {
 				let uniqueIdCount = 0;
-				for(let n = 0; n < allNodes.length; n++){
-					if(allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
-					if(uniqueIdCount > 1) break;
+				for (let n = 0; n < allNodes.length; n++) {
+					if (allNodes[n].hasAttribute('id') && allNodes[n].id === el.id) uniqueIdCount++;
+					if (uniqueIdCount > 1) break;
 				}
-				if(uniqueIdCount === 1){
+				if (uniqueIdCount === 1) {
 					seg_list.unshift('id("' + el.getAttribute('id') + '")');
 					return seg_list.join('/');
-				}else {
+				} else {
 					seg_list.unshift(el.localName.toLowerCase() + '[@id="' + el.getAttribute('id') + '"]');
 				}
-			}else if(el.hasAttribute('class')){
+			} else if (el.hasAttribute('class')) {
 				seg_list.unshift(el.localName.toLowerCase() + '[@class="' + el.getAttribute('class') + '"]');
-			}else {
+			} else {
 				let i, sib;
-				for(i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling){
-					if(sib.localName === el.localName){
+				for (i = 1, sib = el.previousSibling; sib; sib = sib.previousSibling) {
+					if (sib.localName === el.localName) {
 						i++;
 					}
 				}
@@ -1136,7 +1140,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				el.addEventListener('change', callback);
 			});
 		};
-		mutationEffective(dom, {attributes: true, subtree: true, childList: true}, () => {
+		mutationEffective(dom, { attributes: true, subtree: true, childList: true }, () => {
 			includeElementChanged && watchEl();
 			callback();
 		}, 10);
@@ -1146,19 +1150,19 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let last_queue_time = 0;
 		let callback_queueing = false;
 		let obs = new MutationObserver(() => {
-			if(callback_queueing){
+			if (callback_queueing) {
 				return;
 			}
-			let r = minInterval - (Date.getTime() - last_queue_time);
-			if(r > 0){
+			let r = minInterval - (Date.now() - last_queue_time);
+			if (r > 0) {
 				callback_queueing = true;
 				setTimeout(() => {
 					callback_queueing = false;
-					last_queue_time = Date.getTime();
+					last_queue_time = Date.now();
 					payload(obs);
 				}, r);
-			}else {
-				last_queue_time = Date.getTime();
+			} else {
+				last_queue_time = Date.now();
 				payload(obs);
 			}
 		});
@@ -1168,7 +1172,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		onDomTreeChange(container, () => {
 			notification(findAll(matchedSelector, container));
 		});
-		if(executionFirst){
+		if (executionFirst) {
 			notification(findAll(matchedSelector, container));
 		}
 	};
@@ -1197,20 +1201,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		width: window.innerWidth,
 		height: window.innerHeight
 	}) => {
-		let ret = {left: objDim.left, top: objDim.top};
-		if(objDim.width > ctnDim.width || objDim.height > ctnDim.height){
+		let ret = { left: objDim.left, top: objDim.top };
+		if (objDim.width > ctnDim.width || objDim.height > ctnDim.height) {
 			return ret;
 		}
-		if((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)){
+		if ((objDim.width + objDim.left) > (ctnDim.width + ctnDim.left)) {
 			ret.left = objDim.left - ((objDim.width + objDim.left) - (ctnDim.width + ctnDim.left));
 		}
-		if((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)){
+		if ((objDim.height + objDim.top) > (ctnDim.height + ctnDim.top)) {
 			ret.top = objDim.top - ((objDim.height + objDim.top) - (ctnDim.height + ctnDim.top));
 		}
-		if(objDim.left < ctnDim.left){
+		if (objDim.left < ctnDim.left) {
 			ret.left = ctnDim.left;
 		}
-		if(objDim.top < ctnDim.top){
+		if (objDim.top < ctnDim.top) {
 			ret.top = ctnDim.top;
 		}
 		return ret;
@@ -1225,16 +1229,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		height = dom.clientHeight;
 		dom.style.visibility = org_visibility;
 		dom.style.display = org_display;
-		return {width, height};
+		return { width, height };
 	};
 	const rectAssoc = (rect1, rect2) => {
-		if(rect1.left <= rect2.left){
+		if (rect1.left <= rect2.left) {
 			return (rect1.left + rect1.width) >= rect2.left && (
 				between(rect2.top, rect1.top, rect1.top + rect1.height) ||
 				between(rect2.top + rect2.height, rect1.top, rect1.top + rect1.height) ||
 				rect2.top >= rect1.top && rect2.height >= rect1.height
 			);
-		}else {
+		} else {
 			return (rect2.left + rect2.width) >= rect1.left && (
 				between(rect1.top, rect2.top, rect2.top + rect2.height) ||
 				between(rect1.top + rect1.height, rect2.top, rect2.top + rect2.height) ||
@@ -1243,9 +1247,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 	};
 	const isElement = (obj) => {
-		try{
+		try {
 			return obj instanceof HTMLElement;
-		}catch(e){
+		} catch (e) {
 			return (typeof obj === "object") &&
 				(obj.nodeType === 1) && (typeof obj.style === "object") &&
 				(typeof obj.ownerDocument === "object");
@@ -1253,7 +1257,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	let _c = {};
 	const loadCss = (file, forceReload = false) => {
-		if(!forceReload && _c[file]){
+		if (!forceReload && _c[file]) {
 			return _c[file];
 		}
 		_c[file] = new Promise((resolve, reject) => {
@@ -1271,7 +1275,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return _c[file];
 	};
 	const loadScript = (src, forceReload = false) => {
-		if(!forceReload && _c[src]){
+		if (!forceReload && _c[src]) {
 			return _c[src];
 		}
 		_c[src] = new Promise((resolve, reject) => {
@@ -1288,13 +1292,13 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return _c[src];
 	};
 	const insertStyleSheet = (styleSheetStr, id = '', doc = document) => {
-		if(id && doc.querySelector(`#${id}`)){
+		if (id && doc.querySelector(`#${id}`)) {
 			return doc.querySelector(`#${id}`);
 		}
 		let style = doc.createElement('style');
 		doc.head.appendChild(style);
 		style.innerHTML = styleSheetStr;
-		if(id){
+		if (id) {
 			style.id = id;
 		}
 		return style;
@@ -1304,12 +1308,12 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let doc = win.document;
 		info.screenLeft = win.screenLeft ? win.screenLeft : win.screenX;
 		info.screenTop = win.screenTop ? win.screenTop : win.screenY;
-		if(win.innerWidth){
+		if (win.innerWidth) {
 			info.visibleWidth = win.innerWidth;
 			info.visibleHeight = win.innerHeight;
 			info.horizenScroll = win.pageXOffset;
 			info.verticalScroll = win.pageYOffset;
-		}else {
+		} else {
 			let tmp = (doc.documentElement && doc.documentElement.clientWidth) ?
 				doc.documentElement : doc.body;
 			info.visibleWidth = tmp.clientWidth;
@@ -1328,17 +1332,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			&& between(rect.top + rect.height, layout.top, layout.top + layout.height) && between(rect.left + rect.width, layout.left, layout.left + layout.width);
 	};
 	const setStyle = (dom, style = {}) => {
-		for(let key in style){
+		for (let key in style) {
 			key = strToPascalCase(key);
 			dom.style[key] = dimension2Style(style[key]);
 		}
 	};
 	const nodeHighlight = (node, pattern, hlClass) => {
 		let skip = 0;
-		if(node.nodeType === 3){
+		if (node.nodeType === 3) {
 			pattern = new RegExp(pattern, 'i');
 			let pos = node.data.search(pattern);
-			if(pos >= 0 && node.data.length > 0){
+			if (pos >= 0 && node.data.length > 0) {
 				let match = node.data.match(pattern);
 				let spanNode = document.createElement('span');
 				spanNode.className = hlClass;
@@ -1349,8 +1353,8 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				middleBit.parentNode.replaceChild(spanNode, middleBit);
 				skip = 1;
 			}
-		}else if(node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)){
-			for(let i = 0; i < node.childNodes.length; ++i){
+		} else if (node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)) {
+			for (let i = 0; i < node.childNodes.length; ++i) {
 				i += nodeHighlight(node.childNodes[i], pattern, hlClass);
 			}
 		}
@@ -1361,36 +1365,36 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		html = html.trim();
 		tpl.innerHTML = html;
 		let nodes = [];
-		if(parentNode){
+		if (parentNode) {
 			tpl.content.childNodes.forEach(node => {
 				nodes.push(parentNode.appendChild(node));
 			});
-		}else {
+		} else {
 			nodes = tpl.content.childNodes;
 		}
 		return nodes.length === 1 ? nodes[0] : nodes;
 	};
-	function repaint(element, delay = 0){
+	function repaint(element, delay = 0) {
 		setTimeout(() => {
-			try{
+			try {
 				element.hidden = true;
 				element.offsetHeight;
 				element.hidden = false;
-			}catch(_){
+			} catch (_) {
 			}
 		}, delay);
 	}
 	const enterFullScreen = (element) => {
-		if(element.requestFullscreen){
+		if (element.requestFullscreen) {
 			return element.requestFullscreen();
 		}
-		if(element.webkitRequestFullScreen){
+		if (element.webkitRequestFullScreen) {
 			return element.webkitRequestFullScreen();
 		}
-		if(element.mozRequestFullScreen){
+		if (element.mozRequestFullScreen) {
 			element.mozRequestFullScreen();
 		}
-		if(element.msRequestFullScreen){
+		if (element.msRequestFullScreen) {
 			element.msRequestFullScreen();
 		}
 		throw "Browser no allow full screen";
@@ -1400,9 +1404,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const toggleFullScreen = (element) => {
 		return new Promise((resolve, reject) => {
-			if(!isInFullScreen()){
+			if (!isInFullScreen()) {
 				enterFullScreen(element).then(resolve).catch(reject);
-			}else {
+			} else {
 				exitFullScreen().then(resolve).catch(reject);
 			}
 		})
@@ -1428,16 +1432,16 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		return win.document;
 	};
 	const getContextWindow = () => {
-		if(CURRENT_WINDOW){
+		if (CURRENT_WINDOW) {
 			return CURRENT_WINDOW;
 		}
 		let win;
-		try{
+		try {
 			win = window;
-			while(win !== win.parent){
+			while (win !== win.parent) {
 				win = win.parent;
 			}
-		}catch(err){
+		} catch (err) {
 			console.warn('context window assign fail:', err);
 		}
 		return win || window;
@@ -2294,7 +2298,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 
 	const inputAble = el => {
-		if(el instanceof HTMLInputElement){
+		if (el instanceof HTMLInputElement) {
 			return !(el.disabled ||
 				el.readOnly ||
 				el.tagName === 'BUTTON' ||
@@ -2303,20 +2307,20 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		}
 		return false;
 	};
-	const inputTypeAble = (el)=>{
+	const inputTypeAble = (el) => {
 		return inputAble(el) && (
 			['text', 'password', 'url', 'search', 'tel', 'address', 'number', 'date', 'datetime-local', 'month'].includes(el.type)
 			|| el.tagName === 'TEXTAREA'
 		);
 	};
 	const getElementValue = (el) => {
-		if(el.disabled){
+		if (el.disabled) {
 			return null;
 		}
-		if(el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')){
+		if (el.tagName === 'INPUT' && (el.type === 'radio' || el.type === 'checkbox')) {
 			return el.checked ? el.value : null;
 		}
-		if(el.tagName === 'SELECT' && el.multiple){
+		if (el.tagName === 'SELECT' && el.multiple) {
 			let vs = [];
 			findAll('option:checked', el).forEach(item => {
 				vs.push(item.value);
@@ -2330,25 +2334,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let values = [];
 		let multiple = false;
 		elements.forEach(element => {
-			switch(element.type){
+			switch (element.type) {
 				case 'checkbox':
 					multiple = true;
-					if(element.checked){
+					if (element.checked) {
 						values.push(element.value);
 					}
 					break;
 				case 'radio':
-					if(element.checked){
+					if (element.checked) {
 						values.push(element.value);
 					}
 					break;
 				case 'select':
-					if(element.multiple){
+					if (element.multiple) {
 						multiple = true;
 						Array.from(element.selectedOptions).forEach(opt => {
 							values.push(opt.value);
 						});
-					}else {
+					} else {
 						values.push(element.value);
 					}
 					break;
@@ -2360,36 +2364,36 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const formSync = (dom, getter, setter) => {
 		let els = getAvailableElements(dom);
-		els.forEach(function(el){
+		els.forEach(function (el) {
 			let name = el.name;
 			let current_val = getElementValue(el);
 			el.disabled = true;
 			getter(name).then(v => {
 				el.disabled = false;
-				if(el.type === 'radio' || el.type === 'checkbox'){
+				if (el.type === 'radio' || el.type === 'checkbox') {
 					el.checked = el.value == v;
 					current_val = v;
-				}else if(v !== null){
+				} else if (v !== null) {
 					el.value = v;
 					current_val = v;
 				}
 			});
 			el.addEventListener('change', e => {
 				el.disabled = true;
-				if(!el.checkValidity()){
+				if (!el.checkValidity()) {
 					el.reportValidity();
 					return;
 				}
 				let val = el.value;
-				if((el.type === 'radio' || el.type === 'checkbox') && !el.checked){
+				if ((el.type === 'radio' || el.type === 'checkbox') && !el.checked) {
 					val = null;
 				}
 				setter(el.name, val).then(() => {
 					el.disabled = false;
 				}, () => {
-					if(el.type === 'radio' || el.type === 'checkbox'){
+					if (el.type === 'radio' || el.type === 'checkbox') {
 						el.checked = el.value == current_val;
-					}else if(current_val !== null){
+					} else if (current_val !== null) {
 						el.value = current_val;
 					}
 				});
@@ -2406,7 +2410,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let els = getAvailableElements(dom, !name_validate);
 		let pass = true;
 		Array.from(els).every(el => {
-			if(!el.checkValidity()){
+			if (!el.checkValidity()) {
 				el.reportValidity();
 				pass = false;
 				return false;
@@ -2420,40 +2424,46 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		let data_string_list = [];
 		data_list.forEach(item => {
 			let [name, value] = item;
-			if(Array.isArray(value)){
+			if (Array.isArray(value)) {
 				value.forEach(val => {
 					data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(val)));
 				});
-			}else {
+			} else {
 				data_string_list.push(encodeURIComponent(name) + '=' + encodeURIComponent(String(value)));
 			}
 		});
 		return data_string_list.join('&');
 	};
+	const fixedPhpJSON = (data) => {
+		let result = {};
+		for (let key in data) {
+			let val = data[key];
+			if (key.indexOf('[') < 0) {
+				result[key] = val;
+				continue;
+			}
+			key = key.replace(/['"]/g, '');
+			if (key.match(/\[]$/)) {
+				key = key.replace(/\[]$/, '');
+				val = Array.isArray(val) ? val : [val];
+			}
+			let tmp = {};
+			let path = key.replace(/\[]$/, '.').replace(/]/g, '').replace(/\[/g, '.');
+			objectPushByPath(path, val, tmp, '.');
+			mergeDeep(result, tmp);
+		}
+		return result;
+	};
 	const serializePhpFormToJSON = (dom, validate = true) => {
-		let data_list = getFormDataAvailable(dom, validate);
-		let json_obj = {};
-		let index_tmp = {
-		};
-		data_list.forEach(item => {
-			let [name, value] = item;
-			if(name.indexOf('[') < 0){
-				json_obj[name] = value;
-				return;
-			}
-			if(index_tmp[name] === undefined){
-				index_tmp[name] = 0;
-			}else {
-				index_tmp[name]++;
-			}
-			let name_path = name.replace(/\[]$/, '.' + index_tmp[name]).replace(/]/g, '').replace(/\[/g, '.');
-			objectPushByPath(name_path, value, json_obj, '.');
-		});
-		return json_obj;
+		let json = formSerializeJSON(dom, validate);
+		if(json === null) {
+			return null;
+		}
+		return fixedPhpJSON(json);
 	};
 	const fixGetFormAction = (form) => {
 		let action = form.action;
-		if(form.method && form.method.toLowerCase() !== 'get' || !action.length || action.indexOf('?') < 0){
+		if (form.method && form.method.toLowerCase() !== 'get' || !action.length || action.indexOf('?') < 0) {
 			return;
 		}
 		let url = new URL(action);
@@ -2466,10 +2476,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			form.appendChild(ipt);
 		});
 	};
-	const bindFormSubmitAsJSON = (form, onSubmitting = () => {}) => {
+	const bindFormSubmitAsJSON = (form, onSubmitting = () => { }) => {
 		return new Promise((resolve, reject) => {
 			form.addEventListener('submit', e => {
-				lockElementInteraction(form, reset=>{
+				lockElementInteraction(form, reset => {
 					onSubmitting();
 					requestJSON(form.action, formSerializeJSON(form), form.method).then(resolve, reject).finally(reset);
 				});
@@ -2478,49 +2488,50 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			});
 		});
 	};
-	const objSame = (obj1, obj2)=>{
+	const objSame = (obj1, obj2) => {
 		return JSON.stringify(obj1) === JSON.stringify(obj2);
 	};
-	const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000)=>{
+	const bindFormAutoSave = (form, savePromise, minSaveInterval = 2000) => {
 		const PRO_KEY = '_auto_save_listen_' + guid();
 		let last_execute_time = 0;
 		let last_submit_data = formSerializeJSON(form, false);
 		let submitting = false;
-		const save = ()=>{
+		const save = () => {
 			let data = formSerializeJSON(form, false);
-			if(objSame(last_submit_data, data)){
+			if (!data || objSame(last_submit_data, data)) {
+				submitting = false;
 				return;
 			}
-			submitting = true;
 			last_submit_data = data;
-			savePromise(data).finally(()=>{
+			savePromise(data).finally(() => {
 				last_execute_time = Date.now();
-				if(objSame(last_submit_data, formSerializeJSON(form, false))){
+				if (objSame(last_submit_data, formSerializeJSON(form, false))) {
 					submitting = false;
 					return;
 				}
 				setTimeout(save, minSaveInterval);
 			});
 		};
-		const trigger = ()=>{
+		const trigger = () => {
 			const form_data = formSerializeJSON(form, false);
-			if(!form_data || submitting){
+			if (!form_data || submitting) {
 				return;
 			}
 			const remains = minSaveInterval - (Date.now() - last_execute_time);
+			submitting = true;
 			setTimeout(save, Math.max(remains, 0));
 		};
-		mutationEffective(form,  {attributes: false, subtree: true, childList: true}, obs=>{
-			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`).forEach(el=>{
+		mutationEffective(form, { attributes: false, subtree: true, childList: true }, obs => {
+			findAll(`input:not([${PRO_KEY}]), textarea:not([${PRO_KEY}]), select:not([${PRO_KEY}])`).forEach(el => {
 				el.setAttribute(PRO_KEY, '1');
 				el.addEventListener('change', trigger);
 			});
 			trigger();
 		}, 100);
-		findAll('input,textarea,select').forEach(el=>{el.addEventListener('change', trigger);});
+		findAll('input,textarea,select').forEach(el => { el.addEventListener('change', trigger); });
 	};
 	const getFormDataAvailable = (dom, validate = true) => {
-		if(validate && !formValidate(dom)){
+		if (validate && !formValidate(dom)) {
 			return [];
 		}
 		let els = getAvailableElements(dom);
@@ -2528,7 +2539,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		els.forEach(el => {
 			let name = el.name;
 			let value = getElementValue(el);
-			if(value !== null){
+			if (value !== null) {
 				data_list.push([name, value]);
 			}
 		});
@@ -2536,28 +2547,28 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const formSerializeJSON = (dom, validate = true) => {
 		let data_list = getFormDataAvailable(dom, validate);
-		if(!data_list.length){
+		if (!data_list.length) {
 			return null;
 		}
 		let name_counts = {};
 		data_list.forEach(item => {
 			let [name] = item;
-			if(name_counts[name] === undefined){
+			if (name_counts[name] === undefined) {
 				name_counts[name] = 1;
-			}else {
+			} else {
 				name_counts[name]++;
 			}
 		});
 		let json_obj = {};
 		data_list.forEach(item => {
 			let [name, value] = item;
-			if(name_counts[name] > 1){
-				if(json_obj[name] === undefined){
+			if (name_counts[name] > 1) {
+				if (json_obj[name] === undefined) {
 					json_obj[name] = [value];
-				}else {
+				} else {
 					json_obj[name].push(value);
 				}
-			}else {
+			} else {
 				json_obj[name] = value;
 			}
 		});
@@ -2565,17 +2576,17 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const convertFormDataToObject = (formDataMap, formatSchema, mustExistsInSchema = true) => {
 		let ret = {};
-		for(let key in formDataMap){
+		for (let key in formDataMap) {
 			let value = formDataMap[key];
 			let define = formatSchema[key];
-			if(define === undefined){
-				if(mustExistsInSchema){
+			if (define === undefined) {
+				if (mustExistsInSchema) {
 					continue;
 				}
 				ret[key] = value;
 				continue;
 			}
-			switch(typeof (define)){
+			switch (typeof (define)) {
 				case 'string':
 					ret[key] = value;
 					break;
@@ -2596,9 +2607,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const convertObjectToFormData = (objectMap, boolMapping = ["1", "0"]) => {
 		let ret = {};
-		for(let key in objectMap){
+		for (let key in objectMap) {
 			let value = objectMap[key];
-			switch(typeof (value)){
+			switch (typeof (value)) {
 				case 'string':
 				case 'number':
 					ret[key] = String(value);
@@ -2621,25 +2632,25 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	let unload_event_bind = false;
 	const setWindowUnloadMessage = (msg, target) => {
 		let found = false;
-		if(top !== window){
+		if (top !== window) {
 			target = window.frameElement;
 		}
 		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].map(item => {
-			if(item.target === target){
+			if (item.target === target) {
 				item.msg = msg;
 				found = true;
 			}
 		});
-		if(!found){
-			top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({msg, target});
+		if (!found) {
+			top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].push({ msg, target });
 		}
 		console.debug('set window unload message', JSON.stringify(msg), target);
-		if(!unload_event_bind){
+		if (!unload_event_bind) {
 			console.debug('beforeunload bind');
 			window.addEventListener('beforeunload', (e) => {
 				let unload_alert_list = getWindowUnloadAlertList();
 				console.debug('window.beforeunload, bind message:', JSON.stringify(unload_alert_list));
-				if(unload_alert_list.length){
+				if (unload_alert_list.length) {
 					let msg = unload_alert_list.join("\n");
 					e.preventDefault();
 					e.returnValue = msg;
@@ -2652,10 +2663,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const getWindowUnloadAlertList = (specify_target = null) => {
 		let msg_list = [];
 		top[WINDOW_UNLOAD_ALERT_MAP_VAR_KEY].forEach(item => {
-			if(item.msg.length
+			if (item.msg.length
 				&& item.target.parentNode
 				&& (!specify_target || specify_target === item.target)
-			){
+			) {
 				msg_list.push(item.msg);
 			}
 		});
@@ -2668,7 +2679,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	let _form_us_msg = {};
 	let _form_us_sid_attr_key = Theme.Namespace + 'form-unsaved-sid';
 	const bindFormUnSavedUnloadAlert = (form, alertMsg = '') => {
-		if(form.getAttribute(_form_us_sid_attr_key)){
+		if (form.getAttribute(_form_us_sid_attr_key)) {
 			return;
 		}
 		let us_sid = guid();
@@ -2686,7 +2697,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		onDomTreeChange(form, () => {
 			let els = getAvailableElements(form, true);
 			els.forEach(el => {
-				if(el.getAttribute('__form_unsaved_bind__')){
+				if (el.getAttribute('__form_unsaved_bind__')) {
 					return;
 				}
 				el.setAttribute('__form_unsaved_bind__', '1');
@@ -2697,18 +2708,18 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	};
 	const validateFormChanged = (form, us_sid = null) => {
 		us_sid = us_sid || form.getAttribute(_form_us_sid_attr_key);
-		if(!us_sid){
+		if (!us_sid) {
 			console.warn("Form no init by bindFormUnSavedAlert()");
 			return '';
 		}
-		if(!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])){
+		if (!isEquals(_form_data_cache_init[us_sid], _form_data_cache_new[us_sid])) {
 			return _form_us_msg[us_sid];
 		}
 		return '';
 	};
 	const resetFormChangedState = (form) => {
 		let us_sid = form.getAttribute(_form_us_sid_attr_key);
-		if(!us_sid){
+		if (!us_sid) {
 			console.warn("Form no init by bindFormUnSavedAlert()");
 			return false;
 		}
@@ -2784,6 +2795,23 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 			node.addEventListener('touchend', e => {return _out(e, node);});
 			node.addEventListener('mouseenter', e => {return _in(e, node);});
 			node.addEventListener('mouseleave', e => {return _out(e, node);});
+		});
+	};
+	const bindKeyContinuous = (node, key, payload, interval = 500) => {
+		let lastPressTime = 0;
+		node.addEventListener('keyup', e => {
+			if(e.key === key){
+				let now = Date.now();
+				if((now - lastPressTime) < interval){
+					console.log('asfasf');
+					payload.call(node, e);
+					lastPressTime = 0;
+				} else {
+					lastPressTime = Date.now();
+				}
+			} else {
+				lastPressTime = 0;
+			}
 		});
 	};
 	const fireEvent = (nodes, event) => {
@@ -3315,7 +3343,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(!index){
 			return '';
 		}
-		let sec = ((Date.getTime()) - startTime) * (total - index)/index;
+		let sec = ((Date.now()) - startTime) * (total - index)/index;
 		if(!pretty){
 			return sec;
 		}
@@ -3542,7 +3570,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		if(typeof date === 'object' && date !== null){
 			dateObj = date;
 		}else {
-			dateObj = new Date(date || (Date.getTime()));
+			dateObj = new Date(date || (Date.now()));
 		}
 		return format.replace(/(\\?)(.)/g, function(_, esc, chr){
 			return (esc === '' && PHP_DATE_CHAR_MAP[chr]) ? PHP_DATE_CHAR_MAP[chr](dateObj) : chr
@@ -7457,14 +7485,14 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				break;
 			case ACInlineEditor.TYPE_OPTION_SELECT:
 			case ACInlineEditor.TYPE_OPTION_RADIO:
-				let opt = options.find(opt=>opt.value === value);
+				let opt = options.find(opt => opt.value === value);
 				html = escapeHtml(opt ? (opt?.text || '') : value);
 				break;
 			case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
 			case ACInlineEditor.TYPE_OPTION_CHECKBOX:
 				let text_list = [];
-				options.forEach(opt=>{
-					if(opt.value === value){
+				options.forEach(opt => {
+					if (opt.value === value) {
 						text_list.push(escapeHtml(opt.text));
 					}
 				});
@@ -7474,6 +7502,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				throw `未知的编辑器类型：${type}`;
 		}
 		container.innerHTML = html;
+		show(container);
 	};
 	const renderElement = (container, type, name, value, options = [], required = false) => {
 		const INPUT_TYPE_MAP = {
@@ -7524,10 +7553,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				html = options.map(option => `<label><input type="checkbox" name="${escapeAttr(name)}" value="${escapeAttr(option.value)}" ${value.includes(option.value) ? 'checked' : ''}>${escapeHtml(option.text)}</label>`).join('');
 				break;
 			default:
-				throw `未知的编辑器类型：${type}`;
+				throw `内联编辑器暂不支持该类型：${type}`;
 		}
-		createDomByHtml(html, container);
-		return () => {
+		const getVal = () => {
 			let error = null;
 			let value = null;
 			let elements = container.querySelectorAll('input,textarea,select');
@@ -7536,7 +7564,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				case ACInlineEditor.TYPE_MULTILINE_TEXT:
 				case ACInlineEditor.TYPE_OPTION_SELECT:
 					value = elements[0].value;
-					if (required && (!value || value == SELECT_PLACEHOLDER_VALUE)) {
+					if (required && (!value || value === SELECT_PLACEHOLDER_VALUE)) {
 						error = REQUIRED_MESSAGES[type];
 						break;
 					}
@@ -7566,7 +7594,10 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					throw `未知的编辑器类型：${type}`;
 			}
 			return [value, error];
-		}
+		};
+		createDomByHtml(html, container);
+		const doms = container.querySelectorAll('input,textarea,select');
+		return [getVal, doms];
 	};
 	class ACInlineEditor {
 		static TYPE_TEXT = 'text';
@@ -7582,11 +7613,11 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		static transmitter;
 		static onUpdate = new BizEvent();
 		static init(container, param) {
-			const action = param.action;
-			const method = param.method;
-			const required = !!param.required;
-			const name = param.name;
-			const type = param.type ? String(param.type) : this.TYPE_TEXT;
+			const ACTION = param.action;
+			const METHOD = param.method;
+			const REQUIRED = !!param.required;
+			const NAME = param.name;
+			const TYPE = param.type ? String(param.type) : this.TYPE_TEXT;
 			let value = param.value;
 			if (value == null && [
 				ACInlineEditor.TYPE_TEXT,
@@ -7594,25 +7625,30 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 				ACInlineEditor.TYPE_DATE,
 				ACInlineEditor.TYPE_TIME,
 				ACInlineEditor.TYPE_DATETIME
-			].includes(type)) {
+			].includes(TYPE)) {
 				value = container.innerText.trim();
 			}
-			if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT === type) {
+			if (value == null && ACInlineEditor.TYPE_MULTILINE_TEXT === TYPE) {
 				value = unescapeHtml(container.innerHTML.trim());
 			}
 			let options = param.options || [
 			];
 			patchStyle();
 			container.innerHTML = `
-			<span class="${NS$2}editor-wrap" tabindex="0"></span>
-			<span class="${NS$2}view-wrap" style="display:none"></span>`;
+			<span class="${NS$2}editor-wrap" style="display:none" tabindex="0"></span>
+			<span class="${NS$2}view-wrap"></span>`;
 			let view_wrap = container.querySelector(`.${NS$2}view-wrap`);
 			let editor_wrap = container.querySelector(`.${NS$2}editor-wrap`);
-			const toggleState = toEdit => {
-				toEdit ? show(editor_wrap) : hide(editor_wrap);
-				!toEdit ? show(view_wrap) : hide(view_wrap);
+			const showView = () =>{
+				hide(editor_wrap);
+				renderView(view_wrap, TYPE, value, options);
 			};
-			const toEdit = () => {
+			const showEditor = () => {
+				hide(view_wrap);
+				show(editor_wrap);
+				if (!this.transmitter) {
+					throw "ACInlineEditor.transmitter 未配置";
+				}
 				editor_wrap.innerHTML = '';
 				createDomByHtml(`
 						<span class="${NS$2}editor-text"></span>
@@ -7621,33 +7657,38 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 					`, editor_wrap);
 				const save_btn = editor_wrap.querySelector(`.${NS$2}save-btn`);
 				const cancel_btn = editor_wrap.querySelector(`.${NS$2}cancel-btn`);
-				const getVal = renderElement(editor_wrap.querySelector(`.${NS$2}editor-text`), type, name, value, options, required);
-				setTimeout(() => {
-					editor_wrap.querySelector('input,textarea,select').focus();
-				});
+				const [getVal, inputList] = renderElement(editor_wrap.querySelector(`.${NS$2}editor-text`), TYPE, NAME, value, options, REQUIRED);
 				const doSave = () => {
 					let [val, error] = getVal();
 					if (error) {
 						ToastClass.error(error);
 						return;
 					}
-					if (!this.transmitter) {
-						throw "ACInlineEditor.transmitter 未配置";
-					}
 					value = val;
-					this.transmitter(action, { [name]: value }, method).then(() => {
-						this.onUpdate.fire(name, value);
-						renderView(view_wrap, type, value, options);
-						toggleState(false);
+					this.transmitter(ACTION, { [NAME]: value }, METHOD).then(() => {
+						this.onUpdate.fire(NAME, value);
+						showView();
 					});
 				};
-				bindNodeActive(cancel_btn, () => { toggleState(false); });
+				let firstInput = inputList[0];
+				setTimeout(() => {
+					firstInput.focus();
+					inputTypeAble(firstInput) && firstInput.select();
+				});
+				bindNodeEvents(inputList, 'keydown', (e) => {
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						doSave();
+					}
+				});
+				if(inputTypeAble(firstInput)){
+					bindKeyContinuous(firstInput, 'Escape', showView);
+				}
+				bindNodeActive(cancel_btn, showView);
 				bindNodeActive(save_btn, doSave);
-				toggleState(true);
 			};
-			bindNodeActive(view_wrap, toEdit);
-			renderView(view_wrap, type, value, options);
-			toggleState(false);
+			bindNodeActive(view_wrap, showEditor);
+			showView();
 		}
 	}
 
@@ -7898,7 +7939,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	const TYPE_DATE = 'date';
 	const TYPE_DATETIME = 'datetime';
 	const TYPE_YEAR = 'year';
-	const NOW = (new Date).getTime();
+	const NOW = Date.now();
 	const TYPE_MAP = {
 		[TYPE_TIME]: [
 			['近1分钟', () => {
@@ -8428,6 +8469,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.bindHotKeys = bindHotKeys;
 	exports.bindIframeAutoResize = bindIframeAutoResize;
 	exports.bindImgPreviewViaSelector = bindImgPreviewViaSelector;
+	exports.bindKeyContinuous = bindKeyContinuous;
 	exports.bindNodeActive = bindNodeActive;
 	exports.bindNodeEvents = bindNodeEvents;
 	exports.bindTargetClickMenu = bindTargetClickMenu;
@@ -8477,6 +8519,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.findOne = findOne;
 	exports.fireEvent = fireEvent;
 	exports.fixGetFormAction = fixGetFormAction;
+	exports.fixedPhpJSON = fixedPhpJSON;
 	exports.formSerializeJSON = formSerializeJSON;
 	exports.formSerializeString = formSerializeString;
 	exports.formSync = formSync;

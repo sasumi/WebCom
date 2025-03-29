@@ -125,6 +125,31 @@ export const onHover = (nodes, hoverIn = null, hoverOut = null, hoverClass = '')
 }
 
 /**
+ * 绑定连续多次按键
+ * @param {Node} node 
+ * @param {String|Number} key 
+ * @param {Function} payload 
+ * @param {Number} interval
+ */
+export const bindKeyContinuous = (node, key, payload, interval = 500) => {
+	let lastPressTime = 0;
+	node.addEventListener('keyup', e => {
+		if(e.key === key){
+			let now = Date.now();
+			if((now - lastPressTime) < interval){
+				console.log('asfasf');
+				payload.call(node, e);
+				lastPressTime = 0;
+			} else {
+				lastPressTime = Date.now();
+			}
+		} else {
+			lastPressTime = 0;
+		}
+	});
+}
+
+/**
  * 主动触发事件
  * @param {Node|Node[]|String|String[]} nodes
  * @param event
