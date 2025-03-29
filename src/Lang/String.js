@@ -322,7 +322,7 @@ export const strToPascalCase = (str, capitalize_first = false) => {
 }
 
 /**
- * 字符串转换层大写
+ * 字符串首字母大写，其他的保持不变
  * @param {String} str
  * @return {string}
  */

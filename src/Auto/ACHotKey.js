@@ -36,7 +36,7 @@ export class ACHotKey {
 		insertStyleSheet(STYLE_STR, Theme.Namespace+'-hotkey');
 		if(!hk_tip_bind && ACHotKey.TOGGLE_HOTKEY_TIP){
 			hk_tip_bind = true;
-			bindHotKeys('alt', e => {
+			bindHotKeys(document,'alt', e => {
 				if(hk_tip_is_hide){
 					ACHotKey.showAllHotKeyTips();
 				}else{
@@ -49,7 +49,7 @@ export class ACHotKey {
 		if(!param.key){
 			throw 'param.key required';
 		}
-		bindHotKeys(param.key, e => {
+		bindHotKeys(document, param.key, e => {
 			node.focus();
 			node.click();
 		});

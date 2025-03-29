@@ -1,4 +1,4 @@
-import {bindKeyContinuous, bindNodeActive, bindNodeEvents, BizEvent} from "../Lang/Event.js";
+import {bindHotKeys, bindKeyContinuous, bindNodeActive, bindNodeEvents, BizEvent} from "../Lang/Event.js";
 import {createDomByHtml, hide, insertStyleSheet, show} from "../Lang/Dom.js";
 import {escapeAttr, escapeHtml, unescapeHtml} from "../Lang/Html.js";
 import {Theme} from "../Widget/Theme.js";
@@ -49,6 +49,7 @@ const SELECT_PLACEHOLDER_VALUE = NS + guid();
  */
 const renderView = (container, type, value, options = []) => {
 	let html = '';
+	let title = '';
 	switch (type) {
 		case ACInlineEditor.TYPE_TEXT:
 		case ACInlineEditor.TYPE_NUMBER:
@@ -56,15 +57,18 @@ const renderView = (container, type, value, options = []) => {
 		case ACInlineEditor.TYPE_TIME:
 		case ACInlineEditor.TYPE_DATETIME:
 			html = escapeHtml(value);
+			title = value;
 			break;
 
 		case ACInlineEditor.TYPE_MULTILINE_TEXT:
+			title = value;
 			html = escapeHtml(value).replace(/\n/g, '<br>');
 			break;
 
 		case ACInlineEditor.TYPE_OPTION_SELECT:
 		case ACInlineEditor.TYPE_OPTION_RADIO:
 			let opt = options.find(opt => opt.value === value);
+			title = opt ? (opt?.text || '') : value;
 			html = escapeHtml(opt ? (opt?.text || '') : value);
 			break;
 
@@ -73,15 +77,17 @@ const renderView = (container, type, value, options = []) => {
 			let text_list = [];
 			options.forEach(opt => {
 				if (opt.value === value) {
-					text_list.push(escapeHtml(opt.text));
+					text_list.push(opt.text);
 				}
 			})
-			html = text_list.length ? text_list.join(',') : escapeHtml(value);
+			title = text_list.length ? text_list.join(',') : value;
+			html = escapeHtml(title);
 			break;
 
 		default:
 			throw `未知的编辑器类型：${type}`;
 	}
+	container.title = title;
 	container.innerHTML = html;
 	show(container);
 }
@@ -316,13 +322,20 @@ export class ACInlineEditor {
 				firstInput.focus();
 				inputTypeAble(firstInput) && firstInput.select();
 			});
-			bindNodeEvents(inputList, 'keydown', (e) => {
-				if (e.key === 'Enter') {
-					e.preventDefault();
-					doSave();
-				}
-			});
 			if(inputTypeAble(firstInput)){
+				if(firstInput.tagName !== 'TEXTAREA'){
+					bindNodeEvents(inputList, 'keydown', (e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							doSave();
+						}
+					});
+				} else {
+					bindHotKeys(firstInput, 'ctrl+enter', e=>{
+						e.preventDefault();
+						doSave();
+					});
+				}
 				bindKeyContinuous(firstInput, 'Escape', showView);
 			}
 			bindNodeActive(cancel_btn, showView);

@@ -1,5 +1,6 @@
 import {findAll, findAllOrFail, findOne} from "./Dom.js";
 import {inputAble} from "./Form.js";
+import {capitalize} from "./String.js";
 
 /**
  * KeyboardEvent.key 映射
@@ -258,6 +259,7 @@ export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOn
 
 /**
  * 绑定组合键
+ * @param {Object} node
  * @param {String} keyStr 快捷键组合，如 "ctrl+k", "A"
  * @param {Function} payload
  * @param {Object} option
@@ -265,13 +267,13 @@ export const bindNodeEvents = (nodes, event, payload, option = null, triggerAtOn
  * @param {String|Node} option.scope 事件绑定范围，默认为document
  * @param {Boolean} option.preventDefault 是否阻止默认事件，默认为阻止
  */
-export const bindHotKeys = (keyStr, payload, option = {}) => {
+export const bindHotKeys = (node, keyStr, payload, option = {}) => {
 	let keys = keyStr.replace(/\s/ig, '').toLowerCase().split('+');
-	let {scope, event, preventDefault} = option;
+	let {event, preventDefault} = option;
 	preventDefault = preventDefault === undefined ? true : !!preventDefault;
 	event = event || 'keydown';
-	scope = findOne(scope || document);
-	scope.addEventListener(event, e => {
+	node = findOne(node);
+	node.addEventListener(event, e => {
 		if((keys.includes('shift') ^ e.shiftKey) ||
 			(keys.includes('ctrl') ^ e.ctrlKey) ||
 			(keys.includes('alt') ^ e.altKey)
@@ -280,7 +282,7 @@ export const bindHotKeys = (keyStr, payload, option = {}) => {
 		}
 
 		//需要考虑避开可输入区域
-		if(e.target !== scope && //如果对象非绑定指定对象，
+		if(e.target !== node && //如果对象非绑定指定对象，
 			KEYBOARD_KEY_MAP.Content.includes(e.key) && (!e.altKey && !e.ctrlKey) && //输入内容
 			inputAble(e.target) //可输入对象（这里不需要考虑 [contenteditable]，由调用方自己负责
 		){
@@ -298,8 +300,7 @@ export const bindHotKeys = (keyStr, payload, option = {}) => {
 
 		//去除单纯按快捷键方式
 		let pressKeyCode = [KEYBOARD_KEY_MAP.Shift, KEYBOARD_KEY_MAP.Control, KEYBOARD_KEY_MAP.Alt].includes(e.key) ? null : e.keyCode;
-
-		if((!singleKeys.length && !pressKeyCode) || (singleKeys[0] === e.key)){
+		if((!singleKeys.length && !pressKeyCode) || (capitalize(singleKeys[0].toLowerCase()) === e.key)){
 			payload.call(e.target, e);
 			if(preventDefault){
 				e.preventDefault();

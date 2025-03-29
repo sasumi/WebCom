@@ -10,7 +10,8 @@ import { requestJSON } from "./Net.js";
  * @returns {boolean}
  */
 export const inputAble = el => {
-	if (el instanceof HTMLInputElement) {
+	if (el instanceof HTMLInputElement ||
+		el instanceof HTMLTextAreaElement) {
 		return !(el.disabled || //禁用
 			el.readOnly || //只读
 			el.tagName === 'BUTTON' || //按钮

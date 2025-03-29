@@ -2285,7 +2285,8 @@
 	};
 
 	const inputAble = el => {
-		if (el instanceof HTMLInputElement) {
+		if (el instanceof HTMLInputElement ||
+			el instanceof HTMLTextAreaElement) {
 			return !(el.disabled ||
 				el.readOnly ||
 				el.tagName === 'BUTTON' ||
@@ -2873,20 +2874,20 @@
 			}
 		});
 	};
-	const bindHotKeys = (keyStr, payload, option = {}) => {
+	const bindHotKeys = (node, keyStr, payload, option = {}) => {
 		let keys = keyStr.replace(/\s/ig, '').toLowerCase().split('+');
-		let {scope, event, preventDefault} = option;
+		let {event, preventDefault} = option;
 		preventDefault = preventDefault === undefined ? true : !!preventDefault;
 		event = event || 'keydown';
-		scope = findOne(scope || document);
-		scope.addEventListener(event, e => {
+		node = findOne(node);
+		node.addEventListener(event, e => {
 			if((keys.includes('shift') ^ e.shiftKey) ||
 				(keys.includes('ctrl') ^ e.ctrlKey) ||
 				(keys.includes('alt') ^ e.altKey)
 			){
 				return true;
 			}
-			if(e.target !== scope &&
+			if(e.target !== node &&
 				KEYBOARD_KEY_MAP.Content.includes(e.key) && (!e.altKey && !e.ctrlKey) &&
 				inputAble(e.target)
 			){
@@ -2900,7 +2901,7 @@
 				return;
 			}
 			let pressKeyCode = [KEYBOARD_KEY_MAP.Shift, KEYBOARD_KEY_MAP.Control, KEYBOARD_KEY_MAP.Alt].includes(e.key) ? null : e.keyCode;
-			if((!singleKeys.length && !pressKeyCode) || (singleKeys[0] === e.key)){
+			if((!singleKeys.length && !pressKeyCode) || (capitalize(singleKeys[0].toLowerCase()) === e.key)){
 				payload.call(e.target, e);
 				if(preventDefault){
 					e.preventDefault();
@@ -7459,6 +7460,7 @@
 	const SELECT_PLACEHOLDER_VALUE = NS$2 + guid();
 	const renderView = (container, type, value, options = []) => {
 		let html = '';
+		let title = '';
 		switch (type) {
 			case ACInlineEditor.TYPE_TEXT:
 			case ACInlineEditor.TYPE_NUMBER:
@@ -7466,13 +7468,16 @@
 			case ACInlineEditor.TYPE_TIME:
 			case ACInlineEditor.TYPE_DATETIME:
 				html = escapeHtml(value);
+				title = value;
 				break;
 			case ACInlineEditor.TYPE_MULTILINE_TEXT:
+				title = value;
 				html = escapeHtml(value).replace(/\n/g, '<br>');
 				break;
 			case ACInlineEditor.TYPE_OPTION_SELECT:
 			case ACInlineEditor.TYPE_OPTION_RADIO:
 				let opt = options.find(opt => opt.value === value);
+				title = opt ? (opt?.text || '') : value;
 				html = escapeHtml(opt ? (opt?.text || '') : value);
 				break;
 			case ACInlineEditor.TYPE_MULTIPLE_OPTION_SELECT:
@@ -7480,14 +7485,16 @@
 				let text_list = [];
 				options.forEach(opt => {
 					if (opt.value === value) {
-						text_list.push(escapeHtml(opt.text));
+						text_list.push(opt.text);
 					}
 				});
-				html = text_list.length ? text_list.join(',') : escapeHtml(value);
+				title = text_list.length ? text_list.join(',') : value;
+				html = escapeHtml(title);
 				break;
 			default:
 				throw `未知的编辑器类型：${type}`;
 		}
+		container.title = title;
 		container.innerHTML = html;
 		show(container);
 	};
@@ -7662,13 +7669,20 @@
 					firstInput.focus();
 					inputTypeAble(firstInput) && firstInput.select();
 				});
-				bindNodeEvents(inputList, 'keydown', (e) => {
-					if (e.key === 'Enter') {
-						e.preventDefault();
-						doSave();
-					}
-				});
 				if(inputTypeAble(firstInput)){
+					if(firstInput.tagName !== 'TEXTAREA'){
+						bindNodeEvents(inputList, 'keydown', (e) => {
+							if (e.key === 'Enter') {
+								e.preventDefault();
+								doSave();
+							}
+						});
+					} else {
+						bindHotKeys(firstInput, 'ctrl+enter', e=>{
+							e.preventDefault();
+							doSave();
+						});
+					}
 					bindKeyContinuous(firstInput, 'Escape', showView);
 				}
 				bindNodeActive(cancel_btn, showView);
@@ -8124,7 +8138,7 @@
 			insertStyleSheet(STYLE_STR, Theme.Namespace+'-hotkey');
 			if(!hk_tip_bind && ACHotKey.TOGGLE_HOTKEY_TIP){
 				hk_tip_bind = true;
-				bindHotKeys('alt', e => {
+				bindHotKeys(document,'alt', e => {
 					if(hk_tip_is_hide){
 						ACHotKey.showAllHotKeyTips();
 					}else {
@@ -8137,7 +8151,7 @@
 			if(!param.key){
 				throw 'param.key required';
 			}
-			bindHotKeys(param.key, e => {
+			bindHotKeys(document, param.key, e => {
 				node.focus();
 				node.click();
 			});
