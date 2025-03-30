@@ -4,6 +4,7 @@ import {bindNodeActive, BizEvent, triggerDomEvent} from "../Lang/Event.js";
 import {Toast} from "./Toast.js";
 import {Net, RESPONSE_FORMAT} from "../Lang/Net.js";
 import {isFunction} from "../Lang/Util.js";
+import {bindFileDrop} from "./FileDrop.js";
 
 const NS = Theme.Namespace + 'uploader';
 const STYLE_STR = `
@@ -271,7 +272,6 @@ export class Uploader {
 		if(!requestHandle){
 			throw "上传组件需要提供上传请求函数：option.requestHandle 或者 Uploader.globalRequestHandle"
 		}
-
 		//default error handle
 		this.onError.listen(err => {
 			Toast.showError(err);
@@ -293,8 +293,6 @@ export class Uploader {
 			</div>
 		</div>`;
 		this.dom = createDomByHtml(html, container);
-		const fileEl = findOne('input[type=file]', this.dom);
-
 		bindNodeActive(findOne(`.${NS}-btn-clean`, this.dom), () => {
 			setState(this, UPLOAD_STATE_EMPTY);
 			this.onClean.fire();
@@ -302,11 +300,9 @@ export class Uploader {
 		bindNodeActive(findOne(`.${NS}-btn-cancel`, this.dom), () => {
 			abortUpload(this);
 		});
-
 		setState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
-		fileEl.addEventListener('change', () => {
-			let file = fileEl.files[0];
-			if(file){
+		bindFileDrop(this.dom, {
+			onFile: (file) => {
 				if(file.size < 1){
 					Toast.showError('所选的文件内容为空');
 					return;
@@ -352,7 +348,6 @@ export class Uploader {
 				});
 			}
 		});
-
 	}
 
 	/**

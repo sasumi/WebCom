@@ -7017,7 +7017,6 @@ class Uploader {
 			</div>
 		</div>`;
 		this.dom = createDomByHtml(html, container);
-		const fileEl = findOne('input[type=file]', this.dom);
 		bindNodeActive(findOne(`.${NS$5}-btn-clean`, this.dom), () => {
 			setState(this, UPLOAD_STATE_EMPTY);
 			this.onClean.fire();
@@ -7026,9 +7025,8 @@ class Uploader {
 			abortUpload(this);
 		});
 		setState(this, this.value ? UPLOAD_STATE_NORMAL : UPLOAD_STATE_EMPTY);
-		fileEl.addEventListener('change', () => {
-			let file = fileEl.files[0];
-			if(file){
+		bindFileDrop(this.dom, {
+			onFile: (file) => {
 				if(file.size < 1){
 					ToastClass.showError('所选的文件内容为空');
 					return;
