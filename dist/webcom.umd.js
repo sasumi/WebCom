@@ -2071,7 +2071,9 @@
 								try{
 									ret = JSON.parse(this.xhr.responseText);
 								}catch(err){
+									console.error('response', this.xhr.responseText);
 									this.onError.fire('JSON解析失败：' + err, this.xhr.status);
+									return;
 								}
 								break;
 							case RESPONSE_FORMAT.XML:
@@ -5725,11 +5727,7 @@
 			let highlightHelperEl;
 			if(showing_cover){
 				highlightHelperEl = show_highlight_zone(null, {
-					left: document.body.offsetWidth / 2,
-					top: 300,
-					width: 1,
-					height: 1
-				});
+					left: document.body.offsetWidth / 2});
 			}else {
 				highlightHelperEl = show_highlight_zone(step.relateNode);
 			}

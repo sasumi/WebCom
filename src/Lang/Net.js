@@ -254,7 +254,9 @@ export class Net {
 							try{
 								ret = JSON.parse(this.xhr.responseText);
 							}catch(err){
+								console.error('response', this.xhr.responseText);
 								this.onError.fire('JSON解析失败：' + err, this.xhr.status);
+								return;
 							}
 							break;
 						case RESPONSE_FORMAT.XML:
