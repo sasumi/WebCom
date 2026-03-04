@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto UnSaveAlert 离开提示 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACUnSaveAlert — 未保存离开提示</h1>
+<p class="subtitle">监听表单变化，当用户尝试离开页面时弹出确认提示，防止数据丢失。</p>
+
+<h2>1. 监听表单变化</h2>
+<div class="demo-block">
+  <p style="font-size:.9em;color:#6b7280;margin-bottom:.8em">
+    修改下方表单后，尝试点击「返回首页」或刷新页面，会弹出未保存提示。
+  </p>
+  <form id="edit-form" data-component="unsavealert">
+    <div style="display:grid;gap:.6em">
+      <div>
+        <label style="font-size:.9em;color:#64748b">文章标题</label><br>
+        <input name="title" type="text" placeholder="输入标题" value="原始标题内容" style="width:100%;margin-top:.3em">
+      </div>
+      <div>
+        <label style="font-size:.9em;color:#64748b">文章内容</label><br>
+        <textarea name="content" placeholder="输入内容" style="width:100%;height:80px;margin-top:.3em">原始内容...</textarea>
+      </div>
+      <div>
+        <label style="font-size:.9em;color:#64748b">标签</label><br>
+        <input name="tags" type="text" placeholder="多个标签用逗号分隔" style="width:100%;margin-top:.3em">
+      </div>
+    </div>
+    <div style="display:flex;gap:.6em;margin-top:.8em">
+      <button type="submit" id="btn-save-form">保存</button>
+      <button type="button" id="btn-reset-form">重置（忽略变化）</button>
+    </div>
+  </form>
+  <div id="form-status" class="result-box" style="margin-top:.8em"></div>
+</div>
+<pre class="code-block">&lt;form data-component="unsavealert"&gt;
+  &lt;input name="title" value="原始值"&gt;
+  &lt;textarea name="content"&gt;内容&lt;/textarea&gt;
+  &lt;button type="submit"&gt;保存&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;!-- 表单被修改后，关闭页面或跳转时自动提示 --&gt;</pre>
+
+<h2>2. 手动重置已记录的状态</h2>
+<div class="demo-block">
+  <p style="font-size:.9em;color:#6b7280">保存成功后调用 resetFormChangedState 让组件"认为表单未变化"</p>
+  <button id="btn-mark-saved">模拟保存（重置变化状态）</button>
+  <div id="reset-result" class="result-box" style="margin-top:.5em"></div>
+</div>
+<pre class="code-block">import { resetFormChangedState } from '../src/Auto/ACUnSaveAlert.js';
+
+// 保存 API 成功后，重置状态，防止误提醒
+saveApi(data).then(() => {
+  resetFormChangedState(formElement);
+});</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-component="unsavealert"</td><td>绑定到 form 元素，监听内部字段变化</td></tr>
+</table>
+<div class="note">
+  <b>注意：</b>ACUnSaveAlert 通过监听 beforeunload 事件拦截页面关闭/刷新/跳转。
+  表单提交或手动调用 resetFormChangedState 后，拦截会自动解除。
+  仅在用户实际修改了表单字段值时才会触发提示。
+</div>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACUnSaveAlert.js';
+
+ACComponent.init(document.body);
+
+const statusEl = document.getElementById('form-status');
+
+document.getElementById('edit-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  statusEl.innerHTML = '✅ 表单已"保存"，现在离开页面不会再弹提示';
+});
+
+document.getElementById('btn-reset-form').onclick = () => {
+  document.getElementById('edit-form').reset();
+  statusEl.textContent = '表单已重置';
+};
+
+document.getElementById('btn-mark-saved').onclick = () => {
+  // 动态导入 resetFormChangedState
+  import('../src/Auto/ACUnSaveAlert.js').then(m => {
+    if (m.resetFormChangedState) {
+      m.resetFormChangedState(document.getElementById('edit-form'));
+      document.getElementById('reset-result').innerHTML = '✅ 已重置变化状态，现在离开不会提示';
+    } else {
+      document.getElementById('reset-result').textContent = '（请提交表单来重置状态）';
+    }
+  });
+};
+</script>
+</body>
+</html>

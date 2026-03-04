@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang Net 网络请求 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Net — 网络请求</h1>
+<p class="subtitle">封装 fetch 的 JSON 请求、文件下载、URL 参数拼接与解析工具。</p>
+
+<h2>1. requestJSON — JSON 请求</h2>
+<div class="demo-block">
+  <button id="btn-get">GET 请求</button>
+  <button id="btn-post">POST 请求</button>
+  <div id="req-result" class="result-box" style="margin-top:0.8em">（点击请求）</div>
+</div>
+<pre class="code-block">import { requestJSON } from '../src/Lang/Net.js';
+
+// GET
+requestJSON('https://jsonplaceholder.typicode.com/todos/1').then(data => {
+  console.log(data.title);
+});
+
+// POST
+requestJSON('https://jsonplaceholder.typicode.com/posts', {
+  method: 'POST',
+  data: { title: 'New Post', body: 'Content' }
+}).then(console.log);</pre>
+
+<h2>2. mergerUriParam — URL 参数拼接</h2>
+<div class="demo-block" id="uri-block"></div>
+<pre class="code-block">import { mergerUriParam } from '../src/Lang/Net.js';
+
+mergerUriParam('https://example.com/api', { page: 2, size: 10 });
+// 'https://example.com/api?page=2&amp;size=10'
+
+mergerUriParam('https://example.com/api?ver=1', { page: 2 });
+// 'https://example.com/api?ver=1&amp;page=2'</pre>
+
+<h2>3. QueryString — URL 参数解析</h2>
+<div class="demo-block" id="qs-block"></div>
+<pre class="code-block">import { QueryString } from '../src/Lang/Net.js';
+
+QueryString.parse('?foo=1&amp;bar=hello&amp;arr=a&amp;arr=b');
+// { foo:'1', bar:'hello', arr:['a','b'] }
+
+QueryString.stringify({ page: 1, q: 'hello world' });
+// 'page=1&amp;q=hello%20world'</pre>
+
+<h2>4. downloadString — 下载文本文件</h2>
+<div class="demo-block">
+  <button id="btn-download">下载文本文件</button>
+  <p style="margin-top:0.5em;font-size:0.9em;color:#6b7280">将触发浏览器下载 sample.txt</p>
+</div>
+<pre class="code-block">import { downloadString } from '../src/Lang/Net.js';
+
+downloadString('Hello, WebCom!', 'sample.txt', 'text/plain');</pre>
+
+<h2>参数说明 — requestJSON</h2>
+<table class="param-table">
+  <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+  <tr><td>url</td><td>string</td><td>必填</td><td>请求地址</td></tr>
+  <tr><td>option.method</td><td>string</td><td>'GET'</td><td>HTTP 方法</td></tr>
+  <tr><td>option.data</td><td>object</td><td>—</td><td>请求体数据（POST）</td></tr>
+  <tr><td>option.headers</td><td>object</td><td>—</td><td>自定义请求头</td></tr>
+  <tr><td>option.onProcess</td><td>Function</td><td>—</td><td>进度回调 (loaded, total)</td></tr>
+</table>
+
+<div class="note">
+  <b>注意：</b>requestJSON 默认使用 fetch，返回 Promise&lt;any&gt;。
+  服务端需返回有效 JSON 响应。跨域请求需服务端配置 CORS。
+</div>
+</div>
+
+<script type="module">
+import { requestJSON, mergerUriParam, QueryString, downloadString } from '../src/Lang/Net.js';
+
+// requestJSON - GET
+document.getElementById('btn-get').onclick = () => {
+  const res = document.getElementById('req-result');
+  res.textContent = '请求中...';
+  requestJSON('https://jsonplaceholder.typicode.com/todos/1')
+    .then(data => {
+      res.innerHTML = `GET 成功：<br><b>id:</b> ${data.id}<br><b>title:</b> ${data.title}<br><b>completed:</b> ${data.completed}`;
+    })
+    .catch(e => { res.textContent = '请求失败：' + e.message; });
+};
+
+// requestJSON - POST
+document.getElementById('btn-post').onclick = () => {
+  const res = document.getElementById('req-result');
+  res.textContent = '请求中...';
+  requestJSON('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    data: { title: 'WebCom Post', body: 'Hello from sample', userId: 1 }
+  })
+    .then(data => {
+      res.innerHTML = `POST 成功：<br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+    })
+    .catch(e => { res.textContent = '请求失败：' + e.message; });
+};
+
+// mergerUriParam
+const uriBlock = document.getElementById('uri-block');
+const uriTests = [
+  ['https://example.com/api', { page: 2, size: 10 }],
+  ['https://example.com/api?ver=1', { page: 2, q: 'hello world' }],
+  ['/api/list', { ids: [1, 2, 3] }],
+];
+uriBlock.innerHTML = uriTests.map(([url, params]) =>
+  `<div style="margin-bottom:0.5em"><code>mergerUriParam("${url}", ${JSON.stringify(params)})</code><br>→ <b style="color:#0284c7">${mergerUriParam(url, params)}</b></div>`
+).join('');
+
+// QueryString
+const qsBlock = document.getElementById('qs-block');
+const parsed = QueryString.parse('?foo=1&bar=hello&arr=a&arr=b');
+const stringified = QueryString.stringify({ page: 1, q: 'hello world', tags: ['js', 'css'] });
+qsBlock.innerHTML = `
+  <p>parse('?foo=1&bar=hello&arr=a&arr=b') → <b>${JSON.stringify(parsed)}</b></p>
+  <p>stringify({page:1, q:'hello world', tags:['js','css']}) → <b>${stringified}</b></p>
+`;
+
+// downloadString
+document.getElementById('btn-download').onclick = () => {
+  downloadString('# WebCom Sample\n\n这是通过 downloadString 生成的文本文件。\n时间：' + new Date().toLocaleString(), 'sample.txt', 'text/plain');
+};
+</script>
+</body>
+</html>

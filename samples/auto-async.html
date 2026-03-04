@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACAsync 异步请求 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACAsync — 异步请求</h1>
+<p class="subtitle">将按钮/链接/表单的提交行为转换为 AJAX 请求，响应后自动 Toast 提示并刷新/跳转。</p>
+
+<div class="note">⚠️ 以下示例使用 <a href="https://jsonplaceholder.typicode.com" target="_blank">JSONPlaceholder</a> 模拟接口，请求成功会显示响应数据。</div>
+
+<h2>1. 按钮异步请求</h2>
+<div class="demo-block">
+  <button data-component="async"
+          data-async-url="https://jsonplaceholder.typicode.com/todos/1"
+          data-async-method="GET">
+    GET 请求
+  </button>
+  <div id="result1" class="result-box" style="margin-top:0.8em">点击按钮查看结果</div>
+</div>
+<pre class="code-block">&lt;button data-component="async"
+        data-async-url="/api/data"
+        data-async-method="GET"&gt;
+  发起请求
+&lt;/button&gt;</pre>
+
+<h2>2. 表单异步提交</h2>
+<div class="demo-block">
+  <form id="demo-form"
+        action="https://jsonplaceholder.typicode.com/posts"
+        method="post"
+        data-component="async">
+    <div class="gap" style="margin-bottom:0.8em">
+      <label>标题：<input type="text" name="title" value="WebCom 测试" style="width:180px"></label>
+      <label>内容：<input type="text" name="body" value="测试内容" style="width:180px"></label>
+    </div>
+    <button type="submit">提交表单</button>
+  </form>
+  <div id="result2" class="result-box" style="margin-top:0.8em">提交表单查看结果</div>
+</div>
+<pre class="code-block">&lt;form action="/api/save" method="post" data-component="async"&gt;
+  &lt;input name="title" type="text"&gt;
+  &lt;button type="submit"&gt;保存&lt;/button&gt;
+&lt;/form&gt;</pre>
+
+<h2>3. 自定义成功回调</h2>
+<div class="demo-block">
+  <button data-component="async"
+          data-async-url="https://jsonplaceholder.typicode.com/todos/1"
+          data-async-onsuccess="mySuccessHandler">
+    自定义成功回调
+  </button>
+  <div id="result3" class="result-box" style="margin-top:0.8em">点击查看自定义回调结果</div>
+</div>
+<pre class="code-block">// 全局定义回调函数
+window.mySuccessHandler = (rsp) =&gt; {
+  console.log('自定义处理：', rsp);
+};
+
+// HTML：
+&lt;button data-component="async"
+        data-async-url="/api/data"
+        data-async-onsuccess="mySuccessHandler"&gt;
+  请求
+&lt;/button&gt;</pre>
+
+<h2>4. 全局修改请求格式（FORM）</h2>
+<pre class="code-block">import { ACAsync } from '../src/Auto/ACAsync.js';
+import { REQUEST_FORMAT } from '../src/Lang/Net.js';
+
+// 修改全局请求格式为 FORM（适配 PHP 后端）
+ACAsync.REQUEST_FORMAT = REQUEST_FORMAT.FORM;
+
+// 或全局修改成功回调
+ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) =&gt; {
+  if (rsp.code === 0) {
+    Toast.showSuccess(rsp.msg || '操作成功');
+    if (rsp.redirect) location.href = rsp.redirect;
+  } else {
+    Toast.showError(rsp.msg || '操作失败');
+  }
+};</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>data-* 属性</th><th>说明</th><th>示例值</th></tr>
+  <tr><td><code>data-async-url</code></td><td>请求 URL（优先级高于 href/action）</td><td>/api/delete</td></tr>
+  <tr><td><code>data-async-method</code></td><td>HTTP 方法，默认 GET</td><td>POST / DELETE / PUT</td></tr>
+  <tr><td><code>data-async-data</code></td><td>附加数据（JSON 字符串）</td><td>'{"id":123}'</td></tr>
+  <tr><td><code>data-async-requestformat</code></td><td>请求体格式</td><td>JSON / FORM</td></tr>
+  <tr><td><code>data-async-onsuccess</code></td><td>成功回调函数名（全局函数）</td><td>myHandler</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACAsync } from '../src/Auto/ACAsync.js';
+import { ACComponent } from '../src/Auto/ACComponent.js';
+
+// 覆盖默认成功回调，避免刷新页面
+ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
+  document.querySelectorAll('.result-box').forEach(el => {
+    if (el.id === 'result1' || el.id === 'result2') {
+      el.textContent = JSON.stringify(rsp, null, 2);
+    }
+  });
+};
+
+// 自定义回调
+window.mySuccessHandler = (rsp) => {
+  document.getElementById('result3').textContent = '回调收到数据：' + JSON.stringify(rsp);
+};
+
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

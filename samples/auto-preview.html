@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Preview 图片预览 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.img-thumb { width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in;border:2px solid transparent;transition:border-color .2s; }
+.img-thumb:hover { border-color:#0284c7; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACPreview — 声明式图片预览</h1>
+<p class="subtitle">data-component="preview" 自动为图片绑定点击预览，支持单图和多图列表切换。</p>
+
+<h2>1. 单图预览</h2>
+<div class="demo-block">
+  <img data-component="preview"
+    src="https://picsum.photos/200/150?random=20"
+    style="width:200px;height:150px;object-fit:cover;border-radius:6px;cursor:zoom-in"
+    alt="示例图片">
+  <p style="font-size:.85em;color:#6b7280;margin-top:.4em">点击图片查看大图</p>
+</div>
+<pre class="code-block">&lt;img data-component="preview"
+  src="photo.jpg"
+  alt="照片"&gt;
+&lt;!-- 点击自动打开全屏预览 --&gt;</pre>
+
+<h2>2. 多图组（父容器模式）</h2>
+<div class="demo-block">
+  <div data-component="preview" style="display:flex;flex-wrap:wrap;gap:8px">
+    <img class="img-thumb" src="https://picsum.photos/400/300?random=31" alt="图1">
+    <img class="img-thumb" src="https://picsum.photos/400/300?random=32" alt="图2">
+    <img class="img-thumb" src="https://picsum.photos/400/300?random=33" alt="图3">
+    <img class="img-thumb" src="https://picsum.photos/400/300?random=34" alt="图4">
+    <img class="img-thumb" src="https://picsum.photos/400/300?random=35" alt="图5">
+  </div>
+  <p style="font-size:.85em;color:#6b7280;margin-top:.4em">点击任意缩略图，可左右翻页预览</p>
+</div>
+<pre class="code-block">&lt;!-- 在父容器上声明，子 img 自动组成一个预览组 --&gt;
+&lt;div data-component="preview"&gt;
+  &lt;img src="1.jpg"&gt;
+  &lt;img src="2.jpg"&gt;
+  &lt;img src="3.jpg"&gt;
+&lt;/div&gt;</pre>
+
+<h2>3. 自定义预览图 src（缩略图与原图分离）</h2>
+<div class="demo-block">
+  <div style="display:flex;flex-wrap:wrap;gap:8px" data-component="preview">
+    <img class="img-thumb"
+      src="https://picsum.photos/80/80?random=41"
+      data-preview-src="https://picsum.photos/800/600?random=41"
+      title="点击查看高清大图">
+    <img class="img-thumb"
+      src="https://picsum.photos/80/80?random=42"
+      data-preview-src="https://picsum.photos/800/600?random=42"
+      title="点击查看高清大图">
+    <img class="img-thumb"
+      src="https://picsum.photos/80/80?random=43"
+      data-preview-src="https://picsum.photos/800/600?random=43"
+      title="点击查看高清大图">
+  </div>
+  <p style="font-size:.85em;color:#6b7280;margin-top:.4em">缩略图 80×80，预览时加载 800×600 原图</p>
+</div>
+<pre class="code-block">&lt;img
+  src="thumb.jpg"
+  data-preview-src="original.jpg"
+  data-component="preview"&gt;
+&lt;!-- 预览时使用 data-preview-src 对应的高清图 --&gt;</pre>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACPreview.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

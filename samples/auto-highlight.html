@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Highlight 关键词高亮 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.keyword-hl { background: #fef08a; padding: 0 2px; border-radius: 2px; font-weight: bold; }
+.keyword-hl-blue { background: #bfdbfe; padding: 0 2px; border-radius: 2px; color: #1d4ed8; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACHighlight — 关键词高亮</h1>
+<p class="subtitle">对指定区域内的文本进行关键词高亮，支持自定义样式 class。</p>
+
+<h2>1. 基础高亮</h2>
+<div class="demo-block">
+  <p data-component="highlight" data-highlight-keyword="JavaScript">
+    WebCom 是一个基于 JavaScript 开发的轻量级组件库。JavaScript 功能强大，
+    适合用于构建现代 Web 应用，无需任何 JavaScript 框架依赖。
+  </p>
+</div>
+<pre class="code-block">&lt;p data-component="highlight"
+  data-highlight-keyword="JavaScript"&gt;
+  包含 JavaScript 关键词的文本内容...
+&lt;/p&gt;</pre>
+
+<h2>2. 自定义高亮样式</h2>
+<div class="demo-block">
+  <p data-component="highlight"
+    data-highlight-keyword="组件"
+    data-highlight-class="keyword-hl-blue">
+    WebCom 组件库提供了三层架构：工具组件（Lang）、UI 组件（Widget）和声明式组件（Auto）。
+    每类组件都经过精心设计，确保组件之间低耦合、高内聚，便于按需引入。
+  </p>
+</div>
+<pre class="code-block">&lt;p data-component="highlight"
+  data-highlight-keyword="组件"
+  data-highlight-class="my-highlight-style"&gt;
+  ...文本...
+&lt;/p&gt;
+
+&lt;style&gt;
+.my-highlight-style {
+  background: #bfdbfe;
+  color: #1d4ed8;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+&lt;/style&gt;</pre>
+
+<h2>3. 动态高亮（JS 控制）</h2>
+<div class="demo-block">
+  <div style="display:flex;gap:.5em;margin-bottom:.8em">
+    <input id="hl-input" type="text" placeholder="输入关键词" style="flex:1">
+    <button id="btn-hl-apply">高亮</button>
+    <button id="btn-hl-clear">清除</button>
+  </div>
+  <div id="hl-content">
+    Vue、React、Angular 是当前最流行的三大前端框架。Vue 以简洁易上手著称，
+    React 以组件化和 Virtual DOM 为核心，Angular 则提供完整的企业级解决方案。
+    选择适合项目的框架，往往比追求最热门的框架更重要。
+  </div>
+</div>
+<pre class="code-block">import { nodeHighlight } from '../src/Lang/Dom.js';
+
+// 手动调用高亮
+nodeHighlight(element, keyword, 'my-hl');
+
+// 清除高亮
+element.querySelectorAll('mark.my-hl').forEach(el => {
+  el.replaceWith(document.createTextNode(el.textContent));
+});
+element.normalize();</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-highlight-keyword</td><td>要高亮的关键词文本</td></tr>
+  <tr><td>data-highlight-class</td><td>高亮 span 的 CSS class，默认为内置黄色样式</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACHighlight.js';
+import { nodeHighlight } from '../src/Lang/Dom.js';
+
+ACComponent.init(document.body);
+
+// 动态高亮
+const hlContent = document.getElementById('hl-content');
+const originalHtml = hlContent.innerHTML;
+
+document.getElementById('btn-hl-apply').onclick = () => {
+  const kw = document.getElementById('hl-input').value.trim();
+  if (!kw) return;
+  // 先还原
+  hlContent.innerHTML = originalHtml;
+  hlContent.normalize();
+  nodeHighlight(hlContent, kw, 'keyword-hl');
+};
+
+document.getElementById('btn-hl-clear').onclick = () => {
+  hlContent.innerHTML = originalHtml;
+};
+</script>
+</body>
+</html>

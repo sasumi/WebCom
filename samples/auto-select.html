@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Select 下拉选择增强 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACSelect — 声明式下拉增强</h1>
+<p class="subtitle">data-component="select" 自动增强原生 &lt;select&gt; 元素，无需 JS 调用。</p>
+
+<h2>1. 单选搜索</h2>
+<div class="demo-block">
+  <label>选择城市（支持搜索）：</label><br>
+  <select data-component="select" style="width:220px;margin-top:.4em">
+    <option value="">-- 请选择 --</option>
+    <option value="bj">北京</option>
+    <option value="sh">上海</option>
+    <option value="gz">广州</option>
+    <option value="sz">深圳</option>
+    <option value="hz">杭州</option>
+    <option value="cd">成都</option>
+    <option value="wh">武汉</option>
+    <option value="nj">南京</option>
+    <option value="xm">厦门</option>
+    <option value="qd">青岛</option>
+  </select>
+</div>
+<pre class="code-block">&lt;!-- 只需添加 data-component="select" --&gt;
+&lt;select data-component="select"&gt;
+  &lt;option value="bj"&gt;北京&lt;/option&gt;
+  &lt;option value="sh"&gt;上海&lt;/option&gt;
+  ...
+&lt;/select&gt;</pre>
+
+<h2>2. 多选模式</h2>
+<div class="demo-block">
+  <label>技术栈（可多选）：</label><br>
+  <select data-component="select" multiple style="width:240px;margin-top:.4em">
+    <option value="js">JavaScript</option>
+    <option value="ts">TypeScript</option>
+    <option value="vue" selected>Vue</option>
+    <option value="react">React</option>
+    <option value="node" selected>Node.js</option>
+    <option value="python">Python</option>
+    <option value="go">Go</option>
+  </select>
+</div>
+<pre class="code-block">&lt;!-- multiple 属性已声明，ACSelect 自动识别 --&gt;
+&lt;select data-component="select" multiple&gt;
+  &lt;option value="vue" selected&gt;Vue&lt;/option&gt;
+  ...
+&lt;/select&gt;</pre>
+
+<h2>3. 禁用选项</h2>
+<div class="demo-block">
+  <label>权限级别：</label><br>
+  <select data-component="select" style="width:200px;margin-top:.4em">
+    <option value="1">普通用户</option>
+    <option value="2">高级用户</option>
+    <option value="8" disabled>管理员（需申请）</option>
+    <option value="9" disabled>超级管理员（禁用）</option>
+  </select>
+</div>
+<pre class="code-block">&lt;option value="8" disabled&gt;
+  管理员（不可选）
+&lt;/option&gt;</pre>
+
+<h2>4. Select 分组（optgroup）</h2>
+<div class="demo-block">
+  <label>编程语言分类：</label><br>
+  <select data-component="select" style="width:220px;margin-top:.4em">
+    <optgroup label="前端">
+      <option value="js">JavaScript</option>
+      <option value="ts">TypeScript</option>
+      <option value="css">CSS</option>
+    </optgroup>
+    <optgroup label="后端">
+      <option value="py">Python</option>
+      <option value="go">Go</option>
+      <option value="java">Java</option>
+    </optgroup>
+  </select>
+</div>
+<pre class="code-block">&lt;select data-component="select"&gt;
+  &lt;optgroup label="前端"&gt;
+    &lt;option value="js"&gt;JavaScript&lt;/option&gt;
+  &lt;/optgroup&gt;
+  &lt;optgroup label="后端"&gt;
+    &lt;option value="py"&gt;Python&lt;/option&gt;
+  &lt;/optgroup&gt;
+&lt;/select&gt;</pre>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACSelect.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

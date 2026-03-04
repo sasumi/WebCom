@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Select 下拉选择 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Select — 下拉选择增强</h1>
+<p class="subtitle">为原生 &lt;select&gt; 添加搜索、多选、自定义渲染等增强功能；也支持为文本输入框绑定联想下拉。</p>
+
+<h2>1. Select.bindSelect — 单选搜索增强</h2>
+<div class="demo-block">
+  <label>城市选择（支持搜索）：</label><br>
+  <select id="sel-single" style="width:220px;margin-top:0.4em">
+    <option value="">-- 请选择 --</option>
+    <option value="bj">北京</option>
+    <option value="sh">上海</option>
+    <option value="gz">广州</option>
+    <option value="sz">深圳</option>
+    <option value="hz">杭州</option>
+    <option value="cd">成都</option>
+    <option value="wh">武汉</option>
+    <option value="nj">南京</option>
+  </select>
+  <div id="single-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { Select } from '../src/Widget/Select.js';
+
+Select.bindSelect(selectElement, {
+  search: true,          // 启用搜索
+  placeholder: '请选择',
+  onChange: (val, text) => console.log(val, text),
+});</pre>
+
+<h2>2. Select.bindSelect — 多选模式</h2>
+<div class="demo-block">
+  <label>技术栈（多选）：</label><br>
+  <select id="sel-multi" multiple style="width:220px;margin-top:0.4em">
+    <option value="js">JavaScript</option>
+    <option value="ts">TypeScript</option>
+    <option value="vue">Vue</option>
+    <option value="react">React</option>
+    <option value="node">Node.js</option>
+    <option value="scss">SCSS</option>
+    <option value="go">Go</option>
+  </select>
+  <div id="multi-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { Select } from '../src/Widget/Select.js';
+
+Select.bindSelect(selectElement, {
+  multiple: true,
+  search: true,
+  onChange: (values) => console.log(values),
+});</pre>
+
+<h2>3. Select.bindTextInput — 文本框联想</h2>
+<div class="demo-block">
+  <label>用户名联想（输入以下字母触发）：</label><br>
+  <input id="input-autocomplete" type="text" placeholder="输入 a / b / c 触发联想..." style="width:240px;margin-top:0.4em">
+  <div id="autocomplete-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { Select } from '../src/Widget/Select.js';
+
+Select.bindTextInput(inputElement, (keyword) => {
+  // 返回 Promise 或数组
+  return fetch(`/api/suggest?q=${keyword}`)
+    .then(r => r.json())
+    .then(list => list.map(item => ({ text: item.name, value: item.id })));
+}, {
+  onSelect: (val, text) => console.log('选中', val, text),
+});</pre>
+</div>
+
+<script type="module">
+import { Select } from '../src/Widget/Select.js';
+
+// 单选
+Select.bindSelect(document.getElementById('sel-single'), {
+  search: true,
+  placeholder: '请选择城市',
+  onChange: (val, text) => {
+    document.getElementById('single-result').textContent = `选中：value="${val}", text="${text}"`;
+  },
+});
+
+// 多选
+Select.bindSelect(document.getElementById('sel-multi'), {
+  multiple: true,
+  search: true,
+  placeholder: '选择技术栈',
+  onChange: (values) => {
+    document.getElementById('multi-result').textContent = `已选：${JSON.stringify(values)}`;
+  },
+});
+
+// 文本联想
+const suggestions = [
+  { text:'Alice Johnson', value:'u1'},
+  { text:'Bob Smith', value:'u2'},
+  { text:'Carol White', value:'u3'},
+  { text:'Charlie Brown', value:'u4'},
+  { text:'Diana Prince', value:'u5'},
+  { text:'Alice Cooper', value:'u6'},
+];
+Select.bindTextInput(document.getElementById('input-autocomplete'), (kw) => {
+  return suggestions.filter(s => s.text.toLowerCase().includes(kw.toLowerCase()));
+}, {
+  onSelect: (val, text) => {
+    document.getElementById('autocomplete-result').textContent = `选中：${text}（id: ${val}）`;
+  },
+});
+</script>
+</body>
+</html>

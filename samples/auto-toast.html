@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Toast 提示消息 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACToast — 声明式 Toast 消息</h1>
+<p class="subtitle">通过 data-component="toast" 为元素绑定点击弹出 Toast 通知。</p>
+
+<h2>1. 基础类型</h2>
+<div class="demo-block" style="display:flex;flex-wrap:wrap;gap:0.6em">
+  <button data-component="toast" data-toast-message="默认 Toast 消息">默认</button>
+  <button data-component="toast" data-toast-message="操作成功！" data-toast-type="success">成功</button>
+  <button data-component="toast" data-toast-message="请注意这条警告信息" data-toast-type="warning">警告</button>
+  <button data-component="toast" data-toast-message="发生了一个错误" data-toast-type="error">错误</button>
+  <button data-component="toast" data-toast-message="这是一条提示信息" data-toast-type="info">信息</button>
+</div>
+<pre class="code-block">&lt;button data-component="toast"
+  data-toast-message="操作成功！"
+  data-toast-type="success"&gt;
+  点击弹出
+&lt;/button&gt;
+
+&lt;!-- type 可选值：success | warning | error | info（默认）--&gt;</pre>
+
+<h2>2. 自定义持续时间</h2>
+<div class="demo-block" style="display:flex;flex-wrap:wrap;gap:0.6em">
+  <button data-component="toast" data-toast-message="1 秒后消失" data-toast-timeout="1000">1 秒</button>
+  <button data-component="toast" data-toast-message="5 秒后消失（较长）" data-toast-timeout="5000" data-toast-type="info">5 秒</button>
+  <button data-component="toast" data-toast-message="10 秒，长时间显示" data-toast-timeout="10000" data-toast-type="warning">10 秒</button>
+</div>
+<pre class="code-block">&lt;button data-component="toast"
+  data-toast-message="将在 5 秒后消失"
+  data-toast-timeout="5000"
+  data-toast-type="info"&gt;
+  5 秒 Toast
+&lt;/button&gt;</pre>
+
+<h2>3. 与 JS Toast API 对比</h2>
+<div class="demo-block" style="display:flex;flex-wrap:wrap;gap:0.6em">
+  <button id="btn-js-toast-success">JS API 成功</button>
+  <button id="btn-js-toast-error">JS API 错误</button>
+</div>
+<pre class="code-block">import { Toast } from '../src/Widget/Toast.js';
+
+// JS 主动调用（等同于声明式效果）
+Toast.show('成功消息', Toast.TYPE_SUCCESS, 3000);
+Toast.show('错误消息', Toast.TYPE_ERROR);</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>可选值</th><th>说明</th></tr>
+  <tr><td>data-toast-message</td><td>任意字符串</td><td>Toast 显示的文本内容</td></tr>
+  <tr><td>data-toast-type</td><td>success / warning / error / info</td><td>消息类型，影响颜色和图标</td></tr>
+  <tr><td>data-toast-timeout</td><td>毫秒数字字符串</td><td>显示持续时长，默认 3000ms</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACToast.js';
+import { Toast } from '../src/Widget/Toast.js';
+
+ACComponent.init(document.body);
+
+document.getElementById('btn-js-toast-success').onclick = () => {
+  Toast.show('操作已成功完成！', Toast.TYPE_SUCCESS);
+};
+document.getElementById('btn-js-toast-error').onclick = () => {
+  Toast.show('发生了一个错误，请重试', Toast.TYPE_ERROR);
+};
+</script>
+</body>
+</html>

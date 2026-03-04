@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Paginate 分页 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th, .data-table td { padding:8px 12px; border:1px solid #e2e8f0; text-align:left; }
+.data-table th { background:#f1f5f9; font-weight:600; }
+.data-table tr:hover td { background:#f8fafc; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Paginate — 分页组件</h1>
+<p class="subtitle">renderPaginate 渲染分页 UI，点击翻页时触发回调，不绑定数据逻辑，灵活适配任何数据源。</p>
+
+<h2>1. 基础分页</h2>
+<div class="demo-block">
+  <div id="table-container">
+    <table class="data-table" id="data-table">
+      <thead><tr><th>#</th><th>姓名</th><th>职位</th><th>部门</th></tr></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+  <div id="paginate-container" style="margin-top:1em;display:flex;justify-content:flex-end"></div>
+</div>
+<pre class="code-block">import { renderPaginate } from '../src/Widget/Paginate.js';
+
+renderPaginate(container, {
+  total: 100,    // 总条数
+  pageSize: 10,  // 每页条数
+  current: 1,    // 当前页码
+  onChange: (page) => {
+    loadData(page);
+  }
+});</pre>
+
+<h2>2. 可配置分页大小</h2>
+<div class="demo-block">
+  <div id="paginate2"></div>
+  <div id="paginate2-info" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">renderPaginate(container, {
+  total: 500,
+  pageSize: 20,
+  current: 3,
+  showTotal: true,      // 显示总条数
+  showJumper: true,     // 显示跳页输入
+  pageSizes: [10, 20, 50, 100], // 每页条数选项
+  onChange: (page, size) => console.log(page, size),
+});</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+  <tr><td>total</td><td>number</td><td>0</td><td>数据总条数</td></tr>
+  <tr><td>pageSize</td><td>number</td><td>10</td><td>每页显示条数</td></tr>
+  <tr><td>current</td><td>number</td><td>1</td><td>当前页码（从 1 开始）</td></tr>
+  <tr><td>onChange</td><td>Function</td><td>—</td><td>翻页回调，参数 (page, pageSize)</td></tr>
+  <tr><td>showTotal</td><td>boolean</td><td>false</td><td>是否显示总条数</td></tr>
+  <tr><td>showJumper</td><td>boolean</td><td>false</td><td>是否显示跳页框</td></tr>
+</table>
+
+<div class="note">
+  <b>注意：</b>renderPaginate 只渲染分页导航 UI，数据加载需在 onChange 回调中自行实现。
+  建议在回调中重新调用 renderPaginate 更新当前页状态。
+</div>
+</div>
+
+<script type="module">
+import { renderPaginate } from '../src/Widget/Paginate.js';
+
+// 模拟数据
+const allData = Array.from({ length: 87 }, (_, i) => ({
+  id: i + 1,
+  name: ['Alice','Bob','Carol','Diana','Evan','Frank','Grace','Henry','Iris','Jack'][i % 10] + ` ${Math.floor(i/10)+1}`,
+  role: ['前端工程师','后端工程师','设计师','产品经理','测试工程师'][i % 5],
+  dept: ['技术部','产品部','设计部','市场部'][i % 4],
+}));
+
+const PAGE_SIZE = 8;
+let currentPage = 1;
+
+function renderTable(page) {
+  const start = (page - 1) * PAGE_SIZE;
+  const rows = allData.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = rows.map(r =>
+    `<tr><td>${r.id}</td><td>${r.name}</td><td>${r.role}</td><td>${r.dept}</td></tr>`
+  ).join('');
+}
+
+function renderPage(page) {
+  currentPage = page;
+  renderTable(page);
+  renderPaginate(document.getElementById('paginate-container'), {
+    total: allData.length,
+    pageSize: PAGE_SIZE,
+    current: page,
+    onChange: renderPage,
+  });
+}
+renderPage(1);
+
+// paginate2
+let p2 = 3;
+function renderP2(page, size) {
+  p2 = page;
+  renderPaginate(document.getElementById('paginate2'), {
+    total: 500,
+    pageSize: size || 20,
+    current: page,
+    onChange: (p, s) => renderP2(p, s),
+  });
+  document.getElementById('paginate2-info').textContent =
+    `当前第 ${page} 页，每页 ${size || 20} 条，共 500 条`;
+}
+renderP2(3);
+</script>
+</body>
+</html>

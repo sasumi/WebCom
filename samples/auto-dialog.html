@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Dialog 对话框 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACDialog — 声明式对话框</h1>
+<p class="subtitle">通过 data-component="dialog" 声明式绑定，点击元素自动弹出对话框。</p>
+
+<h2>1. 内嵌内容对话框</h2>
+<div class="demo-block">
+  <button data-component="dialog" data-dialog-content="&lt;p&gt;这是弹出的&lt;b&gt;HTML内容&lt;/b&gt;&lt;/p&gt;">弹出内嵌内容</button>
+  <button data-component="dialog"
+    data-dialog-content="&lt;p&gt;带标题的对话框正文内容&lt;/p&gt;"
+    data-dialog-title="自定义标题">有标题的对话框</button>
+</div>
+<pre class="code-block">&lt;button
+  data-component="dialog"
+  data-dialog-content="&lt;p&gt;内容文本&lt;/p&gt;"
+  data-dialog-title="对话框标题"&gt;
+  点击弹出
+&lt;/button&gt;</pre>
+
+<h2>2. 加载外部 URL 内容</h2>
+<div class="demo-block">
+  <a href="https://example.com"
+    data-component="dialog"
+    data-dialog-url="assets/dialog.htmlonly.html"
+    data-dialog-title="外部内容">加载 HTML 片段（a 标签）</a>
+  <span style="margin:0 1em">或</span>
+  <button data-component="dialog"
+    data-dialog-url="assets/dialog.htmlonly.html"
+    data-dialog-title="从 URL 加载">Button 也支持</button>
+</div>
+<pre class="code-block">&lt;!-- 使用 a 标签，href 会被 data-dialog-url 覆盖 --&gt;
+&lt;a href="#"
+   data-component="dialog"
+   data-dialog-url="/fragment/detail.html"
+   data-dialog-title="详情"&gt;查看详情&lt;/a&gt;</pre>
+
+<h2>3. iframe 模式</h2>
+<div class="demo-block">
+  <button data-component="dialog"
+    data-dialog-url="assets/iframe.html"
+    data-dialog-title="IFrame 对话框"
+    data-dialog-iframe="1">以 iframe 打开</button>
+</div>
+<pre class="code-block">&lt;button
+  data-component="dialog"
+  data-dialog-url="/page/edit"
+  data-dialog-iframe="1"
+  data-dialog-title="编辑"
+  data-dialog-width="800"
+  data-dialog-height="600"&gt;编辑&lt;/button&gt;</pre>
+
+<h2>4. 尺寸与样式控制</h2>
+<div class="demo-block">
+  <button data-component="dialog"
+    data-dialog-content="&lt;p style='padding:1em'&gt;小型对话框&lt;/p&gt;"
+    data-dialog-title="Small"
+    data-dialog-width="300"
+    data-dialog-height="150">小型 300×150</button>
+  <button data-component="dialog"
+    data-dialog-content="&lt;p style='padding:2em'&gt;大型对话框内容&lt;/p&gt;"
+    data-dialog-title="Large"
+    data-dialog-width="700"
+    data-dialog-height="400">大型 700×400</button>
+</div>
+<pre class="code-block">&lt;button
+  data-component="dialog"
+  data-dialog-content="..."
+  data-dialog-width="700"
+  data-dialog-height="500"&gt;打开&lt;/button&gt;</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-dialog-content</td><td>直接嵌入的 HTML 内容（与 url 二选一）</td></tr>
+  <tr><td>data-dialog-url</td><td>异步加载的 URL（AJAX 加载内容）</td></tr>
+  <tr><td>data-dialog-title</td><td>对话框标题</td></tr>
+  <tr><td>data-dialog-width</td><td>宽度（像素，数字）</td></tr>
+  <tr><td>data-dialog-height</td><td>高度（像素，数字）</td></tr>
+  <tr><td>data-dialog-iframe</td><td>为 "1" 时以 iframe 方式加载 url</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACDialog.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

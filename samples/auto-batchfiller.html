@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto BatchFiller 批量填充 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACBatchFiller — 批量填充</h1>
+<p class="subtitle">通过弹窗批量为多行表单同名字段填入相同的值，适合批量操作场景。</p>
+
+<h2>1. 表格行批量填充</h2>
+<div class="demo-block">
+  <p style="font-size:.9em;color:#6b7280;margin-bottom:.8em">选中行后，用批量填充设置统一的部门和职级</p>
+  <table style="border-collapse:collapse;width:100%">
+    <thead>
+      <tr style="background:#f1f5f9">
+        <th style="padding:8px;border:1px solid #ddd"><input type="checkbox" id="chk-all-row"></th>
+        <th style="padding:8px;border:1px solid #ddd">姓名</th>
+        <th style="padding:8px;border:1px solid #ddd">部门</th>
+        <th style="padding:8px;border:1px solid #ddd">职级</th>
+        <th style="padding:8px;border:1px solid #ddd">备注</th>
+      </tr>
+    </thead>
+    <tbody id="batch-table">
+      <tr>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center"><input type="checkbox" class="row-check"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd">Alice</td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="dept" value="研发" style="width:90px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="level" value="P5" style="width:60px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="remark" style="width:120px"></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center"><input type="checkbox" class="row-check"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd">Bob</td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="dept" value="产品" style="width:90px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="level" value="P4" style="width:60px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="remark" style="width:120px"></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center"><input type="checkbox" class="row-check"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd">Carol</td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="dept" value="设计" style="width:90px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="level" value="P5" style="width:60px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="remark" style="width:120px"></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center"><input type="checkbox" class="row-check"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd">Diana</td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="dept" value="研发" style="width:90px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="level" value="P6" style="width:60px"></td>
+        <td style="padding:6px 8px;border:1px solid #ddd"><input type="text" name="remark" style="width:120px"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 批量填充按钮：data-batchfiller-selector 指向要填充的行选择器 -->
+  <button style="margin-top:.8em"
+    data-component="batchfiller"
+    data-batchfiller-selector="#batch-table tr:has(.row-check:checked)"
+    data-batchfiller-fields="dept,level,remark">
+    批量填充（已选行）
+  </button>
+</div>
+<pre class="code-block">&lt;button
+  data-component="batchfiller"
+  data-batchfiller-selector="tr:has(.row-check:checked)"
+  data-batchfiller-fields="dept,level,remark"&gt;
+  批量填充
+&lt;/button&gt;
+&lt;!-- 点击弹出填充对话框，输入值后批量写入选中行的同名字段 --&gt;</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-batchfiller-selector</td><td>目标行的 CSS 选择器</td></tr>
+  <tr><td>data-batchfiller-fields</td><td>要填充的字段名列表（逗号分隔，对应 input[name]）</td></tr>
+</table>
+<div class="note">
+  <b>使用步骤：</b>勾选表格行 → 点击「批量填充」按钮 → 弹出对话框中填入值 → 确认后批量写入所有选中行的对应字段。
+  适合需要对多条记录设置相同值的批量编辑场景。
+</div>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACBatchFiller.js';
+
+ACComponent.init(document.body);
+
+// 全选/取消全选
+document.getElementById('chk-all-row').onchange = function() {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = this.checked);
+};
+</script>
+</body>
+</html>

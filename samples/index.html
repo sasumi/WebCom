@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebCom Samples — 示例索引</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #333; }
+  header { background: #2563eb; color: #fff; padding: 2em 2.5em 1.5em; }
+  header h1 { margin: 0 0 0.25em; font-size: 1.8em; }
+  header p  { margin: 0; opacity: 0.85; }
+  .container { max-width: 1100px; margin: 2em auto; padding: 0 2em; }
+  h2 { font-size: 1.1em; color: #555; border-left: 4px solid #2563eb; padding-left: 0.6em; margin: 2em 0 1em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1em; }
+  .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 1.2em 1.4em; text-decoration: none; color: inherit; display: block; transition: transform .1s, box-shadow .1s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  .card h3 { margin: 0 0 0.4em; font-size: 1em; color: #2563eb; }
+  .card p  { margin: 0; font-size: 0.85em; color: #666; line-height: 1.5; }
+  .tag { display: inline-block; font-size: 0.7em; padding: 0.15em 0.5em; border-radius: 3px; margin-right: 0.3em; vertical-align: middle; }
+  .tag-lang   { background: #dbeafe; color: #1d4ed8; }
+  .tag-widget { background: #dcfce7; color: #166534; }
+  .tag-auto   { background: #fef9c3; color: #854d0e; }
+  footer { text-align: center; padding: 2em; color: #999; font-size: 0.85em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>WebCom Samples</h1>
+  <p>所有功能模块的完整使用示例，点击卡片查看对应示例页面。</p>
+</header>
+
+<div class="container">
+
+  <h2><span class="tag tag-lang">Lang</span> 工具函数层</h2>
+  <div class="grid">
+    <a class="card" href="lang-array.html">
+      <h3>Array / Object 工具</h3>
+      <p>arrayColumn、arrayGroup、arrayFilterTree、chunk、objectGetByPath 等数组与对象工具函数演示</p>
+    </a>
+    <a class="card" href="lang-string.html">
+      <h3>String 字符串工具</h3>
+      <p>formatSize、cutString、randomString、versionCompare、trim、strToPascalCase 等</p>
+    </a>
+    <a class="card" href="lang-time.html">
+      <h3>Time 时间工具</h3>
+      <p>formatDate、prettyTime、countDown、monthsOffsetCalc、frequencyControl 等</p>
+    </a>
+    <a class="card" href="lang-dom.html">
+      <h3>Dom 操作工具</h3>
+      <p>findOne、waitForSelector、getDomOffset、onDomTreeChange、createDomByHtml 等</p>
+    </a>
+    <a class="card" href="lang-event.html">
+      <h3>Event 事件工具</h3>
+      <p>BizEvent、bindHotKeys、bindNodeActive、eventDelegate、onDocReady 等</p>
+    </a>
+    <a class="card" href="lang-net.html">
+      <h3>Net 网络请求</h3>
+      <p>requestJSON、downloadString、mergerUriParam、QueryString 等</p>
+    </a>
+    <a class="card" href="lang-form.html">
+      <h3>Form 表单工具</h3>
+      <p>formSerializeJSON、bindFormSubmitAsJSON、bindFormAutoSave、formValidate 等</p>
+    </a>
+  </div>
+
+  <h2><span class="tag tag-widget">Widget</span> UI 组件层</h2>
+  <div class="grid">
+    <a class="card" href="widget-dialog.html">
+      <h3>Dialog 对话框</h3>
+      <p>Dialog.show、confirm、alert、prompt、iframe 对话框；模态/非模态；多层叠加</p>
+    </a>
+    <a class="card" href="widget-toast.html">
+      <h3>Toast 消息通知</h3>
+      <p>info、success、warning、error、loading 五种类型；自定义时长；showLoadingLater</p>
+    </a>
+    <a class="card" href="widget-tip.html">
+      <h3>Tip 气泡提示</h3>
+      <p>hover/click/focus 触发；异步加载内容；自定义位置与主题</p>
+    </a>
+    <a class="card" href="widget-menu.html">
+      <h3>Menu 上下文菜单</h3>
+      <p>右键菜单、点击菜单、子菜单、分隔线；自定义样式</p>
+    </a>
+    <a class="card" href="widget-select.html">
+      <h3>Select 增强下拉框</h3>
+      <p>单选/多选/搜索；bindSelect；bindTextInput（datalist 增强）</p>
+    </a>
+    <a class="card" href="widget-tab.html">
+      <h3>Tab 选项卡</h3>
+      <p>tabConnect 基本用法；hover 触发；自定义激活类名</p>
+    </a>
+    <a class="card" href="widget-sortable.html">
+      <h3>Sortable 拖拽排序</h3>
+      <p>列表拖拽排序；自定义拖拽把手；onChange 回调</p>
+    </a>
+    <a class="card" href="widget-paginate.html">
+      <h3>Paginate 分页器</h3>
+      <p>renderPaginate；翻页回调；动态数据加载</p>
+    </a>
+    <a class="card" href="widget-uploader.html">
+      <h3>Uploader 文件上传</h3>
+      <p>图片上传预览；多文件；文件类型限制；自定义上传函数</p>
+    </a>
+    <a class="card" href="widget-imgpreview.html">
+      <h3>ImgPreview 图片预览</h3>
+      <p>单图预览；多图列表；滚轮缩放；键盘切换</p>
+    </a>
+    <a class="card" href="widget-filedrop.html">
+      <h3>FileDrop 拖拽文件区域</h3>
+      <p>bindFileDrop；文件类型过滤；onDrop 回调</p>
+    </a>
+    <a class="card" href="widget-copy.html">
+      <h3>Copy 剪贴板复制</h3>
+      <p>copy、copyFormatted；复制后 Toast 反馈</p>
+    </a>
+  </div>
+
+  <h2><span class="tag tag-auto">Auto</span> 自动化组件层</h2>
+  <div class="grid">
+    <a class="card" href="auto-component.html">
+      <h3>ACComponent 自动挂载</h3>
+      <p>ACComponent.init、observe；动态节点；多组件叠加</p>
+    </a>
+    <a class="card" href="auto-async.html">
+      <h3>ACAsync 异步请求</h3>
+      <p>按钮/链接/表单异步提交；data-async-*；自定义成功回调</p>
+    </a>
+    <a class="card" href="auto-confirm.html">
+      <h3>ACConfirm 确认对话框</h3>
+      <p>data-confirm-*；与 async 组合使用</p>
+    </a>
+    <a class="card" href="auto-dialog.html">
+      <h3>ACDialog 弹窗</h3>
+      <p>data-dialog-url；data-dialog-content；a 标签自动处理</p>
+    </a>
+    <a class="card" href="auto-tip.html">
+      <h3>ACTip 气泡提示</h3>
+      <p>data-tip-content；data-tip-triggertype；title 属性兼容</p>
+    </a>
+    <a class="card" href="auto-toast.html">
+      <h3>ACToast 通知提示</h3>
+      <p>data-toast-message；data-toast-type</p>
+    </a>
+    <a class="card" href="auto-copy.html">
+      <h3>ACCopy 复制</h3>
+      <p>data-copy-content；TRIGGER_SELF / TRIGGER_INSIDE</p>
+    </a>
+    <a class="card" href="auto-viewcopy.html">
+      <h3>ACViewCopy 查看并复制</h3>
+      <p>data-viewcopy-content；data-viewcopy-file（下载）</p>
+    </a>
+    <a class="card" href="auto-highlight.html">
+      <h3>ACHighlight 关键词高亮</h3>
+      <p>data-highlight-keyword；自定义 cssClass</p>
+    </a>
+    <a class="card" href="auto-hotkey.html">
+      <h3>ACHotKey 快捷键</h3>
+      <p>data-hotkey-keys；Alt 键提示徽章</p>
+    </a>
+    <a class="card" href="auto-textcounter.html">
+      <h3>ACTextCounter 字符计数</h3>
+      <p>maxlength；data-textcounter-trim；超出限制变红</p>
+    </a>
+    <a class="card" href="auto-select.html">
+      <h3>ACSelect 增强 Select</h3>
+      <p>单选/多选/datalist 增强；data-select-*</p>
+    </a>
+    <a class="card" href="auto-selectall.html">
+      <h3>ACSelectAll 全选</h3>
+      <p>data-selectall-container；全选/取消；计数提示</p>
+    </a>
+    <a class="card" href="auto-multiselect.html">
+      <h3>ACMultiSelectRelate 多选关联</h3>
+      <p>选中后启用按钮；URL 自动追加参数</p>
+    </a>
+    <a class="card" href="auto-preview.html">
+      <h3>ACPreview 图片预览</h3>
+      <p>父容器模式；单图模式；组内翻页</p>
+    </a>
+    <a class="card" href="auto-batchfiller.html">
+      <h3>ACBatchFiller 批量填充</h3>
+      <p>data-batchfiller-selector；弹窗统一赋值</p>
+    </a>
+    <a class="card" href="auto-columnfiller.html">
+      <h3>ACColumnFiller 列填充</h3>
+      <p>表格列批量填充；自动检测列序号</p>
+    </a>
+    <a class="card" href="auto-inlineeditor.html">
+      <h3>ACInlineEditor 行内编辑</h3>
+      <p>text/number/select/date 类型；保存接口</p>
+    </a>
+    <a class="card" href="auto-unsavealert.html">
+      <h3>ACUnSaveAlert 未保存提醒</h3>
+      <p>表单离开提醒；与 async 组合重置状态</p>
+    </a>
+    <a class="card" href="auto-uploader.html">
+      <h3>ACUploader 上传组件</h3>
+      <p>data-uploader-*；和表单集成</p>
+    </a>
+    <a class="card" href="auto-daterange.html">
+      <h3>ACDateRangeSelector 日期范围</h3>
+      <p>date/datetime/time 类型；快捷日期菜单</p>
+    </a>
+    <a class="card" href="auto-inputellipsis.html">
+      <h3>ACInputEllipsis 省略号</h3>
+      <p>只读省略；焦点时展开完整内容</p>
+    </a>
+  </div>
+
+</div>
+
+<footer>WebCom Samples &mdash; 文档更新：2026-02-27</footer>
+
+</body>
+</html>

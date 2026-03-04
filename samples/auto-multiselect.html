@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto MultiSelect 关联多选 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACMultiSelectRelate — 关联多选</h1>
+<p class="subtitle">监听复选框变化并将选中值自动注入到 URL 参数或关联表单字段中，适合筛选面板。</p>
+
+<h2>1. 基础关联多选</h2>
+<div class="demo-block">
+  <p style="font-size:.9em;color:#6b7280">勾选后，选中值会自动注入到下方 URL 示例中</p>
+  <div id="multi-container" data-component="multiselect" data-multiselect-param="tags">
+    <label style="display:block;margin:.3em 0"><input type="checkbox" value="vue"> Vue</label>
+    <label style="display:block;margin:.3em 0"><input type="checkbox" value="react"> React</label>
+    <label style="display:block;margin:.3em 0"><input type="checkbox" value="angular"> Angular</label>
+    <label style="display:block;margin:.3em 0"><input type="checkbox" value="svelte"> Svelte</label>
+  </div>
+  <div id="multi-result" class="result-box" style="margin-top:.8em">（勾选后显示）</div>
+</div>
+<pre class="code-block">&lt;div data-component="multiselect"
+  data-multiselect-param="tags"&gt;
+  &lt;input type="checkbox" value="vue"&gt; Vue
+  &lt;input type="checkbox" value="react"&gt; React
+  &lt;input type="checkbox" value="angular"&gt; Angular
+&lt;/div&gt;
+
+&lt;!-- 勾选后 URL 参数自动追加：?tags=vue&tags=react --&gt;</pre>
+
+<h2>2. 与 URL 同步（筛选面板演示）</h2>
+<div class="demo-block">
+  <div style="display:flex;gap:1.5em;flex-wrap:wrap">
+    <div>
+      <b>分类</b>
+      <div data-component="multiselect" data-multiselect-param="cat" style="margin-top:.4em">
+        <label style="display:block;margin:.25em 0"><input type="checkbox" value="frontend"> 前端</label>
+        <label style="display:block;margin:.25em 0"><input type="checkbox" value="backend"> 后端</label>
+        <label style="display:block;margin:.25em 0"><input type="checkbox" value="design"> 设计</label>
+      </div>
+    </div>
+    <div>
+      <b>难度</b>
+      <div data-component="multiselect" data-multiselect-param="level" style="margin-top:.4em">
+        <label style="display:block;margin:.25em 0"><input type="checkbox" value="beginner"> 入门</label>
+        <label style="display:block;margin:.25em 0"><input type="checkbox" value="intermediate"> 中级</label>
+        <label style="display:block;margin:.25em 0"><input type="checkbox" value="advanced"> 高级</label>
+      </div>
+    </div>
+  </div>
+  <div id="url-preview" class="result-box" style="margin-top:.8em">（勾选后 URL 参数预览）</div>
+</div>
+<pre class="code-block">&lt;!-- 多个 multiselect 组，参数名不同 --&gt;
+&lt;div data-component="multiselect" data-multiselect-param="cat"&gt;...&lt;/div&gt;
+&lt;div data-component="multiselect" data-multiselect-param="level"&gt;...&lt;/div&gt;</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-multiselect-param</td><td>注入到 URL 的参数名</td></tr>
+  <tr><td>data-multiselect-target</td><td>将值同步到指定 input 元素（选择器）</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACMultiSelectRelate.js';
+ACComponent.init(document.body);
+
+// 监听变化显示 URL 预览
+function updatePreview() {
+  const params = new URLSearchParams(window.location.search);
+  const all = {};
+  params.forEach((v, k) => {
+    if (!all[k]) all[k] = [];
+    all[k].push(v);
+  });
+  document.getElementById('url-preview').textContent =
+    Object.keys(all).length ? '?' + params.toString() : '（无参数）';
+  document.getElementById('multi-result').textContent =
+    window.location.search || '（无参数）';
+}
+
+document.addEventListener('change', (e) => {
+  if (e.target.type === 'checkbox') {
+    setTimeout(updatePreview, 50);
+  }
+});
+updatePreview();
+</script>
+</body>
+</html>

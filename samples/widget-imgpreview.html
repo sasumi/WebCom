@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget ImgPreview 图片预览 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.img-grid { display:flex;flex-wrap:wrap;gap:8px; }
+.img-grid img { width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in;border:2px solid transparent;transition:border-color .2s; }
+.img-grid img:hover { border-color:#0284c7; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ImgPreview — 图片预览</h1>
+<p class="subtitle">点击图片后全屏预览，支持多图切换、缩放、旋转等交互。</p>
+
+<h2>1. 单图预览</h2>
+<div class="demo-block">
+  <img id="img-single"
+    src="https://picsum.photos/200/150?random=10"
+    style="width:200px;height:150px;object-fit:cover;border-radius:6px;cursor:zoom-in">
+  <p style="font-size:0.88em;color:#6b7280;margin-top:0.4em">点击图片预览</p>
+</div>
+<pre class="code-block">import { showImgPreview } from '../src/Widget/ImgPreview.js';
+
+imgElement.onclick = () => {
+  showImgPreview(imgElement.src);
+};</pre>
+
+<h2>2. 多图切换预览</h2>
+<div class="demo-block">
+  <div class="img-grid" id="img-grid">
+    <img src="https://picsum.photos/400/300?random=1" data-idx="0">
+    <img src="https://picsum.photos/400/300?random=2" data-idx="1">
+    <img src="https://picsum.photos/400/300?random=3" data-idx="2">
+    <img src="https://picsum.photos/400/300?random=4" data-idx="3">
+    <img src="https://picsum.photos/400/300?random=5" data-idx="4">
+  </div>
+  <p style="font-size:0.88em;color:#6b7280;margin-top:0.4em">点击任意图片，可左右切换</p>
+</div>
+<pre class="code-block">import { showImgListPreview } from '../src/Widget/ImgPreview.js';
+
+const urls = ['1.jpg','2.jpg','3.jpg'];
+container.querySelectorAll('img').forEach((img, idx) => {
+  img.onclick = () => showImgListPreview(urls, idx);
+});</pre>
+
+<h2>3. 绑定到容器（自动处理子图）</h2>
+<div class="demo-block">
+  <div id="auto-preview-container" class="img-grid">
+    <img src="https://picsum.photos/400/300?random=6" style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in">
+    <img src="https://picsum.photos/400/300?random=7" style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in">
+    <img src="https://picsum.photos/400/300?random=8" style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in">
+  </div>
+</div>
+<pre class="code-block">import { bindImgPreview } from '../src/Widget/ImgPreview.js';
+
+// 自动绑定容器内所有 img，点击显示预览+翻页
+bindImgPreview(container);</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>函数</th><th>参数</th><th>说明</th></tr>
+  <tr><td>showImgPreview(src)</td><td>src: string</td><td>预览单张图片</td></tr>
+  <tr><td>showImgListPreview(urls, index)</td><td>urls: string[], index: number</td><td>预览图片列表，从第 index 张开始</td></tr>
+  <tr><td>bindImgPreview(container)</td><td>container: HTMLElement</td><td>自动绑定容器内所有 img 的预览事件</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { showImgPreview, showImgListPreview } from '../src/Widget/ImgPreview.js';
+
+// 1. 单图
+document.getElementById('img-single').onclick = function() {
+  showImgPreview(this.src);
+};
+
+// 2. 多图
+const imgs = document.querySelectorAll('#img-grid img');
+const urls = Array.from(imgs).map(i => i.src.replace('200/150','400/300'));
+imgs.forEach((img, idx) => {
+  img.onclick = () => showImgListPreview(urls, idx);
+});
+
+// 3. 自动绑定
+try {
+  const { bindImgPreview } = await import('../src/Widget/ImgPreview.js');
+  bindImgPreview(document.getElementById('auto-preview-container'));
+} catch(e) {
+  // 如果没有 bindImgPreview，手动绑定
+  document.querySelectorAll('#auto-preview-container img').forEach((img, idx, all) => {
+    img.onclick = () => {
+      const allUrls = Array.from(all).map(i => i.src);
+      showImgListPreview(allUrls, idx);
+    };
+  });
+}
+</script>
+</body>
+</html>

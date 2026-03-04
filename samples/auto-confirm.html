@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACConfirm 确认对话框 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACConfirm — 确认对话框</h1>
+<p class="subtitle">在执行操作前弹出确认框，用户确认后才触发后续动作。常与 <code>async</code> 组件叠加使用。</p>
+
+<h2>1. 基础确认</h2>
+<div class="demo-block">
+  <button data-component="confirm,toast"
+          data-confirm-title="操作确认"
+          data-confirm-message="确认执行该操作？"
+          data-toast-message="已执行！"
+          data-toast-type="success">
+    确认 → 显示 Toast
+  </button>
+  &nbsp;
+  <button data-component="confirm"
+          data-confirm-message="确定要删除这条记录吗？此操作不可撤销。">
+    仅弹出确认框
+  </button>
+</div>
+<pre class="code-block">&lt;!-- 确认后触发 Toast --&gt;
+&lt;button data-component="confirm,toast"
+        data-confirm-title="操作确认"
+        data-confirm-message="确认执行该操作？"
+        data-toast-message="已执行！"
+        data-toast-type="success"&gt;
+  执行
+&lt;/button&gt;</pre>
+
+<h2>2. 与 async 组合：确认后发起请求</h2>
+<div class="demo-block">
+  <div class="note" style="margin:0 0 0.8em">以下按钮模拟"确认后删除"流程，实际请求发送到 JSONPlaceholder。</div>
+  <button data-component="confirm,async"
+          data-confirm-title="删除确认"
+          data-confirm-message="确定要永久删除 ID=1 的记录吗？此操作不可撤销。"
+          data-async-url="https://jsonplaceholder.typicode.com/posts/1"
+          data-async-method="DELETE">
+    删除记录（confirm + async）
+  </button>
+  <div id="delete-result" class="result-box" style="margin-top:0.8em">点击按钮查看执行结果</div>
+</div>
+<pre class="code-block">&lt;button data-component="confirm,async"
+        data-confirm-title="删除确认"
+        data-confirm-message="确定要永久删除该记录吗？"
+        data-async-url="/api/delete/1"
+        data-async-method="DELETE"&gt;
+  删除
+&lt;/button&gt;</pre>
+
+<h2>3. JS API 方式</h2>
+<div class="demo-block">
+  <button id="btn-js-confirm">JS 调用确认框</button>
+  <div id="js-result" class="result-box" style="margin-top:0.8em">点击查看结果</div>
+</div>
+<pre class="code-block">import { Dialog } from '../src/Widget/Dialog.js';
+
+Dialog.confirm('删除确认', '确定要删除吗？')
+  .then(() =&gt; {
+    // 用户点击"确认"
+    console.log('执行删除...');
+  })
+  .catch(() =&gt; {
+    // 用户点击"取消"
+    console.log('取消操作');
+  });</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>data-* 属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+  <tr><td><code>data-confirm-title</code></td><td>String</td><td>'确认'</td><td>对话框标题</td></tr>
+  <tr><td><code>data-confirm-message</code></td><td>String</td><td>'确认进行该项操作？'</td><td>确认消息内容</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import { ACAsync } from '../src/Auto/ACAsync.js';
+import { Dialog } from '../src/Widget/Dialog.js';
+
+ACAsync.COMMON_SUCCESS_RESPONSE_HANDLE = (rsp) => {
+  document.getElementById('delete-result').textContent = '✅ 请求成功，响应：' + JSON.stringify(rsp);
+};
+
+ACComponent.init(document.body);
+
+document.getElementById('btn-js-confirm').onclick = () => {
+  const res = document.getElementById('js-result');
+  Dialog.confirm('删除确认', '确定要删除该记录吗？此操作不可撤销。')
+    .then(() => { res.textContent = '✅ 用户点击了【确认】'; res.style.background = '#f0fdf4'; })
+    .catch(() => { res.textContent = '❌ 用户点击了【取消】'; res.style.background = '#fef2f2'; });
+};
+</script>
+</body>
+</html>

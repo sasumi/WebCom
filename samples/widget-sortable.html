@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Sortable 拖拽排序 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.sort-item {
+  padding: 0.6em 1em;
+  margin-bottom: 0.4em;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  user-select: none;
+}
+.sort-item:active { cursor: grabbing; }
+.sort-item .handle { cursor: grab; color: #94a3b8; font-size: 1.2em; }
+.sort-item.dragging { opacity: 0.4; background: #dbeafe; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Sortable — 拖拽排序</h1>
+<p class="subtitle">为列表容器启用拖拽排序功能，支持拖拽手柄、排序回调等配置。</p>
+
+<h2>1. 基础拖拽排序（整个元素可拖）</h2>
+<div class="demo-block">
+  <ul id="sort-basic" style="list-style:none;padding:0">
+    <li class="sort-item">🍎 苹果</li>
+    <li class="sort-item">🍊 橙子</li>
+    <li class="sort-item">🍋 柠檬</li>
+    <li class="sort-item">🍇 葡萄</li>
+    <li class="sort-item">🍓 草莓</li>
+  </ul>
+  <div id="sort-basic-result" class="result-box" style="margin-top:0.8em">（拖拽后显示新顺序）</div>
+</div>
+<pre class="code-block">import { sortable } from '../src/Widget/Sortable.js';
+
+sortable(container, {
+  onChange: (newOrder) => {
+    console.log('新顺序：', newOrder);
+  }
+});</pre>
+
+<h2>2. 使用拖拽手柄（仅手柄可拖）</h2>
+<div class="demo-block">
+  <div id="sort-handle">
+    <div class="sort-item"><span class="handle">⠿</span>设计文档</div>
+    <div class="sort-item"><span class="handle">⠿</span>技术方案</div>
+    <div class="sort-item"><span class="handle">⠿</span>开发阶段</div>
+    <div class="sort-item"><span class="handle">⠿</span>测试验收</div>
+    <div class="sort-item"><span class="handle">⠿</span>上线部署</div>
+  </div>
+  <div id="sort-handle-result" class="result-box" style="margin-top:0.8em">（拖拽左侧 ⠿ 手柄进行排序）</div>
+</div>
+<pre class="code-block">import { sortable } from '../src/Widget/Sortable.js';
+
+sortable(container, {
+  triggerSelector: '.handle', // 只有 .handle 元素可触发拖拽
+  onChange: (items) => {
+    const names = items.map(el => el.textContent.trim());
+    console.log('新顺序：', names);
+  }
+});</pre>
+
+<h2>3. 禁用拖拽 / 重新启用</h2>
+<div class="demo-block">
+  <div style="display:flex;gap:0.5em;margin-bottom:0.8em">
+    <button id="btn-disable">禁用排序</button>
+    <button id="btn-enable">启用排序</button>
+  </div>
+  <div id="sort-toggle">
+    <div class="sort-item">任务 A</div>
+    <div class="sort-item">任务 B</div>
+    <div class="sort-item">任务 C</div>
+  </div>
+</div>
+<pre class="code-block">const inst = sortable(container);
+
+inst.disable();  // 禁用排序
+inst.enable();   // 重新启用</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+  <tr><td>container</td><td>HTMLElement</td><td>列表容器元素</td></tr>
+  <tr><td>option.triggerSelector</td><td>string</td><td>指定可触发拖拽的子元素选择器，留空则整个 item 可拖</td></tr>
+  <tr><td>option.onChange</td><td>Function</td><td>排序结束回调，参数为新顺序的 DOM 节点数组</td></tr>
+  <tr><td>option.itemSelector</td><td>string</td><td>指定子项选择器，默认为容器的直接子元素</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { sortable } from '../src/Widget/Sortable.js';
+
+// 1. 基础排序
+sortable(document.getElementById('sort-basic'), {
+  onChange: (items) => {
+    const names = Array.from(items).map(el => el.textContent.trim());
+    document.getElementById('sort-basic-result').textContent = '新顺序：' + names.join(' → ');
+  }
+});
+
+// 2. 手柄排序
+sortable(document.getElementById('sort-handle'), {
+  triggerSelector: '.handle',
+  onChange: (items) => {
+    const names = Array.from(items).map(el => el.textContent.replace('⠿','').trim());
+    document.getElementById('sort-handle-result').textContent = '新顺序：' + names.join(' → ');
+  }
+});
+
+// 3. 禁用/启用
+const inst = sortable(document.getElementById('sort-toggle'));
+document.getElementById('btn-disable').onclick = () => { inst && inst.disable && inst.disable(); };
+document.getElementById('btn-enable').onclick = () => { inst && inst.enable && inst.enable(); };
+</script>
+</body>
+</html>

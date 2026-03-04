@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto InputEllipsis 输入省略 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACInputEllipsis — 输入框超长省略</h1>
+<p class="subtitle">当输入框内容超出宽度时以省略号显示，聚焦时展开显示完整内容。</p>
+
+<h2>1. 基础省略显示</h2>
+<div class="demo-block">
+  <label style="font-size:.9em;color:#64748b">URL 地址（内容超长时省略）：</label><br>
+  <input type="text"
+    data-component="inputellipsis"
+    value="https://www.example.com/very/long/path/to/some/resource?param1=value1&param2=value2&param3=value3"
+    style="width:300px;margin-top:.4em">
+  <p style="font-size:.85em;color:#6b7280;margin-top:.4em">点击输入框可展开查看/编辑完整内容</p>
+</div>
+<pre class="code-block">&lt;input type="text"
+  data-component="inputellipsis"
+  value="很长很长的内容..."&gt;
+&lt;!-- 失焦时自动截断，聚焦时显示完整内容 --&gt;</pre>
+
+<h2>2. 只读省略（不可编辑）</h2>
+<div class="demo-block">
+  <div style="display:grid;gap:.6em">
+    <div style="display:flex;align-items:center;gap:.6em">
+      <span style="font-size:.9em;color:#64748b;min-width:80px">文件路径</span>
+      <input type="text"
+        data-component="inputellipsis"
+        readonly
+        value="/Users/alice/Documents/Projects/WebCom/src/Auto/ACComponent.js"
+        style="flex:1">
+    </div>
+    <div style="display:flex;align-items:center;gap:.6em">
+      <span style="font-size:.9em;color:#64748b;min-width:80px">描述</span>
+      <input type="text"
+        data-component="inputellipsis"
+        readonly
+        value="这是一段非常长的描述文字，用于展示 ACInputEllipsis 组件在只读模式下的省略效果"
+        style="flex:1">
+    </div>
+  </div>
+</div>
+<pre class="code-block">&lt;input type="text"
+  data-component="inputellipsis"
+  readonly
+  value="非常长的只读内容..."&gt;</pre>
+
+<h2>3. 表单中多字段省略</h2>
+<div class="demo-block">
+  <form style="display:grid;gap:.5em;max-width:400px">
+    <input type="text" data-component="inputellipsis" placeholder="姓名" value="Alice Johnson（高级前端工程师，曾任职于多家知名互联网公司）">
+    <input type="text" data-component="inputellipsis" placeholder="公司" value="北京字节科技有限公司技术研发部前端架构组">
+    <input type="text" data-component="inputellipsis" placeholder="备注" value="备注信息：此用户需要特殊处理，详见内部文档 #2024-001">
+    <button type="button">提交</button>
+  </form>
+</div>
+<pre class="code-block">&lt;!-- 批量为多个输入框添加省略效果 --&gt;
+&lt;input data-component="inputellipsis" name="name" value="..."&gt;
+&lt;input data-component="inputellipsis" name="company" value="..."&gt;</pre>
+
+<h2>说明</h2>
+<div class="note">
+  <b>工作原理：</b>ACInputEllipsis 通过 CSS text-overflow: ellipsis 实现省略显示（失焦状态），
+  聚焦时去除省略样式以便查看和编辑完整内容，失焦后恢复省略效果。
+  适合用于弹窗表格、详情页等空间有限的场景。
+</div>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACInputEllipsis.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Uploader 文件上传 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACUploader — 声明式文件上传</h1>
+<p class="subtitle">通过 data-component="uploader" 在表单中声明式配置上传控件。</p>
+
+<h2>1. 单文件上传（图片）</h2>
+<div class="demo-block">
+  <form id="upload-form-1">
+    <label>头像：</label><br>
+    <input type="text" name="avatar" placeholder="图片 URL 会填入此处" style="width:300px;margin:.4em 0">
+    <br>
+    <div data-component="uploader"
+      data-uploader-url="/api/upload"
+      data-uploader-accept="image/*"
+      data-uploader-target="input[name=avatar]">
+    </div>
+  </form>
+</div>
+<pre class="code-block">&lt;input type="text" name="avatar"&gt;
+&lt;div data-component="uploader"
+  data-uploader-url="/api/upload"
+  data-uploader-accept="image/*"
+  data-uploader-target="input[name=avatar]"&gt;
+&lt;!-- 上传成功后自动将 URL 写入 target 字段 --&gt;
+&lt;/div&gt;</pre>
+
+<h2>2. 多文件上传</h2>
+<div class="demo-block">
+  <div data-component="uploader"
+    data-uploader-url="/api/upload"
+    data-uploader-multiple="1"
+    data-uploader-max-count="5">
+  </div>
+  <p style="font-size:.85em;color:#6b7280;margin-top:.5em">最多上传 5 个文件</p>
+</div>
+<pre class="code-block">&lt;div data-component="uploader"
+  data-uploader-url="/api/upload"
+  data-uploader-multiple="1"
+  data-uploader-max-count="5"&gt;
+&lt;/div&gt;</pre>
+
+<h2>3. 文件大小限制</h2>
+<div class="demo-block">
+  <div data-component="uploader"
+    data-uploader-url="/api/upload"
+    data-uploader-accept=".pdf,.doc,.docx"
+    data-uploader-max-size="5242880">
+    <!-- 5MB = 5*1024*1024 -->
+  </div>
+  <p style="font-size:.85em;color:#6b7280;margin-top:.5em">仅接受 PDF/DOC，单文件不超过 5MB</p>
+</div>
+<pre class="code-block">&lt;div data-component="uploader"
+  data-uploader-url="/api/upload"
+  data-uploader-accept=".pdf,.doc,.docx"
+  data-uploader-max-size="5242880"&gt;
+&lt;/div&gt;</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-uploader-url</td><td>上传接口地址（必填）</td></tr>
+  <tr><td>data-uploader-accept</td><td>文件类型过滤，如 image/*, .pdf</td></tr>
+  <tr><td>data-uploader-multiple</td><td>"1" 启用多文件</td></tr>
+  <tr><td>data-uploader-max-count</td><td>最大文件数量</td></tr>
+  <tr><td>data-uploader-max-size</td><td>单文件最大字节数</td></tr>
+  <tr><td>data-uploader-target</td><td>上传成功后写入 URL 的目标 input 选择器</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACUploader.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Tip 提示气泡 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Tip — 提示气泡</h1>
+<p class="subtitle">轻量级悬停/点击提示，支持 JS 调用、DOM 绑定、异步内容加载。</p>
+
+<h2>1. Tip.show — 直接显示</h2>
+<div class="demo-block">
+  <button id="btn-tip-simple">固定文本提示</button>
+  <button id="btn-tip-html">HTML 内容提示</button>
+  <button id="btn-tip-click">点击后提示</button>
+</div>
+<pre class="code-block">import { Tip } from '../src/Widget/Tip.js';
+
+// 在某元素旁显示（自动定位）
+Tip.show('提示内容', triggerElement);
+
+// HTML 内容
+Tip.show('&lt;b&gt;加粗文本&lt;/b&gt; 和 &lt;em&gt;斜体&lt;/em&gt;', element);
+
+// 点击时显示（第三参数 true = 点击触发）
+Tip.show('点击显示的提示', element, true);</pre>
+
+<h2>2. Tip.bindNode — 绑定到节点</h2>
+<div class="demo-block">
+  <div style="display:flex;gap:1em;flex-wrap:wrap">
+    <span id="tip-hover" style="padding:0.4em 1em;background:#dbeafe;border-radius:4px;cursor:default">鼠标悬停显示提示</span>
+    <span id="tip-click-node" style="padding:0.4em 1em;background:#fef9c3;border-radius:4px;cursor:pointer">点击显示提示</span>
+    <span id="tip-rich" style="padding:0.4em 1em;background:#dcfce7;border-radius:4px;cursor:default">悬停看富文本</span>
+  </div>
+</div>
+<pre class="code-block">import { Tip } from '../src/Widget/Tip.js';
+
+// 绑定悬停提示
+Tip.bindNode(element, '悬停提示内容');
+
+// 绑定点击触发
+Tip.bindNode(element, '点击触发', true);
+
+// 富文本内容
+Tip.bindNode(element, '&lt;h4&gt;标题&lt;/h4&gt;&lt;p&gt;描述文字&lt;/p&gt;');</pre>
+
+<h2>3. Tip.bindAsync — 异步加载内容</h2>
+<div class="demo-block">
+  <button id="btn-tip-async">异步加载内容的提示（悬停）</button>
+  <p style="font-size:0.85em;color:#6b7280;margin-top:0.4em">首次悬停时会发起请求，之后使用缓存</p>
+</div>
+<pre class="code-block">import { Tip } from '../src/Widget/Tip.js';
+
+// 异步获取内容后显示（自动缓存）
+Tip.bindAsync(element, () => {
+  return fetch('/api/detail').then(r => r.json()).then(d => d.html);
+});</pre>
+
+<h2>4. Tip.hideAll — 隐藏所有提示</h2>
+<div class="demo-block">
+  <button id="btn-show-tip">先显示提示（然后隐藏）</button>
+  <button id="btn-hide-all">Tip.hideAll()</button>
+</div>
+<pre class="code-block">import { Tip } from '../src/Widget/Tip.js';
+Tip.hideAll();</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>方法</th><th>参数</th><th>说明</th></tr>
+  <tr><td>Tip.show(content, element, isClick)</td><td>content: string, element: HTMLElement, isClick?: boolean</td><td>在元素旁显示提示，isClick=true 时需点击触发</td></tr>
+  <tr><td>Tip.bindNode(element, content, isClick)</td><td>element, content: string, isClick?: boolean</td><td>绑定到节点，自动管理显示/隐藏</td></tr>
+  <tr><td>Tip.bindAsync(element, fetcher, isClick)</td><td>element, fetcher: ()=>Promise&lt;string&gt;, isClick?: boolean</td><td>异步获取内容（自动缓存）</td></tr>
+  <tr><td>Tip.hideAll()</td><td>—</td><td>隐藏所有正在显示的提示</td></tr>
+</table>
+
+<div class="note">
+  <b>注意：</b>Tip 的内容支持 HTML 字符串，但请避免注入用户输入内容（XSS 风险）。
+  异步提示会缓存首次加载结果，适合查看详情等场景。
+</div>
+</div>
+
+<script type="module">
+import { Tip } from '../src/Widget/Tip.js';
+
+// 1. Tip.show
+document.getElementById('btn-tip-simple').onclick = function() {
+  Tip.show('这是一条简单的文本提示！', this);
+};
+document.getElementById('btn-tip-html').onclick = function() {
+  Tip.show('<b>加粗标题</b><br><em>斜体内容</em><br><span style="color:#0284c7">彩色文字</span>', this);
+};
+document.getElementById('btn-tip-click').onclick = function() {
+  Tip.show('这个提示由点击触发', this);
+};
+
+// 2. Tip.bindNode
+Tip.bindNode(document.getElementById('tip-hover'), '这是悬停触发的提示内容');
+Tip.bindNode(document.getElementById('tip-click-node'), '这是点击触发的提示', true);
+Tip.bindNode(document.getElementById('tip-rich'),
+  '<div style="min-width:160px"><h4 style="margin:0 0 4px">富文本提示</h4><p style="margin:0;color:#6b7280;font-size:.9em">支持 <b>HTML</b> 标签</p></div>'
+);
+
+// 3. Tip.bindAsync
+let asyncCallCount = 0;
+Tip.bindAsync(document.getElementById('btn-tip-async'), () => {
+  asyncCallCount++;
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(`<div>异步加载内容 #${asyncCallCount}<br><small>实际发起了 ${asyncCallCount} 次请求</small></div>`);
+    }, 500);
+  });
+});
+
+// 4. hideAll
+document.getElementById('btn-show-tip').onclick = function() {
+  Tip.show('这条提示会被 hideAll 关闭', this);
+};
+document.getElementById('btn-hide-all').onclick = () => { Tip.hideAll(); };
+</script>
+</body>
+</html>

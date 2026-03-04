@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang Dom DOM工具 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Dom — DOM 工具</h1>
+<p class="subtitle">提供 DOM 查询、创建、偏移计算、属性操作、DOM 变化监听等工具函数。</p>
+
+<h2>1. findOne / findAll — 元素查询</h2>
+<div class="demo-block">
+  <div id="find-container" style="border:1px solid #ddd;padding:1em;border-radius:4px">
+    <span class="item" data-idx="1">项目 A</span>
+    <span class="item" data-idx="2">项目 B</span>
+    <span class="item" data-idx="3">项目 C</span>
+  </div>
+  <button id="btn-find" style="margin-top:0.8em">查询元素</button>
+  <div id="find-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { findOne, findAll } from '../src/Lang/Dom.js';
+
+findOne('#find-container .item');
+findAll('#find-container .item');
+findAll('.item', findOne('#find-container')); // 在指定容器内查询</pre>
+
+<h2>2. createDomByHtml — HTML 创建 DOM</h2>
+<div class="demo-block">
+  <button id="btn-create">插入动态节点</button>
+  <div id="create-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { createDomByHtml, domContain } from '../src/Lang/Dom.js';
+
+const node = createDomByHtml('&lt;div class="box"&gt;动态内容&lt;/div&gt;');
+document.body.appendChild(node);</pre>
+
+<h2>3. getDomOffset — 元素偏移</h2>
+<div class="demo-block">
+  <div id="offset-target" style="display:inline-block;padding:0.5em 1em;background:#e0f2fe;border-radius:4px;cursor:pointer">点击查看此元素的偏移量</div>
+  <div id="offset-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { getDomOffset } from '../src/Lang/Dom.js';
+
+const offset = getDomOffset(element);
+// { left: 120, top: 340 }（相对 document）</pre>
+
+<h2>4. nodeHighlight — 关键词高亮</h2>
+<div class="demo-block">
+  <input id="hl-keyword" type="text" placeholder="输入要高亮的词" style="margin-right:.5em">
+  <button id="btn-hl">高亮</button>
+  <p id="hl-target" style="margin-top:0.8em;line-height:2">
+    WebCom 是一个轻量级 JavaScript 组件库，提供了 Lang、Widget 和 Auto 三层架构，
+    无需任何框架依赖，支持 ES Module、UMD 等多种模块格式。
+  </p>
+</div>
+<pre class="code-block">import { nodeHighlight } from '../src/Lang/Dom.js';
+
+nodeHighlight(element, 'JavaScript', 'highlight-class');</pre>
+
+<h2>5. onDomTreeChange — DOM 变化监听</h2>
+<div class="demo-block">
+  <button id="btn-add-child">添加子节点</button>
+  <div id="watch-container" style="border:1px dashed #ccc;padding:0.8em;min-height:3em;margin-top:0.5em">
+    （监听此容器的 DOM 变化）
+  </div>
+  <div id="watch-log" class="result-box" style="margin-top:0.5em"></div>
+</div>
+<pre class="code-block">import { onDomTreeChange } from '../src/Lang/Dom.js';
+
+onDomTreeChange(container, (mutations) => {
+  console.log('DOM changed', mutations);
+});</pre>
+</div>
+
+<script type="module">
+import { findOne, findAll, createDomByHtml, getDomOffset, nodeHighlight, onDomTreeChange } from '../src/Lang/Dom.js';
+
+// findOne / findAll
+document.getElementById('btn-find').onclick = () => {
+  const container = findOne('#find-container');
+  const items = findAll('.item', container);
+  const result = document.getElementById('find-result');
+  result.innerHTML = `findOne('#find-container') → ${container ? '✅ 找到' : '❌ 未找到'}<br>` +
+    `findAll('.item', container) → 找到 <b>${items.length}</b> 个元素：${items.map(i => `"${i.textContent}"`).join(', ')}`;
+};
+
+// createDomByHtml
+let counter = 0;
+document.getElementById('btn-create').onclick = () => {
+  counter++;
+  const node = createDomByHtml(`<span style="display:inline-block;margin:4px;padding:2px 10px;background:#dcfce7;border-radius:12px;border:1px solid #86efac">动态节点 #${counter}</span>`);
+  document.getElementById('create-result').appendChild(node);
+};
+
+// getDomOffset
+document.getElementById('offset-target').onclick = function() {
+  const offset = getDomOffset(this);
+  document.getElementById('offset-result').innerHTML =
+    `left: <b>${Math.round(offset.left)}px</b>，top: <b>${Math.round(offset.top)}px</b>（相对 document）`;
+};
+
+// nodeHighlight
+document.getElementById('btn-hl').onclick = () => {
+  const kw = document.getElementById('hl-keyword').value.trim();
+  if (!kw) return;
+  const target = document.getElementById('hl-target');
+  // 先恢复原始 HTML
+  target.querySelectorAll('mark').forEach(m => {
+    m.replaceWith(document.createTextNode(m.textContent));
+  });
+  target.normalize();
+  nodeHighlight(target, kw, 'highlighted-word');
+};
+
+// onDomTreeChange
+let changeCount = 0;
+const watchContainer = document.getElementById('watch-container');
+const watchLog = document.getElementById('watch-log');
+onDomTreeChange(watchContainer, (mutations) => {
+  changeCount++;
+  watchLog.innerHTML = `共触发 <b>${changeCount}</b> 次 DOM 变化`;
+});
+
+document.getElementById('btn-add-child').onclick = () => {
+  const span = document.createElement('span');
+  span.textContent = `子节点 ${Date.now()}`;
+  span.style.cssText = 'display:inline-block;margin:4px;padding:2px 8px;background:#fef3c7;border-radius:4px;font-size:0.85em';
+  watchContainer.appendChild(span);
+};
+</script>
+<style>
+.highlighted-word { background: #fbbf24; padding: 0 2px; border-radius: 2px; }
+</style>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto InlineEditor 行内编辑 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.editable { cursor:pointer; border-bottom:1px dashed #94a3b8; display:inline-block; min-width:60px; }
+.editable:hover { border-bottom-color:#0284c7; background:#eff6ff; }
+[data-component="inlineeditor"] { transition:background .2s; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACInlineEditor — 行内编辑</h1>
+<p class="subtitle">点击文本即可就地编辑，支持文本/数字/下拉/日期类型，可配置保存接口。</p>
+
+<h2>1. 文本行内编辑</h2>
+<div class="demo-block">
+  <table style="border-collapse:collapse;width:100%">
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#64748b;width:100px">用户名</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0">
+        <span data-component="inlineeditor"
+          data-inlineeditor-type="text"
+          data-inlineeditor-name="username"
+          data-inlineeditor-saveurl="/api/save">Alice Johnson</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#64748b">邮箱</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0">
+        <span data-component="inlineeditor"
+          data-inlineeditor-type="text"
+          data-inlineeditor-name="email"
+          data-inlineeditor-saveurl="/api/save">alice@example.com</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#64748b">年龄</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0">
+        <span data-component="inlineeditor"
+          data-inlineeditor-type="number"
+          data-inlineeditor-name="age"
+          data-inlineeditor-saveurl="/api/save">28</span>
+      </td>
+    </tr>
+  </table>
+  <p style="font-size:.85em;color:#6b7280;margin-top:.6em">点击单元格内容即可编辑，按 Enter 保存，Esc 取消</p>
+</div>
+<pre class="code-block">&lt;span data-component="inlineeditor"
+  data-inlineeditor-type="text"
+  data-inlineeditor-name="username"
+  data-inlineeditor-saveurl="/api/update"&gt;
+  当前值
+&lt;/span&gt;</pre>
+
+<h2>2. 下拉选择编辑</h2>
+<div class="demo-block">
+  <span data-component="inlineeditor"
+    data-inlineeditor-type="select"
+    data-inlineeditor-name="status"
+    data-inlineeditor-options='{"active":"激活","inactive":"禁用","pending":"待审核"}'
+    data-inlineeditor-saveurl="/api/save">active</span>
+  &nbsp;&nbsp;
+  <span data-component="inlineeditor"
+    data-inlineeditor-type="select"
+    data-inlineeditor-name="role"
+    data-inlineeditor-options='{"admin":"管理员","editor":"编辑者","viewer":"查看者"}'
+    data-inlineeditor-saveurl="/api/save">editor</span>
+</div>
+<pre class="code-block">&lt;span data-component="inlineeditor"
+  data-inlineeditor-type="select"
+  data-inlineeditor-name="status"
+  data-inlineeditor-options='{"active":"激活","inactive":"禁用"}'
+  data-inlineeditor-saveurl="/api/update"&gt;
+  active
+&lt;/span&gt;</pre>
+
+<h2>3. 日期编辑</h2>
+<div class="demo-block">
+  开始日期：
+  <span data-component="inlineeditor"
+    data-inlineeditor-type="date"
+    data-inlineeditor-name="start_date"
+    data-inlineeditor-saveurl="/api/save">2024-03-01</span>
+  &nbsp;&nbsp;
+  截止日期：
+  <span data-component="inlineeditor"
+    data-inlineeditor-type="date"
+    data-inlineeditor-name="end_date"
+    data-inlineeditor-saveurl="/api/save">2024-06-30</span>
+</div>
+<pre class="code-block">&lt;span data-component="inlineeditor"
+  data-inlineeditor-type="date"
+  data-inlineeditor-name="due_date"
+  data-inlineeditor-saveurl="/api/update"&gt;
+  2024-03-01
+&lt;/span&gt;</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>可选值</th><th>说明</th></tr>
+  <tr><td>data-inlineeditor-type</td><td>text / number / select / date / datetime</td><td>编辑类型</td></tr>
+  <tr><td>data-inlineeditor-name</td><td>字符串</td><td>提交时的字段名</td></tr>
+  <tr><td>data-inlineeditor-saveurl</td><td>URL</td><td>保存接口地址（POST）</td></tr>
+  <tr><td>data-inlineeditor-options</td><td>JSON 对象字符串</td><td>select 类型的选项 {value: label}</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACInlineEditor.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

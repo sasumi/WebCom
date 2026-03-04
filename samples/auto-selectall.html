@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto SelectAll 全选 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.check-item { padding:6px 0; display:flex; align-items:center; gap:8px; }
+.check-item label { cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACSelectAll — 声明式全选/反选</h1>
+<p class="subtitle">data-component="selectall" 实现复选框的全选、取消全选功能，支持半选状态。</p>
+
+<h2>1. 基础全选</h2>
+<div class="demo-block" id="sa-basic">
+  <div class="check-item">
+    <input type="checkbox" id="chk-all" data-component="selectall" data-selectall-selector=".item-basic">
+    <label for="chk-all"><b>全选</b></label>
+  </div>
+  <hr style="margin:.3em 0;border-color:#e2e8f0">
+  <div class="check-item">
+    <input type="checkbox" class="item-basic" id="chk1" value="a">
+    <label for="chk1">选项 A</label>
+  </div>
+  <div class="check-item">
+    <input type="checkbox" class="item-basic" id="chk2" value="b" checked>
+    <label for="chk2">选项 B</label>
+  </div>
+  <div class="check-item">
+    <input type="checkbox" class="item-basic" id="chk3" value="c">
+    <label for="chk3">选项 C</label>
+  </div>
+  <div class="check-item">
+    <input type="checkbox" class="item-basic" id="chk4" value="d" checked>
+    <label for="chk4">选项 D</label>
+  </div>
+</div>
+<pre class="code-block">&lt;!-- 全选控制框 --&gt;
+&lt;input type="checkbox"
+  data-component="selectall"
+  data-selectall-selector=".my-item"&gt;
+
+&lt;!-- 受控的子项 --&gt;
+&lt;input type="checkbox" class="my-item" value="1"&gt;
+&lt;input type="checkbox" class="my-item" value="2"&gt;</pre>
+
+<h2>2. 指定容器范围</h2>
+<div class="demo-block" id="sa-scoped">
+  <p style="font-size:.9em;color:#6b7280">两组独立的全选控制</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1em">
+    <div style="border:1px solid #e2e8f0;padding:.8em;border-radius:6px">
+      <b>水果</b>
+      <div class="check-item">
+        <input type="checkbox" data-component="selectall" data-selectall-selector=".fruit">
+        <label>全选水果</label>
+      </div>
+      <div class="check-item"><input type="checkbox" class="fruit" value="apple"><label>苹果</label></div>
+      <div class="check-item"><input type="checkbox" class="fruit" value="banana"><label>香蕉</label></div>
+      <div class="check-item"><input type="checkbox" class="fruit" value="orange"><label>橙子</label></div>
+    </div>
+    <div style="border:1px solid #e2e8f0;padding:.8em;border-radius:6px">
+      <b>蔬菜</b>
+      <div class="check-item">
+        <input type="checkbox" data-component="selectall" data-selectall-selector=".veggie">
+        <label>全选蔬菜</label>
+      </div>
+      <div class="check-item"><input type="checkbox" class="veggie" value="carrot"><label>胡萝卜</label></div>
+      <div class="check-item"><input type="checkbox" class="veggie" value="potato"><label>土豆</label></div>
+      <div class="check-item"><input type="checkbox" class="veggie" value="tomato"><label>番茄</label></div>
+    </div>
+  </div>
+</div>
+<pre class="code-block">&lt;input type="checkbox"
+  data-component="selectall"
+  data-selectall-selector=".fruit"&gt;全选水果
+
+&lt;input type="checkbox" class="fruit" value="apple"&gt;苹果
+&lt;input type="checkbox" class="fruit" value="banana"&gt;香蕉</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-selectall-selector</td><td>CSS 选择器，匹配受控的子复选框</td></tr>
+  <tr><td>data-selectall-container</td><td>限定查找范围的容器选择器，默认整个 document</td></tr>
+</table>
+<div class="note">
+  <b>半选状态：</b>当部分子项被选中时，全选框自动显示 indeterminate（半选）状态。
+  全选和子项双向联动：修改任一方向，另一方自动同步更新。
+</div>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACSelectAll.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

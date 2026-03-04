@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACComponent 自动挂载 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACComponent — 自动挂载核心</h1>
+<p class="subtitle">通过 <code>data-component="别名"</code> 声明式绑定组件，无需手动初始化 JavaScript。</p>
+
+<h2>1. 基础用法 — 初始化扫描</h2>
+<div class="demo-block">
+  <p>页面加载后调用 <code>ACComponent.init()</code> 扫描并绑定所有带 <code>data-component</code> 属性的节点。</p>
+  <button data-component="toast" data-toast-message="ACComponent 初始化成功！" data-toast-type="success">
+    点击触发 Toast（声明式）
+  </button>
+</div>
+<pre class="code-block">import { ACComponent } from '../src/Auto/ACComponent.js';
+
+// 扫描 body 内所有 data-component 节点并初始化
+ACComponent.init(document.body);
+
+// 对应 HTML：
+// &lt;button data-component="toast"
+//         data-toast-message="操作成功"
+//         data-toast-type="success"&gt;
+//   点击我
+// &lt;/button&gt;</pre>
+
+<h2>2. 自动监听模式 — 动态节点支持</h2>
+<div class="demo-block">
+  <button id="btn-add-node">动态添加一个 Tip 节点</button>
+  <div id="dynamic-container" style="margin-top:1em; display:flex; gap:0.5em; flex-wrap:wrap;"></div>
+</div>
+<pre class="code-block">// 开启观察模式，后续动态插入的节点自动初始化
+ACComponent.observe(document.body);
+
+// 随后动态插入的节点无需额外初始化：
+const btn = document.createElement('button');
+btn.setAttribute('data-component', 'tip');
+btn.setAttribute('data-tip-content', '我是动态创建的');
+btn.textContent = '动态按钮';
+document.body.appendChild(btn);</pre>
+
+<h2>3. 参数传递规则</h2>
+<div class="demo-block">
+  <span data-component="tip" data-tip-content="通过 data-tip-content 传递的提示" style="cursor:pointer;text-decoration:underline;color:#2563eb">
+    鼠标悬停（data-tip-content）
+  </span>
+  &nbsp;&nbsp;
+  <span data-component="tip" title="通过 title 属性传递的提示（会被自动转移）" style="cursor:pointer;text-decoration:underline;color:#2563eb">
+    鼠标悬停（title 属性）
+  </span>
+</div>
+<pre class="code-block">// 参数通过 data-{组件别名}-{参数名} 传递
+// 多级参数用 . 或 - 分隔，会被解析为嵌套对象
+
+&lt;button data-component="dialog"
+        data-dialog-title="自定义标题"
+        data-dialog-url="/page"
+        data-dialog-width="600"&gt;
+  打开对话框
+&lt;/button&gt;
+// 解析为：params = { title: "自定义标题", url: "/page", width: "600" }</pre>
+
+<h2>4. 多组件叠加（顺序执行）</h2>
+<div class="demo-block">
+  <button data-component="confirm,toast"
+          data-confirm-message="确认执行吗？"
+          data-toast-message="执行成功！"
+          data-toast-type="success">
+    先确认 → 再提示（confirm + toast）
+  </button>
+</div>
+<pre class="code-block">// 多个组件用逗号分隔，按顺序执行
+// 前一个 Promise resolve 后才执行下一个
+&lt;button data-component="confirm,toast"
+        data-confirm-message="确认操作？"
+        data-toast-message="已完成"
+        data-toast-type="success"&gt;
+  执行
+&lt;/button&gt;</pre>
+
+<h2>5. 注册自定义组件</h2>
+<pre class="code-block">import { ACComponent } from '../src/Auto/ACComponent.js';
+
+class MyAlert {
+  static active(node, params, event) {
+    return new Promise((resolve) =&gt; {
+      event.preventDefault();
+      window.alert(params.text || 'Hello!');
+      resolve();
+    });
+  }
+}
+
+// 注册为别名 "myalert"
+ACComponent.register('myalert', MyAlert);
+
+// 使用：
+// &lt;button data-component="myalert" data-myalert-text="自定义弹窗"&gt;点击&lt;/button&gt;</pre>
+
+<div class="note">
+  <strong>注意：</strong><code>data-*</code> 属性名全部为小写。参数传递时组件别名也需使用小写（如 <code>data-dialog-url</code> 而非 <code>data-Dialog-url</code>）。
+</div>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+ACComponent.observe(document.body);
+
+let count = 0;
+document.getElementById('btn-add-node').onclick = () => {
+  const container = document.getElementById('dynamic-container');
+  const btn = document.createElement('button');
+  count++;
+  btn.setAttribute('data-component', 'tip');
+  btn.setAttribute('data-tip-content', `我是第 ${count} 个动态创建的按钮`);
+  btn.textContent = `动态按钮 ${count}`;
+  btn.className = 'secondary';
+  container.appendChild(btn);
+};
+</script>
+</body>
+</html>

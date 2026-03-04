@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto ViewCopy 视图复制 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>ACViewCopy — 视图内容复制</h1>
+<p class="subtitle">复制指定区域的内容（含格式/下载文件），适合报表导出、内容分享等场景。</p>
+
+<h2>1. 复制 HTML 区域（保留格式）</h2>
+<div class="demo-block">
+  <div id="report-area" style="border:1px solid #e2e8f0;border-radius:6px;padding:1em">
+    <h3 style="margin:0 0 .5em;color:#0f172a">月度报告 - 2024年3月</h3>
+    <table style="border-collapse:collapse;width:100%">
+      <tr style="background:#f1f5f9">
+        <th style="padding:6px 10px;border:1px solid #ddd">指标</th>
+        <th style="padding:6px 10px;border:1px solid #ddd">目标</th>
+        <th style="padding:6px 10px;border:1px solid #ddd">实际</th>
+        <th style="padding:6px 10px;border:1px solid #ddd">完成率</th>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;border:1px solid #ddd">销售额</td>
+        <td style="padding:6px 10px;border:1px solid #ddd">100万</td>
+        <td style="padding:6px 10px;border:1px solid #ddd">128万</td>
+        <td style="padding:6px 10px;border:1px solid #ddd;color:green"><b>128%</b></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;border:1px solid #ddd">用户增长</td>
+        <td style="padding:6px 10px;border:1px solid #ddd">500人</td>
+        <td style="padding:6px 10px;border:1px solid #ddd">437人</td>
+        <td style="padding:6px 10px;border:1px solid #ddd;color:#dc2626"><b>87%</b></td>
+      </tr>
+    </table>
+  </div>
+  <button data-component="viewcopy"
+    data-viewcopy-selector="#report-area"
+    style="margin-top:0.8em">📋 复制报表（粘贴到 Word/Excel）</button>
+</div>
+<pre class="code-block">&lt;button
+  data-component="viewcopy"
+  data-viewcopy-selector="#report-area"&gt;
+  复制报表
+&lt;/button&gt;</pre>
+
+<h2>2. 下载为文本文件</h2>
+<div class="demo-block">
+  <div id="code-content" style="background:#1e293b;color:#e2e8f0;padding:1em;border-radius:6px;font-family:monospace;font-size:.9em">
+    <div style="color:#94a3b8">// WebCom 使用示例</div>
+    <div>import { <span style="color:#7dd3fc">Dialog</span> } from 'lfjs-webcom';</div>
+    <div style="margin-top:.5em">Dialog.show(<span style="color:#86efac">'&lt;p&gt;Hello World&lt;/p&gt;'</span>);</div>
+  </div>
+  <button data-component="viewcopy"
+    data-viewcopy-selector="#code-content"
+    data-viewcopy-file="example.txt"
+    style="margin-top:0.8em">⬇️ 下载为文本文件</button>
+</div>
+<pre class="code-block">&lt;button
+  data-component="viewcopy"
+  data-viewcopy-selector="#code-content"
+  data-viewcopy-file="example.txt"&gt;
+  下载
+&lt;/button&gt;</pre>
+
+<h2>data-* 属性说明</h2>
+<table class="param-table">
+  <tr><th>属性</th><th>说明</th></tr>
+  <tr><td>data-viewcopy-selector</td><td>要复制内容的目标元素选择器</td></tr>
+  <tr><td>data-viewcopy-file</td><td>指定文件名时触发下载，否则复制到剪贴板</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import '../src/Auto/ACViewCopy.js';
+ACComponent.init(document.body);
+</script>
+</body>
+</html>

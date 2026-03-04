@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget FileDrop 拖拽文件 — WebCom Samples</title>
+<script src="_base.js"></script>
+<style>
+.drop-zone {
+  border: 2px dashed #94a3b8;
+  border-radius: 10px;
+  padding: 2em;
+  text-align: center;
+  color: #64748b;
+  transition: border-color .2s, background .2s;
+  cursor: pointer;
+}
+.drop-zone.dragover {
+  border-color: #0284c7;
+  background: #eff6ff;
+  color: #0284c7;
+}
+.file-list { margin-top: 1em; }
+.file-item { display:flex;align-items:center;gap:.5em;padding:.4em .8em;background:#f8fafc;border-radius:4px;margin-top:.4em;font-size:.9em; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<h1>FileDrop — 拖拽文件</h1>
+<p class="subtitle">将文件拖拽到区域或点击选择，获取 File 对象列表，不绑定上传逻辑。</p>
+
+<h2>1. 基础拖拽区域</h2>
+<div class="demo-block">
+  <div id="drop-basic" class="drop-zone">
+    <div style="font-size:2em;margin-bottom:.4em">📂</div>
+    <p>将文件拖拽到此处，或点击选择文件</p>
+    <p style="font-size:.85em;margin-top:.3em;color:#94a3b8">支持任意文件类型</p>
+  </div>
+  <div class="file-list" id="file-list-1"></div>
+</div>
+<pre class="code-block">import { bindFileDrop } from '../src/Widget/FileDrop.js';
+
+bindFileDrop(dropZone, (files) => {
+  files.forEach(file => {
+    console.log(file.name, file.size, file.type);
+  });
+});</pre>
+
+<h2>2. 限定文件类型</h2>
+<div class="demo-block">
+  <div id="drop-img" class="drop-zone">
+    <div style="font-size:2em;margin-bottom:.4em">🖼️</div>
+    <p>仅接受图片文件（image/*）</p>
+    <p style="font-size:.85em;margin-top:.3em;color:#94a3b8">PNG / JPG / GIF / WebP</p>
+  </div>
+  <div class="file-list" id="file-list-2"></div>
+</div>
+<pre class="code-block">import { bindFileDrop } from '../src/Widget/FileDrop.js';
+
+bindFileDrop(dropZone, (files) => {
+  // files 已过滤为图片
+}, {
+  accept: 'image/*',
+  onReject: (files) => alert('不支持的文件类型'),
+});</pre>
+
+<h2>3. 多文件 + 大小限制</h2>
+<div class="demo-block">
+  <div id="drop-multi" class="drop-zone">
+    <div style="font-size:2em;margin-bottom:.4em">📦</div>
+    <p>拖入多个文件（单个 ≤ 2MB）</p>
+  </div>
+  <div class="file-list" id="file-list-3"></div>
+</div>
+<pre class="code-block">bindFileDrop(dropZone, (files) => {
+  // files 为 File[] 数组
+}, {
+  multiple: true,
+  maxSize: 2 * 1024 * 1024, // 2MB
+  onSizeExceed: (file) => {
+    alert(`${file.name} 超过大小限制`);
+  }
+});</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+  <tr><td>element</td><td>HTMLElement</td><td>拖拽区域元素</td></tr>
+  <tr><td>onDrop</td><td>Function(files: File[])</td><td>文件放入回调</td></tr>
+  <tr><td>option.accept</td><td>string</td><td>MIME 类型过滤，如 'image/*', '.pdf'</td></tr>
+  <tr><td>option.multiple</td><td>boolean</td><td>是否允许多文件，默认 true</td></tr>
+  <tr><td>option.maxSize</td><td>number</td><td>单个文件最大字节数</td></tr>
+  <tr><td>option.onReject</td><td>Function(files)</td><td>文件类型不符时回调</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { bindFileDrop } from '../src/Widget/FileDrop.js';
+import { formatSize } from '../src/Lang/String.js';
+
+function getIcon(type) {
+  if (type.startsWith('image/')) return '🖼️';
+  if (type.startsWith('video/')) return '🎬';
+  if (type.startsWith('audio/')) return '🎵';
+  if (type.includes('pdf')) return '📄';
+  return '📎';
+}
+
+function renderFiles(listEl, files, errorMsg) {
+  if (errorMsg) {
+    listEl.innerHTML = `<div style="color:#dc2626;margin-top:.5em">${errorMsg}</div>`;
+    return;
+  }
+  listEl.innerHTML = Array.from(files).map(f =>
+    `<div class="file-item">${getIcon(f.type)} <b>${f.name}</b> <span style="color:#94a3b8;margin-left:auto">${formatSize(f.size)} · ${f.type || '未知类型'}</span></div>`
+  ).join('');
+}
+
+// 1. 基础
+bindFileDrop(document.getElementById('drop-basic'), (files) => {
+  renderFiles(document.getElementById('file-list-1'), files);
+});
+
+// 2. 仅图片
+bindFileDrop(document.getElementById('drop-img'), (files) => {
+  renderFiles(document.getElementById('file-list-2'), files);
+}, {
+  accept: 'image/*',
+  onReject: (files) => {
+    renderFiles(document.getElementById('file-list-2'), [], `❌ 不支持的文件类型：${files.map(f=>f.name).join(', ')}`);
+  }
+});
+
+// 3. 多文件+限大小
+bindFileDrop(document.getElementById('drop-multi'), (files) => {
+  renderFiles(document.getElementById('file-list-3'), files);
+}, {
+  multiple: true,
+  maxSize: 2 * 1024 * 1024,
+  onSizeExceed: (file) => {
+    renderFiles(document.getElementById('file-list-3'), [], `❌ "${file.name}" 超过 2MB 大小限制`);
+  }
+});
+
+// Drag-over 样式
+['drop-basic', 'drop-img', 'drop-multi'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', () => el.classList.add('dragover'));
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', () => el.classList.remove('dragover'));
+});
+</script>
+</body>
+</html>

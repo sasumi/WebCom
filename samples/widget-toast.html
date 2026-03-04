@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toast 消息通知 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Toast — 消息通知</h1>
+<p class="subtitle">轻量级消息提示，支持 5 种类型，自动消失，单例模式（新消息替换旧消息）。</p>
+
+<h2>1. 五种类型</h2>
+<div class="demo-block">
+  <div class="gap">
+    <button id="btn-info">Info 信息</button>
+    <button id="btn-success">Success 成功</button>
+    <button id="btn-warning" class="secondary">Warning 警告</button>
+    <button id="btn-error" class="danger">Error 错误</button>
+    <button id="btn-loading" class="secondary">Loading 加载中</button>
+  </div>
+</div>
+<pre class="code-block">import { Toast } from '../src/Widget/Toast.js';
+
+Toast.showInfo('这是一条信息');
+Toast.showSuccess('操作成功！');
+Toast.showWarning('请注意：该操作不可撤销');
+Toast.showError('网络错误，请稍后重试');
+Toast.showLoading('数据加载中...');</pre>
+
+<h2>2. 自定义时长</h2>
+<div class="demo-block">
+  <div class="gap">
+    <button id="btn-custom">显示 5 秒</button>
+    <button id="btn-callback">消失后回调</button>
+  </div>
+  <div id="callback-result" class="result-box" style="margin-top:0.8em">点击"消失后回调"查看</div>
+</div>
+<pre class="code-block">// 自定义显示 5000ms
+Toast.showToast('这条消息显示 5 秒', Toast.TYPE_INFO, 5000);
+
+// 消失后执行回调
+Toast.showSuccess('操作完成', () =&gt; {
+  console.log('Toast 已关闭，跳转页面...');
+});</pre>
+
+<h2>3. 延迟显示 Loading（避免快速操作闪烁）</h2>
+<div class="demo-block">
+  <button id="btn-loading-later">延迟 200ms 显示 Loading</button>
+</div>
+<pre class="code-block">// 如果操作 200ms 内完成，Loading 不会显示
+const toast = Toast.showLoadingLater('处理中...', 200);
+// 操作完成后
+toast.hide(); // 或覆盖一条新 Toast</pre>
+
+<h2>4. 实例方式（手动控制显示/隐藏）</h2>
+<div class="demo-block">
+  <div class="gap">
+    <button id="btn-instance-show">显示 Loading</button>
+    <button id="btn-instance-hide" class="secondary">手动关闭</button>
+  </div>
+</div>
+<pre class="code-block">const t = new Toast('长时操作中...', Toast.TYPE_LOADING);
+t.show();   // 显示
+
+// 操作完成后手动关闭
+t.hide();</pre>
+
+<div class="note">
+  <strong>注意：</strong><code>TYPE_LOADING</code> 类型不会自动消失，必须手动调用 <code>hide()</code> 或被新 Toast 覆盖。
+</div>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>类型常量</th><th>值</th><th>默认显示时长</th></tr>
+  <tr><td><code>Toast.TYPE_INFO</code></td><td>'info'</td><td>2000ms</td></tr>
+  <tr><td><code>Toast.TYPE_SUCCESS</code></td><td>'success'</td><td>2000ms</td></tr>
+  <tr><td><code>Toast.TYPE_WARNING</code></td><td>'warning'</td><td>3000ms</td></tr>
+  <tr><td><code>Toast.TYPE_ERROR</code></td><td>'error'</td><td>5000ms</td></tr>
+  <tr><td><code>Toast.TYPE_LOADING</code></td><td>'loading'</td><td>不自动消失</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { Toast } from '../src/Widget/Toast.js';
+
+document.getElementById('btn-info').onclick = () => Toast.showInfo('这是一条普通信息提示');
+document.getElementById('btn-success').onclick = () => Toast.showSuccess('操作成功！数据已保存。');
+document.getElementById('btn-warning').onclick = () => Toast.showWarning('请注意：该操作不可撤销，请谨慎操作。');
+document.getElementById('btn-error').onclick = () => Toast.showError('网络请求失败，错误码：500，请联系管理员。');
+
+let loadingToast;
+document.getElementById('btn-loading').onclick = () => {
+  loadingToast = Toast.showLoading('数据加载中，请稍候...');
+  setTimeout(() => loadingToast && loadingToast.hide(), 3000);
+};
+
+document.getElementById('btn-custom').onclick = () => {
+  Toast.showToast('这条消息将显示 5 秒', Toast.TYPE_INFO, 5000);
+};
+
+document.getElementById('btn-callback').onclick = () => {
+  const el = document.getElementById('callback-result');
+  el.textContent = '⏳ Toast 显示中...';
+  Toast.showSuccess('操作完成！', () => {
+    el.textContent = '✅ Toast 已消失，回调执行时间：' + new Date().toLocaleTimeString();
+  });
+};
+
+document.getElementById('btn-loading-later').onclick = () => {
+  const t = Toast.showLoadingLater('如果操作在 200ms 内完成，不会看到这条', 200);
+  setTimeout(() => { }, 500); // 模拟操作完成
+};
+
+let instanceToast;
+document.getElementById('btn-instance-show').onclick = () => {
+  instanceToast = new Toast('正在处理，请勿关闭页面...', Toast.TYPE_LOADING);
+  instanceToast.show();
+};
+document.getElementById('btn-instance-hide').onclick = () => {
+  instanceToast && instanceToast.hide();
+  Toast.showSuccess('处理完成！');
+};
+</script>
+</body>
+</html>

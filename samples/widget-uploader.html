@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Uploader 文件上传 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Uploader — 文件上传</h1>
+<p class="subtitle">功能完整的上传组件：支持单/多文件、进度显示、文件类型过滤、拖拽上传。</p>
+
+<h2>1. 基础单文件上传</h2>
+<div class="demo-block">
+  <div id="uploader-single"></div>
+  <div id="upload-result-1" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { Uploader } from '../src/Widget/Uploader.js';
+
+const uploader = new Uploader({
+  url: '/api/upload',
+  accept: Uploader.FILE_TYPE_IMAGE,   // 仅图片
+  onSuccess: (response) => {
+    console.log('上传成功', response);
+  },
+  onError: (err) => {
+    console.error('上传失败', err);
+  }
+});
+uploader.mount(container);</pre>
+
+<h2>2. 多文件上传 + 进度</h2>
+<div class="demo-block">
+  <div id="uploader-multi"></div>
+  <div id="upload-result-2" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { Uploader } from '../src/Widget/Uploader.js';
+
+new Uploader({
+  url: '/api/upload',
+  multiple: true,
+  maxSize: 10 * 1024 * 1024, // 10MB
+  onProgress: (percent) => {
+    progressBar.style.width = percent + '%';
+  },
+  onSuccess: (resp) => console.log(resp),
+}).mount(container);</pre>
+
+<h2>3. 文件类型常量</h2>
+<div class="demo-block" id="file-type-block"></div>
+<pre class="code-block">import { Uploader } from '../src/Widget/Uploader.js';
+
+Uploader.FILE_TYPE_IMAGE  // 'image/*'
+Uploader.FILE_TYPE_VIDEO  // 'video/*'
+Uploader.FILE_TYPE_AUDIO  // 'audio/*'
+Uploader.FILE_TYPE_DOC    // '.doc,.docx,.pdf,.xls,...'</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+  <tr><td>url</td><td>string</td><td>必填</td><td>上传接口地址</td></tr>
+  <tr><td>accept</td><td>string</td><td>*</td><td>文件类型过滤，同 input[accept]</td></tr>
+  <tr><td>multiple</td><td>boolean</td><td>false</td><td>是否允许多文件</td></tr>
+  <tr><td>maxSize</td><td>number</td><td>—</td><td>最大文件大小（字节）</td></tr>
+  <tr><td>maxCount</td><td>number</td><td>—</td><td>最大上传文件数量</td></tr>
+  <tr><td>onProgress</td><td>Function(percent)</td><td>—</td><td>上传进度回调 0-100</td></tr>
+  <tr><td>onSuccess</td><td>Function(response)</td><td>—</td><td>上传成功回调</td></tr>
+  <tr><td>onError</td><td>Function(err)</td><td>—</td><td>上传失败回调</td></tr>
+  <tr><td>onRemove</td><td>Function(file)</td><td>—</td><td>移除文件回调</td></tr>
+</table>
+
+<div class="note">
+  <b>注意：</b>实际上传需要配合后端接口。本示例中上传地址为演示占位，选择文件后会模拟上传流程。
+  可通过 <code>Uploader.FILE_TYPE_*</code> 常量方便地限制文件类型。
+</div>
+</div>
+
+<script type="module">
+import { Uploader } from '../src/Widget/Uploader.js';
+
+// 展示文件类型常量
+const ftBlock = document.getElementById('file-type-block');
+const types = [
+  ['FILE_TYPE_IMAGE', Uploader.FILE_TYPE_IMAGE],
+  ['FILE_TYPE_VIDEO', Uploader.FILE_TYPE_VIDEO],
+  ['FILE_TYPE_AUDIO', Uploader.FILE_TYPE_AUDIO],
+];
+ftBlock.innerHTML = types.map(([k,v]) =>
+  `<div style="margin-bottom:.3em"><code>Uploader.${k}</code> = <b>"${v}"</b></div>`
+).join('') || '（请查看源码中的常量定义）';
+
+// 单文件上传（演示：实际上传到 /api/upload，此处模拟）
+try {
+  const up1 = new Uploader({
+    url: '/api/upload',
+    accept: Uploader.FILE_TYPE_IMAGE || 'image/*',
+    onSuccess: (resp) => {
+      document.getElementById('upload-result-1').textContent = '上传成功：' + JSON.stringify(resp);
+    },
+    onError: () => {
+      document.getElementById('upload-result-1').textContent = '（演示模式，无实际服务端）选择文件成功触发了上传流程。';
+    }
+  });
+  up1.mount(document.getElementById('uploader-single'));
+} catch(e) {
+  document.getElementById('uploader-single').innerHTML = `<em>（${e.message}）</em>`;
+}
+
+// 多文件上传
+try {
+  const result2 = document.getElementById('upload-result-2');
+  const up2 = new Uploader({
+    url: '/api/upload',
+    multiple: true,
+    onProgress: (p) => { result2.textContent = `上传进度：${p}%`; },
+    onSuccess: (resp) => { result2.textContent = `上传成功：${JSON.stringify(resp)}`; },
+    onError: () => { result2.textContent = '（演示模式：选择文件已触发上传流程）'; }
+  });
+  up2.mount(document.getElementById('uploader-multi'));
+} catch(e) {
+  document.getElementById('uploader-multi').innerHTML = `<em>（${e.message}）</em>`;
+}
+</script>
+</body>
+</html>

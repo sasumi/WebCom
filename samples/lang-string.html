@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang String 字符串工具 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>String — 字符串工具</h1>
+<p class="subtitle">提供格式化、截断、随机、编码、版本比较等字符串工具函数。</p>
+
+<h2>1. formatSize — 文件大小格式化</h2>
+<div class="demo-block" id="size-block"></div>
+<pre class="code-block">import { formatSize } from '../src/Lang/String.js';
+formatSize(1024);           // '1.00 KB'
+formatSize(1536, 1);        // '1.5 KB'
+formatSize(1024 * 1024);    // '1.00 MB'</pre>
+
+<h2>2. cutString — 截断字符串</h2>
+<div class="demo-block" id="cut-block"></div>
+<pre class="code-block">import { cutString } from '../src/Lang/String.js';
+cutString('这是一段比较长的文本内容', 8, '...');  // '这是一段比较长的...'
+cutString('Short', 20);  // 'Short'（未超出不截断）</pre>
+
+<h2>3. randomString / randomWords — 随机生成</h2>
+<div class="demo-block">
+  <button id="btn-rand">生成随机值</button>
+  <div id="rand-result" class="result-box" style="margin-top:0.8em">点击按钮生成</div>
+</div>
+<pre class="code-block">import { randomString, randomWords, randomSentence } from '../src/Lang/String.js';
+
+randomString(8);            // 'aB3xkCpQ'（8位随机字符）
+randomString(6, '0123456789'); // '148093'（纯数字）
+randomWords(3);             // ['hello', 'world', 'foo']
+randomSentence(20);         // 'hello world foo bar'</pre>
+
+<h2>4. strToPascalCase — 命名转换</h2>
+<div class="demo-block" id="case-block"></div>
+<pre class="code-block">import { strToPascalCase, capitalize } from '../src/Lang/String.js';
+
+strToPascalCase('hello_world');        // 'helloWorld'
+strToPascalCase('hello-world', true);  // 'HelloWorld'
+capitalize('hello');                   // 'Hello'</pre>
+
+<h2>5. versionCompare — 版本号比较</h2>
+<div class="demo-block" id="version-block"></div>
+<pre class="code-block">import { versionCompare } from '../src/Lang/String.js';
+
+versionCompare('1.2.3', '1.2.4');  // -1 （1.2.3 < 1.2.4）
+versionCompare('2.0.0', '1.9.9');  // 1  （2.0.0 > 1.9.9）
+versionCompare('1.0.0', '1.0.0');  // 0  （相等）</pre>
+
+<h2>6. isValidUrl / isJSON — 格式校验</h2>
+<div class="demo-block" id="validate-block"></div>
+<pre class="code-block">import { isValidUrl, isJSON, isNum } from '../src/Lang/String.js';
+
+isValidUrl('https://example.com');  // true
+isValidUrl('not a url');            // false
+isJSON('{"a":1}');                  // true
+isJSON('not json');                 // false
+isNum('123');                       // true
+isNum('abc');                       // false</pre>
+</div>
+
+<script type="module">
+import { formatSize, cutString, randomString, randomWords, randomSentence, strToPascalCase, capitalize, versionCompare, isValidUrl, isJSON, isNum } from '../src/Lang/String.js';
+
+// formatSize
+const sizeBlock = document.getElementById('size-block');
+[0, 512, 1024, 1024*1.5, 1024*1024, 1024*1024*2.7, 1024*1024*1024].forEach(n => {
+  const div = document.createElement('div');
+  div.innerHTML = `<code>${n.toLocaleString()} bytes</code> → <b>${formatSize(n)}</b>`;
+  div.style.marginBottom = '0.3em';
+  sizeBlock.appendChild(div);
+});
+
+// cutString
+const cutBlock = document.getElementById('cut-block');
+const strs = [
+  ['这是一段比较长的文本内容，一共超过了20个字符', 15, '...'],
+  ['Short text', 20, '...'],
+  ['刚刚好', 3, '…'],
+];
+strs.forEach(([s, len, e]) => {
+  const div = document.createElement('div');
+  div.innerHTML = `输入前${len}个字符："${s}" → <b>"${cutString(s, len, e)}"</b>`;
+  div.style.marginBottom = '0.3em';
+  cutBlock.appendChild(div);
+});
+
+// random
+document.getElementById('btn-rand').onclick = () => {
+  const res = document.getElementById('rand-result');
+  res.innerHTML = `
+    randomString(8): <b>${randomString(8)}</b><br>
+    randomString(6, '0123456789'): <b>${randomString(6, '0123456789')}</b><br>
+    randomWords(3): <b>${randomWords(3).join(', ')}</b><br>
+    randomSentence(30): <b>${randomSentence(30)}</b>
+  `;
+};
+
+// strToPascalCase
+const caseBlock = document.getElementById('case-block');
+const caseTests = [
+  ["strToPascalCase('hello_world')", strToPascalCase('hello_world')],
+  ["strToPascalCase('hello-world-foo', true)", strToPascalCase('hello-world-foo', true)],
+  ["capitalize('hello world')", capitalize('hello world')],
+];
+caseTests.forEach(([code, result]) => {
+  const div = document.createElement('div');
+  div.innerHTML = `<code>${code}</code> → <b>"${result}"</b>`;
+  div.style.marginBottom = '0.3em';
+  caseBlock.appendChild(div);
+});
+
+// versionCompare
+const vBlock = document.getElementById('version-block');
+const vTests = [['1.2.3','1.2.4'],['2.0.0','1.9.9'],['1.0.0','1.0.0'],['10.1','9.99']];
+vTests.forEach(([a,b]) => {
+  const r = versionCompare(a, b);
+  const sym = r < 0 ? '<' : r > 0 ? '>' : '=';
+  const div = document.createElement('div');
+  div.innerHTML = `<code>${a}</code> ${sym} <code>${b}</code> → result: <b>${r}</b>`;
+  div.style.marginBottom = '0.3em';
+  vBlock.appendChild(div);
+});
+
+// validate
+const valBlock = document.getElementById('validate-block');
+const valTests = [
+  ['isValidUrl("https://example.com")', isValidUrl('https://example.com')],
+  ['isValidUrl("not a url")', isValidUrl('not a url')],
+  ['isJSON(\'{"a":1}\')', isJSON('{"a":1}')],
+  ['isJSON("not json")', isJSON('not json')],
+  ['isNum("123.45")', isNum('123.45')],
+  ['isNum("abc")', isNum('abc')],
+];
+valTests.forEach(([code, result]) => {
+  const div = document.createElement('div');
+  div.innerHTML = `<code>${code}</code> → <b style="color:${result?'green':'#dc2626'}">${result}</b>`;
+  div.style.marginBottom = '0.3em';
+  valBlock.appendChild(div);
+});
+</script>
+</body>
+</html>

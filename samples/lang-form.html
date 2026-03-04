@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang Form 表单工具 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Form — 表单工具</h1>
+<p class="subtitle">提供表单序列化、JSON 提交绑定、字段验证、自动保存等表单处理工具。</p>
+
+<h2>1. formSerializeJSON — 序列化为 JSON</h2>
+<div class="demo-block">
+  <form id="form-serialize">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5em">
+      <input name="username" placeholder="用户名" value="Alice">
+      <input name="email" placeholder="邮箱" value="alice@example.com">
+      <input name="age" type="number" placeholder="年龄" value="28">
+      <select name="role">
+        <option value="admin">Admin</option>
+        <option value="user" selected>User</option>
+      </select>
+    </div>
+    <label style="display:block;margin-top:0.5em">
+      <input type="checkbox" name="agree" value="1" checked> 同意协议
+    </label>
+    <button type="button" id="btn-serialize" style="margin-top:0.8em">序列化表单</button>
+  </form>
+  <pre id="serialize-result" class="result-box" style="margin-top:0.8em">（点击按钮查看结果）</pre>
+</div>
+<pre class="code-block">import { formSerializeJSON } from '../src/Lang/Form.js';
+
+const data = formSerializeJSON(form);
+// { username:'Alice', email:'alice@example.com', age:'28', role:'user', agree:'1' }</pre>
+
+<h2>2. bindFormSubmitAsJSON — 以 JSON 方式提交</h2>
+<div class="demo-block">
+  <form id="form-json-submit">
+    <input name="title" placeholder="标题" value="Test Title" style="margin-right:.5em">
+    <input name="content" placeholder="内容" value="Hello World" style="margin-right:.5em">
+    <button type="submit">提交（模拟）</button>
+  </form>
+  <div id="submit-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { bindFormSubmitAsJSON } from '../src/Lang/Form.js';
+
+bindFormSubmitAsJSON(form, 'https://api.example.com/save', (resp) => {
+  console.log('提交成功', resp);
+}, {
+  onError: (err) => console.error(err)
+});</pre>
+
+<h2>3. formValidate — 字段验证</h2>
+<div class="demo-block">
+  <form id="form-validate">
+    <div style="display:grid;gap:0.5em">
+      <input name="name" placeholder="姓名（必填，2-10字）" data-required="true" data-minlen="2" data-maxlen="10">
+      <input name="phone" placeholder="手机号（11位数字）" data-pattern="^\d{11}$" data-pattern-msg="请输入11位数字手机号">
+      <input name="email" type="email" placeholder="邮箱">
+    </div>
+    <button type="button" id="btn-validate" style="margin-top:0.8em">验证</button>
+  </form>
+  <div id="validate-result" class="result-box" style="margin-top:0.8em"></div>
+</div>
+<pre class="code-block">import { formValidate } from '../src/Lang/Form.js';
+
+const errors = formValidate(form);
+if(errors.length) {
+  errors.forEach(err => console.log(err.field, err.message));
+} else {
+  console.log('验证通过');
+}</pre>
+
+<h2>4. bindFormAutoSave — 自动保存到 localStorage</h2>
+<div class="demo-block">
+  <p style="font-size:0.9em;color:#6b7280">输入内容会自动保存，刷新页面后数据仍然存在</p>
+  <form id="form-autosave">
+    <textarea name="draft" placeholder="在此输入草稿内容，修改后会自动保存..." style="width:100%;height:80px;padding:0.5em"></textarea>
+    <div style="display:flex;gap:0.5em;margin-top:0.5em">
+      <button type="button" id="btn-clear-save">清空已保存</button>
+      <span id="autosave-status" style="padding:4px 8px;background:#f0fdf4;border-radius:4px;font-size:0.85em"></span>
+    </div>
+  </form>
+</div>
+<pre class="code-block">import { bindFormAutoSave } from '../src/Lang/Form.js';
+
+// 每 2000ms 自动保存到 localStorage，key='myForm'
+const restore = bindFormAutoSave(form, 'myForm', 2000);
+// 手动调用 restore() 可恢复数据</pre>
+
+<h2>参数说明 — formValidate</h2>
+<table class="param-table">
+  <tr><th>data-* 属性</th><th>说明</th></tr>
+  <tr><td>data-required="true"</td><td>字段必填</td></tr>
+  <tr><td>data-minlen="N"</td><td>最小字符长度</td></tr>
+  <tr><td>data-maxlen="N"</td><td>最大字符长度</td></tr>
+  <tr><td>data-pattern="regex"</td><td>正则表达式验证</td></tr>
+  <tr><td>data-pattern-msg="msg"</td><td>正则不通过时的错误信息</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { formSerializeJSON, bindFormSubmitAsJSON, formValidate, bindFormAutoSave } from '../src/Lang/Form.js';
+
+// formSerializeJSON
+document.getElementById('btn-serialize').onclick = () => {
+  const form = document.getElementById('form-serialize');
+  const data = formSerializeJSON(form);
+  document.getElementById('serialize-result').textContent = JSON.stringify(data, null, 2);
+};
+
+// bindFormSubmitAsJSON - 拦截提交进行演示
+const submitForm = document.getElementById('form-json-submit');
+bindFormSubmitAsJSON(submitForm, '/fake/api', (resp) => {
+  document.getElementById('submit-result').innerHTML = '✅ 提交成功：' + JSON.stringify(resp);
+}, {
+  onError: (e) => {
+    document.getElementById('submit-result').innerHTML = '（模拟提交，网络错误为正常现象：' + e + '）';
+  }
+});
+// 覆盖演示：直接显示数据
+submitForm.addEventListener('submit', function(e) {
+  e.stopImmediatePropagation();
+  const data = formSerializeJSON(submitForm);
+  document.getElementById('submit-result').innerHTML =
+    `将以 JSON 格式 POST 提交：<br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+}, true);
+
+// formValidate
+document.getElementById('btn-validate').onclick = () => {
+  const form = document.getElementById('form-validate');
+  try {
+    const errors = formValidate(form);
+    if (errors && errors.length) {
+      document.getElementById('validate-result').innerHTML = '❌ 验证失败：<br>' +
+        errors.map(e => `• <b>${e.field || e.name}</b>：${e.message || e.msg}`).join('<br>');
+    } else {
+      document.getElementById('validate-result').innerHTML = '✅ 验证通过！';
+    }
+  } catch(e) {
+    // 兼容不同的实现方式
+    document.getElementById('validate-result').textContent = '（验证函数：' + e.message + '）';
+  }
+};
+
+// bindFormAutoSave
+try {
+  const autosaveForm = document.getElementById('form-autosave');
+  const statusEl = document.getElementById('autosave-status');
+  bindFormAutoSave(autosaveForm, 'webcom-sample-autosave', 1500, () => {
+    statusEl.textContent = '已自动保存 ' + new Date().toLocaleTimeString();
+  });
+  document.getElementById('btn-clear-save').onclick = () => {
+    localStorage.removeItem('webcom-sample-autosave');
+    autosaveForm.reset();
+    statusEl.textContent = '已清空';
+  };
+} catch(e) {
+  document.getElementById('form-autosave').innerHTML = `（bindFormAutoSave：${e.message}）`;
+}
+</script>
+</body>
+</html>

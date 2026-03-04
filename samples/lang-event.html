@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang Event 事件工具 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Event — 事件工具</h1>
+<p class="subtitle">提供自定义发布订阅事件（BizEvent）、热键绑定、事件委托、节点激活等工具。</p>
+
+<h2>1. BizEvent — 自定义发布/订阅</h2>
+<div class="demo-block">
+  <button id="btn-fire">触发事件</button>
+  <button id="btn-bind">订阅事件</button>
+  <button id="btn-unbind">取消订阅</button>
+  <div id="biz-log" class="result-box" style="margin-top:0.8em">（事件日志）</div>
+</div>
+<pre class="code-block">import { BizEvent } from '../src/Lang/Event.js';
+
+const bus = new BizEvent();
+
+// 订阅
+const off = bus.listen((msg) => console.log('收到：', msg));
+
+// 发布
+bus.fire('Hello World');
+
+// 取消订阅
+off();</pre>
+
+<h2>2. bindHotKeys — 热键绑定</h2>
+<div class="demo-block">
+  <p>在下方输入框内尝试热键：<kbd>Ctrl+S</kbd>（保存）、<kbd>Ctrl+Z</kbd>（撤销）</p>
+  <textarea id="hotkey-area" placeholder="点击此处，然后按 Ctrl+S 或 Ctrl+Z" style="width:100%;height:60px;padding:0.5em"></textarea>
+  <div id="hotkey-result" class="result-box" style="margin-top:0.5em">（热键日志）</div>
+</div>
+<pre class="code-block">import { bindHotKeys } from '../src/Lang/Event.js';
+
+bindHotKeys({
+  'ctrl+s': (e) => { e.preventDefault(); console.log('保存 triggered'); },
+  'ctrl+z': (e) => { console.log('撤销 triggered'); },
+}, textarea);</pre>
+
+<h2>3. eventDelegate — 事件委托</h2>
+<div class="demo-block">
+  <ul id="delegate-list" style="padding:0;list-style:none">
+    <li data-id="1" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #eee">Item 1</li>
+    <li data-id="2" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #eee">Item 2</li>
+    <li data-id="3" style="padding:8px 12px;cursor:pointer">Item 3</li>
+  </ul>
+  <button id="btn-add-item" style="margin-top:0.5em">动态添加一项</button>
+  <div id="delegate-result" class="result-box" style="margin-top:0.5em">（点击列表项）</div>
+</div>
+<pre class="code-block">import { eventDelegate } from '../src/Lang/Event.js';
+
+// 事件绑定在父容器，自动处理动态子节点
+eventDelegate(container, 'li', 'click', (e, target) => {
+  console.log('点击了 id：', target.dataset.id);
+});</pre>
+
+<h2>4. onDocReady — 文档就绪</h2>
+<div class="demo-block" id="ready-block"></div>
+<pre class="code-block">import { onDocReady } from '../src/Lang/Event.js';
+
+onDocReady(() => {
+  // DOM 完全加载后执行
+  console.log('Document ready!');
+});</pre>
+
+<h2>参数说明 — BizEvent</h2>
+<table class="param-table">
+  <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+  <tr><td>new BizEvent()</td><td>—</td><td>BizEvent 实例</td><td>创建事件总线</td></tr>
+  <tr><td>.listen(callback)</td><td>callback: Function</td><td>解绑函数</td><td>订阅事件，返回解绑函数</td></tr>
+  <tr><td>.fire(...args)</td><td>任意参数</td><td>void</td><td>触发事件，传递参数给所有订阅者</td></tr>
+  <tr><td>.off(callback)</td><td>callback: Function</td><td>void</td><td>手动取消指定订阅</td></tr>
+  <tr><td>.destroy()</td><td>—</td><td>void</td><td>销毁所有订阅</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { BizEvent, bindHotKeys, eventDelegate, onDocReady } from '../src/Lang/Event.js';
+
+// BizEvent
+const bus = new BizEvent();
+let listenerOff = null;
+const bizLog = document.getElementById('biz-log');
+
+function logMsg(msg) {
+  const d = document.createElement('div');
+  d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  bizLog.appendChild(d);
+  if (bizLog.children.length > 5) bizLog.removeChild(bizLog.firstChild);
+}
+
+document.getElementById('btn-bind').onclick = () => {
+  if (!listenerOff) {
+    listenerOff = bus.listen((payload) => logMsg(`收到事件：${JSON.stringify(payload)}`));
+    logMsg('✅ 已订阅事件');
+  } else {
+    logMsg('⚠️ 已经订阅了，先取消订阅再重新订阅');
+  }
+};
+
+document.getElementById('btn-fire').onclick = () => {
+  bus.fire({ time: Date.now(), msg: 'hello' });
+};
+
+document.getElementById('btn-unbind').onclick = () => {
+  if (listenerOff) {
+    listenerOff();
+    listenerOff = null;
+    logMsg('🔇 已取消订阅');
+  } else {
+    logMsg('⚠️ 当前未订阅');
+  }
+};
+
+// bindHotKeys
+const hotkeyArea = document.getElementById('hotkey-area');
+const hotkeyResult = document.getElementById('hotkey-result');
+bindHotKeys({
+  'ctrl+s': (e) => {
+    e.preventDefault();
+    const d = document.createElement('div');
+    d.textContent = `[${new Date().toLocaleTimeString()}] Ctrl+S（保存）触发`;
+    hotkeyResult.appendChild(d);
+  },
+  'ctrl+z': (e) => {
+    const d = document.createElement('div');
+    d.textContent = `[${new Date().toLocaleTimeString()}] Ctrl+Z（撤销）触发`;
+    hotkeyResult.appendChild(d);
+  },
+}, hotkeyArea);
+
+// eventDelegate
+const delegateList = document.getElementById('delegate-list');
+const delegateResult = document.getElementById('delegate-result');
+eventDelegate(delegateList, 'li', 'click', (e, target) => {
+  delegateResult.textContent = `点击了 id="${target.dataset.id}"，文本："${target.textContent.trim()}"`;
+  target.style.background = '#fef9c3';
+  setTimeout(() => target.style.background = '', 600);
+});
+
+let itemCount = 3;
+document.getElementById('btn-add-item').onclick = () => {
+  itemCount++;
+  const li = document.createElement('li');
+  li.dataset.id = itemCount;
+  li.textContent = `Item ${itemCount}（动态添加）`;
+  li.style.cssText = 'padding:8px 12px;cursor:pointer;border-top:1px solid #eee;color:#0284c7';
+  delegateList.appendChild(li);
+};
+
+// onDocReady
+onDocReady(() => {
+  document.getElementById('ready-block').innerHTML =
+    `✅ onDocReady 回调已执行，当前时间：<b>${new Date().toLocaleTimeString()}</b>`;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Menu 右键菜单 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Menu — 右键菜单</h1>
+<p class="subtitle">为任意元素绑定自定义右键菜单，支持子菜单、分隔符、图标和禁用状态。</p>
+
+<h2>1. bindTargetContextMenu — 绑定右键菜单</h2>
+<div class="demo-block">
+  <div id="ctx-target" style="padding:2em;background:#f1f5f9;border-radius:8px;text-align:center;border:2px dashed #cbd5e1;cursor:context-menu">
+    在此处 <b>右键单击</b> 打开自定义菜单
+  </div>
+</div>
+<pre class="code-block">import { bindTargetContextMenu } from '../src/Widget/Menu.js';
+
+bindTargetContextMenu(element, [
+  { title: '编辑', callback: () => console.log('edit') },
+  { title: '复制', callback: () => console.log('copy') },
+  null,  // 分隔符
+  { title: '删除', callback: () => console.log('delete'), disabled: true },
+]);</pre>
+
+<h2>2. 子菜单 — children 嵌套</h2>
+<div class="demo-block">
+  <div id="ctx-submenu" style="padding:2em;background:#faf5ff;border-radius:8px;text-align:center;border:2px dashed #d8b4fe;cursor:context-menu">
+    右键查看 <b>带子菜单</b> 的上下文菜单
+  </div>
+</div>
+<pre class="code-block">bindTargetContextMenu(element, [
+  { title: '新建', children: [
+    { title: '新建文件', callback: () => {} },
+    { title: '新建文件夹', callback: () => {} },
+  ]},
+  null,
+  { title: '属性', callback: () => {} },
+]);</pre>
+
+<h2>3. showContextMenu — 手动弹出</h2>
+<div class="demo-block">
+  <button id="btn-show-menu">手动弹出菜单（定位到按钮）</button>
+</div>
+<pre class="code-block">import { showContextMenu } from '../src/Widget/Menu.js';
+
+showContextMenu(menuItems, { x: event.clientX, y: event.clientY });</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>title</td><td>string</td><td>菜单项文本</td></tr>
+  <tr><td>callback</td><td>Function</td><td>点击回调</td></tr>
+  <tr><td>disabled</td><td>boolean</td><td>是否禁用</td></tr>
+  <tr><td>children</td><td>MenuItem[]</td><td>子菜单项数组</td></tr>
+  <tr><td>null / undefined</td><td>—</td><td>渲染为分隔符</td></tr>
+</table>
+</div>
+
+<script type="module">
+import { bindTargetContextMenu, showContextMenu } from '../src/Widget/Menu.js';
+
+const logAction = (label) => alert(`操作：${label}`);
+
+// 1. 基本右键菜单
+bindTargetContextMenu(document.getElementById('ctx-target'), [
+  { title: '✏️ 编辑', callback: () => logAction('编辑') },
+  { title: '📋 复制', callback: () => logAction('复制') },
+  { title: '🔗 复制链接', callback: () => logAction('复制链接') },
+  null,
+  { title: '⭐ 收藏', callback: () => logAction('收藏') },
+  null,
+  { title: '🗑️ 删除', callback: () => logAction('删除'), disabled: true },
+]);
+
+// 2. 子菜单
+bindTargetContextMenu(document.getElementById('ctx-submenu'), [
+  { title: '📁 新建', children: [
+    { title: '📄 新建文件', callback: () => logAction('新建文件') },
+    { title: '📂 新建文件夹', callback: () => logAction('新建文件夹') },
+    null,
+    { title: '🔖 新建模板', callback: () => logAction('新建模板') },
+  ]},
+  { title: '🔍 搜索', children: [
+    { title: '在当前目录搜索', callback: () => logAction('当前目录搜索') },
+    { title: '全局搜索', callback: () => logAction('全局搜索') },
+  ]},
+  null,
+  { title: '⚙️ 属性', callback: () => logAction('属性') },
+]);
+
+// 3. 手动弹出
+document.getElementById('btn-show-menu').onclick = function(e) {
+  showContextMenu([
+    { title: '选项 A', callback: () => logAction('选项A') },
+    { title: '选项 B', callback: () => logAction('选项B') },
+    null,
+    { title: '选项 C（禁用）', disabled: true },
+  ], { x: e.clientX, y: e.clientY });
+};
+</script>
+</body>
+</html>

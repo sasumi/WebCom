@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang Array 数组工具 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Array — 数组工具</h1>
+<p class="subtitle">提供数组分组、字段提取、树过滤、分块等高级数组操作工具。</p>
+
+<h2>1. arrayColumn — 提取字段</h2>
+<div class="demo-block" id="col-block"></div>
+<pre class="code-block">import { arrayColumn } from '../src/Lang/Array.js';
+
+const users = [
+  {id:1, name:'Alice', age:25},
+  {id:2, name:'Bob',   age:30},
+];
+arrayColumn(users, 'name');         // ['Alice', 'Bob']
+arrayColumn(users, 'name', 'id');   // {1:'Alice', 2:'Bob'}</pre>
+
+<h2>2. arrayGroup — 按字段分组</h2>
+<div class="demo-block" id="group-block"></div>
+<pre class="code-block">import { arrayGroup } from '../src/Lang/Array.js';
+
+const items = [
+  {type:'fruit', name:'apple'},
+  {type:'veggie', name:'carrot'},
+  {type:'fruit', name:'banana'},
+];
+arrayGroup(items, 'type');
+// {fruit: [{...},{...}], veggie: [{...}]}</pre>
+
+<h2>3. arrayUnique — 数组去重</h2>
+<div class="demo-block" id="unique-block"></div>
+<pre class="code-block">import { arrayUnique } from '../src/Lang/Array.js';
+
+arrayUnique([1, 2, 2, 3, 1, 4]);   // [1, 2, 3, 4]
+arrayUnique(['a', 'b', 'a', 'c']); // ['a', 'b', 'c']</pre>
+
+<h2>4. chunk — 数组分块</h2>
+<div class="demo-block" id="chunk-block"></div>
+<pre class="code-block">import { chunk } from '../src/Lang/Array.js';
+
+chunk([1,2,3,4,5,6,7], 3);
+// [[1,2,3], [4,5,6], [7]]</pre>
+
+<h2>5. objectGetByPath — 链式路径读取</h2>
+<div class="demo-block" id="path-block"></div>
+<pre class="code-block">import { objectGetByPath } from '../src/Lang/Array.js';
+
+const obj = { a: { b: { c: 42 } } };
+objectGetByPath(obj, 'a.b.c');     // 42
+objectGetByPath(obj, 'a.x.y', 0); // 0（默认值）</pre>
+
+<h2>6. arrayFilterTree — 树结构过滤</h2>
+<div class="demo-block" id="tree-block"></div>
+<pre class="code-block">import { arrayFilterTree } from '../src/Lang/Array.js';
+
+const tree = [
+  { id:1, name:'A', children:[
+    { id:2, name:'A1' },
+    { id:3, name:'B1' },
+  ]},
+  { id:4, name:'C' },
+];
+// 只保留名称含 'A' 的节点（递归）
+arrayFilterTree(tree, node => node.name.includes('A'));</pre>
+</div>
+
+<script type="module">
+import { arrayColumn, arrayGroup, arrayUnique, chunk, objectGetByPath, arrayFilterTree } from '../src/Lang/Array.js';
+
+// arrayColumn
+const users = [{id:1,name:'Alice',age:25},{id:2,name:'Bob',age:30},{id:3,name:'Carol',age:28}];
+const colBlock = document.getElementById('col-block');
+colBlock.innerHTML = `
+  <p>数据：<code>${JSON.stringify(users)}</code></p>
+  <p>arrayColumn(users, 'name') → <b>${JSON.stringify(arrayColumn(users,'name'))}</b></p>
+  <p>arrayColumn(users, 'name', 'id') → <b>${JSON.stringify(arrayColumn(users,'name','id'))}</b></p>
+`;
+
+// arrayGroup
+const items = [{type:'fruit',name:'apple'},{type:'veggie',name:'carrot'},{type:'fruit',name:'banana'},{type:'veggie',name:'spinach'}];
+const grouped = arrayGroup(items,'type');
+const groupBlock = document.getElementById('group-block');
+let gHtml = `<p>原始数组：${items.length} 条记录</p>`;
+for(const k in grouped){
+  gHtml += `<p>type="${k}": <b>${grouped[k].map(i=>i.name).join(', ')}</b></p>`;
+}
+groupBlock.innerHTML = gHtml;
+
+// arrayUnique
+const uniqueBlock = document.getElementById('unique-block');
+uniqueBlock.innerHTML = `
+  <p>arrayUnique([1,2,2,3,1,4]) → <b>${JSON.stringify(arrayUnique([1,2,2,3,1,4]))}</b></p>
+  <p>arrayUnique(['a','b','a','c']) → <b>${JSON.stringify(arrayUnique(['a','b','a','c']))}</b></p>
+`;
+
+// chunk
+const chunkBlock = document.getElementById('chunk-block');
+const chunked = chunk([1,2,3,4,5,6,7],3);
+chunkBlock.innerHTML = `chunk([1..7], 3) → <b>${JSON.stringify(chunked)}</b>`;
+
+// objectGetByPath
+const pathObj = {a:{b:{c:42}}, list:[10,20,30]};
+const pathBlock = document.getElementById('path-block');
+pathBlock.innerHTML = `
+  <p>obj = ${JSON.stringify(pathObj)}</p>
+  <p>objectGetByPath(obj, 'a.b.c') → <b>${objectGetByPath(pathObj,'a.b.c')}</b></p>
+  <p>objectGetByPath(obj, 'a.x.y', 'default') → <b>${objectGetByPath(pathObj,'a.x.y','default')}</b></p>
+`;
+
+// arrayFilterTree
+const tree = [
+  {id:1,name:'Front End',children:[{id:2,name:'Vue'},{id:3,name:'Angular'}]},
+  {id:4,name:'Back End',children:[{id:5,name:'Node'},{id:6,name:'PHP'}]},
+];
+try {
+  const filtered = arrayFilterTree(tree, n => n.name.includes('Vue') || n.name.includes('Node') || n.name.includes('Front') || n.name.includes('Back'));
+  document.getElementById('tree-block').innerHTML = `<pre>${JSON.stringify(filtered, null, 2)}</pre>`;
+} catch(e) {
+  document.getElementById('tree-block').textContent = '（需 arrayFilterTree）' + e.message;
+}
+</script>
+</body>
+</html>

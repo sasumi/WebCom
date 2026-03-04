@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACTip / Widget Tip — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Tip — 气泡提示（Tooltip）</h1>
+<p class="subtitle">在元素旁显示气泡提示，支持 hover/click/focus 触发，支持 HTML 内容，支持异步加载。</p>
+
+<h2>1. 声明式用法（ACTip）</h2>
+<div class="demo-block">
+  <div class="gap">
+    <span data-component="tip" title="这是来自 title 属性的提示（会被自动转移）"
+          style="cursor:pointer;color:#2563eb;text-decoration:underline">
+      hover 默认（title 属性）
+    </span>
+    <span data-component="tip"
+          data-tip-content="这是通过 data-tip-content 传递的提示内容"
+          style="cursor:pointer;color:#2563eb;text-decoration:underline">
+      hover（data-tip-content）
+    </span>
+    <span data-component="tip"
+          data-tip-content="点击触发的提示，再次点击关闭"
+          data-tip-triggertype="click"
+          style="cursor:pointer;color:#2563eb;text-decoration:underline">
+      click 触发
+    </span>
+  </div>
+</div>
+<pre class="code-block">&lt;!-- 使用 title 属性（自动转移，避免浏览器默认提示框）--&gt;
+&lt;button title="这是提示内容" data-component="tip"&gt;按钮&lt;/button&gt;
+
+&lt;!-- 使用 data-tip-content --&gt;
+&lt;span data-component="tip" data-tip-content="HTML&lt;b&gt;富文本&lt;/b&gt;提示"&gt;文本&lt;/span&gt;
+
+&lt;!-- click 触发 --&gt;
+&lt;span data-component="tip"
+      data-tip-content="点击触发"
+      data-tip-triggertype="click"&gt;点击我&lt;/span&gt;</pre>
+
+<h2>2. JS API 用法（Widget Tip）</h2>
+<div class="demo-block">
+  <div class="gap">
+    <button id="btn-show-tip">手动显示 Tip</button>
+    <button id="btn-bind-tip" class="secondary">绑定 Tip（hover）</button>
+    <button id="btn-async-tip" class="secondary">异步加载 Tip</button>
+    <button id="btn-hide-all" class="secondary">隐藏所有 Tip</button>
+  </div>
+</div>
+<pre class="code-block">import { Tip } from '../src/Widget/Tip.js';
+
+// 立即显示
+Tip.show('这是提示内容', document.querySelector('#target'));
+
+// 绑定 hover 事件
+Tip.bindNode('鼠标悬停触发', document.querySelector('#btn'), { triggerType: 'hover' });
+
+// 异步加载内容
+Tip.bindAsync(node, () =&gt; {
+  return fetch('/api/tooltip/' + node.dataset.id).then(r =&gt; r.text());
+}, { triggerType: 'hover' });
+
+// 隐藏所有气泡
+Tip.hideAll();</pre>
+
+<h2>参数说明</h2>
+<table class="param-table">
+  <tr><th>option 属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+  <tr><td><code>triggerType</code></td><td>String</td><td>'hover'</td><td>触发方式：hover / click / focus</td></tr>
+  <tr><td><code>position</code></td><td>String</td><td>自动计算</td><td>提示位置：top / bottom / left / right</td></tr>
+  <tr><td><code>theme</code></td><td>String</td><td>'default'</td><td>主题样式</td></tr>
+</table>
+
+<div class="note">
+  <strong>注意：</strong>使用 <code>title</code> 属性时，ACTip 会自动清空 <code>title</code> 值以避免浏览器显示默认 tooltip 框，同时将内容转存为 Tip 气泡。
+</div>
+</div>
+
+<script type="module">
+import { ACComponent } from '../src/Auto/ACComponent.js';
+import { Tip } from '../src/Widget/Tip.js';
+ACComponent.init(document.body);
+
+document.getElementById('btn-show-tip').onclick = (e) => {
+  Tip.show('<b>手动显示的气泡</b><br>支持 HTML 内容', e.currentTarget);
+  setTimeout(() => Tip.hideAll(), 3000);
+};
+
+const bindTipTarget = document.getElementById('btn-bind-tip');
+Tip.bindNode('这个 Tip 通过 JS 绑定，hover 触发', bindTipTarget, { triggerType: 'hover' });
+
+const asyncTipTarget = document.getElementById('btn-async-tip');
+Tip.bindAsync(asyncTipTarget, () => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve('异步加载的内容（模拟 500ms 延迟）'), 500);
+  });
+});
+
+document.getElementById('btn-hide-all').onclick = () => Tip.hideAll();
+</script>
+</body>
+</html>

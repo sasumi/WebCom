@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lang Time 时间工具 — WebCom Samples</title>
+<script src="_base.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+<h1>Time — 时间/日期工具</h1>
+<p class="subtitle">提供日期格式化、倒计时、时间常量、月份计算等工具函数。</p>
+
+<h2>1. formatDate — 日期格式化</h2>
+<div class="demo-block">
+  <table class="param-table" id="format-table">
+    <tr><th>格式串</th><th>输出</th></tr>
+  </table>
+</div>
+<pre class="code-block">import { formatDate } from '../src/Lang/Time.js';
+
+formatDate('Y-m-d H:i:s');           // 当前时间 '2026-02-27 10:30:00'
+formatDate('Y/m/d');                  // '2026/02/27'
+formatDate('Y年m月d日');             // '2026年02月27日'
+formatDate('H:i:s', new Date('2025-06-15 14:30:00'));  // '14:30:00'</pre>
+
+<h2>2. prettyTime — 时间美化</h2>
+<div class="demo-block" id="pretty-block"></div>
+<pre class="code-block">import { prettyTime } from '../src/Lang/Time.js';
+
+prettyTime(30000);   // '30秒'
+prettyTime(90000);   // '1分30秒'
+prettyTime(3661000); // '1小时1分1秒'</pre>
+
+<h2>3. countDown — 倒计时</h2>
+<div class="demo-block">
+  <div id="countdown-display" style="font-size:2em;font-weight:bold;color:#2563eb">--</div>
+  <div class="gap" style="margin-top:0.8em">
+    <button id="btn-start-cd">开始 10 秒倒计时</button>
+    <button id="btn-stop-cd" class="secondary">停止</button>
+  </div>
+</div>
+<pre class="code-block">import { countDown } from '../src/Lang/Time.js';
+
+const stop = countDown(10000, (remaining) =&gt; {
+  console.log('剩余：', remaining, 'ms');
+}, () =&gt; {
+  console.log('倒计时结束！');
+});</pre>
+
+<h2>4. 时间常量</h2>
+<pre class="code-block">import { ONE_MINUTE, ONE_HOUR, ONE_DAY, ONE_WEEK } from '../src/Lang/Time.js';
+
+ONE_MINUTE  // 60000
+ONE_HOUR    // 3600000
+ONE_DAY     // 86400000
+ONE_WEEK    // 604800000
+
+// 计算 3 天后的时间戳
+const threeDaysLater = Date.now() + ONE_DAY * 3;</pre>
+
+<h2>5. 月份计算</h2>
+<div class="demo-block" id="month-block"></div>
+<pre class="code-block">import { getLastMonth, getNextMonth, monthsOffsetCalc } from '../src/Lang/Time.js';
+
+// 上个月
+getLastMonth(2026, 1);   // { year: 2025, month: 12 }
+// 下个月
+getNextMonth(2026, 12);  // { year: 2027, month: 1 }
+// 3 个月后的年月
+monthsOffsetCalc(3);     // { year, month }</pre>
+</div>
+
+<script type="module">
+import { formatDate, prettyTime, countDown, getLastMonth, getNextMonth, monthsOffsetCalc } from '../src/Lang/Time.js';
+
+// 格式化表格
+const table = document.getElementById('format-table');
+const formats = [
+  ['Y-m-d H:i:s', '年-月-日 时:分:秒'],
+  ['Y/m/d', '年/月/日'],
+  ['Y年m月d日', '中文格式'],
+  ['H:i:s', '时:分:秒'],
+  ['m/d/Y', '美式格式'],
+];
+formats.forEach(([fmt, desc]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><code>${fmt}</code>（${desc}）</td><td><b>${formatDate(fmt)}</b></td>`;
+  table.appendChild(tr);
+});
+
+// prettyTime
+const block = document.getElementById('pretty-block');
+[500, 30000, 90000, 3661000, 86400000 * 2].forEach(ms => {
+  const p = document.createElement('div');
+  p.innerHTML = `<code>${ms.toLocaleString()} ms</code> → <b>${prettyTime(ms)}</b>`;
+  p.style.marginBottom = '0.3em';
+  block.appendChild(p);
+});
+
+// 倒计时
+let stopFn = null;
+const display = document.getElementById('countdown-display');
+
+document.getElementById('btn-start-cd').onclick = () => {
+  if (stopFn) stopFn();
+  stopFn = countDown(10000, (remaining) => {
+    display.textContent = (remaining / 1000).toFixed(1) + ' 秒';
+    display.style.color = remaining < 3000 ? '#dc2626' : '#2563eb';
+  }, () => {
+    display.textContent = '🎉 时间到！';
+    stopFn = null;
+  });
+};
+
+document.getElementById('btn-stop-cd').onclick = () => {
+  if (stopFn) { stopFn(); stopFn = null; display.textContent = '已停止'; }
+};
+
+// 月份
+const monthBlock = document.getElementById('month-block');
+const now = new Date();
+const y = now.getFullYear(), m = now.getMonth() + 1;
+const last = getLastMonth(y, m);
+const next = getNextMonth(y, m);
+const offset3 = monthsOffsetCalc(3);
+monthBlock.innerHTML = `
+  <div>当前月：<b>${y}-${m}</b></div>
+  <div>上个月：<b>${last.year}-${last.month}</b></div>
+  <div>下个月：<b>${next.year}-${next.month}</b></div>
+  <div>3个月后：<b>${offset3.year}-${offset3.month}</b></div>
+`;
+</script>
+</body>
+</html>
